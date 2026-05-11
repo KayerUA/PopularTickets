@@ -76,6 +76,7 @@ export default async function CheckoutReturnPage({
         ticketPdfKindSecondary: tPdf("kindSecondary"),
         ticketPdfQrSecondary: tPdf("qrSecondary"),
         ticketPdfDisclaimer: tPdf("translationDisclaimer"),
+        ticketPdfNumberCaption: tPdf("ticketNumberCaption"),
       };
 
       const refreshHref =

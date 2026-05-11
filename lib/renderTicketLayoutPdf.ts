@@ -3,7 +3,11 @@ import path from "node:path";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, type PDFFont, type PDFImage, type PDFPage, rgb } from "pdf-lib";
 import { COMPANY, companyFooterShort } from "@/lib/company";
-import { TICKET_PDF_KIND_PL, TICKET_PDF_QR_HINT_PL } from "@/lib/ticketPdfLegalPl";
+import {
+  TICKET_PDF_KIND_PL,
+  TICKET_PDF_QR_HINT_PL,
+  TICKET_PDF_TICKET_NUMBER_HEADING_PL,
+} from "@/lib/ticketPdfLegalPl";
 
 export type TicketLayoutDocInput = {
   /** `data:image/png;base64,...` — QR как на странице */
@@ -17,6 +21,8 @@ export type TicketLayoutDocInput = {
   ticketKindSecondary: string;
   ticketQrSecondary: string;
   ticketDisclaimer: string;
+  /** Мелкая подпись над номером билета на языке интерфейса (пусто = только PL). */
+  ticketNumberCaption?: string;
 };
 
 const GOLD = rgb(0.91, 0.83, 0.55);
@@ -281,14 +287,20 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
   page.drawText(input.dateTimeLabel, { x: margin, y: y - 9, size: 9, font, color: rgb(0.88, 0.86, 0.9) });
   y -= 14;
 
-  page.drawText("NUMER BILETU", {
+  page.drawText(TICKET_PDF_TICKET_NUMBER_HEADING_PL, {
     x: margin,
     y: y - 6,
     size: 5.5,
     font: fontBold,
     color: GOLD_MUTED,
   });
-  y -= 9;
+  y -= 8;
+  const numCap = (input.ticketNumberCaption ?? "").trim();
+  if (numCap) {
+    page.drawText(numCap, { x: margin, y: y - 2, size: 4.8, font, color: rgb(0.52, 0.5, 0.46) });
+    y -= 7;
+  }
+  y -= 2;
   page.drawText(input.ticketNumber, { x: margin, y: y - 11, size: 12.5, font: fontBold, color: GOLD_BRIGHT });
   y -= 20;
 

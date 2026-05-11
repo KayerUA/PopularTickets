@@ -13,7 +13,7 @@
     "privacyDescription": "Zasady przetwarzania danych osobowych w serwisie PopularTickets (RODO).",
     "homeKeywords": "PopularTickets, bilety, wydarzenia, Polska, Warszawa, teatr, koncerty, płatność online",
     "checkoutReturnTitle": "Dziękujemy za zamówienie — PopularTickets",
-    "checkoutReturnDescription": "Strona potwierdzenia zamówienia PopularTickets (noindex)."
+    "checkoutReturnDescription": "Potwierdzenie zamówienia i dostęp do biletów w serwisie PopularTickets."
   },
   "Nav": {
     "events": "Wydarzenia",
@@ -28,8 +28,8 @@
   "Footer": {
     "operator": "Usługa sprzedaży biletów. Operator:",
     "ctaDetails": "Dane sprzedawcy i płatności",
-    "staffLogin": "Panel organizatora (admin)",
-    "staffCheckin": "Panel kontrolera (check-in)",
+    "staffLogin": "Panel dla zespołu (sprzedaż)",
+    "staffCheckin": "Wejście dla kontroli biletów",
     "tagline": "Polska · wydarzenia · bilety online",
     "socialHeading": "Teatr w mediach społecznościowych",
     "socialIntro": "Wesprzyj nasz teatr — obserwuj na Instagramie i zasubskrybuj kanał na YouTube: ogłoszenia, kulisy i linki do występów.",
@@ -48,7 +48,7 @@
     "privacyLink": "Szczegóły zbierania i przetwarzania danych: <link>Polityka prywatności</link>.",
     "essentialOnly": "Tylko niezbędne",
     "acceptAll": "Akceptuję wszystkie",
-    "storageNote": "Twój wybór zapisujemy lokalnie w przeglądarce (localStorage). Możesz go zmienić, usuwając dane witryny PopularTickets w ustawieniach przeglądarki."
+    "storageNote": "Twój wybór zapisujemy w tej przeglądarce. Możesz go zmienić, czyszcząc dane witryny PopularTickets w ustawieniach przeglądarki."
   },
   "Home": {
     "brand": "Popular Poet",
@@ -56,26 +56,23 @@
     "subtitle": "Lokalne sceny i kameralne imprezy w Polsce. Kup bilet w kilka kliknięć — wybierz wydarzenie, zapłać online, bez skomplikowanej rejestracji.",
     "sectionLabel": "01 — wydarzenia",
     "empty": "Brak opublikowanych wydarzeń.",
-    "loadError": "Nie udało się wczytać listy. Sprawdź konfigurację Supabase."
+    "loadError": "Nie udało się wczytać listy wydarzeń. Spróbuj odświeżyć stronę za chwilę. Jeśli problem się powtarza, skontaktuj się z nami — dane w zakładce „Informacje”."
   },
   "Marquee": {
     "phrase": "Popular Poet · PopularTickets · Warszawa · bilety · wydarzenia na żywo · "
   },
   "SupabaseHint": {
-    "titleSetup": "Najpierw skonfiguruj Supabase",
-    "titleDisconnected": "Supabase nie jest podłączony",
-    "intro": "Do listy wydarzeń i zamówień potrzebne są klucze Supabase. Skopiuj",
-    "and": "→",
-    "fill": "i uzupełnij:",
-    "sqlNote": "Schemat SQL:",
-    "restartNote": "Po zapisaniu .env.local uruchom ponownie",
+    "titleSetup": "Konfiguracja serwisu",
+    "titleDisconnected": "Chwilowa niedostępność",
+    "introDisconnected": "Nie możemy teraz pobrać listy wydarzeń lub zamówień. Spróbuj odświeżyć stronę za kilka minut. Jeśli problem się powtarza, napisz do nas — dane kontaktowe znajdziesz w zakładce „Dane sprzedawcy”.",
+    "intro": "Instrukcje przykładowe są w pliku",
+    "and": "— przenieś je do",
+    "fill": "i wstaw właściwe klucze z panelu swojej bazy danych.",
+    "sqlNote": "W edytorze SQL bazy uruchom przygotowany skrypt schematu z repozytorium (np. plik",
+    "restartNote": "). Potem uruchom ponownie serwer:",
     "linkCompany": "Dane sprzedawcy",
-    "queryFailedIntro": "Typowe przyczyny błędu:",
-    "queryFailedVercel": "Na Vercel: Project → Settings → Environment Variables (Production / Preview): ustaw NEXT_PUBLIC_SUPABASE_URL oraz SUPABASE_SERVICE_ROLE_KEY — po zmianie wykonaj Redeploy.",
-    "queryFailedSchema": "W Supabase → SQL Editor uruchom cały plik supabase/schema.sql z repozytorium (tabele events, orders, tickets).",
-    "queryFailedServiceRole": "Wklej klucz service_role (Project Settings → API), nie anon i bez spacji na początku/końcu.",
-    "queryFailedRedeploy": "URL projektu kończy się na .supabase.co — bez dodatkowej ścieżki; zapisz zmienne i zdeployuj ponownie.",
-    "queryFailedDevPrefix": "Szczegóły (tylko dev):"
+    "queryFailedHelp": "• Odśwież stronę za chwilę.\n• Jeśli komunikat wraca — skorzystaj z danych kontaktowych w zakładce „Dane sprzedawcy” i napisz do nas, podając godzinę próby i nazwę wydarzenia.",
+    "queryFailedDevPrefix": "Szczegóły techniczne (środowisko developerskie):"
   },
   "EventPage": {
     "priceLabel": "Cena za bilet",
@@ -83,7 +80,7 @@
     "soldOut": "Wyprzedane.",
     "purchaseClosedPast": "To wydarzenie już się odbyło — sprzedaż biletów jest zamknięta.",
     "loadRemainingError": "Błąd wczytywania dostępności",
-    "loadQueryError": "Nie udało się wczytać wydarzenia z bazy. Sprawdź Supabase.",
+    "loadQueryError": "Nie udało się wczytać wydarzenia. Spróbuj ponownie za chwilę lub wróć do listy wydarzeń.",
     "openInMaps": "Otwórz w Google Maps"
   },
   "EventCard": {
@@ -103,12 +100,12 @@
     "email": "Email",
     "phone": "Telefon (opcjonalnie)",
     "quantity": "Liczba biletów",
-    "bypassHint": "Tryb demo: bez Przelewy24 — po wysłaniu formularza od razu potwierdzamy zakup (e-mail z biletami, jeśli skonfigurowano Resend).",
+    "bypassHint": "Tryb demonstracyjny: bez płatności online — po wysłaniu formularza od razu potwierdzamy zakup i wysyłamy bilety na e-mail (jeśli wysyłka jest włączona po stronie organizatora).",
     "submit": "Przejdź do płatności (Przelewy24)",
     "submitBypass": "Potwierdź zamówienie (demo)",
     "submitting": "Tworzymy zamówienie…",
     "hint": "Po opłaceniu bilety trafią na email. Status płatności potwierdzamy automatycznie.",
-    "hintBypass": "W trybie demo bilety trafiają na email od razu po wysłaniu (wymaga skonfigurowanego Resend).",
+    "hintBypass": "W trybie demonstracyjnym bilety trafiają na e-mail od razu po wysłaniu (wymaga włączonej wysyłki po stronie organizatora).",
     "errorGeneric": "Nie udało się utworzyć zamówienia",
     "legalConsent": "Akceptuję <terms>regulamin serwisu</terms> oraz <privacy>politykę prywatności</privacy> — jest to wymagane, aby złożyć zamówienie."
   },
@@ -117,26 +114,27 @@
     "title": "Dziękujemy!",
     "titleWithTickets": "Bilety gotowe",
     "body": "Jeśli płatność się powiodła, bilety wyślemy na Twój adres e-mail w ciągu kilku minut. Status potwierdzenia banku może przyjść osobną wiadomością.",
-    "introWithTickets": "Poniżej są kody QR — to samo wyślemy na e-mail (możesz też zrobić zrzut ekranu na własny użytek).",
+    "introWithTickets": "Poniżej są kody QR — to samo wyślemy na e-mail (możesz też zapisać zrzut ekranu na własny użytek).",
     "ticketsHeading": "Twoje bilety",
     "ticketLabel": "Numer biletu",
     "downloadTicket": "Pobierz bilet (PDF)",
-    "copyId": "Skopiuj identyfikator",
+    "copyId": "Skopiuj kod zapasowy (dla obsługi)",
     "copiedId": "Skopiowano",
     "emailAlso": "Kopia na e-mail:",
     "shareWarning": "Nie udostępniaj tej strony — link pozwala odczytać bilety.",
-    "checkInHint": "Na wejściu pokaż QR lub wpisz identyfikator na stronie check-in.",
+    "checkInHint": "Na wejściu pokaż kod QR na telefonie lub ten numer biletu — obsługa zeskanuje go lub wpisze ręcznie.",
     "pendingTitle": "Czekamy na potwierdzenie płatności",
     "pendingBody": "Bank może potrzebować chwilę. Za chwilę odśwież stronę — bilety pojawią się tutaj po zaksięgowaniu.",
     "pendingHint": "Jeśli płatność się nie powiodła, zamówienie pozostanie oczekujące.",
     "refresh": "Odśwież",
     "unpaidBody": "Nie widzimy potwierdzonej płatności dla tego zamówienia. Jeśli płaciłeś/aś kartą, sprawdź e-mail od banku lub spróbuj ponownie ze strony wydarzenia.",
-    "receiptAccessDenied": "Link do potwierdzenia jest nieprawidłowy lub wygasł. Otwórz stronę z przekierowania po płatności albo skontaktuj się z obsługą. Surowy numer zamówienia w URL bez podpisu nie jest akceptowany (ustawiono ORDER_RECEIPT_SECRET)."
+    "receiptAccessDenied": "Ten link do potwierdzenia jest nieprawidłowy lub wygasł. Otwórz stronę, na którą wróciłeś/aś po płatności z banku, albo skontaktuj się z nami — dane w zakładce „Informacje”. Nie udostępniaj linku osobom postronnym."
   },
   "TicketPdf": {
     "kindSecondary": "",
     "qrSecondary": "",
-    "translationDisclaimer": ""
+    "translationDisclaimer": "",
+    "ticketNumberCaption": ""
   },
   "Legal": {
     "backHome": "← Strona główna",
@@ -144,7 +142,7 @@
     "intro": "Poniżej znajdziesz dane podmiotu obsługującego serwis {product}. W razie pytań dotyczących zamówienia skontaktuj się z nami mailowo.",
     "sellerTitle": "Sprzedawca",
     "legalNameLabel": "Pełna nazwa prawna",
-    "contactEnvHint": "Ustaw NEXT_PUBLIC_CONTACT_EMAIL w pliku .env.local.",
+    "contactEnvHint": "Adres e-mail kontaktowy pojawi się tutaj po uzupełnieniu danych przez organizatora serwisu.",
     "addressLabel": "Adres",
     "nipLabel": "NIP",
     "krsLabel": "KRS",

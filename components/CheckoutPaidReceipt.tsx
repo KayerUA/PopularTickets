@@ -17,6 +17,7 @@ export type CheckoutReceiptLabels = {
   ticketPdfKindSecondary: string;
   ticketPdfQrSecondary: string;
   ticketPdfDisclaimer: string;
+  ticketPdfNumberCaption: string;
 };
 
 export async function CheckoutPaidReceipt({
@@ -43,6 +44,7 @@ export async function CheckoutPaidReceipt({
         ticketKindSecondary: labels.ticketPdfKindSecondary,
         ticketQrSecondary: labels.ticketPdfQrSecondary,
         ticketDisclaimer: labels.ticketPdfDisclaimer,
+        ticketNumberCaption: labels.ticketPdfNumberCaption,
       });
       const ticketPdfDataUrl = `data:application/pdf;base64,${pdfBuf.toString("base64")}`;
       return { ...t, dataUrl, ticketPdfDataUrl };
