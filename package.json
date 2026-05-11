@@ -12,15 +12,17 @@
     "seed:improv": "node scripts/seed-improv-event.mjs"
   },
   "dependencies": {
-    "@fontsource/noto-sans": "^5.2.10",
+    "@pdf-lib/fontkit": "^1.1.1",
     "@supabase/supabase-js": "^2.49.1",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
+    "dejavu-fonts-ttf": "^2.37.3",
     "framer-motion": "^11.18.2",
     "html5-qrcode": "^2.3.8",
     "jose": "^5.9.6",
     "next": "15.5.18",
     "next-intl": "^3.26.5",
+    "pdf-lib": "^1.17.1",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -120,7 +120,7 @@
     "introWithTickets": "Нижче — ваші QR-коди; те саме надійде на email (можна зробити скриншот для себе).",
     "ticketsHeading": "Ваші квитки",
     "ticketLabel": "Номер квитка",
-    "downloadTicket": "Завантажити квиток (PNG)",
+    "downloadTicket": "Завантажити квиток (PDF)",
     "ticketPngKind": "Електронний квиток",
     "ticketPngQrHint": "QR-код = ідентифікатор для входу",
     "copyId": "Скопіювати ID",

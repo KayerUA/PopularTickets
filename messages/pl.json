@@ -120,7 +120,7 @@
     "introWithTickets": "Poniżej są kody QR — to samo wyślemy na e-mail (możesz też zrobić zrzut ekranu na własny użytek).",
     "ticketsHeading": "Twoje bilety",
     "ticketLabel": "Numer biletu",
-    "downloadTicket": "Pobierz bilet (PNG)",
+    "downloadTicket": "Pobierz bilet (PDF)",
     "ticketPngKind": "Bilet elektroniczny",
     "ticketPngQrHint": "Kod QR = identyfikator przy wejściu",
     "copyId": "Skopiuj identyfikator",

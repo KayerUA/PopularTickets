@@ -120,7 +120,7 @@
     "introWithTickets": "Ниже — ваши QR-коды; то же самое придёт на email (можно сделать скриншот для себя).",
     "ticketsHeading": "Ваши билеты",
     "ticketLabel": "Номер билета",
-    "downloadTicket": "Скачать билет (PNG)",
+    "downloadTicket": "Скачать билет (PDF)",
     "ticketPngKind": "Электронный билет",
     "ticketPngQrHint": "QR-код = идентификатор при входе",
     "copyId": "Скопировать ID",
