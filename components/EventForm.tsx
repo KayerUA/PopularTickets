@@ -76,9 +76,10 @@ export function EventForm({ event }: { event?: AdminEventRow }) {
           </label>
           <p className="text-xs text-zinc-500">
             Загрузка в Supabase Storage (до 5 МБ). Бакет <code className="font-mono">event-images</code> создаётся
-            автоматически при первой загрузке (если ключ — service role). Дополнительно можно выполнить SQL{" "}
-            <code className="rounded bg-zinc-900 px-1 font-mono text-zinc-400">supabase/storage-event-images.sql</code>{" "}
-            (политика чтения).
+            автоматически при первой загрузке (service role). Поле «карта» в БД — после SQL{" "}
+            <code className="rounded bg-zinc-900 px-1 font-mono text-zinc-400">supabase/add-maps-url.sql</code>{" "}
+            (RPC <code className="font-mono">pt_event_*</code>). Storage:{" "}
+            <code className="rounded bg-zinc-900 px-1 font-mono text-zinc-400">supabase/storage-event-images.sql</code>.
           </p>
           <label className="block text-sm text-zinc-300">
             Или ссылка / путь (опционально)
