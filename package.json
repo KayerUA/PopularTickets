@@ -12,6 +12,7 @@
     "seed:improv": "node scripts/seed-improv-event.mjs"
   },
   "dependencies": {
+    "@fontsource/noto-sans": "^5.2.10",
     "@supabase/supabase-js": "^2.49.1",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
