@@ -2,6 +2,7 @@ import { getServiceSupabase } from "@/lib/supabase/admin";
 import { HomeEventsGrid } from "@/components/HomeEventsGrid";
 import { MarqueeStrip } from "@/components/MarqueeStrip";
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
+import { SupabaseQueryErrorPanel } from "@/components/SupabaseQueryErrorPanel";
 import type { EventCardProps } from "@/components/EventCard";
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
@@ -37,11 +38,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
     .order("starts_at", { ascending: true });
 
   if (error) {
-    return (
-      <div className="poet-safe-x mx-auto max-w-5xl py-12 text-red-400 sm:py-16">
-        {t("loadError")}
-      </div>
-    );
+    return <SupabaseQueryErrorPanel locale={locale} error={error} titleNamespace="Home" titleKey="loadError" />;
   }
 
   const list: EventCardProps[] =

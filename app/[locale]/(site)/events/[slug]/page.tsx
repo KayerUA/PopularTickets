@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { getServiceSupabase } from "@/lib/supabase/admin";
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
+import { SupabaseQueryErrorPanel } from "@/components/SupabaseQueryErrorPanel";
 import { formatPlnFromGrosze, formatEventDateTime } from "@/lib/format";
 import { EventCheckoutForm } from "@/components/EventCheckoutForm";
 import { getTranslations } from "next-intl/server";
@@ -53,7 +54,10 @@ export default async function EventPage({
     .eq("is_published", true)
     .maybeSingle();
 
-  if (error || !event) notFound();
+  if (error) {
+    return <SupabaseQueryErrorPanel locale={locale} error={error} titleNamespace="EventPage" titleKey="loadQueryError" />;
+  }
+  if (!event) notFound();
 
   const { count: sold, error: cErr } = await supabase
     .from("tickets")

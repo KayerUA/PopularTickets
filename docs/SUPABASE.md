@@ -53,3 +53,10 @@ Otwórz `http://localhost:3000` — middleware przekieruje na domyślną wersję
 ## 5. Produkcja
 
 W hostingu (np. Vercel) dodaj te same zmienne w **Environment Variables** dla środowiska **Production** (i ewentualnie **Preview**). Po zmianie zmiennych wykonaj ponowny deploy.
+
+## 6. Rozwiązywanie problemów
+
+- Komunikat **„nie udało się wczytać listy”** na stronie głównej: w logach Vercel (**Functions / Logs**) szukaj `[PopularTickets][Supabase]` — tam jest `message` / `code` z PostgREST.
+- **Brak tabeli** — uruchom ponownie `supabase/schema.sql` w SQL Editor.
+- **Invalid API key / JWT** — wklejono `anon` zamiast `service_role`, albo literówka w zmiennej `SUPABASE_SERVICE_ROLE_KEY`.
+- **Spacje** w URL lub kluczu z panelu — aplikacja obcina białe znaki, ale warto sprawdzić kopię.

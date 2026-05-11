@@ -40,13 +40,20 @@
     "fill": "i uzupełnij:",
     "sqlNote": "Schemat SQL:",
     "restartNote": "Po zapisaniu .env.local uruchom ponownie",
-    "linkCompany": "Dane sprzedawcy"
+    "linkCompany": "Dane sprzedawcy",
+    "queryFailedIntro": "Typowe przyczyny błędu:",
+    "queryFailedVercel": "Na Vercel: Project → Settings → Environment Variables (Production / Preview): ustaw NEXT_PUBLIC_SUPABASE_URL oraz SUPABASE_SERVICE_ROLE_KEY — po zmianie wykonaj Redeploy.",
+    "queryFailedSchema": "W Supabase → SQL Editor uruchom cały plik supabase/schema.sql z repozytorium (tabele events, orders, tickets).",
+    "queryFailedServiceRole": "Wklej klucz service_role (Project Settings → API), nie anon i bez spacji na początku/końcu.",
+    "queryFailedRedeploy": "URL projektu kończy się na .supabase.co — bez dodatkowej ścieżki; zapisz zmienne i zdeployuj ponownie.",
+    "queryFailedDevPrefix": "Szczegóły (tylko dev):"
   },
   "EventPage": {
     "priceLabel": "Cena za bilet",
     "remainingLabel": "Pozostało",
     "soldOut": "Wyprzedane.",
-    "loadRemainingError": "Błąd wczytywania dostępności"
+    "loadRemainingError": "Błąd wczytywania dostępności",
+    "loadQueryError": "Nie udało się wczytać wydarzenia z bazy. Sprawdź Supabase."
   },
   "EventCard": {
     "buy": "Kup bilet"

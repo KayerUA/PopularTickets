@@ -40,13 +40,20 @@
     "fill": "і заповніть:",
     "sqlNote": "SQL-схема:",
     "restartNote": "Після збереження .env.local перезапустіть",
-    "linkCompany": "Дані продавця"
+    "linkCompany": "Дані продавця",
+    "queryFailedIntro": "Типові причини помилки:",
+    "queryFailedVercel": "На Vercel: Project → Settings → Environment Variables (Production / Preview): задайте NEXT_PUBLIC_SUPABASE_URL та SUPABASE_SERVICE_ROLE_KEY — після зміни зробіть Redeploy.",
+    "queryFailedSchema": "У Supabase → SQL Editor виконайте весь файл supabase/schema.sql з репозиторію (таблиці events, orders, tickets).",
+    "queryFailedServiceRole": "Вставте ключ service_role (Project Settings → API), не anon і без пробілів на початку/в кінці.",
+    "queryFailedRedeploy": "URL проєкту закінчується на .supabase.co — без зайвого шляху; збережіть змінні та задеплойте знову.",
+    "queryFailedDevPrefix": "Деталі (лише dev):"
   },
   "EventPage": {
     "priceLabel": "Ціна за квиток",
     "remainingLabel": "Залишилось",
     "soldOut": "Розпродано.",
-    "loadRemainingError": "Помилка завантаження наявності"
+    "loadRemainingError": "Помилка завантаження наявності",
+    "loadQueryError": "Не вдалося завантажити подію з бази. Перевірте Supabase."
   },
   "EventCard": {
     "buy": "Купити"

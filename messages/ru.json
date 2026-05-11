@@ -40,13 +40,20 @@
     "fill": "и заполните:",
     "sqlNote": "SQL-схема:",
     "restartNote": "После сохранения .env.local перезапустите",
-    "linkCompany": "Данные продавца"
+    "linkCompany": "Данные продавца",
+    "queryFailedIntro": "Типичные причины ошибки:",
+    "queryFailedVercel": "На Vercel: Project → Settings → Environment Variables (Production / Preview): задайте NEXT_PUBLIC_SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY — после изменения сделайте Redeploy.",
+    "queryFailedSchema": "В Supabase → SQL Editor выполните весь файл supabase/schema.sql из репозитория (таблицы events, orders, tickets).",
+    "queryFailedServiceRole": "Вставьте ключ service_role (Project Settings → API), не anon и без пробелов в начале/конце.",
+    "queryFailedRedeploy": "URL проекта заканчивается на .supabase.co — без лишнего пути; сохраните переменные и задеплойте снова.",
+    "queryFailedDevPrefix": "Детали (только dev):"
   },
   "EventPage": {
     "priceLabel": "Цена за билет",
     "remainingLabel": "Осталось",
     "soldOut": "Распродано.",
-    "loadRemainingError": "Ошибка загрузки доступности"
+    "loadRemainingError": "Ошибка загрузки доступности",
+    "loadQueryError": "Не удалось загрузить событие из базы. Проверьте Supabase."
   },
   "EventCard": {
     "buy": "Купить билет"

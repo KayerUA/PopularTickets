@@ -5,7 +5,9 @@ let missingEnvLogged = false;
 
 /** Есть ли переменные для серверного клиента Supabase. */
 export function isSupabaseConfigured(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() && process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  );
 }
 
 /**
@@ -14,8 +16,8 @@ export function isSupabaseConfigured(): boolean {
  */
 export function getServiceSupabase(): SupabaseClient | null {
   if (cached) return cached;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   if (!url || !key) {
     if (process.env.NODE_ENV === "production") {
       throw new Error("NEXT_PUBLIC_SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY обязательны");
@@ -28,7 +30,8 @@ export function getServiceSupabase(): SupabaseClient | null {
     }
     return null;
   }
-  cached = createClient(url, key, {
+  const normalizedUrl = url.replace(/\/+$/, "");
+  cached = createClient(normalizedUrl, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   return cached;
