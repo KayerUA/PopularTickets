@@ -112,7 +112,7 @@ export async function createPendingOrder(formData: FormData) {
     }
     revalidatePath(`/${locale}`);
     revalidatePath(`/${locale}/events/${eventSlug}`);
-    redirect(`/${locale}/checkout/return`);
+    redirect(`/${locale}/checkout/return?order=${encodeURIComponent(orderId)}`);
   }
 
   let baseUrl: string;
@@ -143,7 +143,7 @@ export async function createPendingOrder(formData: FormData) {
     email,
     country: "PL",
     language: p24Lang,
-    urlReturn: `${baseUrl}/${locale}/checkout/return`,
+    urlReturn: `${baseUrl}/${locale}/checkout/return?order=${encodeURIComponent(orderId)}`,
     urlStatus: `${baseUrl}/api/p24/notify`,
     sign,
   });

@@ -81,7 +81,22 @@
   "CheckoutReturn": {
     "brand": "Popular Poet",
     "title": "Dziękujemy!",
-    "body": "Jeśli płatność się powiodła, bilety wyślemy na Twój adres e-mail w ciągu kilku minut. Status potwierdzenia banku może przyjść osobną wiadomością."
+    "titleWithTickets": "Bilety gotowe",
+    "body": "Jeśli płatność się powiodła, bilety wyślemy na Twój adres e-mail w ciągu kilku minut. Status potwierdzenia banku może przyjść osobną wiadomością.",
+    "introWithTickets": "Poniżej są kody QR — to samo wyślemy na e-mail (możesz też zrobić zrzut ekranu na własny użytek).",
+    "ticketsHeading": "Twoje bilety",
+    "ticketLabel": "Numer biletu",
+    "downloadQr": "Pobierz PNG",
+    "copyId": "Skopiuj identyfikator",
+    "copiedId": "Skopiowano",
+    "emailAlso": "Kopia na e-mail:",
+    "shareWarning": "Nie udostępniaj tej strony — link pozwala odczytać bilety.",
+    "checkInHint": "Na wejściu pokaż QR lub wpisz identyfikator na stronie check-in.",
+    "pendingTitle": "Czekamy na potwierdzenie płatności",
+    "pendingBody": "Bank może potrzebować chwilę. Za chwilę odśwież stronę — bilety pojawią się tutaj po zaksięgowaniu.",
+    "pendingHint": "Jeśli płatność się nie powiodła, zamówienie pozostanie oczekujące.",
+    "refresh": "Odśwież",
+    "unpaidBody": "Nie widzimy potwierdzonej płatności dla tego zamówienia. Jeśli płaciłeś/aś kartą, sprawdź e-mail od banku lub spróbuj ponownie ze strony wydarzenia."
   },
   "Legal": {
     "backHome": "← Strona główna",
