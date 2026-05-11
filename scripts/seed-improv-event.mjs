@@ -72,12 +72,13 @@ const description = `Как провести вечер пятницы? Сход
 
 Билет — 100 zł.`;
 
+const mapsUrl = "https://maps.app.goo.gl/jz9E6JUn8rcymRoH7?g_st=ic";
+
 const row = {
   slug,
   title: "Как провести вечер пятницы? Шоу «Импровизация»",
   description,
   image_url: "/events/improv-swietlica-2026-05-08.png",
-  maps_url: "https://maps.app.goo.gl/jz9E6JUn8rcymRoH7?g_st=ic",
   venue: "Świetlica Wolności — Nowy Świat 6/12, 00-400 Warszawa",
   starts_at: "2026-05-08T19:00:00.000Z",
   price_grosze: 10000,
@@ -93,21 +94,33 @@ if (selErr) {
   process.exit(1);
 }
 
+let eventId;
+
 if (existing?.id) {
-  const { error: upErr } = await supabase.from("events").update(row).eq("id", existing.id);
+  eventId = existing.id;
+  const { error: upErr } = await supabase.from("events").update(row).eq("id", eventId);
   if (upErr) {
     console.error("Ошибка обновления:", upErr.message);
     process.exit(1);
   }
-  console.log("Событие обновлено:", slug, existing.id);
+  console.log("Событие обновлено:", slug, eventId);
 } else {
   const { data, error: insErr } = await supabase.from("events").insert(row).select("id").single();
-  if (insErr) {
-    console.error("Ошибка вставки:", insErr.message, insErr.code);
+  if (insErr || !data?.id) {
+    console.error("Ошибка вставки:", insErr?.message, insErr?.code);
     console.error("Если таблицы нет — выполните supabase/schema.sql в SQL Editor Supabase.");
     process.exit(1);
   }
-  console.log("Событие создано:", slug, data.id);
+  eventId = data.id;
+  console.log("Событие создано:", slug, eventId);
+}
+
+const { error: mapErr } = await supabase.rpc("pt_event_set_maps_url", {
+  p_event_id: eventId,
+  p_maps_url: mapsUrl,
+});
+if (mapErr) {
+  console.warn("maps_url через RPC не записан (выполните supabase/add-maps-url.sql):", mapErr.message);
 }
 
 console.log("Публичная страница: /pl/events/" + slug + " (и /uk, /ru)");

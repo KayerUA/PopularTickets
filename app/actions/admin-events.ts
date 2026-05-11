@@ -4,6 +4,7 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
+import { setMapsUrlRpc } from "@/lib/supabase/mapsUrlRpc";
 import { uploadEventCoverImage } from "@/lib/supabase/eventImageUpload";
 import { requireAdmin } from "@/lib/adminGuard";
 import { routing } from "@/i18n/routing";
@@ -98,7 +99,6 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       title: v.title,
       description: v.description,
       image_url: imageUrlFinal,
-      maps_url: v.mapsUrl || null,
       venue: v.venue,
       starts_at: new Date(v.startsAt).toISOString(),
       price_grosze: priceGrosze,
@@ -106,12 +106,23 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       is_published: isPublished,
     };
 
+    let eventIdForMaps: string;
+
     if (v.id) {
       const { error } = await supabase.from("events").update(payload).eq("id", v.id);
       if (error) return { error: error.message };
+      eventIdForMaps = v.id;
     } else {
-      const { error } = await supabase.from("events").insert(payload);
-      if (error) return { error: error.message };
+      const { data: inserted, error } = await supabase.from("events").insert(payload).select("id").single();
+      if (error || !inserted?.id) return { error: error?.message ?? "insert events" };
+      eventIdForMaps = inserted.id as string;
+    }
+
+    const mapsErr = await setMapsUrlRpc(supabase, eventIdForMaps, v.mapsUrl || null);
+    if (mapsErr.error) {
+      return {
+        error: `${mapsErr.error} — выполните в Supabase SQL из репозитория supabase/add-maps-url.sql (функции pt_event_*).`,
+      };
     }
 
     for (const loc of routing.locales) {

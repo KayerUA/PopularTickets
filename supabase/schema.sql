@@ -96,6 +96,34 @@ create trigger orders_set_updated_at
 before update on public.orders
 for each row execute function public.set_updated_at();
 
+-- maps_url: RPC для PostgREST (избегает «column … not in the schema cache» при REST select/update).
+create or replace function public.pt_event_maps_url(p_event_id uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select maps_url from public.events where id = p_event_id limit 1;
+$$;
+
+create or replace function public.pt_event_set_maps_url(p_event_id uuid, p_maps_url text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.events
+  set maps_url = nullif(trim(p_maps_url), '')
+  where id = p_event_id;
+$$;
+
+revoke all on function public.pt_event_maps_url(uuid) from public;
+grant execute on function public.pt_event_maps_url(uuid) to service_role;
+
+revoke all on function public.pt_event_set_maps_url(uuid, text) from public;
+grant execute on function public.pt_event_set_maps_url(uuid, text) to service_role;
+
 -- RLS: доступ только через service role (ключ на сервере). Анониму — без политик.
 alter table public.events enable row level security;
 alter table public.orders enable row level security;
