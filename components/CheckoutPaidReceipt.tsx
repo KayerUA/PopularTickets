@@ -50,6 +50,9 @@ export async function CheckoutPaidReceipt({
         ticketQrSecondary: labels.ticketPdfQrSecondary,
         ticketDisclaimer: labels.ticketPdfDisclaimer,
         ticketNumberCaption: labels.ticketPdfNumberCaption,
+        ticketLabel: labels.ticketLabel,
+        ticketRibbon: labels.ticketRibbon,
+        stubControl: labels.stubControl,
       });
       const ticketPdfDataUrl = `data:application/pdf;base64,${pdfBuf.toString("base64")}`;
       return { ...t, dataUrl, ticketPdfDataUrl };
