@@ -5,6 +5,7 @@ import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 import { MotionProvider } from "@/components/MotionProvider";
 import { CookieConsent } from "@/components/CookieConsent";
+import { getSiteMetadataBase } from "@/lib/seo";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-sans" });
 const playfair = Playfair_Display({
@@ -14,10 +15,17 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: getSiteMetadataBase(),
   title: "PopularTickets",
-  description: "Bilety na wydarzenia w Polsce.",
+  description: "Bilety na wydarzenia w Polsce — PopularTickets.",
+  applicationName: "PopularTickets",
   openGraph: {
     siteName: "PopularTickets",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

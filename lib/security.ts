@@ -1,4 +1,6 @@
 import crypto from "crypto";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 const WINDOW_MS = 60_000;
 const MAX = 60;
@@ -11,7 +13,7 @@ function prune(key: string, now: number) {
   if (b && now > b.resetAt) buckets.delete(key);
 }
 
-export function rateLimit(key: string, max = MAX, windowMs = WINDOW_MS): boolean {
+function memoryRateLimit(key: string, max: number, windowMs: number): boolean {
   const now = Date.now();
   prune(key, now);
   const existing = buckets.get(key);
@@ -26,6 +28,41 @@ export function rateLimit(key: string, max = MAX, windowMs = WINDOW_MS): boolean
   if (existing.count >= max) return false;
   existing.count += 1;
   return true;
+}
+
+const upstashLimiterCache = new Map<string, Ratelimit>();
+
+function getUpstashLimiter(max: number, windowMs: number): Ratelimit | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+  if (!url || !token) return null;
+
+  const windowSeconds = Math.max(1, Math.ceil(windowMs / 1000));
+  const cacheKey = `${max}:${windowSeconds}`;
+  let rl = upstashLimiterCache.get(cacheKey);
+  if (!rl) {
+    const redis = new Redis({ url, token });
+    rl = new Ratelimit({
+      redis,
+      prefix: `popular:rl:${max}w${windowSeconds}`,
+      limiter: Ratelimit.slidingWindow(max, `${windowSeconds} s`),
+    });
+    upstashLimiterCache.set(cacheKey, rl);
+  }
+  return rl;
+}
+
+/**
+ * Ограничение частоты: при заданных UPSTASH_REDIS_REST_URL и UPSTASH_REDIS_REST_TOKEN
+ * используется Upstash (общий счётчик между инстансами serverless), иначе — in-memory Map.
+ */
+export async function rateLimit(key: string, max = MAX, windowMs = WINDOW_MS): Promise<boolean> {
+  const rl = getUpstashLimiter(max, windowMs);
+  if (rl) {
+    const { success } = await rl.limit(key);
+    return success;
+  }
+  return memoryRateLimit(key, max, windowMs);
 }
 
 export function clientIp(headers: Headers): string {

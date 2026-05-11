@@ -18,6 +18,7 @@ import { headers } from "next/headers";
 import { rateLimit, clientIp } from "@/lib/security";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { requirePublicAppUrlForP24 } from "@/lib/publicAppUrl";
+import { buildCheckoutReturnPath } from "@/lib/orderReceiptToken";
 
 const CheckoutSchema = z.object({
   eventSlug: z.string().min(1),
@@ -42,7 +43,7 @@ export async function createPendingOrder(formData: FormData) {
   const locale = (localeParsed.success ? localeParsed.data : routing.defaultLocale) as AppLocale;
   const t = await getTranslations({ locale, namespace: "Errors" });
 
-  if (!rateLimit(`order:${ip}`, 25, 60_000)) {
+  if (!(await rateLimit(`order:${ip}`, 25, 60_000))) {
     throw new Error(t("rateLimit"));
   }
 
@@ -152,7 +153,7 @@ export async function createPendingOrder(formData: FormData) {
     email,
     country: "PL",
     language: p24Lang,
-    urlReturn: `${baseUrl}/${locale}/checkout/return?order=${encodeURIComponent(orderId)}`,
+    urlReturn: `${baseUrl}${await buildCheckoutReturnPath(locale, orderId)}`,
     urlStatus: `${baseUrl}/api/p24/notify`,
     sign,
   });

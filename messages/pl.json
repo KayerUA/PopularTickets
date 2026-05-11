@@ -10,7 +10,10 @@
     "zwrotyTitle": "Zwroty i reklamacje",
     "zwrotyDescription": "Informacje o odstąpieniu od umowy, zwrotach i reklamacjach dotyczących biletów.",
     "privacyTitle": "Polityka prywatności",
-    "privacyDescription": "Zasady przetwarzania danych osobowych w serwisie PopularTickets (RODO)."
+    "privacyDescription": "Zasady przetwarzania danych osobowych w serwisie PopularTickets (RODO).",
+    "homeKeywords": "PopularTickets, bilety, wydarzenia, Polska, Warszawa, teatr, koncerty, płatność online",
+    "checkoutReturnTitle": "Dziękujemy za zamówienie — PopularTickets",
+    "checkoutReturnDescription": "Strona potwierdzenia zamówienia PopularTickets (noindex)."
   },
   "Nav": {
     "events": "Wydarzenia",
@@ -129,7 +132,8 @@
     "pendingBody": "Bank może potrzebować chwilę. Za chwilę odśwież stronę — bilety pojawią się tutaj po zaksięgowaniu.",
     "pendingHint": "Jeśli płatność się nie powiodła, zamówienie pozostanie oczekujące.",
     "refresh": "Odśwież",
-    "unpaidBody": "Nie widzimy potwierdzonej płatności dla tego zamówienia. Jeśli płaciłeś/aś kartą, sprawdź e-mail od banku lub spróbuj ponownie ze strony wydarzenia."
+    "unpaidBody": "Nie widzimy potwierdzonej płatności dla tego zamówienia. Jeśli płaciłeś/aś kartą, sprawdź e-mail od banku lub spróbuj ponownie ze strony wydarzenia.",
+    "receiptAccessDenied": "Link do potwierdzenia jest nieprawidłowy lub wygasł. Otwórz stronę z przekierowania po płatności albo skontaktuj się z obsługą. Surowy numer zamówienia w URL bez podpisu nie jest akceptowany (ustawiono ORDER_RECEIPT_SECRET)."
   },
   "Legal": {
     "backHome": "← Strona główna",

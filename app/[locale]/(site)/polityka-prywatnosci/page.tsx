@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { LegalArticle } from "@/components/LegalArticle";
 import { legalDocBlocks } from "@/lib/legalSections";
 import type { AppLocale } from "@/i18n/routing";
+import { buildPublicPageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -11,10 +12,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "metadata" });
-  return {
+  return buildPublicPageMetadata({
+    locale,
+    path: "/polityka-prywatnosci",
     title: t("privacyTitle"),
     description: t("privacyDescription"),
-  };
+  });
 }
 
 export default async function PolitykaPrywatnosciPage({ params }: { params: Promise<{ locale: AppLocale }> }) {

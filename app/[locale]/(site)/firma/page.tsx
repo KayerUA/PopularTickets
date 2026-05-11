@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { COMPANY, companyAddressOneLine, publicContactEmail, PRZELEWY24_LINKS, krsPublicSearchUrl } from "@/lib/company";
 import type { AppLocale } from "@/i18n/routing";
+import { buildPublicPageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -11,10 +12,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "metadata" });
-  return {
+  return buildPublicPageMetadata({
+    locale,
+    path: "/firma",
     title: t("firmaTitle"),
     description: t("firmaDescription"),
-  };
+  });
 }
 
 export default async function FirmaPage() {

@@ -4,7 +4,7 @@ import { clientIp, rateLimit } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
   const ip = clientIp(req.headers);
-  if (!rateLimit(`p24:${ip}`, 120, 60_000)) {
+  if (!(await rateLimit(`p24:${ip}`, 120, 60_000))) {
     return new NextResponse("rate limited", { status: 429 });
   }
 

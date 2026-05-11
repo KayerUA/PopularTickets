@@ -29,8 +29,15 @@ export async function lookupTicketAction(
 ): Promise<CheckinLookup> {
   const h = await headers();
   const ip = clientIp(h);
-  if (!rateLimit(`checkin-lookup:${ip}`, 120, 60_000)) {
+  if (!(await rateLimit(`checkin-lookup:${ip}`, 120, 60_000))) {
     return { status: "rate_limited" };
+  }
+
+  if (checkinToken()) {
+    const token = String(formData.get("operatorToken") || "");
+    if (!verifyCheckinToken(token)) {
+      return { status: "invalid" };
+    }
   }
 
   const raw = String(formData.get("code") || "").trim();
@@ -63,7 +70,7 @@ export async function lookupTicketAction(
 export async function markTicketUsedAction(formData: FormData): Promise<{ ok: boolean; error?: string }> {
   const h = await headers();
   const ip = clientIp(h);
-  if (!rateLimit(`checkin-mark:${ip}`, 200, 60_000)) {
+  if (!(await rateLimit(`checkin-mark:${ip}`, 200, 60_000))) {
     return { ok: false, error: "Слишком много запросов" };
   }
 

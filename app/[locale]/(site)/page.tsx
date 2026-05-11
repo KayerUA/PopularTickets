@@ -8,6 +8,9 @@ import { resolveEventMarketingStatus, sortEventsForMarketing } from "@/lib/event
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import type { AppLocale } from "@/i18n/routing";
+import { buildPublicPageMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/JsonLd";
+import { buildHomeJsonLd } from "@/lib/seo/eventJsonLd";
 
 export const revalidate = 60;
 
@@ -18,11 +21,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "metadata" });
-  return {
+  const keywords = t("homeKeywords")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return buildPublicPageMetadata({
+    locale,
+    path: "/",
     title: t("homeTitle"),
     description: t("homeDescription"),
-    openGraph: { siteName: "PopularTickets" },
-  };
+    keywords,
+  });
 }
 
 export default async function HomePage({ params }: { params: Promise<{ locale: AppLocale }> }) {
@@ -78,6 +87,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
 
   return (
     <div className="poet-safe-x mx-auto max-w-5xl py-10 sm:py-16">
+      <JsonLd data={buildHomeJsonLd(locale)} />
       <div className="animate-fade-up mb-10 max-w-2xl sm:mb-12">
         <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-poet-gold/80 sm:text-xs sm:tracking-[0.35em]">
           {t("brand")}

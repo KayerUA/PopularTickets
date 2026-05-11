@@ -23,11 +23,21 @@ export function CheckInPanel({ checkinTokenRequired }: Props) {
       <div>
         <h1 className="font-display text-2xl font-semibold text-zinc-50 sm:text-3xl">Check-in</h1>
         <p className="mt-2 break-words text-sm leading-relaxed text-zinc-400">
-          Вставьте UUID билета из QR или из письма, либо отсканируйте QR камерой. Для отметки входа может потребоваться код контролёра
-          (секрет на сервере: <code className="text-zinc-300">CHECKIN_OPERATOR_TOKEN</code>).
+          Вставьте UUID билета из QR или из письма, либо отсканируйте QR камерой.
+          {checkinTokenRequired ? (
+            <>
+              {" "}
+              Код контролёра (<code className="text-zinc-300">CHECKIN_OPERATOR_TOKEN</code>) нужен и для проверки билета, и для отметки входа.
+            </>
+          ) : (
+            <>
+              {" "}
+              Для отметки входа в продакшене задайте <code className="text-zinc-300">CHECKIN_OPERATOR_TOKEN</code> на сервере.
+            </>
+          )}
         </p>
         {checkinTokenRequired ? (
-          <p className="mt-2 text-xs text-amber-300">Код контролёра обязателен в этой среде.</p>
+          <p className="mt-2 text-xs text-amber-300">Код контролёра обязателен для проверки и отметки.</p>
         ) : (
           <p className="mt-2 text-xs text-zinc-500">
             Код контролёра не задан — отметка входа открыта (только для разработки).
@@ -50,6 +60,17 @@ export function CheckInPanel({ checkinTokenRequired }: Props) {
           />
         </label>
         <CheckInQrScanner onUuid={(uuid) => setTicketCode(uuid)} />
+        {checkinTokenRequired ? (
+          <label className="block text-sm text-zinc-300">
+            Код контролёра
+            <input
+              name="operatorToken"
+              type="password"
+              className="mt-1.5 w-full min-h-11 rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2.5 text-base text-white sm:min-h-10 sm:py-2 sm:text-sm"
+              autoComplete="off"
+            />
+          </label>
+        ) : null}
         <button
           type="submit"
           disabled={pendingLookup}

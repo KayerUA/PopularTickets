@@ -35,7 +35,8 @@ export async function GET(req: NextRequest) {
     .order("created_at", { ascending: false });
 
   if (error) {
-    return new NextResponse(error.message, { status: 500 });
+    console.error("[admin/export] orders query", error);
+    return new NextResponse("Export failed", { status: 500 });
   }
 
   const header = [

@@ -13,6 +13,10 @@ import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
 import { resolveEventMapsUrl } from "@/lib/mapsUrl";
 import { resolveEventMarketingStatus } from "@/lib/eventMarketingStatus";
 import { EventStatusBadge } from "@/components/EventStatusBadge";
+import { buildPublicPageMetadata, truncateMetaDescription } from "@/lib/seo";
+import { getPublicAppUrl } from "@/lib/publicAppUrl";
+import { JsonLd } from "@/components/JsonLd";
+import { buildEventJsonLd } from "@/lib/seo/eventJsonLd";
 
 export const revalidate = 30;
 
@@ -25,18 +29,49 @@ export async function generateMetadata({
   const supabase = getServiceSupabase();
   const tMeta = await getTranslations({ locale, namespace: "metadata" });
   if (!supabase) {
-    return { title: tMeta("homeTitle") };
+    return buildPublicPageMetadata({
+      locale,
+      path: `/events/${slug}`,
+      title: tMeta("homeTitle"),
+      description: tMeta("homeDescription"),
+    });
   }
-  const { data: event } = await supabase
-    .from("events")
-    .select("title")
-    .eq("slug", slug)
-    .eq("is_published", true)
-    .maybeSingle();
+  const { data: event } = await fetchPublishedEventBySlug(supabase, slug);
   if (!event) {
-    return { title: tMeta("homeTitle") };
+    return buildPublicPageMetadata({
+      locale,
+      path: `/events/${slug}`,
+      title: tMeta("homeTitle"),
+      description: tMeta("homeDescription"),
+    });
   }
-  return { title: `${event.title}${tMeta("eventTitleSuffix")}` };
+  const title = `${event.title}${tMeta("eventTitleSuffix")}`;
+  const desc = `${formatEventDateTime(event.starts_at, locale)} · ${event.venue} — ${truncateMetaDescription(event.description)}`;
+  const base = getPublicAppUrl()?.replace(/\/$/, "");
+  let ogImages: { url: string; width: number; height: number; alt: string }[] | undefined;
+  if (event.image_url && base) {
+    const abs = event.image_url.startsWith("http://") || event.image_url.startsWith("https://")
+      ? event.image_url
+      : new URL(event.image_url, base).toString();
+    ogImages = [{ url: abs, width: 1200, height: 630, alt: event.title }];
+  }
+  const keywords = [
+    ...tMeta("homeKeywords")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+    event.title,
+    event.venue,
+  ];
+  return buildPublicPageMetadata({
+    locale,
+    path: `/events/${slug}`,
+    title,
+    description: desc,
+    keywords: [...new Set(keywords)].slice(0, 24),
+    ogType: "article",
+    ogImages,
+  });
 }
 
 export default async function EventPage({
@@ -78,8 +113,25 @@ export default async function EventPage({
     description: event.description,
   });
 
+  const soldOut = remaining <= 0 || marketingStatus === "sold_out";
+
   return (
     <div className="poet-safe-x mx-auto max-w-3xl py-8 sm:py-14">
+      <JsonLd
+        data={buildEventJsonLd(
+          {
+            title: event.title,
+            description: event.description,
+            venue: event.venue,
+            starts_at: event.starts_at,
+            image_url: event.image_url,
+            price_grosze: event.price_grosze,
+            slug: event.slug,
+          },
+          locale,
+          { remaining, soldOut }
+        )}
+      />
       <div className="animate-fade-up overflow-hidden rounded-2xl border border-poet-gold/25 bg-poet-surface/50 shadow-gold backdrop-blur-md sm:rounded-3xl">
         <div className="relative aspect-[4/3] w-full bg-zinc-950 sm:aspect-[21/9]">
           {event.image_url ? (
