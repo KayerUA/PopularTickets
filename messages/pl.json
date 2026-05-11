@@ -13,7 +13,8 @@
   "LocaleSwitcher": {
     "label": "Język",
     "pl": "PL",
-    "uk": "UA"
+    "uk": "UA",
+    "ru": "RU"
   },
   "Footer": {
     "operator": "Usługa sprzedaży biletów. Operator:",

@@ -25,11 +25,12 @@ const CheckoutSchema = z.object({
   email: z.string().email().max(254),
   phone: z.string().max(40).optional().or(z.literal("")),
   quantity: z.coerce.number().int().min(1).max(20),
-  locale: z.enum(["pl", "uk"]),
+  locale: z.enum(["pl", "uk", "ru"]),
 });
 
 function p24UiLanguage(locale: AppLocale): string {
   if (locale === "pl") return "pl";
+  // Przelewy24: для uk/ru используем английский UI (стабильно для песочницы)
   return "en";
 }
 
@@ -42,7 +43,7 @@ export async function createPendingOrder(formData: FormData) {
   }
 
   const localeRaw = formData.get("locale");
-  const localeParsed = z.enum(["pl", "uk"]).safeParse(localeRaw);
+  const localeParsed = z.enum(["pl", "uk", "ru"]).safeParse(localeRaw);
   const locale = (localeParsed.success ? localeParsed.data : routing.defaultLocale) as AppLocale;
 
   const parsed = CheckoutSchema.safeParse({

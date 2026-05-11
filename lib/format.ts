@@ -11,6 +11,7 @@ export function formatPlnFromGrosze(grosze: number): string {
 const localeTag: Record<AppLocale, string> = {
   pl: "pl-PL",
   uk: "uk-UA",
+  ru: "ru-RU",
 };
 
 export function formatEventDateTime(iso: string, locale: AppLocale): string {

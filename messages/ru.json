@@ -1,0 +1,102 @@
+{
+  "metadata": {
+    "homeTitle": "PopularTickets — билеты на события",
+    "homeDescription": "Простая продажа билетов на небольшие мероприятия в Польше.",
+    "firmaTitle": "Данные продавца",
+    "firmaDescription": "Информация об операторе PopularTickets — POPULAR POET Sp. z o.o.",
+    "eventTitleSuffix": " — PopularTickets"
+  },
+  "Nav": {
+    "events": "События",
+    "company": "Информация"
+  },
+  "LocaleSwitcher": {
+    "label": "Язык",
+    "pl": "PL",
+    "uk": "UA",
+    "ru": "RU"
+  },
+  "Footer": {
+    "operator": "Сервис продажи билетов. Оператор:",
+    "ctaDetails": "Данные продавца и оплаты",
+    "tagline": "Польша · события · билеты онлайн"
+  },
+  "Home": {
+    "brand": "Popular Poet",
+    "title": "Афиша",
+    "subtitle": "Небольшие мероприятия в Польше. Билеты онлайн — без лишнего шума.",
+    "sectionLabel": "01 — события",
+    "empty": "Пока нет опубликованных событий.",
+    "loadError": "Не удалось загрузить список. Проверьте настройки Supabase."
+  },
+  "Marquee": {
+    "phrase": "Popular Poet · PopularTickets · Варшава · билеты · живые события · "
+  },
+  "SupabaseHint": {
+    "titleSetup": "Сначала настройте Supabase",
+    "titleDisconnected": "Supabase не подключён",
+    "intro": "Для списка событий и заказов нужны ключи Supabase. Скопируйте",
+    "and": "→",
+    "fill": "и заполните:",
+    "sqlNote": "SQL-схема:",
+    "restartNote": "После сохранения .env.local перезапустите",
+    "linkCompany": "Данные продавца"
+  },
+  "EventPage": {
+    "priceLabel": "Цена за билет",
+    "remainingLabel": "Осталось",
+    "soldOut": "Распродано.",
+    "loadRemainingError": "Ошибка загрузки доступности"
+  },
+  "EventCard": {
+    "buy": "Купить билет"
+  },
+  "CheckoutForm": {
+    "name": "Имя и фамилия",
+    "email": "Email",
+    "phone": "Телефон (необязательно)",
+    "quantity": "Количество билетов",
+    "bypassHint": "Демо-режим: без Przelewy24 — после отправки формы сразу подтверждаем покупку (письмо с билетами, если настроен Resend).",
+    "submit": "К оплате (Przelewy24)",
+    "submitBypass": "Подтвердить заказ (демо)",
+    "submitting": "Создаём заказ…",
+    "hint": "После оплаты билеты придут на email. Статус оплаты подтверждаем автоматически.",
+    "hintBypass": "В демо-режиме билеты приходят на email сразу после отправки (нужен настроенный Resend).",
+    "errorGeneric": "Не удалось создать заказ"
+  },
+  "CheckoutReturn": {
+    "brand": "Popular Poet",
+    "title": "Спасибо!",
+    "body": "Если оплата прошла успешно, билеты отправим на вашу почту в течение нескольких минут. Отдельным письмом может прийти подтверждение от банка."
+  },
+  "Legal": {
+    "backHome": "← На главную",
+    "title": "Данные продавца",
+    "intro": "Ниже — данные субъекта, обслуживающего сервис {product}. По вопросам заказа пишите на email.",
+    "sellerTitle": "Продавец",
+    "legalNameLabel": "Полное юридическое наименование",
+    "contactEnvHint": "Добавьте NEXT_PUBLIC_CONTACT_EMAIL в файл .env.local.",
+    "addressLabel": "Адрес",
+    "nipLabel": "NIP",
+    "krsLabel": "KRS",
+    "regonLabel": "REGON",
+    "contactTitle": "Контакт",
+    "contactHint": "Полные сведения в реестрах KRS/CEIDG имеют приоритет над информацией на этой странице.",
+    "krsLink": "Полные данные в KRS (MSiG)",
+    "paymentsTitle": "Оплата",
+    "paymentsLead": "Онлайн-оплату обрабатывает",
+    "paymentsBody": "Договор купли билета заключается между вами и продавцом мероприятия — {seller}. Оператор платежей Przelewy24 обрабатывает транзакцию согласно своим правилам и политике конфиденциальности.",
+    "p24Terms": "Регламент Przelewy24",
+    "p24Privacy": "Политика конфиденциальности Przelewy24",
+    "p24Merchants": "Информация для мерчантов (Przelewy24)"
+  },
+  "Errors": {
+    "rateLimit": "Слишком много попыток. Попробуйте чуть позже.",
+    "validation": "Проверьте поля формы.",
+    "eventNotFound": "Событие не найдено.",
+    "ticketCheckFailed": "Не удалось проверить количество билетов.",
+    "notEnoughTickets": "Недостаточно свободных билетов.",
+    "orderCreateFailed": "Не удалось создать заказ.",
+    "appUrlMissing": "Нет публичного URL: задайте NEXT_PUBLIC_APP_URL или деплой на Vercel (VERCEL_URL)."
+  }
+}

@@ -13,7 +13,8 @@
   "LocaleSwitcher": {
     "label": "Мова",
     "pl": "PL",
-    "uk": "UA"
+    "uk": "UA",
+    "ru": "RU"
   },
   "Footer": {
     "operator": "Сервіс продажу квитків. Оператор:",

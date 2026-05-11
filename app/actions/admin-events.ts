@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/adminGuard";
+import { routing } from "@/i18n/routing";
 
 const EventSchema = z.object({
   id: z.string().uuid().optional(),
@@ -75,11 +76,11 @@ export async function upsertEvent(formData: FormData) {
     if (error) throw new Error(error.message);
   }
 
-  revalidatePath("/pl");
-  revalidatePath("/uk");
+  for (const loc of routing.locales) {
+    revalidatePath(`/${loc}`);
+    revalidatePath(`/${loc}/events/${v.slug}`);
+  }
   revalidatePath("/admin");
   revalidatePath("/admin/orders");
-  revalidatePath(`/pl/events/${v.slug}`);
-  revalidatePath(`/uk/events/${v.slug}`);
   redirect("/admin");
 }
