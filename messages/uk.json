@@ -96,6 +96,6 @@
     "ticketCheckFailed": "Не вдалося перевірити кількість квитків.",
     "notEnoughTickets": "Недостатньо вільних квитків.",
     "orderCreateFailed": "Не вдалося створити замовлення.",
-    "appUrlMissing": "Не задано змінну NEXT_PUBLIC_APP_URL у конфігурації сервера."
+    "appUrlMissing": "Немає публічного URL: задайте NEXT_PUBLIC_APP_URL або деплой на Vercel (VERCEL_URL)."
   }
 }

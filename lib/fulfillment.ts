@@ -89,6 +89,10 @@ async function ensureTicketsAndEmail(params: {
     throw new Error("ticket insert");
   }
 
+  if (process.env.SKIP_ORDER_EMAIL === "true") {
+    return;
+  }
+
   const { data: event, error: eErr } = await supabase
     .from("events")
     .select("title,venue,starts_at")
@@ -124,7 +128,7 @@ async function ensureTicketsAndEmail(params: {
 
 /**
  * MVP без Przelewy24: заказ уже в `pending`, сразу переводим в `paid`,
- * создаём билеты и шлём письмо (если настроен Resend).
+ * создаём билеты и шлём письмо (если Resend и не задан SKIP_ORDER_EMAIL).
  */
 export async function bypassPaymentAndFulfillOrder(orderId: string): Promise<void> {
   const supabase = requireServiceSupabase();

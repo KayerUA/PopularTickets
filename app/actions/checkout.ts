@@ -17,6 +17,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { rateLimit, clientIp } from "@/lib/security";
 import { routing, type AppLocale } from "@/i18n/routing";
+import { requirePublicAppUrlForP24 } from "@/lib/publicAppUrl";
 
 const CheckoutSchema = z.object({
   eventSlug: z.string().min(1),
@@ -26,12 +27,6 @@ const CheckoutSchema = z.object({
   quantity: z.coerce.number().int().min(1).max(20),
   locale: z.enum(["pl", "uk"]),
 });
-
-function appUrl(): string {
-  const u = process.env.NEXT_PUBLIC_APP_URL;
-  if (!u) throw new Error("APP_URL_MISSING");
-  return u.replace(/\/$/, "");
-}
 
 function p24UiLanguage(locale: AppLocale): string {
   if (locale === "pl") return "pl";
@@ -86,13 +81,6 @@ export async function createPendingOrder(formData: FormData) {
     throw new Error(t("notEnoughTickets"));
   }
 
-  let baseUrl: string;
-  try {
-    baseUrl = appUrl();
-  } catch {
-    throw new Error(t("appUrlMissing"));
-  }
-
   const orderId = crypto.randomUUID();
   const amountGrosze = event.price_grosze * quantity;
 
@@ -124,6 +112,13 @@ export async function createPendingOrder(formData: FormData) {
     revalidatePath(`/${locale}`);
     revalidatePath(`/${locale}/events/${eventSlug}`);
     redirect(`/${locale}/checkout/return`);
+  }
+
+  let baseUrl: string;
+  try {
+    baseUrl = requirePublicAppUrlForP24();
+  } catch {
+    throw new Error(t("appUrlMissing"));
   }
 
   const p24Lang = p24UiLanguage(locale);

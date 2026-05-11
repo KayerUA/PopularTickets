@@ -96,6 +96,6 @@
     "ticketCheckFailed": "Nie udało się sprawdzić dostępnej liczby biletów.",
     "notEnoughTickets": "Za mało wolnych biletów.",
     "orderCreateFailed": "Nie udało się utworzyć zamówienia.",
-    "appUrlMissing": "Brak zmiennej NEXT_PUBLIC_APP_URL w konfiguracji serwera."
+    "appUrlMissing": "Brak publicznego adresu URL: ustaw NEXT_PUBLIC_APP_URL albo uruchom na Vercel (VERCEL_URL)."
   }
 }

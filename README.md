@@ -75,7 +75,8 @@ PopularTickets/
 
 См. `.env.example`. Важно:
 
-- `NEXT_PUBLIC_APP_URL` — публичный URL (Przelewy24 `urlReturn` / `urlStatus`, ссылки в письмах).
+- `NEXT_PUBLIC_APP_URL` — публичный URL (Przelewy24 `urlReturn` / `urlStatus`, ссылки в письмах). На Vercel для P24 можно не задавать: используется `https://$VERCEL_URL`.
+- `SKIP_ORDER_EMAIL=true` — не отправлять письмо с билетами (билеты в БД создаются).
 - `NEXT_PUBLIC_CONTACT_EMAIL` — контакт для покупателей (страница «Информация» / `firma`).
 - `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` — только на сервере, не светите service role в браузер.
 - Ключи **Przelewy24** и **Resend**.
@@ -88,10 +89,11 @@ PopularTickets/
 
 ```env
 CHECKOUT_BYPASS_PAYMENT=true
+SKIP_ORDER_EMAIL=true
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Тогда после отправки формы заказ сразу получает статус **оплачен**, создаются билеты, редирект на **thank you**; письмо с QR уйдёт, если заданы **Resend** (`RESEND_API_KEY`, `RESEND_FROM_EMAIL`). Когда P24 будет готов — `CHECKOUT_BYPASS_PAYMENT=false` и заполните `P24_*`.
+На **Vercel** в режиме bypass `NEXT_PUBLIC_APP_URL` можно не указывать (редирект относительный). `SKIP_ORDER_EMAIL=true` отключает письмо даже при настроенном Resend. После отправки формы заказ сразу **оплачен**, билеты создаются; письмо с QR — только если Resend задан и `SKIP_ORDER_EMAIL` не `true`. Когда P24 будет готов — `CHECKOUT_BYPASS_PAYMENT=false` и заполните `P24_*`.
 
 ## Supabase (кратко)
 
@@ -112,8 +114,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 1. Зайдите на [vercel.com](https://vercel.com), войдите (можно через GitHub).
 2. **Add New… → Project → Import** ваш репозиторий `PopularTickets`.
-3. **Framework Preset**: Next.js (подтянется сам). **Root Directory**: `./` (если проект в корне репо).
-4. **Environment Variables**: добавьте все из `.env.example` для окружений **Production** и при необходимости **Preview** (как минимум Supabase, `NEXT_PUBLIC_APP_URL` с URL вида `https://ваш-проект.vercel.app` или свой домен, админка, Resend/P24 по мере готовности).
+3. **Framework Preset**: Next.js. **Output Directory** оставьте **пустым** (не `build` — это не Create React App). В корне репозитория есть [`vercel.json`](vercel.json) с `"framework": "nextjs"`, чтобы Vercel не подхватил неверный пресет.
+4. **Environment Variables**: для **MVP с bypass** достаточно Supabase, `CHECKOUT_BYPASS_PAYMENT=true`, опционально `SKIP_ORDER_EMAIL=true` (билеты создаются, письмо не уходит). `NEXT_PUBLIC_APP_URL` на preview можно не задавать для bypass; для **реального P24** задайте URL или полагайтесь на автоматический `VERCEL_URL` на Vercel. Админка, Resend/P24 — по мере готовности.
 5. **Deploy**. В настройках проекта: **Settings → Git → Production Branch** = `main` (по умолчанию так и есть).
 6. Дальше: **любой push в `main`** → Vercel сам собирает и деплоит; в PR можно включить **Preview Deployments** (по умолчанию включены для PR).
 
@@ -125,7 +127,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 1. После импорта репозитория задайте **Environment Variables** (Production + Preview) по `.env.example`.
 2. В Przelewy24 укажите **urlStatus**: `https://<домен>/api/p24/notify`.
-3. `NEXT_PUBLIC_APP_URL` = публичный URL сайта (`https://<домен>`).
+3. Публичный URL: `NEXT_PUBLIC_APP_URL` **или** на Vercel автоматически используется `VERCEL_URL` (колбеки P24: `https://…vercel.app`).
 
 ## Поток Przelewy24 (упрощённо)
 

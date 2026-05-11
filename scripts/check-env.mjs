@@ -7,13 +7,10 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const required = [
-  "NEXT_PUBLIC_APP_URL",
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "SUPABASE_SERVICE_ROLE_KEY",
-];
+const requiredAlways = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 
 const optionalAlways = [
+  "NEXT_PUBLIC_APP_URL",
   "NEXT_PUBLIC_CONTACT_EMAIL",
   "RESEND_API_KEY",
   "RESEND_FROM_EMAIL",
@@ -46,7 +43,7 @@ loadEnvFile(".env.local");
 loadEnvFile(".env");
 
 let failed = false;
-for (const key of required) {
+for (const key of requiredAlways) {
   const v = process.env[key];
   if (!v || String(v).trim() === "") {
     console.error(`[check-env] Brakuje wymaganej zmiennej: ${key}`);
@@ -55,6 +52,17 @@ for (const key of required) {
 }
 
 const bypass = process.env.CHECKOUT_BYPASS_PAYMENT === "true";
+const publicUrl =
+  (process.env.NEXT_PUBLIC_APP_URL && String(process.env.NEXT_PUBLIC_APP_URL).trim()) ||
+  (process.env.VERCEL_URL && `https://${String(process.env.VERCEL_URL).trim()}`);
+
+if (!bypass && !publicUrl) {
+  console.error(
+    "[check-env] Przy CHECKOUT_BYPASS_PAYMENT=false ustaw NEXT_PUBLIC_APP_URL (albo uruchom na Vercel z VERCEL_URL)."
+  );
+  failed = true;
+}
+
 const optional = [...optionalAlways, ...(bypass ? [] : optionalP24)];
 const missingOptional = optional.filter((k) => !process.env[k] || String(process.env[k]).trim() === "");
 if (missingOptional.length) {
@@ -62,6 +70,9 @@ if (missingOptional.length) {
 }
 if (bypass) {
   console.warn("[check-env] CHECKOUT_BYPASS_PAYMENT=true — Przelewy24 pomijany (MVP).");
+  if (process.env.SKIP_ORDER_EMAIL === "true") {
+    console.warn("[check-env] SKIP_ORDER_EMAIL=true — e-mail z biletami nie będzie wysyłany.");
+  }
 }
 
 if (failed) {
