@@ -11,6 +11,8 @@ import { getTranslations } from "next-intl/server";
 import type { AppLocale } from "@/i18n/routing";
 import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
 import { resolveEventMapsUrl } from "@/lib/mapsUrl";
+import { resolveEventMarketingStatus } from "@/lib/eventMarketingStatus";
+import { EventStatusBadge } from "@/components/EventStatusBadge";
 
 export const revalidate = 30;
 
@@ -66,6 +68,11 @@ export default async function EventPage({
   }
 
   const remaining = event.total_tickets - (sold ?? 0);
+  const marketingStatus = resolveEventMarketingStatus({
+    startsAt: event.starts_at,
+    remaining,
+    totalTickets: event.total_tickets,
+  });
   const mapsHref = resolveEventMapsUrl({
     maps_url: event.maps_url,
     description: event.description,
@@ -94,6 +101,11 @@ export default async function EventPage({
             <h1 className="font-display text-2xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
               <span className="text-gradient-gold [overflow-wrap:anywhere]">{event.title}</span>
             </h1>
+            {marketingStatus ? (
+              <div className="mt-3">
+                <EventStatusBadge status={marketingStatus} />
+              </div>
+            ) : null}
             <p className="mt-2 break-words text-sm text-zinc-500 sm:text-base">
               {formatEventDateTime(event.starts_at, locale)}
             </p>

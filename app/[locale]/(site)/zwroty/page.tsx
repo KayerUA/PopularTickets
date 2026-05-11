@@ -21,7 +21,7 @@ export default async function ZwrotyPage({ params }: { params: Promise<{ locale:
   const { locale } = await params;
   const tBack = await getTranslations({ locale, namespace: "Legal" });
   const tb = await getTranslations({ locale, namespace: "LegalReturns" });
-  const blocks = legalDocBlocks(tb, 6);
+  const blocks = legalDocBlocks(tb, 7);
 
   return (
     <LegalArticle

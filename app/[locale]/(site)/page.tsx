@@ -4,6 +4,7 @@ import { MarqueeStrip } from "@/components/MarqueeStrip";
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { SupabaseQueryErrorPanel } from "@/components/SupabaseQueryErrorPanel";
 import type { EventCardProps } from "@/components/EventCard";
+import { resolveEventMarketingStatus, sortEventsForMarketing } from "@/lib/eventMarketingStatus";
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import type { AppLocale } from "@/i18n/routing";
@@ -33,7 +34,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
   }
   const { data: events, error } = await supabase
     .from("events")
-    .select("slug,title,venue,starts_at,price_grosze,image_url")
+    .select("id,slug,title,venue,starts_at,price_grosze,image_url,total_tickets")
     .eq("is_published", true)
     .order("starts_at", { ascending: true });
 
@@ -41,16 +42,39 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
     return <SupabaseQueryErrorPanel locale={locale} error={error} titleNamespace="Home" titleKey="loadError" />;
   }
 
-  const list: EventCardProps[] =
-    events?.map((ev) => ({
-      slug: ev.slug,
-      title: ev.title,
-      venue: ev.venue,
-      startsAt: ev.starts_at,
-      priceGrosze: ev.price_grosze,
-      imageUrl: ev.image_url,
-      locale,
-    })) ?? [];
+  const rows = events ?? [];
+  const ids = rows.map((ev) => ev.id as string);
+  const soldMap = new Map<string, number>();
+  if (ids.length) {
+    const { data: ticketRows } = await supabase.from("tickets").select("event_id").in("event_id", ids);
+    for (const row of ticketRows ?? []) {
+      const eid = row.event_id as string;
+      soldMap.set(eid, (soldMap.get(eid) ?? 0) + 1);
+    }
+  }
+
+  const list: EventCardProps[] = sortEventsForMarketing(
+    rows.map((ev) => {
+      const totalTickets = ev.total_tickets as number;
+      const sold = soldMap.get(ev.id as string) ?? 0;
+      const remaining = totalTickets - sold;
+      const status = resolveEventMarketingStatus({
+        startsAt: ev.starts_at as string,
+        remaining,
+        totalTickets,
+      });
+      return {
+        slug: ev.slug as string,
+        title: ev.title as string,
+        venue: ev.venue as string,
+        startsAt: ev.starts_at as string,
+        priceGrosze: ev.price_grosze as number,
+        imageUrl: (ev.image_url as string | null) ?? null,
+        locale,
+        status,
+      };
+    })
+  );
 
   return (
     <div className="poet-safe-x mx-auto max-w-5xl py-10 sm:py-16">

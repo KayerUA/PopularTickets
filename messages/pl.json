@@ -28,14 +28,20 @@
     "staffLogin": "Panel organizatora (admin)",
     "staffCheckin": "Panel kontrolera (check-in)",
     "tagline": "Polska · wydarzenia · bilety online",
-    "socialTitle": "Teatr w mediach społecznościowych",
-    "socialLead": "♦ Zapraszamy na nowy profil na Instagramie i na kanał YouTube — to dla nas ważne wsparcie Popular Poet.",
-    "instagramCta": "Instagram — @popular_poet_theatre",
-    "youtubeCta": "YouTube — Popular Poet",
-    "youtubeBlurb": "Na kanale publikujemy występy, improwizacje i nagrania spektakli. Subskrybujcie, zostawcie łapkę w górę — dziękujemy za energię i obecność!",
+    "socialShort": "Teatr Popular Poet — zostań z nami na Instagramie i YouTube.",
+    "socialInstagramAria": "Instagram: @popular_poet_theatre",
+    "socialYoutubeAria": "Kanał YouTube: Popular Poet",
     "linkTerms": "Regulamin",
     "linkReturns": "Zwroty i reklamacje",
     "linkPrivacy": "Polityka prywatności"
+  },
+  "Cookies": {
+    "title": "Ustawienia cookies",
+    "body": "Stosujemy pliki cookies i podobne technologie niezbędne do działania serwisu (np. utrzymanie sesji, bezpieczeństwo, zapobieganie nadużyciom). Po wyrażeniu zgody możemy w przyszłości uruchomić dodatkowe narzędzia analityczne lub marketingowe — na razie serwis nie ładuje takich skryptów bez Twojej decyzji.",
+    "privacyLink": "Szczegóły zbierania i przetwarzania danych: <link>Polityka prywatności</link>.",
+    "essentialOnly": "Tylko niezbędne",
+    "acceptAll": "Akceptuję wszystkie",
+    "storageNote": "Twój wybór zapisujemy lokalnie w przeglądarce (localStorage). Możesz go zmienić, usuwając dane witryny PopularTickets w ustawieniach przeglądarki."
   },
   "Home": {
     "brand": "Popular Poet",
@@ -73,7 +79,16 @@
     "openInMaps": "Otwórz w Google Maps"
   },
   "EventCard": {
-    "buy": "Kup bilet"
+    "buy": "Kup bilet",
+    "ctaPast": "Szczegóły",
+    "ctaSoldOut": "Brak biletów"
+  },
+  "EventStatus": {
+    "past": "Minęło",
+    "sold_out": "Wyprzedane",
+    "last_tickets": "Ostatnie miejsca",
+    "starting_soon": "Start wkrótce",
+    "this_week": "W tym tygodniu"
   },
   "CheckoutForm": {
     "name": "Imię i nazwisko",
@@ -161,19 +176,21 @@
   "LegalReturns": {
     "title": "Zwroty i reklamacje",
     "updated": "Obowiązuje od: 11 maja 2026 r.",
-    "disclaimer": "Poniższe informacje mają charakter ogólny i nie zastępują indywidualnej porady prawnej. W sprawach spornych decydują właściwe przepisy prawa polskiego oraz interpretacja organów i sądów.",
-    "s1Title": "1. Konsument i przedsiębiorca",
-    "s1Body": "Przepisy o ochronie konsumentów (w tym ustawy z dnia 30 maja 2014 r. o prawach konsumenta) mają zastosowanie do Kupującego będącego konsumentem w rozumieniu art. 22¹ Kodeksu cywilnego.\n\nJeżeli Kupujący dokonuje zakupu w związku z działalnością gospodarczą i nie ma dla niego charakteru zawodowego zgodnego z przedmiotem prowadzonej działalności, może korzystać z ochrony konsumenckiej tylko wtedy, gdy przesłanki z art. 38¹ Kodeksu cywilnego są spełnione.",
-    "s2Title": "2. Prawo odstąpienia od umowy zawartej na odległość — wyłączenia",
-    "s2Body": "Zgodnie z art. 38 pkt 12 ustawy o prawach konsumenta, prawo odstąpienia od umowy zawartej na odległość nie przysługuje w odniesieniu do umów o świadczenie usług w zakresie rozrywki, wydarzeń rozrywkowych lub sportowych, jeżeli przedsiębiorca zobowiązał się do świadczenia usługi w określonym czasie lub w oznaczonym terminie.\n\nW praktyce oznacza to, że dla typowego biletu na wydarzenie o wyznaczonej dacie i godzinie prawo odstąpienia w terminie 14 dni (art. 27 ustawy o prawach konsumenta) zazwyczaj nie przysługuje — z wyjątkiem sytuacji, gdy przepis szczególny lub treść odrębnej umowy stanowi inaczej.\n\nPowyższe nie wyłącza roszczeń z tytułu niewykonania lub nienależytego wykonania umowy (np. odwołanie wydarzenia).",
-    "s3Title": "3. Odwołanie lub zmiana wydarzenia",
-    "s3Body": "W przypadku odwołania wydarzenia przez organizatora lub innej okoliczności uniemożliwiającej realizację biletu w pierwotnym zakresie, Kupujący ma roszczenia co do zwrotu ceny lub innego rozwiązania zgodnego z prawem i zasadami przyjętymi przez Sprzedawcę dla danej imprezy.\n\nSzczegóły komunikowane są Kupującemu drogą elektroniczną na adres podany w zamówieniu oraz — w miarę możliwości — na stronie Serwisu przy wydarzeniu.",
-    "s4Title": "4. Reklamacje — zgłoszenie i rozpatrzenie",
-    "s4Body": "Reklamacje dotyczące działania Serwisu, płatności lub realizacji zamówienia można złożyć na adres e-mail wskazany w zakładce „Dane sprzedawcy”, podając: dane Kupującego, numer zamówienia lub identyfikator biletu oraz opis zdarzenia.\n\nWobec konsumenta Sprzedawca rozpatruje reklamację zgodnie z obowiązującymi przepisami, w szczególności w terminach przewidzianych dla rozpatrywania reklamacji konsumenckich.\n\nW przypadku transakcji płatniczych część danych przetwarza PayPro S.A. / Przelewy24; w sprawach technicznych płatności możliwe jest skierowanie zgłoszenia zgodnie z regulaminem operatora płatności.",
-    "s5Title": "5. Pozasądowe sposoby rozpatrywania reklamacji i dochodzenia roszczeń",
-    "s5Body": "Konsument ma możliwość skorzystania z pozasądowych sposobów rozpatrywania reklamacji i dochodzenia roszczeń, m.in. z mediacji lub z postępowania przed sądem polubownym.\n\nInformacje o procedurze pozasądowego rozwiązywania sporów konsumenckich są dostępne m.in. na stronie Urzędu Ochrony Konkurencji i Konsumentów (UOKiK).\n\nPlatforma internetowego systemu rozstrzygania sporów między konsumentami i przedsiębiorcami na szczebie UE (ODR) jest dostępna pod adresem: https://ec.europa.eu/consumers/odr/",
-    "s6Title": "6. Kontakt",
-    "s6Body": "W sprawach zwrotów i reklamacji prosimy o kontakt mailowy wskazany w zakładce „Dane sprzedawcy” w Serwisie.\n\nDane rejestrowe Sprzedawcy: POPULAR POET Sp. z o.o., ul. FLORIAŃSKA 6/02, 03-707 Warszawa, KRS 0001156243, NIP 1133159208, REGON 540923962."
+    "disclaimer": "Poniżej: umowna polityka zwrotów obok przepisów bezwzględnie obowiązujących. W razie kolizji, dla konsumenta pierwszeństwo mają przepisy bezwzględnie obowiązujące.",
+    "s1Title": "1. Konsument",
+    "s1Body": "Przepisy o ochronie konsumentów (ustawa z dnia 30 maja 2014 r. o prawach konsumenta) mają zastosowanie do Kupującego będącego konsumentem w rozumieniu art. 22¹ Kodeksu cywilnego.",
+    "s2Title": "2. Prawo odstąpienia w terminie 14 dni — wyłączenia",
+    "s2Body": "Zgodnie z art. 38 pkt 12 ustawy o prawach konsumenta prawo odstąpienia od umowy zawartej na odległość zazwyczaj nie przysługuje m.in. w odniesieniu do usług rozrywki o wyznaczonym terminie (np. bilet na konkretną datę i godzinę).\n\nTo nie wyklucza roszczeń z innych tytułów (np. odwołanie imprezy) oraz dobrowolnej polityki zwrotu Sprzedawcy opisanej w sekcji 4.",
+    "s3Title": "3. Odwołanie, przełożenie lub istotna zmiana imprezy",
+    "s3Body": "Jeżeli impreza zostanie odwołana, istotnie przełożona albo zmieniona tak, że bilet nie daje prawa wejścia w pierwotnym zakresie, przysługuje Państwu zwrot pełnej ceny biletu.\n\nProsimy o zgłoszenie e-mailowe na adres z zakładki „Dane sprzedawcy” z danymi zamówienia (e-mail, numer zamówienia, identyfikator biletu). Zwrot realizujemy niezwłocznie, nie później niż w terminie 14 dni kalendarzowych od ustaleń dających podstawę do zwrotu, z zastrzeżeniem czasu rozliczenia operatora płatności Przelewy24.\n\nInformacje o zmianach mogą być dodatkowo przesłane na adres z zamówienia lub opublikowane przy wydarzeniu w Serwisie.",
+    "s4Title": "4. Dobrowolna rezygnacja przed imprezą (praktyka serwisów biletowych)",
+    "s4Body": "Niezależnie od wyłączenia 14-dniowego odstąpienia (sekcja 2), Sprzedawca stosuje dobrowolną politykę zwrotu zbliżoną do typowych platform: można zrezygnować z udziału i uzyskać zwrot pełnej ceny biletu (wraz z VAT, jeśli dotyczy).\n\nWarunki:\n\n• wniosek e-mailowy na adres z zakładki „Dane sprzedawcy”, z danymi pozwalającymi zidentyfikować zamówienie,\n\n• wniosek złożony nie później niż 72 godziny przed oficjalnym rozpoczęciem imprezy według czasu podanego przy wydarzeniu (Europe/Warsaw),\n\n• bilet nie został wykorzystany (w tym nie odnotowano wejścia w check-in),\n\n• istnieje możliwość technicznego zwrotu środków u operatora Przelewy24.\n\nPo pozytywnym rozpatrzeniu wniosku zwrot następuje na pierwotny sposób płatności, nie później niż w terminie 14 dni kalendarzowych, z uwzględnieniem procedur bankowych.\n\nPo upływie 72 godzin przed imprezą dobrowolny zwrot nie przysługuje — bez uszczerbku dla praw z tytułu reklamacji, odwołania imprezy lub przepisów bezwzględnie obowiązujących.",
+    "s5Title": "5. Reklamacje",
+    "s5Body": "Reklamacje co do działania Serwisu, treści zamówienia lub płatności można złożyć e-mailem jak wyżej. Odpowiadamy zgodnie z obowiązującymi terminami dla konsumentów.\n\nW sprawach technicznych płatności można dodatkowo skorzystać z kanałów pomocy Przelewy24 zgodnie z regulaminem operatora.",
+    "s6Title": "6. Pozasądowe rozstrzyganie sporów",
+    "s6Body": "Konsument może skorzystać z pozasądowych sposobów rozpatrywania reklamacji i dochodzenia roszczeń, m.in. mediacji lub sądu polubownego; informacje na stronie UOKiK. Platforma ODR UE: https://ec.europa.eu/consumers/odr/",
+    "s7Title": "7. Dane Sprzedawcy i kontakt",
+    "s7Body": "POPULAR POET Sp. z o.o., ul. FLORIAŃSKA 6/02, 03-707 Warszawa, KRS 0001156243, NIP 1133159208, REGON 540923962.\n\nKontakt w sprawach zwrotów i reklamacji: adres e-mail w zakładce „Dane sprzedawcy” w Serwisie."
   },
   "LegalPrivacy": {
     "title": "Polityka prywatności",
@@ -193,8 +210,8 @@
     "s6Body": "Dane przechowujemy przez okres niezbędny do realizacji celów, a następnie przez okresy wymagane przepisami prawa (np. przepisy podatkowe i rachunkowe) oraz przez okres przedawnienia roszczeń.\n\nDane marketingowe — jeżeli kiedykolwiek zostałyby zebrane odrębną zgodą — przechowywane są do cofnięcia zgody; obecnie Serwis sprzedaży biletów nie wymaga zgody marketingowej w podstawowym procesie zakupu.",
     "s7Title": "7. Prawa osób, których dane dotyczą",
     "s7Body": "Przysługuje Państwu prawo dostępu do danych, ich sprostowania, usunięcia lub ograniczenia przetwarzania, sprzeciwu wobec przetwarzenia w zakresie prawnie uzasadnionego interesu administratora, a także prawo wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych (PUODO).\n\nW zakresie, w jakim podstawą przetwarzania jest zgoda — przysługuje prawo cofnięcia zgody w dowolnym momencie bez wpływu na zgodność z prawem przetwarzania przed jej cofnięciem.",
-    "s8Title": "8. Pliki cookies i podobne technologie",
-    "s8Body": "Serwis może wykorzystywać pliki cookies niezbędne do działania strony i obsługi sesji. Szczegółowe informacje o ewentualnych narzędziach analitycznych zostaną uzupełnione, jeżeli zostaną wdrożone w sposób wymagający dodatkowej informacji lub zgody zgodnie z przepisami o świadczeniu usług drogą elektroniczną i telekomunikacją."
+    "s8Title": "8. Pliki cookies i zgoda z banera",
+    "s8Body": "Serwis wykorzystuje pliki cookies niezbędne do działania strony i obsługi sesji. Na stronie wyświetlamy baner informujący o cookies i umożliwiający wybór: tylko niezbędne albo akceptuję wszystkie (w tym przyszłe narzędzia analityczne/marketingowe, jeśli zostaną wdrożone). Zapis preferencji przechowywany jest lokalnie w przeglądarce (localStorage) zgodnie z informacją w banerze.\n\nSzczegóły dotyczące kategorii danych, podstaw prawnych i praw osób, których dane dotyczą, znajdują się w niniejszej Polityce prywatności oraz — w zakresie płatności — w dokumentach operatora Przelewy24."
   },
   "Errors": {
     "rateLimit": "Zbyt wiele prób. Spróbuj ponownie za chwilę.",
