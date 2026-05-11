@@ -7,8 +7,9 @@
 | Шаг | Где | Действие |
 |-----|-----|----------|
 | 1 | [supabase.com](https://supabase.com) | Проект уже есть → **Project Settings → API**: скопировать **URL** и **service_role** (Secret, `sb_secret_…`). **Publishable** в MVP приложением не используется, но можно хранить в `.env`. |
-| 2 | Supabase → **SQL Editor** | Вставить и выполнить **`supabase/schema.sql`** из репозитория. При ошибках — исправить и выполнить снова. |
-| 3 | (опционально) SQL Editor | Выполнить **`supabase/seed-improv-event.sql`** — тестовое событие на афише. |
+| 2 | Supabase → **SQL Editor** | Выполнить **`supabase/schema.sql`**. Предупреждение про *destructive* из‑за `DROP TRIGGER IF EXISTS` — нормально, данные таблиц не стираются. |
+| 2b | SQL Editor | Опционально: **`supabase/verify-data.sql`** — сколько строк в `events` / `orders` / `tickets` / `checkins`. |
+| 3 | (опционально) SQL Editor | **`supabase/seed-improv-event.sql`** — тестовое событие на афише. |
 | 4 | [vercel.com](https://vercel.com) → проект → **Settings → Environment Variables** | Для **Production** и **Preview**: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (+ остальное из `.env.example` по необходимости). Сохранить. |
 | 5 | Vercel → **Deployments** | **Redeploy** последнего деплоя (или пустой commit push), чтобы подтянулись переменные. |
 | 6 | Vercel → **Build & Development Settings** | **Framework**: Next.js, **Output Directory** пустой (не `build`). |

@@ -1,5 +1,12 @@
 -- PopularTickets MVP — Supabase / PostgreSQL
 -- Выполните в SQL Editor проекта Supabase.
+--
+-- Про «destructive / Query has destructive operations» в UI Supabase:
+-- скрипт содержит только DROP TRIGGER IF EXISTS … — это безопасно: триггеры
+-- пересоздаются, данные в таблицах не удаляются. Подтверждение выполнения — ок.
+--
+-- Этот файл НЕ вставляет события: после успешного запуска таблицы пустые.
+-- Событие: supabase/seed-improv-event.sql или админка / npm run seed:improv.
 
 create extension if not exists "pgcrypto";
 

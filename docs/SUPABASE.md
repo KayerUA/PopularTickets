@@ -17,6 +17,16 @@
 2. Wklej zawartość pliku [`supabase/schema.sql`](/supabase/schema.sql) z repozytorium i uruchom (**Run**).
 3. Upewnij się, że nie ma błędów wykonania (tabele `events`, `orders`, `tickets` itd.).
 
+> **Ostrzeżenie Supabase „destructive operations”:** w `schema.sql` są tylko `DROP TRIGGER IF EXISTS` przed utworzeniem triggerów — to normalne, **nie usuwa danych** z tabel. Możesz potwierdzić wykonanie zapytania.
+
+> **Schemat nie wstawia wydarzeń** — po `schema.sql` tabele są puste. Wydarzenia: `supabase/seed-improv-event.sql`, `npm run seed:improv` (lokalnie z `.env`) lub panel **Admin**.
+
+### Szybka weryfikacja danych
+
+W **SQL Editor** uruchom zawartość pliku [`supabase/verify-data.sql`](/supabase/verify-data.sql) — zobaczysz liczbę wierszy w `events`, `orders`, `tickets`, `checkins`. Pusta tabela **tickets** przy zerowych zamówieniach jest OK.
+
+W **Table Editor** kliknij **events** — jeśli lista jest pusta, dodaj pierwsze wydarzenie (sied lub admin).
+
 ## 3. Plik `.env.local`
 
 W katalogu projektu:
