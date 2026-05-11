@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "check:env": "node scripts/check-env.mjs",
+    "verify:supabase": "node scripts/verify-supabase.mjs",
     "seed:improv": "node scripts/seed-improv-event.mjs"
   },
   "dependencies": {

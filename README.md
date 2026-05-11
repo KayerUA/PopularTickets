@@ -99,9 +99,11 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 Полная пошаговая инструкция: **[docs/SUPABASE.md](docs/SUPABASE.md)** — создание проекта, **Project Settings → API**, выполнение `schema.sql`, проверка `.env.local`.
 
+Порядок **ручных шагов vs CLI** (Vercel, ошибка загрузки списка): **[docs/DEPLOY.md](docs/DEPLOY.md)** — там же команды `npm run verify:supabase` и `vercel env`.
+
 ## Что делать дальше (чеклист)
 
-1. **Локально**: заполните `.env` / `.env.local` по [`.env.example`](.env.example), выполните `supabase/schema.sql`, `npm run dev`, проверьте `/pl` и оформление заказа (при `CHECKOUT_BYPASS_PAYMENT=true`).
+1. **Локально**: заполните `.env` / `.env.local` по [`.env.example`](.env.example), выполните `supabase/schema.sql` в панели Supabase, затем **`npm run verify:supabase`** — если OK, ключи и таблица на месте. Дальше `npm run dev`, проверьте `/pl` и заказ (при `CHECKOUT_BYPASS_PAYMENT=true`). Подробнее: [docs/DEPLOY.md](docs/DEPLOY.md).
 2. **Админка**: задайте `ADMIN_PASSWORD` и `ADMIN_JWT_SECRET` (≥16 символов) → `/admin/login` → создайте и **опубликуйте** событие.
 3. **Почта (по желанию)**: Resend + `RESEND_*` — тогда в demo-режиме после «оплаты» уйдёт письмо с QR.
 4. **GitHub**: `git remote add origin …`, `git push -u origin main` (см. раздел ниже).
