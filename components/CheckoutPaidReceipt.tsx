@@ -2,7 +2,7 @@ import type { PaidOrderReceipt } from "@/lib/checkoutReceipt";
 import { ticketQrDataUrl } from "@/lib/qrDataUrl";
 import { renderTicketLayoutPdf } from "@/lib/renderTicketLayoutPdf";
 import { CopyTextButton } from "@/components/CopyTextButton";
-import { TicketScallopedDivider } from "@/components/TicketScallopedDivider";
+import { TicketRipColumn } from "@/components/TicketRipColumn";
 import { formatEventDateTime } from "@/lib/format";
 import type { AppLocale } from "@/i18n/routing";
 
@@ -17,10 +17,8 @@ export type CheckoutReceiptLabels = {
   ticketLabel: string;
   /** Krótki napis „teatralny” na bilecie (np. jeden widz). */
   ticketRibbon: string;
-  /** Nagłówek wąskiej części jak na fizycznym bilecie (korżok / kontrola). */
-  stubTitle: string;
-  /** Krótki opis linii perforacji. */
-  stubHint: string;
+  /** Prawa kolumna — napis jak na fizycznym bilecie (np. KONTROLA). */
+  stubControl: string;
   ticketPdfKindSecondary: string;
   ticketPdfQrSecondary: string;
   ticketPdfDisclaimer: string;
@@ -76,95 +74,58 @@ export async function CheckoutPaidReceipt({
         {ticketRows.map((t) => (
           <li
             key={t.id}
-            className="group relative overflow-hidden rounded-xl border-2 border-poet-gold/45 bg-gradient-to-br from-[#2a1018] via-[#14060c] to-[#050304] shadow-[0_0_0_1px_rgba(0,0,0,0.6),0_24px_48px_-16px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,248,220,0.08)]"
+            className="group relative flex min-h-0 flex-col overflow-hidden rounded-lg border-2 border-poet-gold/55 bg-[#0c0709] shadow-[0_0_0_1px_rgba(0,0,0,0.65),0_20px_44px_-18px_rgba(0,0,0,0.88)] sm:min-h-[12.5rem] sm:flex-row sm:items-stretch"
           >
             <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-poet-gold/70 to-transparent"
+              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-poet-gold/60 to-transparent"
               aria-hidden
             />
-            {/* Mobile: корешок сверху, волна отрыва, основная часть с QR */}
-            <div className="flex flex-col lg:hidden">
-              <aside className="relative border-b border-poet-gold/35 bg-[#1a080e] px-4 py-3.5">
-                <p className="text-[9px] font-bold uppercase tracking-[0.38em] text-poet-gold/90">{labels.stubTitle}</p>
-                <p className="font-display mt-1.5 break-all text-xl font-semibold tracking-wide text-poet-gold-bright">{t.ticket_number}</p>
-                <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-poet-gold/55">{labels.ticketRibbon}</p>
-                <p className="mt-2 text-[10px] leading-snug text-zinc-500">{labels.stubHint}</p>
-              </aside>
-              <div className="relative bg-[#0b0609]/80 px-1">
-                <TicketScallopedDivider />
-              </div>
-              <div className="flex flex-col items-center gap-4 px-4 pb-6 pt-5">
-                {/* eslint-disable-next-line @next/next/no-img-element -- data URL из QR */}
-                <img
-                  src={t.dataUrl}
-                  alt=""
-                  width={200}
-                  height={200}
-                  className="rounded-md border-2 border-poet-gold/35 bg-white p-1.5 shadow-[0_0_24px_-4px_rgba(197,160,89,0.35)]"
-                />
-                <div className="flex w-full max-w-xs flex-col gap-2">
-                  <a
-                    href={t.ticketPdfDataUrl}
-                    download={`bilet-${t.ticket_number}.pdf`}
-                    className="btn-poet btn-poet-theatre inline-flex min-h-11 w-full items-center justify-center px-4 py-2.5 text-center text-sm"
-                  >
-                    {labels.downloadTicket}
-                  </a>
-                  <CopyTextButton text={t.id} label={labels.copyId} copiedLabel={labels.copiedId} />
-                  <p className="break-all font-mono text-[11px] leading-relaxed text-zinc-500">{t.id}</p>
-                </div>
-              </div>
-            </div>
 
-            {/* Desktop: основная часть | перфорация | корешок справа */}
-            <div className="hidden min-h-[14rem] flex-row lg:flex">
-              <div className="flex min-w-0 flex-1 flex-col items-center gap-5 px-6 py-6 sm:flex-row sm:items-start sm:justify-center sm:gap-8">
-                {/* eslint-disable-next-line @next/next/no-img-element -- data URL из QR */}
-                <img
-                  src={t.dataUrl}
-                  alt=""
-                  width={200}
-                  height={200}
-                  className="shrink-0 rounded-md border-2 border-poet-gold/35 bg-white p-1.5 shadow-[0_0_24px_-4px_rgba(197,160,89,0.35)]"
-                />
-                <div className="flex w-full max-w-xs flex-col gap-2 sm:w-auto">
-                  <a
-                    href={t.ticketPdfDataUrl}
-                    download={`bilet-${t.ticket_number}.pdf`}
-                    className="btn-poet btn-poet-theatre inline-flex min-h-11 w-full items-center justify-center px-4 py-2.5 text-center text-sm"
-                  >
-                    {labels.downloadTicket}
-                  </a>
-                  <CopyTextButton text={t.id} label={labels.copyId} copiedLabel={labels.copiedId} />
-                  <p className="break-all font-mono text-[11px] leading-relaxed text-zinc-500">{t.id}</p>
-                </div>
-              </div>
+            {/* Левый корешок / талон (как на советском билете — узкая колонка) */}
+            <aside className="relative z-0 flex flex-col justify-between border-b-2 border-dashed border-poet-gold/80 bg-gradient-to-b from-[#2a1218] via-[#180a0e] to-[#0a0507] px-3.5 py-4 sm:w-[min(30%,7.75rem)] sm:min-w-[6.25rem] sm:max-w-[8.5rem] sm:border-b-0 sm:border-r-0 sm:px-2.5 sm:py-5">
+              <p className="text-[8px] font-bold uppercase leading-tight tracking-[0.32em] text-poet-gold/90">{labels.ticketLabel}</p>
+              <p className="font-display my-2 text-lg font-semibold leading-snug tracking-wide text-poet-gold-bright [overflow-wrap:anywhere] sm:my-3 sm:text-xl">
+                {t.ticket_number}
+              </p>
+              <p className="text-[9px] uppercase tracking-[0.22em] text-poet-gold/55">{labels.ticketRibbon}</p>
+            </aside>
 
-              <div
-                className="flex w-10 shrink-0 flex-col items-center justify-evenly border-l border-r border-poet-gold/50 bg-gradient-to-b from-black/60 via-[#1a0a0f] to-black/60 py-4"
-                aria-hidden
-              >
-                {Array.from({ length: 13 }).map((_, i) => (
-                  <span
-                    key={i}
-                    className="h-2.5 w-2.5 shrink-0 rounded-full border-[2px] border-poet-gold-bright bg-[#0b0609] shadow-[inset_0_0_5px_rgba(0,0,0,0.95),0_0_0_1px_rgba(232,212,139,0.25)]"
-                  />
-                ))}
-              </div>
+            <TicketRipColumn className="hidden sm:flex" />
 
-              <aside className="flex w-[6.75rem] shrink-0 flex-col justify-between border-l border-dashed border-poet-gold/50 bg-gradient-to-b from-[#240c12] via-[#140609] to-black px-2.5 py-5 text-center sm:w-[7.5rem]">
-                <div>
-                  <p className="text-[8px] font-bold uppercase leading-tight tracking-[0.2em] text-poet-gold/90">{labels.stubTitle}</p>
-                </div>
-                <p
-                  className="font-display mx-auto max-h-[11rem] break-all text-center text-lg font-semibold leading-snug tracking-wide text-poet-gold-bright [overflow-wrap:anywhere] [writing-mode:vertical-rl] sm:text-xl"
-                  style={{ textOrientation: "mixed" }}
+            {/* Основная часть: QR и действия */}
+            <div className="relative z-0 flex min-h-0 flex-1 flex-col items-center gap-4 border-b-2 border-dashed border-poet-gold/70 px-4 py-5 sm:border-b-0 sm:px-5 sm:py-6">
+              {/* eslint-disable-next-line @next/next/no-img-element -- data URL из QR */}
+              <img
+                src={t.dataUrl}
+                alt=""
+                width={200}
+                height={200}
+                className="shrink-0 rounded-md border-2 border-poet-gold/40 bg-white p-1.5 shadow-[0_0_22px_-4px_rgba(197,160,89,0.38)]"
+              />
+              <div className="flex w-full max-w-xs flex-col gap-2 sm:max-w-[16rem]">
+                <a
+                  href={t.ticketPdfDataUrl}
+                  download={`bilet-${t.ticket_number}.pdf`}
+                  className="btn-poet btn-poet-theatre inline-flex min-h-11 w-full items-center justify-center px-4 py-2.5 text-center text-sm"
                 >
-                  {t.ticket_number}
-                </p>
-                <p className="text-[9px] uppercase tracking-[0.2em] text-poet-gold/45">{labels.ticketRibbon}</p>
-              </aside>
+                  {labels.downloadTicket}
+                </a>
+                <CopyTextButton text={t.id} label={labels.copyId} copiedLabel={labels.copiedId} />
+                <p className="break-all font-mono text-[11px] leading-relaxed text-zinc-500">{t.id}</p>
+              </div>
             </div>
+
+            <TicketRipColumn className="hidden sm:flex" />
+
+            {/* Правая колонка «КОНТРОЛЬ» */}
+            <aside className="relative z-0 flex flex-col items-center justify-center bg-gradient-to-b from-[#1c0c10] via-[#120709] to-black px-1 py-4 sm:w-[min(22%,4.75rem)] sm:min-w-[3.75rem] sm:max-w-[5.25rem] sm:py-6">
+              <p
+                className="font-display text-center text-sm font-bold uppercase leading-none tracking-[0.22em] text-poet-gold-bright [writing-mode:vertical-rl] sm:text-base"
+                style={{ textOrientation: "mixed" }}
+              >
+                {labels.stubControl}
+              </p>
+            </aside>
           </li>
         ))}
       </ul>
