@@ -1,0 +1,101 @@
+{
+  "metadata": {
+    "homeTitle": "PopularTickets — bilety na wydarzenia",
+    "homeDescription": "Prosty sklep biletowy na małe wydarzenia w Polsce.",
+    "firmaTitle": "Dane sprzedawcy",
+    "firmaDescription": "Informacje o operatorze PopularTickets — POPULAR POET Sp. z o.o.",
+    "eventTitleSuffix": " — PopularTickets"
+  },
+  "Nav": {
+    "events": "Wydarzenia",
+    "company": "Informacje"
+  },
+  "LocaleSwitcher": {
+    "label": "Język",
+    "pl": "PL",
+    "uk": "UA"
+  },
+  "Footer": {
+    "operator": "Usługa sprzedaży biletów. Operator:",
+    "ctaDetails": "Dane sprzedawcy i płatności",
+    "tagline": "Polska · wydarzenia · bilety online"
+  },
+  "Home": {
+    "brand": "Popular Poet",
+    "title": "Aktualności",
+    "subtitle": "Małe wydarzenia w Polsce. Bilety online — bez zbędnego zamieszania.",
+    "sectionLabel": "01 — wydarzenia",
+    "empty": "Brak opublikowanych wydarzeń.",
+    "loadError": "Nie udało się wczytać listy. Sprawdź konfigurację Supabase."
+  },
+  "Marquee": {
+    "phrase": "Popular Poet · PopularTickets · Warszawa · bilety · wydarzenia na żywo · "
+  },
+  "SupabaseHint": {
+    "titleSetup": "Najpierw skonfiguruj Supabase",
+    "titleDisconnected": "Supabase nie jest podłączony",
+    "intro": "Do listy wydarzeń i zamówień potrzebne są klucze Supabase. Skopiuj",
+    "and": "→",
+    "fill": "i uzupełnij:",
+    "sqlNote": "Schemat SQL:",
+    "restartNote": "Po zapisaniu .env.local uruchom ponownie",
+    "linkCompany": "Dane sprzedawcy"
+  },
+  "EventPage": {
+    "priceLabel": "Cena za bilet",
+    "remainingLabel": "Pozostało",
+    "soldOut": "Wyprzedane.",
+    "loadRemainingError": "Błąd wczytywania dostępności"
+  },
+  "EventCard": {
+    "buy": "Kup bilet"
+  },
+  "CheckoutForm": {
+    "name": "Imię i nazwisko",
+    "email": "Email",
+    "phone": "Telefon (opcjonalnie)",
+    "quantity": "Liczba biletów",
+    "bypassHint": "Tryb demo: bez Przelewy24 — po wysłaniu formularza od razu potwierdzamy zakup (e-mail z biletami, jeśli skonfigurowano Resend).",
+    "submit": "Przejdź do płatności (Przelewy24)",
+    "submitBypass": "Potwierdź zamówienie (demo)",
+    "submitting": "Tworzymy zamówienie…",
+    "hint": "Po opłaceniu bilety trafią na email. Status płatności potwierdzamy automatycznie.",
+    "hintBypass": "W trybie demo bilety trafiają na email od razu po wysłaniu (wymaga skonfigurowanego Resend).",
+    "errorGeneric": "Nie udało się utworzyć zamówienia"
+  },
+  "CheckoutReturn": {
+    "brand": "Popular Poet",
+    "title": "Dziękujemy!",
+    "body": "Jeśli płatność się powiodła, bilety wyślemy na Twój adres e-mail w ciągu kilku minut. Status potwierdzenia banku może przyjść osobną wiadomością."
+  },
+  "Legal": {
+    "backHome": "← Strona główna",
+    "title": "Dane sprzedawcy",
+    "intro": "Poniżej znajdziesz dane podmiotu obsługującego serwis {product}. W razie pytań dotyczących zamówienia skontaktuj się z nami mailowo.",
+    "sellerTitle": "Sprzedawca",
+    "legalNameLabel": "Pełna nazwa prawna",
+    "contactEnvHint": "Ustaw NEXT_PUBLIC_CONTACT_EMAIL w pliku .env.local.",
+    "addressLabel": "Adres",
+    "nipLabel": "NIP",
+    "krsLabel": "KRS",
+    "regonLabel": "REGON",
+    "contactTitle": "Kontakt",
+    "contactHint": "Pełne wpisy w rejestrach KRS/CEIDG mają pierwszeństwo przed informacjami na tej stronie.",
+    "krsLink": "Pełne dane w KRS (MSiG)",
+    "paymentsTitle": "Płatności",
+    "paymentsLead": "Płatności online obsługuje",
+    "paymentsBody": "Umowa kupna biletu zawierana jest między Tobą a sprzedawcą wydarzenia — {seller}. Operator płatności Przelewy24 przetwarza transakcję zgodnie z własnymi regulaminami.",
+    "p24Terms": "Regulamin Przelewy24",
+    "p24Privacy": "Polityka prywatności Przelewy24",
+    "p24Merchants": "Informacje dla merchantów (Przelewy24)"
+  },
+  "Errors": {
+    "rateLimit": "Zbyt wiele prób. Spróbuj ponownie za chwilę.",
+    "validation": "Sprawdź pola formularza.",
+    "eventNotFound": "Wydarzenie nie zostało znalezione.",
+    "ticketCheckFailed": "Nie udało się sprawdzić dostępnej liczby biletów.",
+    "notEnoughTickets": "Za mało wolnych biletów.",
+    "orderCreateFailed": "Nie udało się utworzyć zamówienia.",
+    "appUrlMissing": "Brak zmiennej NEXT_PUBLIC_APP_URL w konfiguracji serwera."
+  }
+}

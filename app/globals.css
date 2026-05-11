@@ -1,0 +1,204 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --poet-bg: #070708;
+  --poet-surface: #0f0f12;
+  --poet-gold: #c5a059;
+  --poet-gold-bright: #e8d48b;
+  --poet-gold-dim: #8a7344;
+  --poet-border: rgba(197, 160, 89, 0.22);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply min-h-screen min-h-dvh antialiased text-zinc-100;
+    background-color: var(--poet-bg);
+    background-image:
+      radial-gradient(ellipse 120% 80% at 50% -30%, rgba(197, 160, 89, 0.12), transparent 55%),
+      radial-gradient(ellipse 70% 50% at 100% 50%, rgba(197, 160, 89, 0.05), transparent 45%),
+      radial-gradient(ellipse 60% 40% at 0% 80%, rgba(197, 160, 89, 0.06), transparent 40%);
+  }
+
+  a {
+    @apply text-poet-gold transition-colors duration-300 hover:text-poet-gold-bright;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-poet-gold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#070708];
+  }
+}
+
+/* Зернистость «бумага / кожа» */
+.poet-grain {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  opacity: 0.11;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: poet-grain-shift 8s steps(10) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poet-grain {
+    animation: none;
+  }
+}
+
+@keyframes poet-grain-shift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-2%, -2%);
+  }
+  30% {
+    transform: translate(2%, 1%);
+  }
+  50% {
+    transform: translate(-1%, 2%);
+  }
+  70% {
+    transform: translate(1%, -1%);
+  }
+}
+
+@layer utilities {
+  /** Горизонтальные отступы с учётом выреза (iPhone и др.) */
+  .poet-safe-x {
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  }
+
+  .poet-safe-b {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .font-display {
+    font-family: var(--font-display), ui-serif, Georgia, serif;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(
+      110deg,
+      var(--poet-gold-bright) 0%,
+      var(--poet-gold) 35%,
+      #f5e6a8 52%,
+      var(--poet-gold) 68%,
+      var(--poet-gold-dim) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .poet-shine {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .poet-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%) skewX(-18deg);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 248, 220, 0.18),
+      rgba(255, 248, 220, 0.05),
+      transparent
+    );
+    animation: poet-shine-sweep 3.2s ease-in-out infinite;
+  }
+
+  .animate-float-slow {
+    animation: poet-float 7s ease-in-out infinite;
+  }
+
+  .animate-glow-pulse {
+    animation: poet-glow 4s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poet-shine::after,
+  .animate-float-slow,
+  .animate-glow-pulse {
+    animation: none !important;
+  }
+}
+
+@keyframes poet-shine-sweep {
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  45%,
+  100% {
+    transform: translateX(130%) skewX(-18deg);
+  }
+}
+
+@keyframes poet-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes poet-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(197, 160, 89, 0);
+  }
+  50% {
+    box-shadow: 0 0 28px -6px rgba(197, 160, 89, 0.35);
+  }
+}
+
+@keyframes poet-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: poet-fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up {
+    animation: none;
+  }
+
+  .animate-marquee {
+    animation: none !important;
+  }
+}
+
+@layer components {
+  .btn-poet {
+    @apply relative inline-flex min-h-11 min-w-[2.75rem] items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-poet-gold-dim via-poet-gold to-poet-gold-bright px-5 py-2.5 text-[0.9375rem] font-semibold leading-tight text-zinc-950 shadow-gold-sm transition duration-300 hover:shadow-gold disabled:pointer-events-none disabled:opacity-45 sm:px-6 sm:py-2 sm:text-sm;
+  }
+}

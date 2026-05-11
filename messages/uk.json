@@ -1,0 +1,101 @@
+{
+  "metadata": {
+    "homeTitle": "PopularTickets — квитки на події",
+    "homeDescription": "Простий продаж квитків на невеликі заходи в Польщі.",
+    "firmaTitle": "Дані продавця",
+    "firmaDescription": "Інформація про оператора PopularTickets — POPULAR POET Sp. z o.o.",
+    "eventTitleSuffix": " — PopularTickets"
+  },
+  "Nav": {
+    "events": "Події",
+    "company": "Інформація"
+  },
+  "LocaleSwitcher": {
+    "label": "Мова",
+    "pl": "PL",
+    "uk": "UA"
+  },
+  "Footer": {
+    "operator": "Сервіс продажу квитків. Оператор:",
+    "ctaDetails": "Дані продавця та оплати",
+    "tagline": "Польща · події · квитки онлайн"
+  },
+  "Home": {
+    "brand": "Popular Poet",
+    "title": "Афіша",
+    "subtitle": "Невеликі заходи в Польщі. Квитки онлайн — без зайвого шуму.",
+    "sectionLabel": "01 — події",
+    "empty": "Поки що немає опублікованих подій.",
+    "loadError": "Не вдалося завантажити список. Перевірте налаштування Supabase."
+  },
+  "Marquee": {
+    "phrase": "Popular Poet · PopularTickets · Варшава · квитки · живі події · "
+  },
+  "SupabaseHint": {
+    "titleSetup": "Спочатку налаштуйте Supabase",
+    "titleDisconnected": "Supabase не підключено",
+    "intro": "Для списку подій і замовлень потрібні ключі Supabase. Скопіюйте",
+    "and": "→",
+    "fill": "і заповніть:",
+    "sqlNote": "SQL-схема:",
+    "restartNote": "Після збереження .env.local перезапустіть",
+    "linkCompany": "Дані продавця"
+  },
+  "EventPage": {
+    "priceLabel": "Ціна за квиток",
+    "remainingLabel": "Залишилось",
+    "soldOut": "Розпродано.",
+    "loadRemainingError": "Помилка завантаження наявності"
+  },
+  "EventCard": {
+    "buy": "Купити"
+  },
+  "CheckoutForm": {
+    "name": "Ім’я та прізвище",
+    "email": "Email",
+    "phone": "Телефон (необов’язково)",
+    "quantity": "Кількість квитків",
+    "bypassHint": "Демо-режим: без Przelewy24 — після відправки форми одразу підтверджуємо покупку (лист з квитками, якщо налаштовано Resend).",
+    "submit": "До оплати (Przelewy24)",
+    "submitBypass": "Підтвердити замовлення (демо)",
+    "submitting": "Створюємо замовлення…",
+    "hint": "Після оплати квитки надійдуть на email. Статус оплати підтверджуємо автоматично.",
+    "hintBypass": "У демо-режимі квитки надходять на email одразу після відправки (потрібен налаштований Resend).",
+    "errorGeneric": "Не вдалося створити замовлення"
+  },
+  "CheckoutReturn": {
+    "brand": "Popular Poet",
+    "title": "Дякуємо!",
+    "body": "Якщо оплата пройшла успішно, квитки надішлемо на вашу електронну пошту протягом кількох хвилин. Окремим листом може надійти підтвердження від банку."
+  },
+  "Legal": {
+    "backHome": "← На головну",
+    "title": "Дані продавця",
+    "intro": "Нижче — дані суб’єкта, який обслуговує сервіс {product}. З питань щодо замовлення пишіть на email.",
+    "sellerTitle": "Продавець",
+    "legalNameLabel": "Повна юридична назва",
+    "contactEnvHint": "Додайте NEXT_PUBLIC_CONTACT_EMAIL у файл .env.local.",
+    "addressLabel": "Адреса",
+    "nipLabel": "NIP",
+    "krsLabel": "KRS",
+    "regonLabel": "REGON",
+    "contactTitle": "Контакт",
+    "contactHint": "Повні відомості в реєстрах KRS/CEIDG мають пріоритет над інформацією на цій сторінці.",
+    "krsLink": "Повні дані в KRS (MSiG)",
+    "paymentsTitle": "Оплата",
+    "paymentsLead": "Онлайн-оплату обробляє",
+    "paymentsBody": "Договір купівлі квитка укладається між вами та продавцем заходу — {seller}. Оператор платежів Przelewy24 обробляє транзакцію згідно з власними правилами та політикою конфіденційності.",
+    "p24Terms": "Регламент Przelewy24",
+    "p24Privacy": "Політика конфіденційності Przelewy24",
+    "p24Merchants": "Інформація для мерчантів (Przelewy24)"
+  },
+  "Errors": {
+    "rateLimit": "Забагато спроб. Спробуйте ще раз за хвилину.",
+    "validation": "Перевірте поля форми.",
+    "eventNotFound": "Подію не знайдено.",
+    "ticketCheckFailed": "Не вдалося перевірити кількість квитків.",
+    "notEnoughTickets": "Недостатньо вільних квитків.",
+    "orderCreateFailed": "Не вдалося створити замовлення.",
+    "appUrlMissing": "Не задано змінну NEXT_PUBLIC_APP_URL у конфігурації сервера."
+  }
+}
