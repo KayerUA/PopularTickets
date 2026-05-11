@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, type PDFFont, type PDFPage, rgb } from "pdf-lib";
+import { PDFDocument, type PDFFont, type PDFImage, type PDFPage, rgb } from "pdf-lib";
 import { COMPANY, companyFooterShort } from "@/lib/company";
 import { TICKET_PDF_KIND_PL, TICKET_PDF_QR_HINT_PL } from "@/lib/ticketPdfLegalPl";
 
@@ -26,6 +26,16 @@ const TEXT = rgb(0.82, 0.82, 0.85);
 const TEXT_DIM = rgb(0.45, 0.45, 0.48);
 const BG = rgb(0.055, 0.048, 0.042);
 const BG_HEADER = rgb(0.078, 0.068, 0.058);
+
+function isJpegBytes(buf: Uint8Array): boolean {
+  return buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff;
+}
+
+/** Логотип может быть JPEG с расширением .png (pdf-lib различает по сигнатуре). */
+async function embedLogoImage(pdfDoc: PDFDocument, bytes: Uint8Array): Promise<PDFImage> {
+  if (isJpegBytes(bytes)) return pdfDoc.embedJpg(bytes);
+  return pdfDoc.embedPng(bytes);
+}
 
 function dataUrlPngToBytes(dataUrl: string): Uint8Array {
   const m = /^data:image\/png;base64,(.+)$/i.exec(dataUrl.trim());
@@ -168,7 +178,6 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
     height: H - 20,
     borderColor: GOLD_MUTED,
     borderWidth: 0.85,
-    color: undefined,
   });
   page.drawRectangle({
     x: 14,
@@ -178,7 +187,6 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
     borderColor: rgb(0.78, 0.63, 0.35),
     borderOpacity: 0.35,
     borderWidth: 0.55,
-    color: undefined,
   });
   drawCornerFrames(page, W, H, 18, 22, GOLD_BRIGHT, 0.9);
 
@@ -194,12 +202,16 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
   let textLeft = margin + 4;
   const logoBuf = loadBrandLogoPngBytes();
   if (logoBuf) {
-    const logoImg = await pdfDoc.embedPng(logoBuf);
-    const scale = logoH / logoImg.height;
-    const logoW = logoImg.width * scale;
-    const logoY = H - headerH + (headerH - logoH) / 2;
-    page.drawImage(logoImg, { x: margin + 2, y: logoY, width: logoW, height: logoH });
-    textLeft = margin + 6 + logoW + 8;
+    try {
+      const logoImg = await embedLogoImage(pdfDoc, new Uint8Array(logoBuf));
+      const scale = logoH / logoImg.height;
+      const logoW = logoImg.width * scale;
+      const logoY = H - headerH + (headerH - logoH) / 2;
+      page.drawImage(logoImg, { x: margin + 2, y: logoY, width: logoW, height: logoH });
+      textLeft = margin + 6 + logoW + 8;
+    } catch (e) {
+      console.warn("[renderTicketLayoutPdf] логотип не встроен:", e);
+    }
   }
 
   const brand = COMPANY.productName.toUpperCase();
