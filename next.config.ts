@@ -15,14 +15,17 @@ function supabaseStorageImageHost(): string | undefined {
 
 const storageHost = supabaseStorageImageHost();
 
-/** TTF читаются через fs в `renderTicketLayoutPdf` — явный include для Vercel serverless trace. */
-const dejavuTicketTtf = ["DejaVuSans.ttf", "DejaVuSans-Bold.ttf"].map(
-  (f) => `./node_modules/dejavu-fonts-ttf/ttf/${f}`
-);
+/** Ресурсы для `renderTicketLayoutPdf` (fs) — Vercel trace. */
+const ticketPdfAssets = [
+  "./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf",
+  "./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf",
+  "./public/brand/popular-poet-logo.png",
+  "./app/icon.png",
+];
 
 const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
-    "/*/checkout/return": dejavuTicketTtf,
+    "/*/checkout/return": ticketPdfAssets,
   },
   images: {
     remotePatterns: storageHost
