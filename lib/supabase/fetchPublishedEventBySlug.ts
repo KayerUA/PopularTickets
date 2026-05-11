@@ -1,9 +1,8 @@
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
+import { fetchOptionalMapsUrl } from "@/lib/supabase/fetchOptionalMapsUrl";
 
-const EVENT_SELECT_WITH_MAPS =
-  "id,slug,title,description,image_url,maps_url,venue,starts_at,price_grosze,total_tickets" as const;
-
-const EVENT_SELECT_LEGACY =
+/** Без maps_url — иначе при «schema cache» без колонки падает весь запрос. */
+const EVENT_SELECT_PUBLIC =
   "id,slug,title,description,image_url,venue,starts_at,price_grosze,total_tickets" as const;
 
 export type PublishedEventRow = {
@@ -20,35 +19,28 @@ export type PublishedEventRow = {
 };
 
 /**
- * Публичная карточка события. Если в БД ещё нет колонки `maps_url` (старый schema),
- * повторяем запрос без неё — иначе PostgREST падает, а metadata с select("title") выглядит «живой».
+ * Публичное событие по slug. maps_url подгружается отдельно — при ошибке PostgREST (нет колонки в кэше) остаётся null.
  */
 export async function fetchPublishedEventBySlug(
   supabase: SupabaseClient,
   slug: string
 ): Promise<{ data: PublishedEventRow | null; error: PostgrestError | null }> {
-  const first = await supabase
+  const main = await supabase
     .from("events")
-    .select(EVENT_SELECT_WITH_MAPS)
+    .select(EVENT_SELECT_PUBLIC)
     .eq("slug", slug)
     .eq("is_published", true)
     .maybeSingle();
 
-  if (!first.error) {
-    return { data: (first.data as PublishedEventRow | null) ?? null, error: null };
+  if (main.error) {
+    return { data: null, error: main.error };
+  }
+  if (!main.data) {
+    return { data: null, error: null };
   }
 
-  const second = await supabase
-    .from("events")
-    .select(EVENT_SELECT_LEGACY)
-    .eq("slug", slug)
-    .eq("is_published", true)
-    .maybeSingle();
+  const row = main.data as Omit<PublishedEventRow, "maps_url">;
+  const mapsUrl = await fetchOptionalMapsUrl(supabase, row.id);
 
-  if (!second.error && second.data) {
-    const row = second.data as Omit<PublishedEventRow, "maps_url">;
-    return { data: { ...row, maps_url: null }, error: null };
-  }
-
-  return { data: null, error: first.error };
+  return { data: { ...row, maps_url: mapsUrl }, error: null };
 }
