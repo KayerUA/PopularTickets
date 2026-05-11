@@ -32,6 +32,9 @@ const TEXT = rgb(0.82, 0.82, 0.85);
 const TEXT_DIM = rgb(0.45, 0.45, 0.48);
 const BG = rgb(0.055, 0.048, 0.042);
 const BG_HEADER = rgb(0.078, 0.068, 0.058);
+const VELVET_DEEP = rgb(0.14, 0.045, 0.065);
+const BURGUNDY_PANEL = rgb(0.22, 0.07, 0.1);
+const PERF_BAND = rgb(0.38, 0.24, 0.12);
 
 function isJpegBytes(buf: Uint8Array): boolean {
   return buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff;
@@ -149,6 +152,89 @@ function drawCornerFrames(page: PDFPage, W: number, H: number, inset: number, ar
   page.drawLine({ start: { x: W - inset, y: H - inset }, end: { x: W - inset, y: H - inset - arm }, thickness: t, color });
 }
 
+/** Вертикальная перфорация «корешок» — полоса с дырками вдоль края билета. */
+function drawTicketPerforationV(
+  page: PDFPage,
+  centerX: number,
+  yTop: number,
+  yBottom: number,
+  holeRadius: number,
+  gap: number,
+  bg: ReturnType<typeof rgb>
+): void {
+  const stripHalf = holeRadius + 1.35;
+  const h = yTop - yBottom;
+  if (h <= gap) return;
+  page.drawRectangle({
+    x: centerX - stripHalf,
+    y: yBottom,
+    width: stripHalf * 2,
+    height: h,
+    color: PERF_BAND,
+    opacity: 0.92,
+    borderColor: GOLD_BRIGHT,
+    borderWidth: 0.5,
+    borderOpacity: 0.7,
+  });
+  for (let cy = yTop - gap * 0.65; cy > yBottom + gap * 0.65; cy -= gap) {
+    page.drawCircle({
+      x: centerX,
+      y: cy,
+      size: holeRadius + 0.55,
+      borderColor: GOLD_BRIGHT,
+      borderWidth: 0.42,
+      color: bg,
+      opacity: 1,
+    });
+    page.drawCircle({ x: centerX, y: cy, size: holeRadius * 0.88, color: bg, opacity: 1 });
+  }
+}
+
+/** Горизонтальная линия отрыва (перфорация) — золотая лента и «дыры». */
+function drawTicketPerforationH(
+  page: PDFPage,
+  centerY: number,
+  fromX: number,
+  toX: number,
+  holeRadius: number,
+  gap: number,
+  bg: ReturnType<typeof rgb>
+): void {
+  const bandH = holeRadius * 2 + 2.8;
+  const y0 = centerY - bandH / 2;
+  const w = toX - fromX;
+  page.drawRectangle({
+    x: fromX,
+    y: y0,
+    width: w,
+    height: bandH,
+    color: PERF_BAND,
+    opacity: 0.94,
+    borderColor: GOLD_BRIGHT,
+    borderWidth: 0.55,
+    borderOpacity: 0.75,
+  });
+  page.drawLine({
+    start: { x: fromX + 1.2, y: centerY },
+    end: { x: toX - 1.2, y: centerY },
+    thickness: 0.55,
+    color: GOLD,
+    opacity: 0.95,
+  });
+  for (let cx = fromX + gap * 0.52; cx < toX - holeRadius; cx += gap) {
+    page.drawCircle({
+      x: cx,
+      y: centerY,
+      size: holeRadius + 0.55,
+      borderColor: GOLD_BRIGHT,
+      borderWidth: 0.48,
+      color: bg,
+      opacity: 1,
+    });
+    page.drawCircle({ x: cx, y: centerY, size: holeRadius * 0.88, color: bg, opacity: 1 });
+  }
+}
+
 /** PDF-билет: шапка с логотипом, золотая сетка, футер оператора. */
 export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promise<Buffer> {
   const regularBytes = fs.readFileSync(dejavuPath("DejaVuSans.ttf"));
@@ -159,15 +245,25 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
   const font = await pdfDoc.embedFont(regularBytes, { subset: true });
   const fontBold = await pdfDoc.embedFont(boldBytes, { subset: true });
 
-  const W = 280;
-  const H = 520;
-  const margin = 18;
+  const W = 300;
+  const H = 560;
+  const margin = 20;
   const contentW = W - 2 * margin;
-  const headerH = 48;
+  const headerH = 52;
 
   const page = pdfDoc.addPage([W, H]);
 
   page.drawRectangle({ x: 0, y: 0, width: W, height: H, color: BG });
+  page.drawRectangle({ x: 0, y: 0, width: 6, height: H, color: VELVET_DEEP, opacity: 0.95 });
+  page.drawRectangle({ x: W - 6, y: 0, width: 6, height: H, color: VELVET_DEEP, opacity: 0.95 });
+  page.drawRectangle({
+    x: 0,
+    y: H * 0.4,
+    width: W,
+    height: H * 0.6,
+    color: BURGUNDY_PANEL,
+    opacity: 0.22,
+  });
   page.drawRectangle({
     x: 0,
     y: H * 0.42,
@@ -183,25 +279,36 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
     width: W - 20,
     height: H - 20,
     borderColor: GOLD_MUTED,
-    borderWidth: 0.85,
+    borderWidth: 1,
   });
   page.drawRectangle({
-    x: 14,
-    y: 14,
-    width: W - 28,
-    height: H - 28,
-    borderColor: rgb(0.78, 0.63, 0.35),
-    borderOpacity: 0.35,
-    borderWidth: 0.55,
+    x: 15,
+    y: 15,
+    width: W - 30,
+    height: H - 30,
+    borderColor: rgb(0.82, 0.68, 0.38),
+    borderOpacity: 0.45,
+    borderWidth: 0.65,
   });
-  drawCornerFrames(page, W, H, 18, 22, GOLD_BRIGHT, 0.9);
+  drawCornerFrames(page, W, H, 20, 24, GOLD_BRIGHT, 1);
+
+  drawTicketPerforationV(page, 16, H - headerH - 22, margin + 56, 2.05, 6.3, BG);
+  drawTicketPerforationV(page, W - 16, H - headerH - 22, margin + 56, 2.05, 6.3, BG);
 
   page.drawRectangle({ x: 0, y: H - headerH, width: W, height: headerH, color: BG_HEADER });
+  page.drawRectangle({
+    x: 0,
+    y: H - headerH,
+    width: W,
+    height: headerH * 0.55,
+    color: BURGUNDY_PANEL,
+    opacity: 0.55,
+  });
   page.drawLine({
     start: { x: 0, y: H - headerH },
     end: { x: W, y: H - headerH },
-    thickness: 1.1,
-    color: rgb(0.72, 0.58, 0.32),
+    thickness: 1.35,
+    color: rgb(0.82, 0.66, 0.36),
   });
 
   const logoH = 36;
@@ -302,12 +409,16 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
   }
   y -= 2;
   page.drawText(input.ticketNumber, { x: margin, y: y - 11, size: 12.5, font: fontBold, color: GOLD_BRIGHT });
-  y -= 20;
+  y -= 18;
+
+  const perfCenterY = y - 6;
+  drawTicketPerforationH(page, perfCenterY, margin - 6, W - margin + 6, 2.25, 6.35, BG);
+  y = perfCenterY - 14;
 
   const qrBytes = dataUrlPngToBytes(input.qrPngDataUrl);
   const qrImg = await pdfDoc.embedPng(qrBytes);
-  const qrSize = 108;
-  const qrPad = 8;
+  const qrSize = 118;
+  const qrPad = 9;
   const qrX = (W - qrSize) / 2;
   const qrBoxY = y - qrSize - qrPad;
   page.drawRectangle({

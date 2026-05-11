@@ -71,36 +71,46 @@ export async function CheckoutPaidReceipt({
         {ticketRows.map((t) => (
           <li
             key={t.id}
-            className="group relative overflow-hidden rounded-sm border-0 bg-gradient-to-br from-[#1f0a10] via-[#120709] to-zinc-950 shadow-[0_0_0_1px_rgba(197,160,89,0.35),0_24px_48px_-24px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,248,220,0.08)] ring-1 ring-poet-gold/25"
+            className="group relative overflow-hidden rounded-sm border-0 bg-gradient-to-br from-[#2a1018] via-[#14060c] to-[#050304] shadow-[0_0_0_2px_rgba(197,160,89,0.45),0_28px_56px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,248,220,0.1)] ring-1 ring-poet-gold/30"
           >
             <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-poet-gold/60 to-transparent"
+              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-poet-gold/70 to-transparent"
+              aria-hidden
+            />
+            {/* Вертикальная перфорация — корешок (на широком экране) */}
+            <div
+              className="poet-ticket-perf-v pointer-events-none absolute bottom-7 left-2 top-7 z-0 hidden rounded-sm opacity-[0.98] sm:block sm:left-3"
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute inset-y-6 left-0 w-2 border-r border-dashed border-poet-gold/25 opacity-80 sm:left-1"
+              className="poet-ticket-perf-v pointer-events-none absolute bottom-7 right-2 top-7 z-0 hidden rounded-sm opacity-[0.98] sm:block sm:right-3"
               aria-hidden
             />
-            <div
-              className="pointer-events-none absolute inset-y-6 right-0 w-2 border-l border-dashed border-poet-gold/25 opacity-80 sm:right-1"
-              aria-hidden
-            />
-            <div className="relative px-5 pb-5 pt-6 sm:px-7 sm:pb-6 sm:pt-7">
-              <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-poet-gold/15 pb-3">
+            <div className="relative z-[1] px-4 pb-5 pt-5 sm:px-8 sm:pb-6 sm:pt-7">
+              <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-poet-gold/20 pb-3">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-poet-gold/70">{labels.ticketLabel}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-poet-gold/80">{labels.ticketLabel}</p>
                   <p className="font-display mt-1 text-lg tracking-wide text-poet-gold-bright sm:text-xl">{t.ticket_number}</p>
                 </div>
-                <p className="text-[10px] uppercase tracking-[0.25em] text-zinc-600">{labels.ticketRibbon}</p>
+                <p className="text-[10px] uppercase tracking-[0.28em] text-poet-gold/55">{labels.ticketRibbon}</p>
               </div>
-              <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-8">
+
+              {/* Явная горизонтальная перфорация между реквизитами и QR */}
+              <div className="relative my-5 sm:my-6" aria-hidden>
+                <div className="poet-ticket-perf-h w-full" />
+                <span className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[8px] font-bold uppercase tracking-[0.55em] text-poet-gold/30">
+                  ·····
+                </span>
+              </div>
+
+              <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-8">
                 {/* eslint-disable-next-line @next/next/no-img-element -- data URL из QR */}
                 <img
                   src={t.dataUrl}
                   alt=""
                   width={200}
                   height={200}
-                  className="rounded-md border border-poet-gold/20 bg-white p-1 shadow-inner"
+                  className="rounded-md border-2 border-poet-gold/35 bg-white p-1.5 shadow-[0_0_24px_-4px_rgba(197,160,89,0.35)]"
                 />
                 <div className="flex w-full max-w-xs flex-col gap-2 sm:w-auto">
                   <a
