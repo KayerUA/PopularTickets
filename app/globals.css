@@ -4,14 +4,14 @@
 
 :root {
   color-scheme: dark;
-  /* Кулиса: тёплый бархат, бордово-чёрный, не «шум ТВ» */
-  --poet-bg: #0a0608;
-  --poet-surface: #141018;
-  --poet-curtain-velvet: #0d080a;
-  --poet-curtain-pleat-dark: #070405;
-  --poet-curtain-pleat-mid: #140c10;
-  --poet-curtain-wing: rgba(0, 0, 0, 0.52);
-  --poet-curtain-fold: rgba(28, 12, 20, 0.42);
+  /* Кулиса: тёплый бархат, лёгкий красновато-винный подтон (не бордо) */
+  --poet-bg: #0b0609;
+  --poet-surface: #151017;
+  --poet-curtain-velvet: #0f080c;
+  --poet-curtain-pleat-dark: #080506;
+  --poet-curtain-pleat-mid: #160d12;
+  --poet-curtain-wing: rgba(14, 2, 10, 0.5);
+  --poet-curtain-fold: rgba(42, 16, 28, 0.4);
   --poet-gold: #c5a059;
   --poet-gold-bright: #e8d48b;
   --poet-gold-dim: #8a7344;
@@ -29,20 +29,22 @@
     background-color: var(--poet-bg);
     /* Свет сверху (рампа), боковые кулисы, крупные вертикальные складки, глубина сцены */
     background-image:
-      radial-gradient(ellipse 115% 55% at 50% -18%, rgba(88, 42, 58, 0.28), transparent 58%),
-      radial-gradient(ellipse 70% 85% at 50% 110%, rgba(0, 0, 0, 0.55), transparent 45%),
+      radial-gradient(ellipse 115% 55% at 50% -18%, rgba(96, 44, 58, 0.32), transparent 58%),
+      radial-gradient(ellipse 70% 85% at 50% 110%, rgba(18, 4, 10, 0.5), transparent 46%),
+      radial-gradient(ellipse 55% 40% at 0% 50%, rgba(52, 18, 32, 0.12), transparent 55%),
+      radial-gradient(ellipse 55% 40% at 100% 50%, rgba(52, 18, 32, 0.12), transparent 55%),
       linear-gradient(90deg, var(--poet-curtain-wing) 0%, transparent 16%, transparent 84%, var(--poet-curtain-wing) 100%),
       repeating-linear-gradient(
         90deg,
         var(--poet-curtain-pleat-dark) 0px,
         var(--poet-curtain-pleat-mid) 52px,
         var(--poet-curtain-pleat-dark) 104px,
-        #100a0d 128px,
+        #120c10 128px,
         var(--poet-curtain-pleat-dark) 156px,
         var(--poet-curtain-pleat-mid) 208px,
         var(--poet-curtain-pleat-dark) 260px
       ),
-      linear-gradient(188deg, #180f14 0%, var(--poet-curtain-velvet) 42%, #050304 100%);
+      linear-gradient(192deg, #1a0f16 0%, var(--poet-curtain-velvet) 44%, #060304 100%);
     background-attachment: fixed;
   }
 
@@ -69,14 +71,15 @@
   z-index: 1;
   opacity: 0.72;
   background-image:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.42) 0%, transparent 14%, transparent 86%, rgba(0, 0, 0, 0.42) 100%),
+    radial-gradient(ellipse 120% 80% at 50% 100%, rgba(48, 14, 26, 0.14), transparent 55%),
+    linear-gradient(90deg, rgba(22, 6, 12, 0.44) 0%, transparent 14%, transparent 86%, rgba(22, 6, 12, 0.44) 100%),
     repeating-linear-gradient(
       90deg,
       transparent 0,
       transparent 46px,
-      rgba(0, 0, 0, 0.14) 50px,
-      rgba(0, 0, 0, 0.26) 56px,
-      rgba(0, 0, 0, 0.14) 62px,
+      rgba(32, 10, 18, 0.16) 50px,
+      rgba(18, 4, 10, 0.22) 56px,
+      rgba(32, 10, 18, 0.16) 62px,
       transparent 68px,
       transparent 118px
     );
