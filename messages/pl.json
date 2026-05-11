@@ -28,7 +28,11 @@
     "staffLogin": "Panel organizatora (admin)",
     "staffCheckin": "Panel kontrolera (check-in)",
     "tagline": "Polska · wydarzenia · bilety online",
-    "socialShort": "Teatr Popular Poet — zostań z nami na Instagramie i YouTube.",
+    "socialHeading": "Teatr w mediach społecznościowych",
+    "socialIntro": "Wesprzyj nasz teatr — obserwuj na Instagramie i zasubskrybuj kanał na YouTube: ogłoszenia, kulisy i linki do występów.",
+    "socialInstagramHandle": "@popular_poet_theatre",
+    "socialYoutubeHandle": "Popular Poet",
+    "socialOutro": "Na YouTube — improwizacje i spektakle. Subskrypcja i polubienia naprawdę pomagają. Dziękujemy!",
     "socialInstagramAria": "Instagram: @popular_poet_theatre",
     "socialYoutubeAria": "Kanał YouTube: Popular Poet",
     "linkTerms": "Regulamin",
@@ -74,6 +78,7 @@
     "priceLabel": "Cena za bilet",
     "remainingLabel": "Pozostało",
     "soldOut": "Wyprzedane.",
+    "purchaseClosedPast": "To wydarzenie już się odbyło — sprzedaż biletów jest zamknięta.",
     "loadRemainingError": "Błąd wczytywania dostępności",
     "loadQueryError": "Nie udało się wczytać wydarzenia z bazy. Sprawdź Supabase.",
     "openInMaps": "Otwórz w Google Maps"
@@ -220,6 +225,7 @@
     "eventNotFound": "Wydarzenie nie zostało znalezione.",
     "ticketCheckFailed": "Nie udało się sprawdzić dostępnej liczby biletów.",
     "notEnoughTickets": "Za mało wolnych biletów.",
+    "eventEnded": "Wydarzenie już się odbyło — nie można złożyć zamówienia.",
     "orderCreateFailed": "Nie udało się utworzyć zamówienia.",
     "appUrlMissing": "Brak publicznego adresu URL: ustaw NEXT_PUBLIC_APP_URL albo uruchom na Vercel (VERCEL_URL)."
   }

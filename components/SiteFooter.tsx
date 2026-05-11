@@ -31,32 +31,57 @@ export async function SiteFooter() {
 
   return (
     <footer className="relative z-0 border-t border-poet-gold/15 bg-poet-bg/90">
-      <div className="poet-safe-x mx-auto max-w-5xl py-10 text-xs text-zinc-500 sm:py-12">
-        <div className="mb-8 flex flex-col gap-4 border-b border-poet-gold/15 pb-8 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-          <p className="max-w-xl text-sm leading-relaxed text-zinc-400">{t("socialShort")}</p>
-          <div className="flex shrink-0 items-center gap-3">
+      <div className="poet-safe-x mx-auto max-w-5xl py-10 sm:py-12">
+        <section
+          aria-labelledby="footer-social-heading"
+          className="mb-10 rounded-2xl border border-poet-gold/40 bg-gradient-to-b from-poet-gold/[0.07] to-poet-surface/80 p-5 shadow-[inset_0_1px_0_0_rgba(197,160,89,0.12)] sm:mb-12 sm:p-7"
+        >
+          <h2 id="footer-social-heading" className="font-display text-lg font-semibold tracking-tight text-gradient-gold sm:text-xl">
+            {t("socialHeading")}
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-200 sm:text-[0.9375rem]">{t("socialIntro")}</p>
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             <a
               href={THEATRE_INSTAGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={t("socialInstagramAria")}
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-poet-gold/35 bg-poet-gold/10 text-poet-gold-bright transition hover:border-poet-gold/55 hover:bg-poet-gold/18"
+              className="group flex items-center gap-4 rounded-xl border border-poet-gold/45 bg-zinc-950/55 px-4 py-4 text-left transition hover:border-poet-gold/75 hover:bg-poet-gold/[0.12] sm:px-5 sm:py-5"
             >
-              <InstagramGlyph className="h-5 w-5" />
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-poet-gold/35 bg-poet-gold/15 text-poet-gold-bright transition group-hover:border-poet-gold/55 group-hover:bg-poet-gold/25">
+                <InstagramGlyph className="h-6 w-6" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[13px] font-semibold uppercase tracking-wide text-poet-gold-bright">Instagram</span>
+                <span className="mt-0.5 block truncate text-base font-medium text-zinc-100">{t("socialInstagramHandle")}</span>
+              </span>
+              <span aria-hidden className="shrink-0 text-poet-gold/70 transition group-hover:text-poet-gold-bright">
+                ↗
+              </span>
             </a>
             <a
               href={THEATRE_YOUTUBE_URL}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={t("socialYoutubeAria")}
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-poet-gold/35 bg-poet-gold/10 text-poet-gold-bright transition hover:border-poet-gold/55 hover:bg-poet-gold/18"
+              className="group flex items-center gap-4 rounded-xl border border-poet-gold/45 bg-zinc-950/55 px-4 py-4 text-left transition hover:border-poet-gold/75 hover:bg-poet-gold/[0.12] sm:px-5 sm:py-5"
             >
-              <YouTubeGlyph className="h-5 w-5" />
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-poet-gold/35 bg-poet-gold/15 text-poet-gold-bright transition group-hover:border-poet-gold/55 group-hover:bg-poet-gold/25">
+                <YouTubeGlyph className="h-6 w-6" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[13px] font-semibold uppercase tracking-wide text-poet-gold-bright">YouTube</span>
+                <span className="mt-0.5 block truncate text-base font-medium text-zinc-100">{t("socialYoutubeHandle")}</span>
+              </span>
+              <span aria-hidden className="shrink-0 text-poet-gold/70 transition group-hover:text-poet-gold-bright">
+                ↗
+              </span>
             </a>
           </div>
-        </div>
+          <p className="mt-4 max-w-3xl text-xs leading-relaxed text-zinc-400 sm:text-sm">{t("socialOutro")}</p>
+        </section>
 
-        <div className="flex flex-col gap-8 sm:flex-row sm:justify-between sm:gap-10">
+        <div className="flex flex-col gap-8 border-t border-poet-gold/15 pt-8 text-xs text-zinc-500 sm:flex-row sm:justify-between sm:gap-10">
           <div className="max-w-xl space-y-3">
             <p className="font-display text-base text-gradient-gold">{COMPANY.productName}</p>
             <p className="leading-relaxed text-zinc-400">
@@ -78,7 +103,7 @@ export async function SiteFooter() {
               </IntlLink>
             </nav>
           </div>
-          <div className="flex flex-col gap-4 text-sm text-zinc-400 sm:shrink-0 sm:items-end">
+          <div className="flex flex-col gap-4 text-sm text-zinc-400 sm:shrink-0 sm:items-end sm:text-xs">
             <IntlLink
               href="/firma"
               className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-poet-gold/25 px-4 py-2.5 text-center text-poet-gold-bright transition hover:border-poet-gold/50 hover:bg-poet-gold/5 sm:w-auto sm:min-h-0 sm:py-2"

@@ -140,7 +140,11 @@ export default async function EventPage({
             </div>
           </div>
 
-          {remaining > 0 ? (
+          {marketingStatus === "past" ? (
+            <p className="mt-4 text-poet-gold-bright/90">
+              {remaining > 0 ? t("purchaseClosedPast") : t("soldOut")}
+            </p>
+          ) : remaining > 0 ? (
             <EventCheckoutForm
               eventSlug={event.slug}
               remaining={remaining}

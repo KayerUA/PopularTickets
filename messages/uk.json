@@ -28,7 +28,11 @@
     "staffLogin": "Панель організатора (admin)",
     "staffCheckin": "Панель контролера (check-in)",
     "tagline": "Польща · події · квитки онлайн",
-    "socialShort": "Театр Popular Poet — підпишіться в Instagram і на YouTube.",
+    "socialHeading": "Театр у соцмережах",
+    "socialIntro": "Підтримайте наш театр — підпишіться в Instagram і на YouTube: анонси, закулісся та посилання на виступи.",
+    "socialInstagramHandle": "@popular_poet_theatre",
+    "socialYoutubeHandle": "Popular Poet",
+    "socialOutro": "На YouTube — імпровізації та вистави. Підписка й лайки дуже допомагають. Дякуємо!",
     "socialInstagramAria": "Instagram: @popular_poet_theatre",
     "socialYoutubeAria": "YouTube: Popular Poet",
     "linkTerms": "Регламент",
@@ -74,6 +78,7 @@
     "priceLabel": "Ціна за квиток",
     "remainingLabel": "Залишилось",
     "soldOut": "Розпродано.",
+    "purchaseClosedPast": "Подія вже відбулася — квитки більше не продаються.",
     "loadRemainingError": "Помилка завантаження наявності",
     "loadQueryError": "Не вдалося завантажити подію з бази. Перевірте Supabase.",
     "openInMaps": "Відкрити в Google Maps"
@@ -220,6 +225,7 @@
     "eventNotFound": "Подію не знайдено.",
     "ticketCheckFailed": "Не вдалося перевірити кількість квитків.",
     "notEnoughTickets": "Недостатньо вільних квитків.",
+    "eventEnded": "Подія вже відбулася — оформити замовлення неможливо.",
     "orderCreateFailed": "Не вдалося створити замовлення.",
     "appUrlMissing": "Немає публічного URL: задайте NEXT_PUBLIC_APP_URL або деплой на Vercel (VERCEL_URL)."
   }

@@ -35,20 +35,19 @@ function p24UiLanguage(locale: AppLocale): string {
 }
 
 export async function createPendingOrder(formData: FormData) {
-  const t = await getTranslations("Errors");
   const h = await headers();
   const ip = clientIp(h);
+  const localeRaw = formData.get("locale");
+  const localeParsed = z.enum(["pl", "uk", "ru"]).safeParse(localeRaw);
+  const locale = (localeParsed.success ? localeParsed.data : routing.defaultLocale) as AppLocale;
+  const t = await getTranslations({ locale, namespace: "Errors" });
+
   if (!rateLimit(`order:${ip}`, 25, 60_000)) {
     throw new Error(t("rateLimit"));
   }
 
-  const localeRaw = formData.get("locale");
-  const localeParsed = z.enum(["pl", "uk", "ru"]).safeParse(localeRaw);
-  const locale = (localeParsed.success ? localeParsed.data : routing.defaultLocale) as AppLocale;
-
   if (formData.get("acceptLegal") !== "on") {
-    const tLegal = await getTranslations({ locale, namespace: "Errors" });
-    throw new Error(tLegal("legalNotAccepted"));
+    throw new Error(t("legalNotAccepted"));
   }
 
   const parsed = CheckoutSchema.safeParse({
@@ -67,12 +66,17 @@ export async function createPendingOrder(formData: FormData) {
   const supabase = requireServiceSupabase();
   const { data: event, error: evErr } = await supabase
     .from("events")
-    .select("id,slug,title,price_grosze,total_tickets,is_published")
+    .select("id,slug,title,price_grosze,total_tickets,is_published,starts_at")
     .eq("slug", eventSlug)
     .maybeSingle();
 
   if (evErr || !event || !event.is_published) {
     throw new Error(t("eventNotFound"));
+  }
+
+  const startMs = new Date(event.starts_at as string).getTime();
+  if (!Number.isNaN(startMs) && startMs < Date.now()) {
+    throw new Error(t("eventEnded"));
   }
 
   const { count: soldCount, error: cntErr } = await supabase
