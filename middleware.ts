@@ -56,6 +56,18 @@ export async function middleware(req: NextRequest) {
     return nextWithDefaultLocale(req);
   }
 
+  /** `/uk/uk/...` или `/pl/ru/...` — убираем лишний сегмент локали до next-intl. */
+  const dup = pathname.match(/^\/(pl|uk|ru)\/(pl|uk|ru)(\/.*)?$/);
+  if (dup) {
+    const [, a, b, tail = ""] = dup;
+    const nextPath = a === b ? `/${a}${tail}` : `/${b}${tail}`;
+    if (nextPath !== pathname) {
+      const url = req.nextUrl.clone();
+      url.pathname = nextPath;
+      return NextResponse.redirect(url);
+    }
+  }
+
   return intlMiddleware(req);
 }
 

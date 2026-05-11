@@ -1,32 +1,39 @@
 "use client";
 
-import { useTransition, useState } from "react";
+import { useTransition, useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { unstable_rethrow } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { createPendingOrder } from "@/app/actions/checkout";
 import type { AppLocale } from "@/i18n/routing";
+import { splitTheatreTicketTotalGrosze } from "@/lib/plVatTheatreTicket";
+import { formatPlnFromGrosze } from "@/lib/format";
 
 type Props = {
   eventSlug: string;
   remaining: number;
   locale: AppLocale;
+  /** Cena jednego biletu w groszach (brutto, z VAT 8%). */
+  unitPriceGrosze: number;
   /** MVP: bez Przelewy24 — natychmiastowe potwierdzenie */
   bypassPayment?: boolean;
 };
 
-export function EventCheckoutForm({ eventSlug, remaining, locale, bypassPayment }: Props) {
+export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosze, bypassPayment }: Props) {
   const t = useTranslations("CheckoutForm");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [quantity, setQuantity] = useState(1);
   const max = Math.min(20, remaining);
+
+  const totals = useMemo(() => splitTheatreTicketTotalGrosze(unitPriceGrosze, quantity), [unitPriceGrosze, quantity]);
 
   const fieldClass =
     "mt-1.5 w-full min-h-11 rounded-xl border border-poet-gold/20 bg-zinc-900/80 px-3 py-2.5 text-base text-white transition placeholder:text-zinc-600 disabled:opacity-50 sm:min-h-10 sm:py-2 sm:text-sm";
 
   return (
     <form
-      className="mt-6 space-y-4 rounded-2xl border border-poet-gold/20 bg-poet-bg/70 p-4 shadow-gold-sm sm:p-5"
+      className="relative mt-6 space-y-4 rounded-2xl border border-poet-gold/25 bg-gradient-to-b from-[#1a0c12]/90 via-poet-bg/85 to-zinc-950/90 p-4 pb-28 shadow-[0_0_0_1px_rgba(197,160,89,0.12),inset_0_1px_0_rgba(255,230,200,0.06)] sm:p-5 sm:pb-5"
       action={(formData) => {
         setError(null);
         startTransition(async () => {
@@ -42,6 +49,9 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, bypassPayment 
     >
       <input type="hidden" name="eventSlug" value={eventSlug} />
       <input type="hidden" name="locale" value={locale} />
+      <div className="pointer-events-none absolute left-3 top-2 h-5 w-px border-l border-dashed border-poet-gold/35 sm:left-4" aria-hidden />
+      <div className="pointer-events-none absolute right-3 top-2 h-5 w-px border-r border-dashed border-poet-gold/35 sm:right-4" aria-hidden />
+
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm">
           <span className="text-zinc-400">{t("name")}</span>
@@ -70,7 +80,12 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, bypassPayment 
             type="number"
             min={1}
             max={max}
-            defaultValue={1}
+            value={quantity}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              if (Number.isNaN(v)) return;
+              setQuantity(Math.min(max, Math.max(1, Math.floor(v))));
+            }}
             required
             disabled={pending}
             className={fieldClass}
@@ -78,6 +93,26 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, bypassPayment 
           />
         </label>
       </div>
+
+      <div className="rounded-xl border border-poet-gold/15 bg-black/25 px-3 py-3 text-sm sm:px-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-poet-gold/75">{t("summaryTitle")}</p>
+        <dl className="mt-2 space-y-1.5 text-zinc-300">
+          <div className="flex justify-between gap-3">
+            <dt>{t("bruttoLabel")}</dt>
+            <dd className="font-medium text-poet-gold-bright">{formatPlnFromGrosze(totals.grossGrosze)}</dd>
+          </div>
+          <div className="flex justify-between gap-3 text-zinc-400">
+            <dt>{t("nettoLabel")}</dt>
+            <dd>{formatPlnFromGrosze(totals.netGrosze)}</dd>
+          </div>
+          <div className="flex justify-between gap-3 text-zinc-400">
+            <dt>{t("vatLabel")}</dt>
+            <dd>{formatPlnFromGrosze(totals.vatGrosze)}</dd>
+          </div>
+        </dl>
+        <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">{t("vatLegalNote")}</p>
+      </div>
+
       {error ? <p className="break-words text-sm text-red-400">{error}</p> : null}
       <label className="flex cursor-pointer items-start gap-3 text-sm text-zinc-400">
         <input
@@ -108,10 +143,21 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, bypassPayment 
           {t("bypassHint")}
         </p>
       ) : null}
-      <button type="submit" disabled={pending} className="btn-poet poet-shine w-full py-3.5 text-sm sm:w-auto sm:px-10 sm:py-3">
-        {pending ? t("submitting") : bypassPayment ? t("submitBypass") : t("submit")}
-      </button>
-      <p className="text-xs leading-relaxed text-zinc-500">{bypassPayment ? t("hintBypass") : t("hint")}</p>
+
+      <p className="text-xs leading-relaxed text-zinc-500 sm:mt-1">{bypassPayment ? t("hintBypass") : t("hint")}</p>
+
+      {/* Mobile: przyklejony pasek z CTA; desktop: zwykły blok w formularzu */}
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-poet-gold/25 bg-poet-bg/92 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-md supports-[backdrop-filter]:bg-poet-bg/88 sm:static sm:z-auto sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        <div className="poet-safe-x mx-auto max-w-3xl sm:mx-0 sm:max-w-none">
+          <button
+            type="submit"
+            disabled={pending}
+            className="btn-poet btn-poet-theatre w-full py-3.5 text-sm font-semibold tracking-wide sm:w-auto sm:px-12 sm:py-3"
+          >
+            {pending ? t("submitting") : bypassPayment ? t("submitBypass") : t("submit")}
+          </button>
+        </div>
+      </div>
     </form>
   );
 }

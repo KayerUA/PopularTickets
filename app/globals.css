@@ -216,4 +216,18 @@
   .btn-poet {
     @apply relative inline-flex min-h-11 min-w-[2.75rem] items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-poet-gold-dim via-poet-gold to-poet-gold-bright px-5 py-2.5 text-[0.9375rem] font-semibold leading-tight text-zinc-950 shadow-gold-sm transition duration-300 hover:shadow-gold disabled:pointer-events-none disabled:opacity-45 sm:px-6 sm:py-2 sm:text-sm;
   }
+
+  /** Przycisk „teatralny”: aksamitna oprawa, złoty filar. */
+  .btn-poet-theatre {
+    @apply rounded-lg border-2 border-[#5c1a2e]/90 px-6 shadow-[0_0_0_1px_rgba(232,212,139,0.35),0_12px_32px_-12px_rgba(0,0,0,0.75)];
+    background:
+      linear-gradient(165deg, rgba(255, 248, 220, 0.22) 0%, transparent 42%),
+      linear-gradient(90deg, #7a5a2a 0%, #c5a059 38%, #e8d48b 52%, #c5a059 65%, #6b4a22 100%);
+    letter-spacing: 0.04em;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+
+  .btn-poet-theatre:hover:not(:disabled) {
+    @apply border-[#722f3f]/95 shadow-[0_0_0_1px_rgba(232,212,139,0.5),0_14px_36px_-10px_rgba(197,160,89,0.35)];
+  }
 }

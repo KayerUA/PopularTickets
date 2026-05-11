@@ -6,6 +6,7 @@ import { fetchPublishedEventBySlug } from "@/lib/supabase/fetchPublishedEventByS
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { SupabaseQueryErrorPanel } from "@/components/SupabaseQueryErrorPanel";
 import { formatPlnFromGrosze, formatEventDateTime } from "@/lib/format";
+import { splitTheatreTicketGrossGrosze } from "@/lib/plVatTheatreTicket";
 import { EventCheckoutForm } from "@/components/EventCheckoutForm";
 import { getTranslations } from "next-intl/server";
 import type { AppLocale } from "@/i18n/routing";
@@ -114,6 +115,7 @@ export default async function EventPage({
   });
 
   const soldOut = remaining <= 0 || marketingStatus === "sold_out";
+  const ticketVat = splitTheatreTicketGrossGrosze(event.price_grosze);
 
   return (
     <div className="poet-safe-x mx-auto max-w-3xl py-8 sm:py-14">
@@ -185,6 +187,21 @@ export default async function EventPage({
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{t("priceLabel")}</p>
               <p className="text-xl font-semibold text-poet-gold-bright">{formatPlnFromGrosze(event.price_grosze)}</p>
+              <dl className="mt-2 space-y-0.5 text-xs text-zinc-500">
+                <div className="flex gap-4">
+                  <dt>{t("bruttoLabel")}</dt>
+                  <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.grossGrosze)}</dd>
+                </div>
+                <div className="flex gap-4">
+                  <dt>{t("nettoLabel")}</dt>
+                  <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.netGrosze)}</dd>
+                </div>
+                <div className="flex gap-4">
+                  <dt>{t("vatLabel")}</dt>
+                  <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.vatGrosze)}</dd>
+                </div>
+              </dl>
+              <p className="mt-2 max-w-md text-[11px] leading-relaxed text-zinc-600">{t("vatLegalNote")}</p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{t("remainingLabel")}</p>
@@ -201,6 +218,7 @@ export default async function EventPage({
               eventSlug={event.slug}
               remaining={remaining}
               locale={locale}
+              unitPriceGrosze={event.price_grosze}
               bypassPayment={isCheckoutBypassPayment()}
             />
           ) : (

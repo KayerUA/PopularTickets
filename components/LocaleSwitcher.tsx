@@ -3,11 +3,12 @@
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
+import { stripLocalePrefixSegments } from "@/lib/localePath";
 
 export function LocaleSwitcher() {
   const t = useTranslations("LocaleSwitcher");
   const locale = useLocale() as AppLocale;
-  const pathname = usePathname();
+  const pathname = stripLocalePrefixSegments(usePathname() ?? "/");
   const router = useRouter();
 
   return (

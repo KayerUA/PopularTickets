@@ -81,7 +81,11 @@
     "purchaseClosedPast": "To wydarzenie już się odbyło — sprzedaż biletów jest zamknięta.",
     "loadRemainingError": "Błąd wczytywania dostępności",
     "loadQueryError": "Nie udało się wczytać wydarzenia. Spróbuj ponownie za chwilę lub wróć do listy wydarzeń.",
-    "openInMaps": "Otwórz w Google Maps"
+    "openInMaps": "Otwórz w Google Maps",
+    "bruttoLabel": "Brutto",
+    "nettoLabel": "Netto",
+    "vatLabel": "w tym VAT (8%)",
+    "vatLegalNote": "Dla biletu na wydarzenie kulturalne (wstęp) stosujemy obniżoną stawkę VAT 8% wg polskiej ustawy o VAT; kwoty liczymy od ceny brutto."
   },
   "EventCard": {
     "buy": "Kup bilet",
@@ -107,7 +111,12 @@
     "hint": "Po opłaceniu bilety trafią na email. Status płatności potwierdzamy automatycznie.",
     "hintBypass": "W trybie demonstracyjnym bilety trafiają na e-mail od razu po wysłaniu (wymaga włączonej wysyłki po stronie organizatora).",
     "errorGeneric": "Nie udało się utworzyć zamówienia",
-    "legalConsent": "Akceptuję <terms>regulamin serwisu</terms> oraz <privacy>politykę prywatności</privacy> — jest to wymagane, aby złożyć zamówienie."
+    "legalConsent": "Akceptuję <terms>regulamin serwisu</terms> oraz <privacy>politykę prywatności</privacy> — jest to wymagane, aby złożyć zamówienie.",
+    "summaryTitle": "Podsumowanie (PL, VAT 8%)",
+    "bruttoLabel": "Razem brutto",
+    "nettoLabel": "Netto",
+    "vatLabel": "w tym VAT (8%)",
+    "vatLegalNote": "Stawka 8% — bilety na wydarzenia kulturalne (wstęp), cena zawiera podatek; wyliczenia od kwoty brutto."
   },
   "CheckoutReturn": {
     "brand": "Popular Poet",
@@ -117,6 +126,7 @@
     "introWithTickets": "Poniżej są kody QR — to samo wyślemy na e-mail (możesz też zapisać zrzut ekranu na własny użytek).",
     "ticketsHeading": "Twoje bilety",
     "ticketLabel": "Numer biletu",
+    "ticketRibbon": "Jeden widz",
     "downloadTicket": "Pobierz bilet (PDF)",
     "copyId": "Skopiuj kod zapasowy (dla obsługi)",
     "copiedId": "Skopiowano",

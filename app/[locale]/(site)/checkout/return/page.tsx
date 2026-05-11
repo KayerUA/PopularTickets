@@ -73,6 +73,7 @@ export default async function CheckoutReturnPage({
         shareWarning: t("shareWarning"),
         checkInHint: t("checkInHint"),
         ticketLabel: t("ticketLabel"),
+        ticketRibbon: t("ticketRibbon"),
         ticketPdfKindSecondary: tPdf("kindSecondary"),
         ticketPdfQrSecondary: tPdf("qrSecondary"),
         ticketPdfDisclaimer: tPdf("translationDisclaimer"),
