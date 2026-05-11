@@ -121,8 +121,6 @@
     "ticketsHeading": "Twoje bilety",
     "ticketLabel": "Numer biletu",
     "downloadTicket": "Pobierz bilet (PDF)",
-    "ticketPngKind": "Bilet elektroniczny",
-    "ticketPngQrHint": "Kod QR = identyfikator przy wejściu",
     "copyId": "Skopiuj identyfikator",
     "copiedId": "Skopiowano",
     "emailAlso": "Kopia na e-mail:",
@@ -134,6 +132,11 @@
     "refresh": "Odśwież",
     "unpaidBody": "Nie widzimy potwierdzonej płatności dla tego zamówienia. Jeśli płaciłeś/aś kartą, sprawdź e-mail od banku lub spróbuj ponownie ze strony wydarzenia.",
     "receiptAccessDenied": "Link do potwierdzenia jest nieprawidłowy lub wygasł. Otwórz stronę z przekierowania po płatności albo skontaktuj się z obsługą. Surowy numer zamówienia w URL bez podpisu nie jest akceptowany (ustawiono ORDER_RECEIPT_SECRET)."
+  },
+  "TicketPdf": {
+    "kindSecondary": "",
+    "qrSecondary": "",
+    "translationDisclaimer": ""
   },
   "Legal": {
     "backHome": "← Strona główna",

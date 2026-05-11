@@ -1,8 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, type PDFFont, rgb } from "pdf-lib";
+import { PDFDocument, type PDFFont, type PDFPage, rgb } from "pdf-lib";
 import { COMPANY } from "@/lib/company";
+import { TICKET_PDF_KIND_PL, TICKET_PDF_QR_HINT_PL } from "@/lib/ticketPdfLegalPl";
 
 export type TicketLayoutDocInput = {
   /** `data:image/png;base64,...` — QR как на странице */
@@ -12,8 +13,10 @@ export type TicketLayoutDocInput = {
   dateTimeLabel: string;
   ticketNumber: string;
   ticketId: string;
-  kindLabel: string;
-  qrHint: string;
+  /** Мелкий перевод подписи вида билета (пусто для PL). */
+  ticketKindSecondary: string;
+  ticketQrSecondary: string;
+  ticketDisclaimer: string;
 };
 
 const GOLD = rgb(0.91, 0.83, 0.55);
@@ -79,7 +82,27 @@ function wrapForWidth(text: string, font: PDFFont, size: number, maxWidth: numbe
   return lines;
 }
 
-/** PDF с встроенным DejaVu Sans (TTF) — корректная PL/UK/RU, без librsvg/PNG-шрифтов. */
+/** Центрированные строки; возвращает baseline под последней строкой. */
+function drawCenteredBlock(
+  page: PDFPage,
+  pageW: number,
+  lines: string[],
+  font: PDFFont,
+  size: number,
+  color: ReturnType<typeof rgb>,
+  startBaseline: number,
+  lineGap: number
+): number {
+  let baseline = startBaseline;
+  for (const line of lines) {
+    const w = font.widthOfTextAtSize(line, size);
+    page.drawText(line, { x: (pageW - w) / 2, y: baseline, size, font, color });
+    baseline -= lineGap;
+  }
+  return baseline;
+}
+
+/** PDF: польские формулировки + при необходимости мелкий перевод (DejaVu TTF). */
 export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promise<Buffer> {
   const regularBytes = fs.readFileSync(dejavuPath("DejaVuSans.ttf"));
   const boldBytes = fs.readFileSync(dejavuPath("DejaVuSans-Bold.ttf"));
@@ -90,7 +113,7 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
   const fontBold = await pdfDoc.embedFont(boldBytes, { subset: true });
 
   const W = 220;
-  const H = 400;
+  const H = 438;
   const margin = 14;
   const contentW = W - 2 * margin;
 
@@ -128,14 +151,24 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
   });
   y -= 12;
 
-  page.drawText(input.kindLabel.toUpperCase(), {
+  page.drawText(TICKET_PDF_KIND_PL.toUpperCase(), {
     x: margin,
     y: y - 7,
     size: 6.5,
     font: fontBold,
     color: rgb(0.66, 0.6, 0.43),
   });
-  y -= 14;
+  y -= 12;
+
+  const kindSec = input.ticketKindSecondary.trim();
+  if (kindSec) {
+    const secLines = wrapForWidth(kindSec, font, 5, contentW, 2);
+    for (const line of secLines) {
+      page.drawText(line, { x: margin, y: y - 2, size: 5, font, color: rgb(0.55, 0.52, 0.48) });
+      y -= 6.5;
+    }
+    y -= 4;
+  }
 
   const titleLines = wrapForWidth(input.eventTitle, fontBold, 12, contentW, 4);
   for (const line of titleLines) {
@@ -159,7 +192,7 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
 
   const qrBytes = dataUrlPngToBytes(input.qrPngDataUrl);
   const qrImg = await pdfDoc.embedPng(qrBytes);
-  const qrSize = 108;
+  const qrSize = 100;
   const qrPad = 5;
   const qrX = (W - qrSize) / 2;
   const qrBoxY = y - qrSize - qrPad;
@@ -173,7 +206,7 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
     borderWidth: 0.5,
   });
   page.drawImage(qrImg, { x: qrX, y: y - qrSize, width: qrSize, height: qrSize });
-  y -= qrSize + 2 * qrPad + 12;
+  y -= qrSize + 2 * qrPad + 10;
 
   const idShort =
     input.ticketId.length > 36
@@ -181,10 +214,22 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
       : input.ticketId;
   const idW = font.widthOfTextAtSize(idShort, 6.5);
   page.drawText(idShort, { x: (W - idW) / 2, y: y - 7, size: 6.5, font, color: TEXT_DIM });
-  y -= 10;
+  y -= 12;
 
-  const hintW = font.widthOfTextAtSize(input.qrHint, 6);
-  page.drawText(input.qrHint, { x: Math.max(margin, (W - hintW) / 2), y: y - 6, size: 6, font, color: TEXT_DIM });
+  const plHintLines = wrapForWidth(TICKET_PDF_QR_HINT_PL, font, 6, contentW, 2);
+  y = drawCenteredBlock(page, W, plHintLines, font, 6, TEXT_DIM, y - 2, 7);
+
+  const qrSec = input.ticketQrSecondary.trim();
+  if (qrSec) {
+    const hintSecLines = wrapForWidth(qrSec, font, 5, contentW, 2);
+    y = drawCenteredBlock(page, W, hintSecLines, font, 5, rgb(0.42, 0.42, 0.45), y - 2, 6.5);
+  }
+
+  const disc = input.ticketDisclaimer.trim();
+  if (disc) {
+    const discLines = wrapForWidth(disc, font, 4.5, contentW, 3);
+    drawCenteredBlock(page, W, discLines, font, 4.5, rgb(0.38, 0.36, 0.34), Math.max(margin, y - 4), 5.5);
+  }
 
   const out = await pdfDoc.save();
   return Buffer.from(out);

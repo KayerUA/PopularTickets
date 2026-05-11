@@ -8,14 +8,15 @@ import type { AppLocale } from "@/i18n/routing";
 export type CheckoutReceiptLabels = {
   ticketsHeading: string;
   downloadTicket: string;
-  ticketPngKind: string;
-  ticketPngQrHint: string;
   copyId: string;
   copiedId: string;
   emailAlso: string;
   shareWarning: string;
   checkInHint: string;
   ticketLabel: string;
+  ticketPdfKindSecondary: string;
+  ticketPdfQrSecondary: string;
+  ticketPdfDisclaimer: string;
 };
 
 export async function CheckoutPaidReceipt({
@@ -39,8 +40,9 @@ export async function CheckoutPaidReceipt({
         dateTimeLabel: when,
         ticketNumber: t.ticket_number,
         ticketId: t.id,
-        kindLabel: labels.ticketPngKind,
-        qrHint: labels.ticketPngQrHint,
+        ticketKindSecondary: labels.ticketPdfKindSecondary,
+        ticketQrSecondary: labels.ticketPdfQrSecondary,
+        ticketDisclaimer: labels.ticketPdfDisclaimer,
       });
       const ticketPdfDataUrl = `data:application/pdf;base64,${pdfBuf.toString("base64")}`;
       return { ...t, dataUrl, ticketPdfDataUrl };

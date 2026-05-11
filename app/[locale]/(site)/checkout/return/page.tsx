@@ -38,6 +38,7 @@ export default async function CheckoutReturnPage({
   const { locale } = await params;
   const sp = await searchParams;
   const t = await getTranslations({ locale, namespace: "CheckoutReturn" });
+  const tPdf = await getTranslations({ locale, namespace: "TicketPdf" });
 
   const rtRaw = typeof sp.rt === "string" ? sp.rt.trim() : "";
   const orderRaw = typeof sp.order === "string" ? sp.order.trim() : "";
@@ -66,14 +67,15 @@ export default async function CheckoutReturnPage({
       const labels: CheckoutReceiptLabels = {
         ticketsHeading: t("ticketsHeading"),
         downloadTicket: t("downloadTicket"),
-        ticketPngKind: t("ticketPngKind"),
-        ticketPngQrHint: t("ticketPngQrHint"),
         copyId: t("copyId"),
         copiedId: t("copiedId"),
         emailAlso: t("emailAlso"),
         shareWarning: t("shareWarning"),
         checkInHint: t("checkInHint"),
         ticketLabel: t("ticketLabel"),
+        ticketPdfKindSecondary: tPdf("kindSecondary"),
+        ticketPdfQrSecondary: tPdf("qrSecondary"),
+        ticketPdfDisclaimer: tPdf("translationDisclaimer"),
       };
 
       const refreshHref =

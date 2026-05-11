@@ -41,6 +41,8 @@ export function buildEventJsonLd(
     name: event.title,
     description: desc || event.title,
     startDate: event.starts_at,
+    /** Язык страницы события (доп. сигнал для поиска; основной контент — локаль страницы). */
+    inLanguage: locale,
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
     ...(images.length ? { image: images } : {}),
@@ -68,6 +70,8 @@ export function buildEventJsonLd(
             priceCurrency: "PLN",
             availability,
             validFrom: new Date().toISOString().slice(0, 10),
+            /** Билет/оферта до начала события (рекомендуется для Event rich results). */
+            validThrough: event.starts_at,
           },
         }
       : {}),

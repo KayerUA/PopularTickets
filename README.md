@@ -53,7 +53,7 @@ PopularTickets/
 - **Check-in**: если задан **`CHECKIN_OPERATOR_TOKEN`**, тот же секрет нужен и для поиска билета, и для отметки входа.
 - **Rate limit**: встроенный счётчик в памяти процесса; на serverless с несколькими инстансами лучше задать **`UPSTASH_REDIS_REST_URL`** и **`UPSTASH_REDIS_REST_TOKEN`** — тогда лимиты общие (см. `lib/security.ts`).
 - **Админка**: пароль из env, JWT в `httpOnly` cookie, проверка в middleware.
-- **SEO / GEO**: `metadataBase` из `NEXT_PUBLIC_APP_URL` (или `VERCEL_URL`), на публичных страницах — canonical, hreflang (`pl` / `uk` / `ru` + `x-default`), Open Graph, Twitter, meta `geo.region` / `geo.placename` (Польша / Варшава). Главная и события — JSON-LD (`WebSite` + `Organization`, `Event`). Файлы **`/sitemap.xml`** и **`/robots.txt`** (`app/sitemap.ts`, `app/robots.ts`). Страницы `/admin`, `/check-in`, `/api/*` и `/…/checkout/return` с **noindex**.
+- **SEO / GEO**: `metadataBase` из `NEXT_PUBLIC_APP_URL` (или `VERCEL_URL`), на публичных страницах — canonical, hreflang (`pl` / `uk` / `ru` + `x-default`), Open Graph, Twitter, meta `geo.region` / `geo.placename` (Польша / Варшава). Главная и события — JSON-LD (`WebSite` + `Organization`, `Event` с `Offer`, `validThrough` = дата начала, `inLanguage`). Файлы **`/sitemap.xml`** и **`/robots.txt`** (`app/sitemap.ts`, `app/robots.ts`). Страницы `/admin`, `/check-in`, `/api/*` и `/…/checkout/return` с **noindex**.
 
 ## NPM-пакеты
 
