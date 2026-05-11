@@ -2,6 +2,7 @@
 
 import { useActionState, useTransition, useState } from "react";
 import { lookupTicketAction, markTicketUsedAction, type CheckinLookup } from "@/app/actions/checkin";
+import { CheckInQrScanner } from "@/components/CheckInQrScanner";
 
 const initial: CheckinLookup = { status: "idle" };
 
@@ -13,6 +14,7 @@ export function CheckInPanel({ checkinTokenRequired }: Props) {
   const [state, lookupAction, pendingLookup] = useActionState(lookupTicketAction, initial);
   const [markMsg, setMarkMsg] = useState<string | null>(null);
   const [marking, startMark] = useTransition();
+  const [ticketCode, setTicketCode] = useState("");
 
   const valid = state.status === "valid" ? state : null;
 
@@ -21,7 +23,7 @@ export function CheckInPanel({ checkinTokenRequired }: Props) {
       <div>
         <h1 className="font-display text-2xl font-semibold text-zinc-50 sm:text-3xl">Check-in</h1>
         <p className="mt-2 break-words text-sm leading-relaxed text-zinc-400">
-          Вставьте UUID билета из QR или из письма. Для отметки входа может потребоваться код контролёра
+          Вставьте UUID билета из QR или из письма, либо отсканируйте QR камерой. Для отметки входа может потребоваться код контролёра
           (секрет на сервере: <code className="text-zinc-300">CHECKIN_OPERATOR_TOKEN</code>).
         </p>
         {checkinTokenRequired ? (
@@ -38,11 +40,16 @@ export function CheckInPanel({ checkinTokenRequired }: Props) {
           Код билета (UUID)
           <input
             name="code"
+            value={ticketCode}
+            onChange={(e) => setTicketCode(e.target.value)}
             className="mt-1.5 w-full min-h-11 rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2.5 font-mono text-base text-white sm:min-h-10 sm:py-2 sm:text-sm"
             placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
             required
+            autoComplete="off"
+            spellCheck={false}
           />
         </label>
+        <CheckInQrScanner onUuid={(uuid) => setTicketCode(uuid)} />
         <button
           type="submit"
           disabled={pendingLookup}

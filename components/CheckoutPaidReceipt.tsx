@@ -1,12 +1,15 @@
 import type { PaidOrderReceipt } from "@/lib/checkoutReceipt";
 import { ticketQrDataUrl } from "@/lib/qrDataUrl";
+import { renderTicketLayoutPng } from "@/lib/renderTicketLayoutPng";
 import { CopyTextButton } from "@/components/CopyTextButton";
 import { formatEventDateTime } from "@/lib/format";
 import type { AppLocale } from "@/i18n/routing";
 
 export type CheckoutReceiptLabels = {
   ticketsHeading: string;
-  downloadQr: string;
+  downloadTicket: string;
+  ticketPngKind: string;
+  ticketPngQrHint: string;
   copyId: string;
   copiedId: string;
   emailAlso: string;
@@ -24,14 +27,25 @@ export async function CheckoutPaidReceipt({
   locale: AppLocale;
   labels: CheckoutReceiptLabels;
 }) {
-  const qrPairs = await Promise.all(
-    receipt.tickets.map(async (t) => ({
-      ...t,
-      dataUrl: await ticketQrDataUrl(t.id),
-    }))
-  );
-
   const when = formatEventDateTime(receipt.startsAt, locale);
+
+  const qrPairs = await Promise.all(
+    receipt.tickets.map(async (t) => {
+      const dataUrl = await ticketQrDataUrl(t.id);
+      const pngBuf = await renderTicketLayoutPng({
+        qrPngDataUrl: dataUrl,
+        eventTitle: receipt.eventTitle,
+        venue: receipt.venue,
+        dateTimeLabel: when,
+        ticketNumber: t.ticket_number,
+        ticketId: t.id,
+        kindLabel: labels.ticketPngKind,
+        qrHint: labels.ticketPngQrHint,
+      });
+      const ticketPngDataUrl = `data:image/png;base64,${pngBuf.toString("base64")}`;
+      return { ...t, dataUrl, ticketPngDataUrl };
+    })
+  );
 
   return (
     <div className="mt-8 space-y-6 border-t border-poet-gold/20 pt-8 text-left">
@@ -63,11 +77,11 @@ export async function CheckoutPaidReceipt({
               />
               <div className="flex w-full max-w-xs flex-col gap-2 sm:w-auto">
                 <a
-                  href={t.dataUrl}
-                  download={`qr-${t.ticket_number}.png`}
+                  href={t.ticketPngDataUrl}
+                  download={`bilet-${t.ticket_number}.png`}
                   className="inline-flex min-h-10 items-center justify-center rounded-full border border-poet-gold/40 bg-poet-gold/15 px-4 py-2 text-center text-sm font-medium text-poet-gold-bright transition hover:bg-poet-gold/25"
                 >
-                  {labels.downloadQr}
+                  {labels.downloadTicket}
                 </a>
                 <CopyTextButton text={t.id} label={labels.copyId} copiedLabel={labels.copiedId} />
                 <p className="break-all font-mono text-[11px] leading-relaxed text-zinc-500">{t.id}</p>

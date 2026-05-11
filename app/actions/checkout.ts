@@ -46,6 +46,11 @@ export async function createPendingOrder(formData: FormData) {
   const localeParsed = z.enum(["pl", "uk", "ru"]).safeParse(localeRaw);
   const locale = (localeParsed.success ? localeParsed.data : routing.defaultLocale) as AppLocale;
 
+  if (formData.get("acceptLegal") !== "on") {
+    const tLegal = await getTranslations({ locale, namespace: "Errors" });
+    throw new Error(tLegal("legalNotAccepted"));
+  }
+
   const parsed = CheckoutSchema.safeParse({
     eventSlug: formData.get("eventSlug"),
     buyerName: formData.get("buyerName"),

@@ -14,6 +14,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
     "framer-motion": "^11.18.2",
+    "html5-qrcode": "^2.3.8",
     "jose": "^5.9.6",
     "next": "15.5.18",
     "next-intl": "^3.26.5",
@@ -21,6 +22,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "resend": "^4.1.2",
+    "sharp": "^0.33.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {

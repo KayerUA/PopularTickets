@@ -31,7 +31,9 @@ export default async function CheckoutReturnPage({
       const state = await loadOrderReceiptState(supabase, orderParsed.data);
       const labels: CheckoutReceiptLabels = {
         ticketsHeading: t("ticketsHeading"),
-        downloadQr: t("downloadQr"),
+        downloadTicket: t("downloadTicket"),
+        ticketPngKind: t("ticketPngKind"),
+        ticketPngQrHint: t("ticketPngQrHint"),
         copyId: t("copyId"),
         copiedId: t("copiedId"),
         emailAlso: t("emailAlso"),

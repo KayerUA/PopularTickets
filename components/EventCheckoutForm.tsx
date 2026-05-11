@@ -2,6 +2,7 @@
 
 import { useTransition, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { createPendingOrder } from "@/app/actions/checkout";
 import type { AppLocale } from "@/i18n/routing";
 
@@ -86,6 +87,30 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, bypassPayment 
         </label>
       </div>
       {error ? <p className="break-words text-sm text-red-400">{error}</p> : null}
+      <label className="flex cursor-pointer items-start gap-3 text-sm text-zinc-400">
+        <input
+          type="checkbox"
+          name="acceptLegal"
+          value="on"
+          required
+          disabled={pending}
+          className="mt-1 h-4 w-4 shrink-0 rounded border border-poet-gold/40 bg-zinc-950 text-poet-gold focus:ring-poet-gold/50"
+        />
+        <span className="leading-relaxed">
+          {t.rich("legalConsent", {
+            terms: (chunks) => (
+              <Link href="/regulamin" className="text-poet-gold underline decoration-poet-gold/40 underline-offset-2 hover:text-poet-gold-bright">
+                {chunks}
+              </Link>
+            ),
+            privacy: (chunks) => (
+              <Link href="/polityka-prywatnosci" className="text-poet-gold underline decoration-poet-gold/40 underline-offset-2 hover:text-poet-gold-bright">
+                {chunks}
+              </Link>
+            ),
+          })}
+        </span>
+      </label>
       {bypassPayment ? (
         <p className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-100/90">
           {t("bypassHint")}

@@ -37,6 +37,31 @@ export default async function FirmaPage() {
       </h1>
       <p className="mt-3 break-words text-zinc-400">{t("intro", { product: COMPANY.productName })}</p>
 
+      <nav
+        aria-label={t("docNavTitle")}
+        className="mt-6 rounded-2xl border border-poet-gold/15 bg-poet-surface/25 px-4 py-3 text-sm text-zinc-400 sm:px-5"
+      >
+        <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{t("docNavTitle")}</p>
+        <p className="mt-1 text-xs text-zinc-500">{t("docNavIntro")}</p>
+        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+          <li>
+            <Link href="/regulamin" className="text-poet-gold hover:text-poet-gold-bright">
+              {t("docLinkRegulamin")}
+            </Link>
+          </li>
+          <li>
+            <Link href="/zwroty" className="text-poet-gold hover:text-poet-gold-bright">
+              {t("docLinkZwroty")}
+            </Link>
+          </li>
+          <li>
+            <Link href="/polityka-prywatnosci" className="text-poet-gold hover:text-poet-gold-bright">
+              {t("docLinkPrivacy")}
+            </Link>
+          </li>
+        </ul>
+      </nav>
+
       <section className="mt-8 space-y-5 rounded-2xl border border-poet-gold/20 bg-poet-surface/40 p-4 shadow-gold-sm backdrop-blur-sm sm:mt-10 sm:p-8">
         <h2 className="font-display text-xl font-medium text-zinc-100">{t("sellerTitle")}</h2>
         <dl className="grid gap-4 text-sm sm:grid-cols-2">
