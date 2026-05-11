@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { getServiceSupabase } from "@/lib/supabase/admin";
+import { fetchPublishedEventBySlug } from "@/lib/supabase/fetchPublishedEventBySlug";
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { SupabaseQueryErrorPanel } from "@/components/SupabaseQueryErrorPanel";
 import { formatPlnFromGrosze, formatEventDateTime } from "@/lib/format";
@@ -48,12 +49,7 @@ export default async function EventPage({
     return <SupabaseSetupHint variant="disconnected" locale={locale} />;
   }
 
-  const { data: event, error } = await supabase
-    .from("events")
-    .select("id,slug,title,description,image_url,maps_url,venue,starts_at,price_grosze,total_tickets")
-    .eq("slug", slug)
-    .eq("is_published", true)
-    .maybeSingle();
+  const { data: event, error } = await fetchPublishedEventBySlug(supabase, slug);
 
   if (error) {
     return <SupabaseQueryErrorPanel locale={locale} error={error} titleNamespace="EventPage" titleKey="loadQueryError" />;
@@ -71,7 +67,7 @@ export default async function EventPage({
 
   const remaining = event.total_tickets - (sold ?? 0);
   const mapsHref = resolveEventMapsUrl({
-    maps_url: (event as { maps_url?: string | null }).maps_url,
+    maps_url: event.maps_url,
     description: event.description,
   });
 

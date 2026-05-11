@@ -30,12 +30,16 @@ export async function SupabaseQueryErrorPanel({ locale, error, titleNamespace, t
         <li>{tHint("queryFailedServiceRole")}</li>
         <li>{tHint("queryFailedRedeploy")}</li>
       </ul>
+      <p className="mt-5 rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 py-2 font-mono text-xs leading-relaxed text-zinc-400">
+        {error.message}
+        {error.code ? ` · ${error.code}` : ""}
+      </p>
       {isDev ? (
-        <pre className="mt-6 overflow-x-auto rounded-lg border border-zinc-800 bg-zinc-950 p-3 font-mono text-xs text-zinc-400">
+        <pre className="mt-4 overflow-x-auto rounded-lg border border-zinc-800 bg-zinc-950 p-3 font-mono text-xs text-zinc-400">
           {tHint("queryFailedDevPrefix")}
           {"\n"}
-          {error.message}
-          {error.code ? `\ncode: ${error.code}` : ""}
+          {error.details ? `details: ${error.details}\n` : ""}
+          {error.hint ? `hint: ${error.hint}` : ""}
         </pre>
       ) : null}
     </div>

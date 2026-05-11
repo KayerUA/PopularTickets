@@ -23,9 +23,9 @@ const NotifySchema = z.object({
   sign: z.string(),
 });
 
-function formatRuDate(iso: string): string {
+function formatEmailEventDatePl(iso: string): string {
   try {
-    return new Intl.DateTimeFormat("ru-RU", {
+    return new Intl.DateTimeFormat("pl-PL", {
       dateStyle: "long",
       timeStyle: "short",
       timeZone: "Europe/Warsaw",
@@ -117,7 +117,7 @@ async function ensureTicketsAndEmail(params: {
         to: params.order.email,
         eventTitle: event.title,
         venue: event.venue,
-        startsAt: formatRuDate(event.starts_at),
+        startsAt: formatEmailEventDatePl(event.starts_at),
         tickets: allTickets.map((t) => ({ id: t.id, ticketNumber: t.ticket_number })),
       });
     } catch (e) {

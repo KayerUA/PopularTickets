@@ -51,7 +51,7 @@ export function ticketEmailHtml(params: {
             </tr>
             <tr>
               <td style="font-family:system-ui,sans-serif;color:#e4e4e7;font-size:14px;padding-bottom:12px;">
-                В приложении — QR-коды для каждого билета. На входе покажите соответствующий QR.
+                W załącznikach — kody QR dla każdego biletu. Na wejściu pokaż odpowiedni kod QR.
               </td>
             </tr>
             <tr>
@@ -59,8 +59,8 @@ export function ticketEmailHtml(params: {
                 <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
                   <thead>
                     <tr>
-                      <th align="left" style="padding:8px 12px;font-family:system-ui,sans-serif;font-size:12px;color:#71717a;text-transform:uppercase;">Номер</th>
-                      <th align="left" style="padding:8px 12px;font-family:system-ui,sans-serif;font-size:12px;color:#71717a;text-transform:uppercase;">ID билета</th>
+                      <th align="left" style="padding:8px 12px;font-family:system-ui,sans-serif;font-size:12px;color:#71717a;text-transform:uppercase;">Numer biletu</th>
+                      <th align="left" style="padding:8px 12px;font-family:system-ui,sans-serif;font-size:12px;color:#71717a;text-transform:uppercase;">Identyfikator (QR)</th>
                     </tr>
                   </thead>
                   <tbody>${rows}</tbody>
@@ -69,7 +69,7 @@ export function ticketEmailHtml(params: {
             </tr>
             <tr>
               <td style="padding-top:20px;font-family:system-ui,sans-serif;font-size:12px;color:#52525e;">
-                PopularTickets · мероприятия в Польше
+                PopularTickets · bilety na wydarzenia w Polsce
               </td>
             </tr>
             ${companyEmailFooterHtml()}
