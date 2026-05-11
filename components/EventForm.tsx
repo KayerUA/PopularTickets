@@ -75,9 +75,10 @@ export function EventForm({ event }: { event?: AdminEventRow }) {
             />
           </label>
           <p className="text-xs text-zinc-500">
-            Загрузка в Supabase Storage (до 5 МБ). Один раз выполните SQL{" "}
+            Загрузка в Supabase Storage (до 5 МБ). Бакет <code className="font-mono">event-images</code> создаётся
+            автоматически при первой загрузке (если ключ — service role). Дополнительно можно выполнить SQL{" "}
             <code className="rounded bg-zinc-900 px-1 font-mono text-zinc-400">supabase/storage-event-images.sql</code>{" "}
-            в проекте.
+            (политика чтения).
           </p>
           <label className="block text-sm text-zinc-300">
             Или ссылка / путь (опционально)

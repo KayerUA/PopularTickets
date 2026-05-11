@@ -1,6 +1,6 @@
 -- Публичный бакет для обложек событий (админка грузит файл → в events.image_url пишется public URL).
 -- Выполните в Supabase → SQL Editor после schema.sql (или вместе с деплоем).
--- Ограничения по размеру/типу дублируются в коде (lib/supabase/eventImageUpload.ts).
+-- Приложение с service role также может создать бакет через API, если его нет; этот SQL нужен как минимум для политики чтения (и для единообразия в проде).
 
 insert into storage.buckets (id, name, public)
 values ('event-images', 'event-images', true)
