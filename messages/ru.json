@@ -19,6 +19,7 @@
   "Footer": {
     "operator": "Сервис продажи билетов. Оператор:",
     "ctaDetails": "Данные продавца и оплаты",
+    "staffLogin": "Панель организатора (admin)",
     "tagline": "Польша · события · билеты онлайн"
   },
   "Home": {
@@ -53,7 +54,8 @@
     "remainingLabel": "Осталось",
     "soldOut": "Распродано.",
     "loadRemainingError": "Ошибка загрузки доступности",
-    "loadQueryError": "Не удалось загрузить событие из базы. Проверьте Supabase."
+    "loadQueryError": "Не удалось загрузить событие из базы. Проверьте Supabase.",
+    "openInMaps": "Открыть в Google Maps"
   },
   "EventCard": {
     "buy": "Купить билет"

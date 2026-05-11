@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
+import Link from "next/link";
+import { Link as IntlLink } from "@/i18n/navigation";
 import { COMPANY, companyAddressOneLine } from "@/lib/company";
 
 export async function SiteFooter() {
@@ -20,11 +21,17 @@ export async function SiteFooter() {
             <p className="break-words text-zinc-500">{companyAddressOneLine()}</p>
           </div>
           <div className="flex flex-col gap-4 text-sm text-zinc-400 sm:shrink-0 sm:items-end">
-            <Link
+            <IntlLink
               href="/firma"
               className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-poet-gold/25 px-4 py-2.5 text-center text-poet-gold-bright transition hover:border-poet-gold/50 hover:bg-poet-gold/5 sm:w-auto sm:min-h-0 sm:py-2"
             >
               {t("ctaDetails")}
+            </IntlLink>
+            <Link
+              href="/admin/login"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-zinc-600/80 px-4 py-2.5 text-center text-zinc-400 transition hover:border-zinc-500 hover:text-zinc-200 sm:w-auto sm:min-h-0 sm:py-2"
+            >
+              {t("staffLogin")}
             </Link>
             <p className="text-[11px] text-zinc-600 sm:text-right">{t("tagline")}</p>
           </div>

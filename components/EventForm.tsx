@@ -7,6 +7,7 @@ export type AdminEventRow = {
   title: string;
   description: string | null;
   image_url: string | null;
+  maps_url?: string | null;
   venue: string;
   starts_at: string;
   price_grosze: number;
@@ -56,6 +57,16 @@ export function EventForm({ event }: { event?: AdminEventRow }) {
             defaultValue={event?.image_url ?? ""}
             className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
             placeholder="https://..."
+          />
+        </label>
+        <label className="block text-sm text-zinc-300 sm:col-span-2">
+          Ссылка на карту (Google Maps, опционально)
+          <input
+            name="mapsUrl"
+            type="url"
+            defaultValue={event?.maps_url ?? ""}
+            className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+            placeholder="https://maps.app.goo.gl/..."
           />
         </label>
         <label className="block text-sm text-zinc-300 sm:col-span-2">

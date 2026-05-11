@@ -77,6 +77,7 @@ const row = {
   title: "Как провести вечер пятницы? Шоу «Импровизация»",
   description,
   image_url: "/events/improv-swietlica-2026-05-08.png",
+  maps_url: "https://maps.app.goo.gl/jz9E6JUn8rcymRoH7?g_st=ic",
   venue: "Świetlica Wolności — Nowy Świat 6/12, 00-400 Warszawa",
   starts_at: "2026-05-08T19:00:00.000Z",
   price_grosze: 10000,

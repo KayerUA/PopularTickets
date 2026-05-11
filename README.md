@@ -101,6 +101,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 Порядок **ручных шагов vs CLI** (Vercel, ошибка загрузки списка): **[docs/DEPLOY.md](docs/DEPLOY.md)** — там же команды `npm run verify:supabase` и `vercel env`.
 
+**Админка** не под префиксом языка: `https://<домен>/admin/login` (например [popular-tickets.vercel.app/admin/login](https://popular-tickets.vercel.app/admin/login)) — в футере публичного сайта есть ссылка «Панель организатора».
+
 ## Что делать дальше (чеклист)
 
 1. **Локально**: заполните `.env` / `.env.local` по [`.env.example`](.env.example), выполните `supabase/schema.sql` в панели Supabase, затем **`npm run verify:supabase`** — если OK, ключи и таблица на месте. Дальше `npm run dev`, проверьте `/pl` и заказ (при `CHECKOUT_BYPASS_PAYMENT=true`). Подробнее: [docs/DEPLOY.md](docs/DEPLOY.md).

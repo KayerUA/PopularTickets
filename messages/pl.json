@@ -19,6 +19,7 @@
   "Footer": {
     "operator": "Usługa sprzedaży biletów. Operator:",
     "ctaDetails": "Dane sprzedawcy i płatności",
+    "staffLogin": "Panel organizatora (admin)",
     "tagline": "Polska · wydarzenia · bilety online"
   },
   "Home": {
@@ -53,7 +54,8 @@
     "remainingLabel": "Pozostało",
     "soldOut": "Wyprzedane.",
     "loadRemainingError": "Błąd wczytywania dostępności",
-    "loadQueryError": "Nie udało się wczytać wydarzenia z bazy. Sprawdź Supabase."
+    "loadQueryError": "Nie udało się wczytać wydarzenia z bazy. Sprawdź Supabase.",
+    "openInMaps": "Otwórz w Google Maps"
   },
   "EventCard": {
     "buy": "Kup bilet"

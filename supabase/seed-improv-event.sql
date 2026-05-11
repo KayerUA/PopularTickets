@@ -7,6 +7,7 @@ insert into public.events (
   title,
   description,
   image_url,
+  maps_url,
   venue,
   starts_at,
   price_grosze,
@@ -38,6 +39,7 @@ values (
 Билет — 100 zł.
   $desc$,
   '/events/improv-swietlica-2026-05-08.png',
+  'https://maps.app.goo.gl/jz9E6JUn8rcymRoH7?g_st=ic',
   'Świetlica Wolności — Nowy Świat 6/12, 00-400 Warszawa',
   timestamptz '2026-05-08T21:00:00+02',
   10000,
@@ -48,6 +50,7 @@ on conflict (slug) do update set
   title = excluded.title,
   description = excluded.description,
   image_url = excluded.image_url,
+  maps_url = excluded.maps_url,
   venue = excluded.venue,
   starts_at = excluded.starts_at,
   price_grosze = excluded.price_grosze,

@@ -9,6 +9,7 @@ import { EventCheckoutForm } from "@/components/EventCheckoutForm";
 import { getTranslations } from "next-intl/server";
 import type { AppLocale } from "@/i18n/routing";
 import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
+import { resolveEventMapsUrl } from "@/lib/mapsUrl";
 
 export const revalidate = 30;
 
@@ -49,7 +50,7 @@ export default async function EventPage({
 
   const { data: event, error } = await supabase
     .from("events")
-    .select("id,slug,title,description,image_url,venue,starts_at,price_grosze,total_tickets")
+    .select("id,slug,title,description,image_url,maps_url,venue,starts_at,price_grosze,total_tickets")
     .eq("slug", slug)
     .eq("is_published", true)
     .maybeSingle();
@@ -69,6 +70,10 @@ export default async function EventPage({
   }
 
   const remaining = event.total_tickets - (sold ?? 0);
+  const mapsHref = resolveEventMapsUrl({
+    maps_url: (event as { maps_url?: string | null }).maps_url,
+    description: event.description,
+  });
 
   return (
     <div className="poet-safe-x mx-auto max-w-3xl py-8 sm:py-14">
@@ -97,6 +102,21 @@ export default async function EventPage({
               {formatEventDateTime(event.starts_at, locale)}
             </p>
             <p className="break-words text-sm text-zinc-500 sm:text-base">{event.venue}</p>
+            {mapsHref ? (
+              <p className="mt-2">
+                <a
+                  href={mapsHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-full border border-poet-gold/30 bg-poet-gold/10 px-4 py-2 text-sm font-medium text-poet-gold-bright transition hover:border-poet-gold/50 hover:bg-poet-gold/15"
+                >
+                  {t("openInMaps")}
+                  <span aria-hidden className="text-xs opacity-80">
+                    ↗
+                  </span>
+                </a>
+              </p>
+            ) : null}
           </div>
           <p className="whitespace-pre-wrap break-words text-[0.9375rem] leading-relaxed text-zinc-300 sm:text-base">
             {event.description}

@@ -17,6 +17,7 @@ create table if not exists public.events (
   title text not null,
   description text not null default '',
   image_url text,
+  maps_url text,
   venue text not null,
   starts_at timestamptz not null,
   price_grosze int not null check (price_grosze > 0),
@@ -28,6 +29,8 @@ create table if not exists public.events (
 
 create index if not exists events_starts_at_idx on public.events (starts_at);
 create index if not exists events_published_idx on public.events (is_published);
+
+alter table public.events add column if not exists maps_url text;
 
 -- Заказы
 create table if not exists public.orders (
