@@ -1,13 +1,12 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { getSupabaseProjectUrl, getSupabaseServiceRoleKey } from "@/lib/supabase/env";
 
 let cached: SupabaseClient | null = null;
 let missingEnvLogged = false;
 
 /** Есть ли переменные для серверного клиента Supabase. */
 export function isSupabaseConfigured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() && process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
-  );
+  return Boolean(getSupabaseProjectUrl() && getSupabaseServiceRoleKey());
 }
 
 /**
@@ -16,22 +15,23 @@ export function isSupabaseConfigured(): boolean {
  */
 export function getServiceSupabase(): SupabaseClient | null {
   if (cached) return cached;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const url = getSupabaseProjectUrl();
+  const key = getSupabaseServiceRoleKey();
   if (!url || !key) {
     if (process.env.NODE_ENV === "production") {
-      throw new Error("NEXT_PUBLIC_SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY обязательны");
+      throw new Error(
+        "NEXT_PUBLIC_SUPABASE_URL (или SUPABASE_URL) и SUPABASE_SERVICE_ROLE_KEY (или SUPABASE_SECRET_KEY) обязательны"
+      );
     }
     if (!missingEnvLogged) {
       missingEnvLogged = true;
       console.warn(
-        "[PopularTickets] Нет NEXT_PUBLIC_SUPABASE_URL или SUPABASE_SERVICE_ROLE_KEY — скопируйте .env.example в .env.local и заполните ключи."
+        "[PopularTickets] Нет URL или service role Supabase — задайте NEXT_PUBLIC_SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY в .env / .env.local (см. .env.example)."
       );
     }
     return null;
   }
-  const normalizedUrl = url.replace(/\/+$/, "");
-  cached = createClient(normalizedUrl, key, {
+  cached = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   return cached;

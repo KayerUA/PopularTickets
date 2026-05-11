@@ -5,8 +5,9 @@
 1. Zaloguj się na [https://supabase.com](https://supabase.com) i utwórz **nowy projekt** (wybierz region, ustaw hasło do bazy).
 2. Po utworzeniu projektu przejdź do **Project Settings → API**.
 3. Skopiuj:
-   - **Project URL** → zmienna `NEXT_PUBLIC_SUPABASE_URL` w pliku `.env.local`,
-   - **service_role** `secret` (nie `anon`!) → `SUPABASE_SERVICE_ROLE_KEY`.
+   - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL` (alternatywnie `SUPABASE_URL`),
+   - **service_role** / **Secret** (`sb_secret_…`) → `SUPABASE_SERVICE_ROLE_KEY` (alias: `SUPABASE_SECRET_KEY`).
+   - **Publishable** (`sb_publishable_…`) — opcjonalnie do `.env`; w tym MVP aplikacja go **nie używa** (odczyt z serwera tylko przez service role).
 
 > Klucz `service_role` używany jest **tylko po stronie serwera** (Server Actions, API). Nie wklejaj go do kodu frontendu ani do repozytorium publicznego.
 
@@ -28,8 +29,8 @@ Uzupełnij co najmniej:
 
 | Zmienna | Skąd |
 |--------|------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Project Settings → API → URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Project Settings → API → service_role |
+| `NEXT_PUBLIC_SUPABASE_URL` lub `SUPABASE_URL` | Project Settings → API → URL |
+| `SUPABASE_SERVICE_ROLE_KEY` lub `SUPABASE_SECRET_KEY` | service_role / Secret (nie Publishable / anon) |
 
 Pozostałe zmienne (P24, Resend, admin) opisane są w [README](../README.md) i w `.env.example`.
 

@@ -4,10 +4,8 @@
  * Nie uruchamia serwera Next — tylko sprawdza obecność kluczy.
  */
 
-const fs = require("node:fs");
-const path = require("node:path");
-
-const requiredAlways = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
+import fs from "node:fs";
+import path from "node:path";
 
 const optionalAlways = [
   "NEXT_PUBLIC_APP_URL",
@@ -42,13 +40,22 @@ function loadEnvFile(name) {
 loadEnvFile(".env.local");
 loadEnvFile(".env");
 
+function supabaseProjectUrl() {
+  return (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "").trim().replace(/\/+$/, "");
+}
+
+function supabaseServiceRoleKey() {
+  return (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || "").trim();
+}
+
 let failed = false;
-for (const key of requiredAlways) {
-  const v = process.env[key];
-  if (!v || String(v).trim() === "") {
-    console.error(`[check-env] Brakuje wymaganej zmiennej: ${key}`);
-    failed = true;
-  }
+if (!supabaseProjectUrl()) {
+  console.error("[check-env] Brakuje URL Supabase: NEXT_PUBLIC_SUPABASE_URL lub SUPABASE_URL");
+  failed = true;
+}
+if (!supabaseServiceRoleKey()) {
+  console.error("[check-env] Brakuje SUPABASE_SERVICE_ROLE_KEY lub SUPABASE_SECRET_KEY");
+  failed = true;
 }
 
 const bypass = process.env.CHECKOUT_BYPASS_PAYMENT === "true";

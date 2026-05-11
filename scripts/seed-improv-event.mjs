@@ -32,13 +32,17 @@ function loadEnvFile(name) {
 loadEnvFile(".env.local");
 loadEnvFile(".env");
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/+$/, "");
+const url =
+  process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/+$/, "") ||
+  process.env.SUPABASE_URL?.trim().replace(/\/+$/, "");
 const key =
   process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
   process.env.SUPABASE_SECRET_KEY?.trim();
 
 if (!url || !key) {
-  console.error("Нужны NEXT_PUBLIC_SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY в .env или .env.local");
+  console.error(
+    "Нужны URL (NEXT_PUBLIC_SUPABASE_URL или SUPABASE_URL) и service role (SUPABASE_SERVICE_ROLE_KEY или SUPABASE_SECRET_KEY) в .env или .env.local"
+  );
   process.exit(1);
 }
 
