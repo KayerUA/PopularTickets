@@ -54,19 +54,27 @@ const FACES: readonly { weight: number; file: string; unicodeRange: string }[] =
   },
 ];
 
+/** `null` — ещё не вычисляли; строка — готовый блок (в т.ч. пустой fallback при ошибке чтения файлов). */
 let cachedStyleBlock: string | null = null;
+
+const EMPTY_STYLE = `<style type="text/css"><![CDATA[]]></style>`;
 
 /** Фрагмент SVG: `<style>` с @font-face (вставить внутрь `<defs>`). */
 export function getTicketSvgEmbeddedFontStyle(): string {
-  if (cachedStyleBlock) return cachedStyleBlock;
+  if (cachedStyleBlock !== null) return cachedStyleBlock;
 
-  const rules = FACES.map(({ weight, file, unicodeRange }) => {
-    const full = path.join(NOTO_FILES, file);
-    const buf = fs.readFileSync(full);
-    const b64 = buf.toString("base64");
-    return `@font-face{font-family:'Noto Sans';font-style:normal;font-weight:${weight};font-display:block;src:url('data:font/woff2;base64,${b64}') format('woff2');unicode-range:${unicodeRange};}`;
-  });
+  try {
+    const rules = FACES.map(({ weight, file, unicodeRange }) => {
+      const full = path.join(NOTO_FILES, file);
+      const buf = fs.readFileSync(full);
+      const b64 = buf.toString("base64");
+      return `@font-face{font-family:'Noto Sans';font-style:normal;font-weight:${weight};font-display:block;src:url('data:font/woff2;base64,${b64}') format('woff2');unicode-range:${unicodeRange};}`;
+    });
 
-  cachedStyleBlock = `<style type="text/css"><![CDATA[\n${rules.join("\n")}\n]]></style>`;
+    cachedStyleBlock = `<style type="text/css"><![CDATA[\n${rules.join("\n")}\n]]></style>`;
+  } catch (err) {
+    console.warn("[ticketPngFontFaces] не удалось прочитать WOFF2 Noto Sans (проверьте outputFileTracingIncludes):", err);
+    cachedStyleBlock = EMPTY_STYLE;
+  }
   return cachedStyleBlock;
 }

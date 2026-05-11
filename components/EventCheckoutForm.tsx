@@ -2,19 +2,10 @@
 
 import { useTransition, useState } from "react";
 import { useTranslations } from "next-intl";
+import { unstable_rethrow } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { createPendingOrder } from "@/app/actions/checkout";
 import type { AppLocale } from "@/i18n/routing";
-
-function isNextRedirectError(e: unknown): boolean {
-  return (
-    typeof e === "object" &&
-    e !== null &&
-    "digest" in e &&
-    typeof (e as { digest?: unknown }).digest === "string" &&
-    String((e as { digest: string }).digest).startsWith("NEXT_REDIRECT")
-  );
-}
 
 type Props = {
   eventSlug: string;
@@ -42,7 +33,8 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, bypassPayment 
           try {
             await createPendingOrder(formData);
           } catch (e: unknown) {
-            if (isNextRedirectError(e)) throw e;
+            /* Next 15: redirect() из action приходит как ошибка; digest на клиенте может быть обёрнут — см. unstable_rethrow */
+            unstable_rethrow(e);
             setError(e instanceof Error ? e.message : t("errorGeneric"));
           }
         });

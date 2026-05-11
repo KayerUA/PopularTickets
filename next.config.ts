@@ -15,7 +15,23 @@ function supabaseStorageImageHost(): string | undefined {
 
 const storageHost = supabaseStorageImageHost();
 
+/** Синхронно с `lib/ticketPngFontFaces.ts` (только эти WOFF2 читаются через fs). */
+const notoTicketWoff2 = [
+  "noto-sans-latin-400-normal.woff2",
+  "noto-sans-latin-ext-400-normal.woff2",
+  "noto-sans-cyrillic-ext-400-normal.woff2",
+  "noto-sans-cyrillic-400-normal.woff2",
+  "noto-sans-latin-600-normal.woff2",
+  "noto-sans-latin-ext-600-normal.woff2",
+  "noto-sans-cyrillic-ext-600-normal.woff2",
+  "noto-sans-cyrillic-600-normal.woff2",
+].map((f) => `./node_modules/@fontsource/noto-sans/files/${f}`);
+
 const nextConfig: NextConfig = {
+  /** WOFF2 читаются через fs в `ticketPngFontFaces` — без явного include Vercel иногда не кладёт их в serverless trace → ENOENT на /checkout/return (PNG билетов). */
+  outputFileTracingIncludes: {
+    "/*/checkout/return": notoTicketWoff2,
+  },
   images: {
     remotePatterns: storageHost
       ? [
