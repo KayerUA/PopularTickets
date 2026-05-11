@@ -74,6 +74,8 @@ export default async function CheckoutReturnPage({
         checkInHint: t("checkInHint"),
         ticketLabel: t("ticketLabel"),
         ticketRibbon: t("ticketRibbon"),
+        stubTitle: t("stubTitle"),
+        stubHint: t("stubHint"),
         ticketPdfKindSecondary: tPdf("kindSecondary"),
         ticketPdfQrSecondary: tPdf("qrSecondary"),
         ticketPdfDisclaimer: tPdf("translationDisclaimer"),

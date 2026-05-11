@@ -127,6 +127,8 @@
     "ticketsHeading": "Twoje bilety",
     "ticketLabel": "Numer biletu",
     "ticketRibbon": "Jeden widz",
+    "stubTitle": "Odcinek kontrolny",
+    "stubHint": "Linia perforacji — jak na papierowym bilecie.",
     "downloadTicket": "Pobierz bilet (PDF)",
     "copyId": "Skopiuj kod zapasowy (dla obsługi)",
     "copiedId": "Skopiowano",
