@@ -8,6 +8,7 @@
 |-----|-----|----------|
 | 1 | [supabase.com](https://supabase.com) | Проект уже есть → **Project Settings → API**: скопировать **URL** и **service_role** (Secret, `sb_secret_…`). **Publishable** в MVP приложением не используется, но можно хранить в `.env`. |
 | 2 | Supabase → **SQL Editor** | Выполнить **`supabase/schema.sql`**. Предупреждение про *destructive* из‑за `DROP TRIGGER IF EXISTS` — нормально, данные таблиц не стираются. |
+| 2a | SQL Editor | **`supabase/storage-event-images.sql`** — бакет Storage `event-images` для загрузки обложек из админки (публичное чтение). Без этого файловая загрузка в форме события упадёт с ошибкой Storage. |
 | 2b | SQL Editor | Опционально: **`supabase/verify-data.sql`** — сколько строк в `events` / `orders` / `tickets` / `checkins`. |
 | 3 | (опционально) SQL Editor | **`supabase/seed-improv-event.sql`** — тестовое событие на афише. |
 | 4 | [vercel.com](https://vercel.com) → проект → **Settings → Environment Variables** | Для **Production** и **Preview**: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (+ остальное из `.env.example` по необходимости). Сохранить. |

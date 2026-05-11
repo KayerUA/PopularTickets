@@ -19,7 +19,7 @@ export function EventForm({ event }: { event?: AdminEventRow }) {
   const pricePlnDefault = event ? (event.price_grosze / 100).toFixed(2) : "50.00";
 
   return (
-    <form action={upsertEvent} className="max-w-2xl space-y-5">
+    <form action={upsertEvent} encType="multipart/form-data" className="max-w-2xl space-y-5">
       {event ? <input type="hidden" name="id" value={event.id} /> : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm text-zinc-300 sm:col-span-2">
@@ -50,15 +50,31 @@ export function EventForm({ event }: { event?: AdminEventRow }) {
             className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
           />
         </label>
-        <label className="block text-sm text-zinc-300 sm:col-span-2">
-          URL картинки (опционально)
-          <input
-            name="imageUrl"
-            defaultValue={event?.image_url ?? ""}
-            className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
-            placeholder="https://..."
-          />
-        </label>
+        <div className="space-y-2 sm:col-span-2">
+          <label className="block text-sm text-zinc-300">
+            Обложка события
+            <input
+              name="imageFile"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-sm text-white file:mr-3 file:rounded-lg file:border-0 file:bg-poet-gold/20 file:px-3 file:py-1.5 file:text-poet-gold"
+            />
+          </label>
+          <p className="text-xs text-zinc-500">
+            Загрузка в Supabase Storage (до 5 МБ). Один раз выполните SQL{" "}
+            <code className="rounded bg-zinc-900 px-1 font-mono text-zinc-400">supabase/storage-event-images.sql</code>{" "}
+            в проекте.
+          </p>
+          <label className="block text-sm text-zinc-300">
+            Или ссылка / путь (опционально)
+            <input
+              name="imageUrl"
+              defaultValue={event?.image_url ?? ""}
+              className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+              placeholder="https://… или /events/файл.png с этого сайта"
+            />
+          </label>
+        </div>
         <label className="block text-sm text-zinc-300 sm:col-span-2">
           Ссылка на карту (Google Maps, опционально)
           <input

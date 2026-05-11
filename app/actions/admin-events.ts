@@ -4,8 +4,24 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
+import { uploadEventCoverImage } from "@/lib/supabase/eventImageUpload";
 import { requireAdmin } from "@/lib/adminGuard";
 import { routing } from "@/i18n/routing";
+
+/** Пустая строка, абсолютный URL или путь с сайта (как в сиде `/events/...`). */
+const optionalImageRef = z.preprocess(
+  (v) => (typeof v === "string" ? v.trim() : ""),
+  z
+    .string()
+    .max(2000)
+    .refine(
+      (s) =>
+        s === "" ||
+        /^https?:\/\//i.test(s) ||
+        (s.startsWith("/") && s.length > 1 && !s.includes("://")),
+      "Картинка: пусто, https://… или путь с /"
+    )
+);
 
 const EventSchema = z.object({
   id: z.string().uuid().optional(),
@@ -16,7 +32,7 @@ const EventSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug: только латиница, цифры и дефис"),
   title: z.string().min(2).max(200),
   description: z.string().max(20000).optional().default(""),
-  imageUrl: z.string().url().optional().or(z.literal("")),
+  imageUrl: optionalImageRef,
   mapsUrl: z.string().url().optional().or(z.literal("")),
   venue: z.string().min(2).max(200),
   startsAt: z.string().min(1),
@@ -58,11 +74,18 @@ export async function upsertEvent(formData: FormData) {
   const isPublished = Boolean(v.isPublished);
 
   const supabase = requireServiceSupabase();
+
+  const imageFile = formData.get("imageFile");
+  let imageUrlFinal: string | null = v.imageUrl || null;
+  if (imageFile instanceof File && imageFile.size > 0) {
+    imageUrlFinal = await uploadEventCoverImage(supabase, imageFile, v.slug);
+  }
+
   const payload = {
     slug: v.slug,
     title: v.title,
     description: v.description,
-    image_url: v.imageUrl || null,
+    image_url: imageUrlFinal,
     maps_url: v.mapsUrl || null,
     venue: v.venue,
     starts_at: new Date(v.startsAt).toISOString(),
