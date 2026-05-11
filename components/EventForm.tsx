@@ -1,4 +1,7 @@
-import { upsertEvent } from "@/app/actions/admin-events";
+"use client";
+
+import { useActionState } from "react";
+import { upsertEvent, type UpsertEventState } from "@/app/actions/admin-events";
 import { toDatetimeLocalValue } from "@/lib/datetime";
 
 export type AdminEventRow = {
@@ -15,11 +18,22 @@ export type AdminEventRow = {
   is_published: boolean;
 };
 
+const initialUpsertState: UpsertEventState = null;
+
 export function EventForm({ event }: { event?: AdminEventRow }) {
   const pricePlnDefault = event ? (event.price_grosze / 100).toFixed(2) : "50.00";
+  const [state, formAction, pending] = useActionState(upsertEvent, initialUpsertState);
 
   return (
-    <form action={upsertEvent} encType="multipart/form-data" className="max-w-2xl space-y-5">
+    <form action={formAction} encType="multipart/form-data" className="max-w-2xl space-y-5">
+      {state?.error ? (
+        <p
+          className="rounded-xl border border-red-500/40 bg-red-950/40 px-3 py-2 text-sm text-red-200"
+          role="alert"
+        >
+          {state.error}
+        </p>
+      ) : null}
       {event ? <input type="hidden" name="id" value={event.id} /> : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm text-zinc-300 sm:col-span-2">
@@ -134,11 +148,8 @@ export function EventForm({ event }: { event?: AdminEventRow }) {
           Опубликовать на главной
         </label>
       </div>
-      <button
-        type="submit"
-        className="btn-poet poet-shine px-8"
-      >
-        Сохранить
+      <button type="submit" disabled={pending} className="btn-poet poet-shine px-8 disabled:opacity-50">
+        {pending ? "Сохранение…" : "Сохранить"}
       </button>
     </form>
   );

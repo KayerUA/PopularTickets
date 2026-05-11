@@ -8,6 +8,8 @@ import { uploadEventCoverImage } from "@/lib/supabase/eventImageUpload";
 import { requireAdmin } from "@/lib/adminGuard";
 import { routing } from "@/i18n/routing";
 
+export type UpsertEventState = { error: string } | null;
+
 /** Пустая строка, абсолютный URL или путь с сайта (как в сиде `/events/...`). */
 const optionalImageRef = z.preprocess(
   (v) => (typeof v === "string" ? v.trim() : ""),
@@ -48,65 +50,80 @@ function groszeFromPln(pln: number): number {
   return Math.round(pln * 100);
 }
 
-export async function upsertEvent(formData: FormData) {
-  await requireAdmin();
+function isNextRedirectError(e: unknown): boolean {
+  return (
+    e instanceof Error &&
+    "digest" in e &&
+    typeof (e as Error & { digest?: string }).digest === "string" &&
+    String((e as Error & { digest: string }).digest).startsWith("NEXT_REDIRECT")
+  );
+}
 
-  const parsed = EventSchema.safeParse({
-    id: formData.get("id") || undefined,
-    slug: formData.get("slug"),
-    title: formData.get("title"),
-    description: formData.get("description") || "",
-    imageUrl: formData.get("imageUrl") || "",
-    mapsUrl: formData.get("mapsUrl") || "",
-    venue: formData.get("venue"),
-    startsAt: formData.get("startsAt"),
-    pricePln: formData.get("pricePln"),
-    totalTickets: formData.get("totalTickets"),
-    isPublished: formData.get("isPublished"),
-  });
+export async function upsertEvent(_prev: UpsertEventState, formData: FormData): Promise<UpsertEventState> {
+  try {
+    await requireAdmin();
 
-  if (!parsed.success) {
-    throw new Error(parsed.error.errors.map((e) => e.message).join(", "));
+    const parsed = EventSchema.safeParse({
+      id: formData.get("id") || undefined,
+      slug: formData.get("slug"),
+      title: formData.get("title"),
+      description: formData.get("description") || "",
+      imageUrl: formData.get("imageUrl") || "",
+      mapsUrl: formData.get("mapsUrl") || "",
+      venue: formData.get("venue"),
+      startsAt: formData.get("startsAt"),
+      pricePln: formData.get("pricePln"),
+      totalTickets: formData.get("totalTickets"),
+      isPublished: formData.get("isPublished"),
+    });
+
+    if (!parsed.success) {
+      return { error: parsed.error.errors.map((e) => e.message).join(", ") };
+    }
+
+    const v = parsed.data;
+    const priceGrosze = groszeFromPln(v.pricePln);
+    const isPublished = Boolean(v.isPublished);
+
+    const supabase = requireServiceSupabase();
+
+    const imageFile = formData.get("imageFile");
+    let imageUrlFinal: string | null = v.imageUrl || null;
+    if (imageFile instanceof File && imageFile.size > 0) {
+      imageUrlFinal = await uploadEventCoverImage(supabase, imageFile, v.slug);
+    }
+
+    const payload = {
+      slug: v.slug,
+      title: v.title,
+      description: v.description,
+      image_url: imageUrlFinal,
+      maps_url: v.mapsUrl || null,
+      venue: v.venue,
+      starts_at: new Date(v.startsAt).toISOString(),
+      price_grosze: priceGrosze,
+      total_tickets: v.totalTickets,
+      is_published: isPublished,
+    };
+
+    if (v.id) {
+      const { error } = await supabase.from("events").update(payload).eq("id", v.id);
+      if (error) return { error: error.message };
+    } else {
+      const { error } = await supabase.from("events").insert(payload);
+      if (error) return { error: error.message };
+    }
+
+    for (const loc of routing.locales) {
+      revalidatePath(`/${loc}`);
+      revalidatePath(`/${loc}/events/${v.slug}`);
+    }
+    revalidatePath("/admin");
+    revalidatePath("/admin/orders");
+    redirect("/admin");
+  } catch (e) {
+    if (isNextRedirectError(e)) throw e;
+    console.error("[upsertEvent]", e);
+    return { error: e instanceof Error ? e.message : "Не удалось сохранить событие" };
   }
-
-  const v = parsed.data;
-  const priceGrosze = groszeFromPln(v.pricePln);
-  const isPublished = Boolean(v.isPublished);
-
-  const supabase = requireServiceSupabase();
-
-  const imageFile = formData.get("imageFile");
-  let imageUrlFinal: string | null = v.imageUrl || null;
-  if (imageFile instanceof File && imageFile.size > 0) {
-    imageUrlFinal = await uploadEventCoverImage(supabase, imageFile, v.slug);
-  }
-
-  const payload = {
-    slug: v.slug,
-    title: v.title,
-    description: v.description,
-    image_url: imageUrlFinal,
-    maps_url: v.mapsUrl || null,
-    venue: v.venue,
-    starts_at: new Date(v.startsAt).toISOString(),
-    price_grosze: priceGrosze,
-    total_tickets: v.totalTickets,
-    is_published: isPublished,
-  };
-
-  if (v.id) {
-    const { error } = await supabase.from("events").update(payload).eq("id", v.id);
-    if (error) throw new Error(error.message);
-  } else {
-    const { error } = await supabase.from("events").insert(payload);
-    if (error) throw new Error(error.message);
-  }
-
-  for (const loc of routing.locales) {
-    revalidatePath(`/${loc}`);
-    revalidatePath(`/${loc}/events/${v.slug}`);
-  }
-  revalidatePath("/admin");
-  revalidatePath("/admin/orders");
-  redirect("/admin");
 }

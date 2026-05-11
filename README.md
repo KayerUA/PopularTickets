@@ -103,6 +103,12 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 **Админка** не под префиксом языка: `https://<домен>/admin/login` (например [popular-tickets.vercel.app/admin/login](https://popular-tickets.vercel.app/admin/login)) — в футере публичного сайта есть ссылка «Панель организатора».
 
+### Билеты и check-in
+
+- **Когда появляются билеты**: после перевода заказа в статус **оплачен** (`paid`) — в обход P24 (`CHECKOUT_BYPASS_PAYMENT=true`) это сразу после отправки формы на сайте, с Przelewy24 — после успешного уведомления на `/api/p24/notify`. Логика в [`lib/fulfillment.ts`](lib/fulfillment.ts): для каждой единицы `quantity` создаётся строка в таблице `tickets` (связь с заказом и событием).
+- **Номер и QR**: у билета есть UUID **`id`** (его и вводят/сканируют на входе) и короткий уникальный **`ticket_number`** — генерируется в [`lib/tickets.ts`](lib/tickets.ts) (`randomTicketNumber` + проверка коллизий).
+- **Кто и как отмечает вход**: страница **`/check-in`** (не раздел админки). Ввод UUID билета → поиск → кнопка «Отметить вход». Если в окружении задан **`CHECKIN_OPERATOR_TOKEN`**, перед отметкой нужно ввести этот же секрет в поле кода оператора. В админке **`/admin/orders`** можно только **смотреть** номера билетов и статус (вошёл / нет), отметка делается только на `/check-in`.
+
 ## Что делать дальше (чеклист)
 
 1. **Локально**: заполните `.env` / `.env.local` по [`.env.example`](.env.example), выполните `supabase/schema.sql` в панели Supabase, затем **`npm run verify:supabase`** — если OK, ключи и таблица на месте. Дальше `npm run dev`, проверьте `/pl` и заказ (при `CHECKOUT_BYPASS_PAYMENT=true`). Подробнее: [docs/DEPLOY.md](docs/DEPLOY.md).

@@ -5,6 +5,15 @@ import { routing } from "@/i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
+/** next-intl читает локаль из заголовка; без него корневой layout с getLocale() падает на /admin и /check-in. */
+const NEXT_INTL_LOCALE_HEADER = "X-NEXT-INTL-LOCALE";
+
+function nextWithDefaultLocale(req: NextRequest) {
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set(NEXT_INTL_LOCALE_HEADER, routing.defaultLocale);
+  return NextResponse.next({ request: { headers: requestHeaders } });
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -23,7 +32,7 @@ export async function middleware(req: NextRequest) {
   }
 
   if (pathname.startsWith("/admin/login")) {
-    return NextResponse.next();
+    return nextWithDefaultLocale(req);
   }
 
   if (pathname.startsWith("/admin")) {
@@ -40,11 +49,11 @@ export async function middleware(req: NextRequest) {
       url.pathname = "/admin/login";
       return NextResponse.redirect(url);
     }
-    return NextResponse.next();
+    return nextWithDefaultLocale(req);
   }
 
   if (pathname.startsWith("/check-in")) {
-    return NextResponse.next();
+    return nextWithDefaultLocale(req);
   }
 
   return intlMiddleware(req);
