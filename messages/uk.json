@@ -20,7 +20,12 @@
     "operator": "Сервіс продажу квитків. Оператор:",
     "ctaDetails": "Дані продавця та оплати",
     "staffLogin": "Панель організатора (admin)",
-    "tagline": "Польща · події · квитки онлайн"
+    "tagline": "Польща · події · квитки онлайн",
+    "socialTitle": "Театр у соцмережах",
+    "socialLead": "♦ Запрошуємо підписатися на новий Instagram і YouTube — це важлива підтримка Popular Poet.",
+    "instagramCta": "Instagram — @popular_poet_theatre",
+    "youtubeCta": "YouTube — Popular Poet",
+    "youtubeBlurb": "На каналі з’являються виступи, імпровізації та записи вистав. Підпишіться, поставте вподобайки — дякуємо за підтримку та натхнення!"
   },
   "Home": {
     "brand": "Popular Poet",

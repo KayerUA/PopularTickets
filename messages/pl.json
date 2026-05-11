@@ -20,7 +20,12 @@
     "operator": "Usługa sprzedaży biletów. Operator:",
     "ctaDetails": "Dane sprzedawcy i płatności",
     "staffLogin": "Panel organizatora (admin)",
-    "tagline": "Polska · wydarzenia · bilety online"
+    "tagline": "Polska · wydarzenia · bilety online",
+    "socialTitle": "Teatr w mediach społecznościowych",
+    "socialLead": "♦ Zapraszamy na nowy profil na Instagramie i na kanał YouTube — to dla nas ważne wsparcie Popular Poet.",
+    "instagramCta": "Instagram — @popular_poet_theatre",
+    "youtubeCta": "YouTube — Popular Poet",
+    "youtubeBlurb": "Na kanale publikujemy występy, improwizacje i nagrania spektakli. Subskrybujcie, zostawcie łapkę w górę — dziękujemy za energię i obecność!"
   },
   "Home": {
     "brand": "Popular Poet",

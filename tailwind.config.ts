@@ -10,7 +10,7 @@ export default {
     extend: {
       colors: {
         poet: {
-          bg: "#0b0709",
+          bg: "#0a0608",
           surface: "#141018",
           gold: "#c5a059",
           "gold-bright": "#e8d48b",
