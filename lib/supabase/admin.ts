@@ -10,23 +10,17 @@ export function isSupabaseConfigured(): boolean {
 }
 
 /**
- * Клиент с service role. В production без env — исключение.
- * В development без env — `null`, чтобы можно было смотреть UI без базы.
+ * Клиент с service role. Без env — `null` (подсказка в UI); оплата и webhooks — через {@link requireServiceSupabase}.
  */
 export function getServiceSupabase(): SupabaseClient | null {
   if (cached) return cached;
   const url = getSupabaseProjectUrl();
   const key = getSupabaseServiceRoleKey();
   if (!url || !key) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error(
-        "NEXT_PUBLIC_SUPABASE_URL (или SUPABASE_URL) и SUPABASE_SERVICE_ROLE_KEY (или SUPABASE_SECRET_KEY) обязательны"
-      );
-    }
     if (!missingEnvLogged) {
       missingEnvLogged = true;
       console.warn(
-        "[PopularTickets] Нет URL или service role Supabase — задайте NEXT_PUBLIC_SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY в .env / .env.local (см. .env.example)."
+        "[PopularTickets] Нет URL или service role Supabase — задайте NEXT_PUBLIC_SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY в .env / Vercel (см. .env.example). Критичные API используют requireServiceSupabase()."
       );
     }
     return null;

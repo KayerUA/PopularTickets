@@ -10,10 +10,17 @@ const COOKIE = "admin_session";
 export async function adminLogin(formData: FormData) {
   const password = String(formData.get("password") || "");
   const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) throw new Error("ADMIN_PASSWORD не настроен");
+  if (!expected) {
+    redirect("/admin/login?error=admin_password");
+  }
+
+  const jwtSecret = process.env.ADMIN_JWT_SECRET;
+  if (!jwtSecret || jwtSecret.length < 16) {
+    redirect("/admin/login?error=admin_jwt");
+  }
 
   if (password.length !== expected.length || !timingSafeEqualString(password, expected)) {
-    throw new Error("Неверный пароль");
+    redirect("/admin/login?error=bad_password");
   }
 
   const token = await signAdminToken();

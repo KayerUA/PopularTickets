@@ -1,12 +1,26 @@
 import Link from "next/link";
 import { adminLogin } from "@/app/actions/auth";
 
-export default function AdminLoginPage() {
+const loginErrors: Record<string, string> = {
+  admin_password: "На сервере не задана переменная ADMIN_PASSWORD (Vercel → Settings → Environment Variables).",
+  admin_jwt:
+    "Не задан или слишком короткий ADMIN_JWT_SECRET (нужен минимум 16 символов) — без него сессия админки не создаётся.",
+  bad_password: "Неверный пароль.",
+};
+
+export default async function AdminLoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const sp = await searchParams;
+  const errKey = typeof sp.error === "string" ? sp.error : undefined;
+  const errMsg = errKey ? loginErrors[errKey] ?? "Не удалось войти. Попробуйте снова." : null;
+
   return (
     <div className="poet-safe-x mx-auto flex min-h-dvh max-w-md flex-col justify-center py-8">
       <div className="rounded-2xl border border-poet-gold/20 bg-poet-surface/60 p-6 shadow-gold-sm backdrop-blur-sm sm:p-8">
         <h1 className="font-display text-2xl font-semibold text-zinc-50">Вход в админку</h1>
         <p className="mt-2 text-sm text-zinc-500">Пароль задаётся в переменной ADMIN_PASSWORD.</p>
+        {errMsg ? (
+          <p className="mt-4 rounded-lg border border-red-500/35 bg-red-950/40 px-3 py-2 text-sm text-red-200/95">{errMsg}</p>
+        ) : null}
         <form action={adminLogin} className="mt-6 space-y-4">
           <label className="block text-sm text-zinc-300">
             Пароль

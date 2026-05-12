@@ -15,11 +15,14 @@ const localeTag: Record<AppLocale, string> = {
 };
 
 export function formatEventDateTime(iso: string, locale: AppLocale): string {
+  if (!iso?.trim()) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
   return new Intl.DateTimeFormat(localeTag[locale], {
     dateStyle: "long",
     timeStyle: "short",
     timeZone: "Europe/Warsaw",
-  }).format(new Date(iso));
+  }).format(d);
 }
 
 /** Panel administracyjny — data po polsku. */
