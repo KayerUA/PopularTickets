@@ -62,13 +62,26 @@ if (!supabaseServiceRoleKey()) {
 }
 
 const bypass = process.env.CHECKOUT_BYPASS_PAYMENT === "true";
-const publicUrl =
-  (process.env.NEXT_PUBLIC_APP_URL && String(process.env.NEXT_PUBLIC_APP_URL).trim()) ||
-  (process.env.VERCEL_URL && `https://${String(process.env.VERCEL_URL).trim()}`);
+
+function publicAppUrlForCheck() {
+  const explicit = String(process.env.NEXT_PUBLIC_APP_URL || "").trim().replace(/\/$/, "");
+  if (explicit) return explicit;
+  const prodHost = String(process.env.VERCEL_PROJECT_PRODUCTION_URL || "")
+    .trim()
+    .replace(/\/$/, "");
+  if (prodHost && process.env.VERCEL_ENV === "production") return `https://${prodHost}`;
+  const vercel = String(process.env.VERCEL_URL || "")
+    .trim()
+    .replace(/\/$/, "");
+  if (vercel) return `https://${vercel}`;
+  return "";
+}
+
+const publicUrl = publicAppUrlForCheck();
 
 if (!bypass && !publicUrl) {
   console.error(
-    "[check-env] Przy CHECKOUT_BYPASS_PAYMENT=false ustaw NEXT_PUBLIC_APP_URL (albo uruchom na Vercel z VERCEL_URL)."
+    "[check-env] Przy CHECKOUT_BYPASS_PAYMENT=false ustaw NEXT_PUBLIC_APP_URL albo uruchom na Vercel (VERCEL_URL / VERCEL_PROJECT_PRODUCTION_URL na production)."
   );
   failed = true;
 }

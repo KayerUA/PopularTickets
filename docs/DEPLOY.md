@@ -15,6 +15,7 @@
 | 4 | [vercel.com](https://vercel.com) → проект → **Settings → Environment Variables** | Для **Production** и **Preview**: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (+ остальное из `.env.example` по необходимости). Сохранить. |
 | 5 | Vercel → **Deployments** | **Redeploy** последнего деплоя (или пустой commit push), чтобы подтянулись переменные. |
 | 6 | Vercel → **Build & Development Settings** | **Framework**: Next.js, **Output Directory** пустой (не `build`). |
+| 7 | Vercel → **Settings → Domains** | Добавьте купленный домен, DNS по инструкции Vercel. После активации **production**-сборки получают канонический хост через `VERCEL_PROJECT_PRODUCTION_URL` (см. `lib/publicAppUrl.ts`). Для явного контроля (письма, P24, один URL) задайте **`NEXT_PUBLIC_APP_URL=https://ваш-домен`** в **Production**. Przelewy24: `urlStatus` → `https://ваш-домен/api/p24/notify`. |
 
 Без шагов 1–2 CLI **не** создаст таблицы в облачной базе — только SQL в панели Supabase или связка **Supabase CLI** + `db push` (если вы сами настроили `supabase link`).
 

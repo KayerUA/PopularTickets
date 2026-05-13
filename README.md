@@ -84,7 +84,7 @@ PopularTickets/
 
 См. `.env.example`. Важно:
 
-- `NEXT_PUBLIC_APP_URL` — публичный URL (Przelewy24 `urlReturn` / `urlStatus`, ссылки в письмах). На Vercel для P24 можно не задавать: используется `https://$VERCEL_URL`.
+- `NEXT_PUBLIC_APP_URL` — канонический публичный URL (P24 `urlReturn` / `urlStatus`, письма, SEO). На Vercel после привязки **своего домена** можно не задавать: на production подставится `VERCEL_PROJECT_PRODUCTION_URL` (домен из панели). Для preview по-прежнему `https://$VERCEL_URL`, если переменная не задана.
 - `SKIP_ORDER_EMAIL=true` — не отправлять письмо с билетами (билеты в БД создаются).
 - `NEXT_PUBLIC_CONTACT_EMAIL` — контакт для покупателей (страница «Информация» / `firma`).
 - `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` — только на сервере, не светите service role в браузер.
@@ -110,7 +110,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 Порядок **ручных шагов vs CLI** (Vercel, ошибка загрузки списка): **[docs/DEPLOY.md](docs/DEPLOY.md)** — там же команды `npm run verify:supabase` и `vercel env`.
 
-**Админка** не под префиксом языка: `https://<домен>/admin/login` (например [popular-tickets.vercel.app/admin/login](https://popular-tickets.vercel.app/admin/login)) — в футере публичного сайта есть ссылка «Панель организатора».
+**Админка** не под префиксом языка: `https://<ваш-домен>/admin/login` — в футере публичного сайта есть ссылка «Панель организатора».
 
 ### Билеты и check-in
 
@@ -134,7 +134,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 1. Зайдите на [vercel.com](https://vercel.com), войдите (можно через GitHub).
 2. **Add New… → Project → Import** ваш репозиторий `PopularTickets`.
 3. **Framework Preset**: Next.js. **Output Directory** оставьте **пустым** (не `build` — это не Create React App). В корне репозитория есть [`vercel.json`](vercel.json) с `"framework": "nextjs"`, чтобы Vercel не подхватил неверный пресет.
-4. **Environment Variables**: для **MVP с bypass** достаточно Supabase, `CHECKOUT_BYPASS_PAYMENT=true`, опционально `SKIP_ORDER_EMAIL=true` (билеты создаются, письмо не уходит). `NEXT_PUBLIC_APP_URL` на preview можно не задавать для bypass; для **реального P24** задайте URL или полагайтесь на автоматический `VERCEL_URL` на Vercel. Админка, Resend/P24 — по мере готовности.
+4. **Environment Variables**: для **MVP с bypass** достаточно Supabase, `CHECKOUT_BYPASS_PAYMENT=true`, опционально `SKIP_ORDER_EMAIL=true` (билеты создаются, письмо не уходит). **`NEXT_PUBLIC_APP_URL`** задайте на свой домен (Production), если нужен один URL в письмах и P24 независимо от внутреннего `*.vercel.app`. После привязки домена в Vercel production-деплой и так получит канонический хост через системную переменную (см. `lib/publicAppUrl.ts`). Админка, Resend/P24 — по мере готовности.
 5. **Deploy**. В настройках проекта: **Settings → Git → Production Branch** = `main` (по умолчанию так и есть).
 6. Дальше: **любой push в `main`** → Vercel сам собирает и деплоит; в PR можно включить **Preview Deployments** (по умолчанию включены для PR).
 
@@ -146,7 +146,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 1. После импорта репозитория задайте **Environment Variables** (Production + Preview) по `.env.example`.
 2. В Przelewy24 укажите **urlStatus**: `https://<домен>/api/p24/notify`.
-3. Публичный URL: `NEXT_PUBLIC_APP_URL` **или** на Vercel автоматически используется `VERCEL_URL` (колбеки P24: `https://…vercel.app`).
+3. Публичный URL: **`NEXT_PUBLIC_APP_URL`** (рекомендуется на свой домен) **или** на Vercel production — системный `VERCEL_PROJECT_PRODUCTION_URL` после привязки домена; иначе `VERCEL_URL` (`https://…vercel.app`). Колбек P24: `https://<тот же хост>/api/p24/notify`.
 
 ## Поток Przelewy24 (упрощённо)
 
