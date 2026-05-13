@@ -38,36 +38,32 @@ export async function SiteFooter() {
   return (
     <footer className="relative z-0 border-t border-poet-gold/15 bg-poet-bg/90">
       <div className="poet-safe-x mx-auto max-w-5xl py-10 sm:py-12">
-        <section
-          aria-labelledby="footer-social-heading"
-          className="mb-6 rounded-xl border border-poet-gold/35 bg-zinc-950/45 px-3.5 py-3 shadow-sm shadow-black/20 backdrop-blur-sm sm:mb-8 sm:px-4 sm:py-3.5"
-        >
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-            <div className="min-w-0 sm:max-w-[min(100%,28rem)]">
+        <section aria-labelledby="footer-social-heading" className="mb-10 sm:mb-12">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+            <div className="min-w-0 max-w-xl">
               <h2
                 id="footer-social-heading"
                 className="font-display text-sm font-semibold tracking-tight text-gradient-gold sm:text-base"
               >
                 {t("socialHeading")}
               </h2>
-              <p className="mt-1 text-[11px] leading-snug text-zinc-400 sm:text-xs sm:leading-relaxed">{t("socialIntro")}</p>
+              <p className="mt-2 text-[11px] leading-relaxed text-zinc-400 sm:text-xs">{t("socialIntro")}</p>
+              <p className="mt-3 text-[10px] leading-snug text-zinc-500 sm:text-[11px]">{t("socialOutro")}</p>
             </div>
-            <div className="flex min-w-0 gap-2 sm:shrink-0">
+            <div className="flex min-w-0 flex-wrap gap-2.5 sm:shrink-0 sm:justify-end">
               <a
                 href={THEATRE_INSTAGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={t("socialInstagramAria")}
-                className="group flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-poet-gold/50 bg-zinc-900/90 px-2.5 py-2 text-left shadow-sm shadow-black/30 transition hover:border-poet-gold/80 hover:bg-poet-gold/[0.08] sm:flex-initial sm:min-w-[10.5rem]"
+                className="group inline-flex min-w-0 max-w-full flex-1 items-center gap-2.5 rounded-full border border-poet-gold/28 bg-poet-gold/[0.04] px-3.5 py-2.5 text-left transition hover:border-poet-gold/45 hover:bg-poet-gold/[0.07] sm:flex-initial sm:min-w-[11rem]"
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-poet-gold/40 bg-poet-gold/12 text-poet-gold-bright">
-                  <InstagramGlyph className="h-4 w-4" />
+                <InstagramGlyph className="h-4 w-4 shrink-0 text-poet-gold-bright" />
+                <span className="min-w-0">
+                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">Instagram</span>
+                  <span className="block truncate text-[11px] font-medium text-zinc-200">{t("socialInstagramHandle")}</span>
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold-bright">Instagram</span>
-                  <span className="block truncate text-[11px] font-medium text-zinc-100">{t("socialInstagramHandle")}</span>
-                </span>
-                <span aria-hidden className="shrink-0 text-[10px] text-poet-gold/80 group-hover:text-poet-gold-bright">
+                <span aria-hidden className="ml-0.5 shrink-0 text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright">
                   ↗
                 </span>
               </a>
@@ -76,25 +72,22 @@ export async function SiteFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={t("socialYoutubeAria")}
-                className="group flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-poet-gold/50 bg-zinc-900/90 px-2.5 py-2 text-left shadow-sm shadow-black/30 transition hover:border-poet-gold/80 hover:bg-poet-gold/[0.08] sm:flex-initial sm:min-w-[10.5rem]"
+                className="group inline-flex min-w-0 max-w-full flex-1 items-center gap-2.5 rounded-full border border-poet-gold/28 bg-poet-gold/[0.04] px-3.5 py-2.5 text-left transition hover:border-poet-gold/45 hover:bg-poet-gold/[0.07] sm:flex-initial sm:min-w-[11rem]"
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-poet-gold/40 bg-poet-gold/12 text-poet-gold-bright">
-                  <YouTubeGlyph className="h-4 w-4" />
+                <YouTubeGlyph className="h-4 w-4 shrink-0 text-poet-gold-bright" />
+                <span className="min-w-0">
+                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">YouTube</span>
+                  <span className="block truncate text-[11px] font-medium text-zinc-200">{t("socialYoutubeHandle")}</span>
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold-bright">YouTube</span>
-                  <span className="block truncate text-[11px] font-medium text-zinc-100">{t("socialYoutubeHandle")}</span>
-                </span>
-                <span aria-hidden className="shrink-0 text-[10px] text-poet-gold/80 group-hover:text-poet-gold-bright">
+                <span aria-hidden className="ml-0.5 shrink-0 text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright">
                   ↗
                 </span>
               </a>
             </div>
           </div>
-          <p className="mt-2 border-t border-poet-gold/10 pt-2 text-[10px] leading-snug text-zinc-500 sm:text-[11px]">{t("socialOutro")}</p>
         </section>
 
-        <div className="flex flex-col gap-8 border-t border-poet-gold/15 pt-8 text-xs text-zinc-500 sm:flex-row sm:justify-between sm:gap-10">
+        <div className="flex flex-col gap-8 border-t border-poet-gold/10 pt-8 text-xs text-zinc-500 sm:flex-row sm:justify-between sm:gap-10">
           <div className="max-w-xl space-y-3">
             <p className="font-display text-base text-gradient-gold">{COMPANY.productName}</p>
             <p className="leading-relaxed text-zinc-400">
@@ -127,28 +120,27 @@ export async function SiteFooter() {
           </div>
         </div>
 
-        <section aria-labelledby="footer-p24-trust-heading" className="mt-8 border-t border-poet-gold/12 pt-6 sm:mt-10 sm:pt-8">
-          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-            <h2
-              id="footer-p24-trust-heading"
-              className="text-[9px] font-semibold uppercase tracking-[0.24em] text-poet-gold/80 sm:text-[10px]"
-            >
-              {t("p24TrustHeading")}
-            </h2>
-            {!(hasAnyTrustImage && hasStrip) ? (
-              <p className="max-w-xl text-[10px] leading-relaxed text-zinc-500 sm:text-right sm:text-[11px]">
-                {t("p24MethodsCaption")}
-              </p>
-            ) : null}
+        <section aria-labelledby="footer-p24-trust-heading" className="mt-8 border-t border-poet-gold/10 pt-7 sm:mt-10 sm:pt-9">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+            <div className="space-y-1">
+              <h2
+                id="footer-p24-trust-heading"
+                className="text-[9px] font-semibold uppercase tracking-[0.22em] text-poet-gold/75 sm:text-[10px]"
+              >
+                {t("p24TrustHeading")}
+              </h2>
+              {!hasStrip ? (
+                <p className="max-w-xl text-[10px] leading-relaxed text-zinc-500 sm:text-[11px]">{t("p24MethodsCaption")}</p>
+              ) : null}
+            </div>
           </div>
 
           {hasAnyTrustImage ? (
             <>
               {hasStrip ? (
-                <div className="mt-3 sm:mt-4">
+                <div className="mt-4 sm:mt-5">
                   <p className="mb-2 text-[10px] leading-snug text-zinc-500 sm:hidden">{t("p24ScrollHint")}</p>
-                  <div className="-mx-1 overflow-x-auto overscroll-x-contain bg-transparent px-1 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(197,160,89,0.25)_transparent] [scrollbar-width:thin] sm:mx-0 sm:px-0">
-                    {/* img: PNG z alfą — rozmiar czytelny na stopce (proporcje 1920×754) */}
+                  <div className="-mx-1 overflow-x-auto overscroll-x-contain px-1 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(197,160,89,0.2)_transparent] [scrollbar-width:thin] sm:mx-0 sm:px-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={p24Gfx.methodsStripUrl!}
@@ -157,7 +149,7 @@ export async function SiteFooter() {
                       height={754}
                       loading="lazy"
                       decoding="async"
-                      className="mx-auto block h-auto max-h-[5.75rem] w-auto max-w-[min(100%,1100px)] bg-transparent object-contain object-left opacity-[0.88] transition-opacity duration-300 hover:opacity-100 sm:max-h-[7.75rem] sm:object-center md:max-h-44 lg:max-h-52"
+                      className="mr-auto block h-auto max-h-[4.5rem] w-auto max-w-[min(100%,920px)] bg-transparent object-contain object-left sm:max-h-[6.25rem] md:max-h-36 lg:max-h-[9.25rem]"
                     />
                   </div>
                 </div>
