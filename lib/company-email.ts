@@ -33,12 +33,12 @@ export function companyEmailFooterHtml(locale: AppLocale = "pl"): string {
     locale === "pl" ? "— bilety online." : locale === "uk" ? "— квитки онлайн." : "— билеты онлайн.";
   const paymentsLine =
     locale === "pl"
-      ? `Płatności internetowe: <a href="${esc(PRZELEWY24_LINKS.site)}" style="color:#c5a059;">Przelewy24</a> — <a href="${esc(PRZELEWY24_LINKS.regulamin)}" style="color:#a1a1aa;">regulamin operatora</a>.`
+      ? `Płatności internetowe: <a href="${esc(PRZELEWY24_LINKS.site)}" style="color:#e8d48b;text-decoration:none;">Przelewy24</a> — <a href="${esc(PRZELEWY24_LINKS.regulamin)}" style="color:#c5a059;text-decoration:underline;text-decoration-color:rgba(197,160,89,0.45);">regulamin operatora</a>.`
       : locale === "uk"
-        ? `Онлайн-оплата: <a href="${esc(PRZELEWY24_LINKS.site)}" style="color:#c5a059;">Przelewy24</a> — <a href="${esc(PRZELEWY24_LINKS.regulamin)}" style="color:#a1a1aa;">регламент оператора</a>.`
-        : `Онлайн-оплата: <a href="${esc(PRZELEWY24_LINKS.site)}" style="color:#c5a059;">Przelewy24</a> — <a href="${esc(PRZELEWY24_LINKS.regulamin)}" style="color:#a1a1aa;">регламент оператора</a>.`;
+        ? `Онлайн-оплата: <a href="${esc(PRZELEWY24_LINKS.site)}" style="color:#e8d48b;text-decoration:none;">Przelewy24</a> — <a href="${esc(PRZELEWY24_LINKS.regulamin)}" style="color:#c5a059;text-decoration:underline;text-decoration-color:rgba(197,160,89,0.45);">регламент оператора</a>.`
+        : `Онлайн-оплата: <a href="${esc(PRZELEWY24_LINKS.site)}" style="color:#e8d48b;text-decoration:none;">Przelewy24</a> — <a href="${esc(PRZELEWY24_LINKS.regulamin)}" style="color:#c5a059;text-decoration:underline;text-decoration-color:rgba(197,160,89,0.45);">регламент оператора</a>.`;
   const contactLine = mail
-    ? `${contactLabel} <a href="mailto:${esc(mail)}" style="color:#c5a059;">${esc(mail)}</a><br />`
+    ? `${contactLabel} <a href="mailto:${esc(mail)}" style="color:#e8d48b;text-decoration:none;">${esc(mail)}</a><br />`
     : "";
 
   const base = getPublicAppUrl()?.replace(/\/$/, "");
@@ -49,21 +49,23 @@ export function companyEmailFooterHtml(locale: AppLocale = "pl"): string {
     const privacyUrl = `${base}${canonicalPath(locale, "/polityka-prywatnosci")}`;
     const returnsUrl = `${base}${canonicalPath(locale, "/zwroty")}`;
     docBlock = `
-                <strong style="color:#71717a;">${esc(DOC_INTRO[locale])}</strong><br />
-                <a href="${esc(termsUrl)}" style="color:#c5a059;">${esc(labels.terms)}</a>
-                · <a href="${esc(privacyUrl)}" style="color:#c5a059;">${esc(labels.privacy)}</a>
-                · <a href="${esc(returnsUrl)}" style="color:#c5a059;">${esc(labels.returns)}</a><br />`;
+                <strong style="color:#8a7344;">${esc(DOC_INTRO[locale])}</strong><br />
+                <a href="${esc(termsUrl)}" style="color:#e8d48b;text-decoration:none;">${esc(labels.terms)}</a>
+                <span style="color:#5c5754;"> · </span>
+                <a href="${esc(privacyUrl)}" style="color:#e8d48b;text-decoration:none;">${esc(labels.privacy)}</a>
+                <span style="color:#5c5754;"> · </span>
+                <a href="${esc(returnsUrl)}" style="color:#e8d48b;text-decoration:none;">${esc(labels.returns)}</a><br />`;
   }
 
   return `
             <tr>
-              <td style="padding-top:24px;border-top:1px solid #27272a;font-family:system-ui,sans-serif;font-size:11px;line-height:1.55;color:#52525e;">
-                <strong style="color:#71717a;">${esc(COMPANY.productName)}</strong><br />
-                ${esc(onlineSuffix)}<br />
-                <span style="color:#71717a;">${esc(COMPANY.legalNameShort)}</span><br />
-                <span style="font-size:10px;color:#52525e;">${esc(COMPANY.legalName)}</span><br />
-                NIP: ${esc(COMPANY.nip)} · KRS: ${esc(COMPANY.krs)} · REGON: ${esc(COMPANY.regon)}<br />
-                ${esc(addr)}<br />
+              <td style="padding-top:22px;border-top:1px solid rgba(197,160,89,0.14);font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:11px;line-height:1.6;color:#6b6560;">
+                <strong style="color:#c5a059;">${esc(COMPANY.productName)}</strong><br />
+                <span style="color:#9a8f96;">${esc(onlineSuffix)}</span><br />
+                <span style="color:#8a8580;">${esc(COMPANY.legalNameShort)}</span><br />
+                <span style="font-size:10px;color:#5c5754;">${esc(COMPANY.legalName)}</span><br />
+                <span style="color:#7a726c;">NIP: ${esc(COMPANY.nip)} · KRS: ${esc(COMPANY.krs)} · REGON: ${esc(COMPANY.regon)}</span><br />
+                <span style="color:#7a726c;">${esc(addr)}</span><br />
                 ${contactLine}
                 ${docBlock}
                 ${paymentsLine}

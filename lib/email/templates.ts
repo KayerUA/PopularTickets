@@ -2,6 +2,22 @@ import { companyEmailFooterHtml } from "@/lib/company-email";
 import { ticketEmailStrings } from "@/lib/email/ticketEmailI18n";
 import type { AppLocale } from "@/i18n/routing";
 
+/** Палитра как на сайте (globals.css) — только hex/rgba для почтовых клиентов. */
+const C = {
+  bg: "#0b0609",
+  velvet: "#0f080c",
+  surface: "#151017",
+  surface2: "#1a1218",
+  gold: "#c5a059",
+  goldBright: "#e8d48b",
+  goldDim: "#8a7344",
+  text: "#f4f4f5",
+  muted: "#a39e96",
+  dim: "#6b6560",
+  border: "rgba(197,160,89,0.28)",
+  borderSoft: "rgba(197,160,89,0.15)",
+} as const;
+
 function esc(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -9,6 +25,19 @@ function esc(s: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
+
+/** Фон «сцена + кулиса» (компактная строка для атрибута style). */
+const bodyTableBg =
+  `background-color:${C.bg};background-image:radial-gradient(ellipse 100% 70% at 50% -5%, rgba(96,44,58,0.22), transparent 52%),linear-gradient(90deg, rgba(22,6,12,0.52) 0%, transparent 14%, transparent 86%, rgba(22,6,12,0.52) 100%),repeating-linear-gradient(90deg, #080506 0px, #160d12 44px, #080506 88px, #120c10 112px, #080506 132px, #160d12 176px, #080506 220px),linear-gradient(192deg, #1a0f16 0%, ${C.velvet} 46%, #060304 100%);background-repeat:no-repeat,no-repeat,repeat,no-repeat;background-size:100% 100%,100% 100%,auto,100% 100%;`;
+
+const curtainOverlay =
+  `opacity:0.55;background-image:radial-gradient(ellipse 120% 75% at 50% 100%, rgba(48,14,26,0.12), transparent 52%),linear-gradient(90deg, rgba(22,6,12,0.38) 0%, transparent 14%, transparent 86%, rgba(22,6,12,0.38) 100%),repeating-linear-gradient(90deg, transparent 0, transparent 42px, rgba(32,10,18,0.14) 48px, rgba(18,4,10,0.18) 54px, rgba(32,10,18,0.14) 60px, transparent 66px, transparent 112px);`;
+
+const brandKicker = (locale: AppLocale): string => {
+  if (locale === "pl") return "Popular Poet · bilety";
+  if (locale === "uk") return "Popular Poet · квитки";
+  return "Popular Poet · билеты";
+};
 
 export function ticketEmailHtml(params: {
   eventTitle: string;
@@ -22,71 +51,102 @@ export function ticketEmailHtml(params: {
     .map(
       (t) => `
       <tr>
-        <td style="padding:12px;border-bottom:1px solid #27272a;font-family:system-ui,sans-serif;color:#e4e4e7;">
-          <strong>${esc(t.ticketNumber)}</strong>
+        <td style="padding:14px 12px;border-bottom:1px solid ${C.borderSoft};font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:${C.text};font-size:15px;">
+          <strong style="color:${C.goldBright};letter-spacing:0.02em;">${esc(t.ticketNumber)}</strong>
         </td>
-        <td style="padding:12px;border-bottom:1px solid #27272a;font-family:system-ui,sans-serif;font-size:13px;color:#d4d4d8;">
+        <td style="padding:14px 12px;border-bottom:1px solid ${C.borderSoft};font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:13px;color:${C.muted};line-height:1.45;">
           ${esc(str.colAttachment)}
         </td>
       </tr>`
     )
     .join("");
 
+  const kicker = brandKicker(params.locale);
+
   return `<!DOCTYPE html>
-<html>
+<html lang="${params.locale}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="supported-color-schemes" content="dark" />
   </head>
-  <body style="margin:0;background:#09090b;padding:24px;">
-    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+  <body style="margin:0;padding:0;background:${C.bg};">
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="${bodyTableBg}">
       <tr>
-        <td align="center">
-          <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#18181b;border-radius:16px;padding:28px;border:1px solid #27272a;">
+        <td align="center" style="padding:32px 16px;">
+          <!-- лёгкий слой «занавес» поверх складок -->
+          <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:580px;">
             <tr>
-              <td style="font-family:system-ui,sans-serif;color:#fafafa;font-size:22px;font-weight:600;padding-bottom:8px;">
-                ${esc(params.eventTitle)}
-              </td>
+              <td style="height:10px;line-height:10px;font-size:0;${curtainOverlay}">&nbsp;</td>
             </tr>
+          </table>
+          <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:580px;border-collapse:separate;border-spacing:0;">
             <tr>
-              <td style="font-family:system-ui,sans-serif;color:#a1a1aa;font-size:14px;padding-bottom:20px;">
-                ${esc(params.venue)} · ${esc(params.startsAt)}
-              </td>
-            </tr>
-            <tr>
-              <td style="font-family:system-ui,sans-serif;color:#e4e4e7;font-size:14px;padding-bottom:12px;">
-                ${esc(str.intro)}
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-                  <thead>
-                    <tr>
-                      <th align="left" style="padding:8px 12px;font-family:system-ui,sans-serif;font-size:12px;color:#71717a;text-transform:uppercase;">${esc(str.colTicket)}</th>
-                      <th align="left" style="padding:8px 12px;font-family:system-ui,sans-serif;font-size:12px;color:#71717a;text-transform:uppercase;">${esc(str.attachmentColumnTitle)}</th>
-                    </tr>
-                  </thead>
-                  <tbody>${rows}</tbody>
+              <td style="border-radius:22px;border:1px solid ${C.border};background-color:${C.surface};background-image:linear-gradient(180deg, ${C.surface2} 0%, ${C.surface} 22%, ${C.surface} 100%);box-shadow:0 24px 48px rgba(0,0,0,0.45), inset 0 1px 0 rgba(232,212,139,0.06);overflow:hidden;">
+                <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;">
+                  <tr>
+                    <td style="padding:26px 28px 8px 28px;font-family:Georgia,'Times New Roman',serif;">
+                      <p style="margin:0 0 6px 0;font-size:10px;font-weight:600;letter-spacing:0.28em;text-transform:uppercase;color:${C.goldDim};font-family:system-ui,-apple-system,sans-serif;">
+                        ${esc(kicker)}
+                      </p>
+                      <h1 style="margin:0;font-size:26px;font-weight:600;line-height:1.2;color:${C.goldBright};letter-spacing:-0.02em;">
+                        ${esc(params.eventTitle)}
+                      </h1>
+                      <table width="72" cellpadding="0" cellspacing="0" role="presentation" style="margin-top:14px;">
+                        <tr>
+                          <td style="height:3px;border-radius:2px;background:linear-gradient(90deg,${C.goldDim},${C.goldBright},${C.gold});font-size:0;line-height:0;">&nbsp;</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 28px 18px 28px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:${C.muted};font-size:15px;line-height:1.55;">
+                      ${esc(params.venue)}<br />
+                      <span style="color:${C.text};font-weight:600;">${esc(params.startsAt)}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0 28px 18px 28px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:${C.text};font-size:14px;line-height:1.6;border-top:1px solid ${C.borderSoft};">
+                      ${esc(str.intro)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0 20px 8px 20px;">
+                      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-radius:14px;overflow:hidden;border:1px solid ${C.borderSoft};">
+                        <thead>
+                          <tr style="background:rgba(8,5,6,0.55);">
+                            <th align="left" style="padding:12px 14px;font-family:system-ui,-apple-system,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${C.gold};border-bottom:1px solid ${C.borderSoft};">
+                              ${esc(str.colTicket)}
+                            </th>
+                            <th align="left" style="padding:12px 14px;font-family:system-ui,-apple-system,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${C.gold};border-bottom:1px solid ${C.borderSoft};">
+                              ${esc(str.attachmentColumnTitle)}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 28px 0 28px;font-family:system-ui,-apple-system,sans-serif;font-size:12px;line-height:1.6;color:${C.muted};">
+                      ${esc(str.backupIdNote)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px 28px 0 28px;font-family:system-ui,-apple-system,sans-serif;font-size:11px;line-height:1.55;color:${C.dim};">
+                      ${esc(str.vatConsumerNote)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:22px 28px 8px 28px;font-family:system-ui,-apple-system,sans-serif;font-size:12px;color:${C.dim};letter-spacing:0.04em;">
+                      ${esc(str.tagline)}
+                    </td>
+                  </tr>
+                  ${companyEmailFooterHtml(params.locale)}
                 </table>
               </td>
             </tr>
-            <tr>
-              <td style="padding-top:16px;font-family:system-ui,sans-serif;font-size:12px;line-height:1.55;color:#a1a1aa;">
-                ${esc(str.backupIdNote)}
-              </td>
-            </tr>
-            <tr>
-              <td style="padding-top:10px;font-family:system-ui,sans-serif;font-size:11px;line-height:1.5;color:#71717a;">
-                ${esc(str.vatConsumerNote)}
-              </td>
-            </tr>
-            <tr>
-              <td style="padding-top:20px;font-family:system-ui,sans-serif;font-size:12px;color:#52525e;">
-                ${esc(str.tagline)}
-              </td>
-            </tr>
-            ${companyEmailFooterHtml(params.locale)}
           </table>
         </td>
       </tr>
