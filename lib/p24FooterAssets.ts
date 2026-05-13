@@ -5,7 +5,7 @@
  * widoczne w systemie plików lambdy, więc sprawdzanie dysku fałszywie zwracało
  * brak plików i pokazywała się tylko stopka-tekst zamiast obrazków.
  *
- * Logo: oficjalne SVG z pakietu P24. Pola metod: PNG „bez tła” (flagi_bez_tla).
+ * Logo: oficjalne SVG z pakietu P24. Pola metod: PNG RGBA (np. flagi_Przelewy24_* z Przelewy24) — nie JPEG pod nazwą .png (brak przezroczystości).
  */
 export const P24_FOOTER_GRAPHICS = {
   logo: "/payments/p24-logo.svg",
