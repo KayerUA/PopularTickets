@@ -25,8 +25,8 @@ export function ticketEmailHtml(params: {
         <td style="padding:12px;border-bottom:1px solid #27272a;font-family:system-ui,sans-serif;color:#e4e4e7;">
           <strong>${esc(t.ticketNumber)}</strong>
         </td>
-        <td style="padding:12px;border-bottom:1px solid #27272a;font-family:ui-monospace,monospace;font-size:12px;color:#a1a1aa;">
-          ${esc(t.id)}
+        <td style="padding:12px;border-bottom:1px solid #27272a;font-family:system-ui,sans-serif;font-size:13px;color:#d4d4d8;">
+          ${esc(str.colAttachment)}
         </td>
       </tr>`
     )
@@ -64,11 +64,21 @@ export function ticketEmailHtml(params: {
                   <thead>
                     <tr>
                       <th align="left" style="padding:8px 12px;font-family:system-ui,sans-serif;font-size:12px;color:#71717a;text-transform:uppercase;">${esc(str.colTicket)}</th>
-                      <th align="left" style="padding:8px 12px;font-family:system-ui,sans-serif;font-size:12px;color:#71717a;text-transform:uppercase;">${esc(str.colQr)}</th>
+                      <th align="left" style="padding:8px 12px;font-family:system-ui,sans-serif;font-size:12px;color:#71717a;text-transform:uppercase;">${esc(str.attachmentColumnTitle)}</th>
                     </tr>
                   </thead>
                   <tbody>${rows}</tbody>
                 </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-top:16px;font-family:system-ui,sans-serif;font-size:12px;line-height:1.55;color:#a1a1aa;">
+                ${esc(str.backupIdNote)}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-top:10px;font-family:system-ui,sans-serif;font-size:11px;line-height:1.5;color:#71717a;">
+                ${esc(str.vatConsumerNote)}
               </td>
             </tr>
             <tr>

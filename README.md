@@ -102,7 +102,7 @@ SKIP_ORDER_EMAIL=true
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-На **Vercel** в режиме bypass `NEXT_PUBLIC_APP_URL` можно не указывать (редирект относительный). `SKIP_ORDER_EMAIL=true` отключает письмо даже при настроенном Resend. После отправки формы заказ сразу **оплачен**, билеты создаются; письмо с QR — только если Resend задан и `SKIP_ORDER_EMAIL` не `true`. Когда P24 будет готов — `CHECKOUT_BYPASS_PAYMENT=false` и заполните `P24_*`.
+На **Vercel** в режиме bypass `NEXT_PUBLIC_APP_URL` можно не указывать (редирект относительный). `SKIP_ORDER_EMAIL=true` отключает письмо даже при настроенном Resend. После отправки формы заказ сразу **оплачен**, билеты создаются; письмо с **PDF-билетами** (тот же макет, что на сайте) и кратким юр. блоком — только если Resend задан и `SKIP_ORDER_EMAIL` не `true`. Для ссылок «Регламент / политика / возвраты» в футере письма задайте **`NEXT_PUBLIC_APP_URL`**. Когда P24 будет готов — `CHECKOUT_BYPASS_PAYMENT=false` и заполните `P24_*`.
 
 ## Supabase (кратко)
 
@@ -115,14 +115,14 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ### Билеты и check-in
 
 - **Когда появляются билеты**: после перевода заказа в статус **оплачен** (`paid`) — в обход P24 (`CHECKOUT_BYPASS_PAYMENT=true`) это сразу после отправки формы на сайте, с Przelewy24 — после успешного уведомления на `/api/p24/notify`. Логика в [`lib/fulfillment.ts`](lib/fulfillment.ts): для каждой единицы `quantity` создаётся строка в таблице `tickets` (связь с заказом и событием).
-- **Номер и QR**: у билета есть UUID **`id`** (его и вводят/сканируют на входе) и короткий уникальный **`ticket_number`** — генерируется в [`lib/tickets.ts`](lib/tickets.ts) (`randomTicketNumber` + проверка коллизий).
+- **Номер и QR**: у билета есть UUID **`id`** (закодирован в QR и в PDF; на входе обычно сканируют QR) и короткий **`ticket_number`** для зрителя и персонала — генерируется в [`lib/tickets.ts`](lib/tickets.ts) (`randomTicketNumber` + проверка коллизий). В письме в таблице показываем короткий номер; длинный UUID не дублируем — он внутри PDF/QR.
 - **Кто и как отмечает вход**: страница **`/check-in`** (не раздел админки). Ввод UUID билета → поиск → кнопка «Отметить вход». Если в окружении задан **`CHECKIN_OPERATOR_TOKEN`**, перед отметкой нужно ввести этот же секрет в поле кода оператора. В админке **`/admin/orders`** можно только **смотреть** номера билетов и статус (вошёл / нет), отметка делается только на `/check-in`.
 
 ## Что делать дальше (чеклист)
 
 1. **Локально**: заполните `.env` / `.env.local` по [`.env.example`](.env.example), выполните `supabase/schema.sql` в панели Supabase, затем **`npm run verify:supabase`** — если OK, ключи и таблица на месте. Дальше `npm run dev`, проверьте `/pl` и заказ (при `CHECKOUT_BYPASS_PAYMENT=true`). Подробнее: [docs/DEPLOY.md](docs/DEPLOY.md).
 2. **Админка**: задайте `ADMIN_PASSWORD` и `ADMIN_JWT_SECRET` (≥16 символов) → `/admin/login` → создайте и **опубликуйте** событие.
-3. **Почта (по желанию)**: Resend + `RESEND_*` — тогда в demo-режиме после «оплаты» уйдёт письмо с QR.
+3. **Почта (по желанию)**: Resend + `RESEND_*` — тогда после оплаты уйдёт письмо с **PDF-билетами** (и резервно PNG QR, если PDF не соберётся).
 4. **GitHub**: `git remote add origin …`, `git push -u origin main` (см. раздел ниже).
 5. **Автодеплой**: свяжите репозиторий с **Vercel** (раздел «Автодеплой») и перенесите переменные в **Environment Variables** проекта.
 6. **Przelewy24**: когда будет готов мерчант — `CHECKOUT_BYPASS_PAYMENT=false`, ключи `P24_*`, в панели P24 укажите `urlStatus` на ваш домен. Чеклист: **[docs/P24-checklist.md](docs/P24-checklist.md)**.
@@ -153,7 +153,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 1. Форма на странице события → server action создаёт заказ `pending`.
 2. Регистрация транзакции в P24, редирект на оплату.
 3. После оплаты — JSON на `/api/p24/notify`, проверка подписи и `verify`.
-4. Заказ `paid`, билеты и письмо с QR.
+4. Заказ `paid`, билеты и письмо с PDF-билетами.
 
 ## Публикация на GitHub
 

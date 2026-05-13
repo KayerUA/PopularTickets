@@ -1,10 +1,16 @@
 import QRCode from "qrcode";
 import { Resend } from "resend";
 import { ticketEmailHtml } from "@/lib/email/templates";
-import { ticketEmailStrings } from "@/lib/email/ticketEmailI18n";
+import { emailTicketPdfLayoutStrings, ticketEmailStrings } from "@/lib/email/ticketEmailI18n";
+import { ticketQrDataUrl } from "@/lib/qrDataUrl";
+import { renderTicketLayoutPdf } from "@/lib/renderTicketLayoutPdf";
 import type { AppLocale } from "@/i18n/routing";
 
 const fromDefault = "PopularTickets <onboarding@resend.dev>";
+
+function safeFileBase(ticketNumber: string): string {
+  return ticketNumber.replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 48) || "bilet";
+}
 
 export async function sendTicketsEmail(params: {
   to: string;
@@ -22,16 +28,33 @@ export async function sendTicketsEmail(params: {
   const resend = new Resend(key);
   const from = process.env.RESEND_FROM_EMAIL || fromDefault;
 
+  const pdfLabels = emailTicketPdfLayoutStrings(params.locale);
   const attachments: { filename: string; content: Buffer }[] = [];
-  for (let i = 0; i < params.tickets.length; i++) {
-    const t = params.tickets[i];
-    const png = await QRCode.toBuffer(t.id, {
-      type: "png",
-      width: 320,
-      margin: 1,
-      errorCorrectionLevel: "M",
-    });
-    attachments.push({ filename: `qr-${t.ticketNumber}.png`, content: png });
+
+  for (const t of params.tickets) {
+    const base = safeFileBase(t.ticketNumber);
+    try {
+      const dataUrl = await ticketQrDataUrl(t.id);
+      const pdfBuf = await renderTicketLayoutPdf({
+        qrPngDataUrl: dataUrl,
+        eventTitle: params.eventTitle,
+        venue: params.venue,
+        dateTimeLabel: params.startsAt,
+        ticketNumber: t.ticketNumber,
+        ticketId: t.id,
+        ...pdfLabels,
+      });
+      attachments.push({ filename: `bilet-${base}.pdf`, content: pdfBuf });
+    } catch (err) {
+      console.error("[sendTicketsEmail] PDF failed, fallback PNG", { ticketId: t.id }, err);
+      const png = await QRCode.toBuffer(t.id, {
+        type: "png",
+        width: 320,
+        margin: 1,
+        errorCorrectionLevel: "M",
+      });
+      attachments.push({ filename: `qr-${base}.png`, content: png });
+    }
   }
 
   const html = ticketEmailHtml({
