@@ -2,7 +2,7 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link as IntlLink } from "@/i18n/navigation";
 import { getRequestAppLocale } from "@/lib/requestLocale";
-import { COMPANY, companyAddressOneLine, PRZELEWY24_LINKS } from "@/lib/company";
+import { COMPANY, companyAddressOneLine } from "@/lib/company";
 import { getP24FooterPaymentGraphics } from "@/lib/p24FooterAssets";
 import { THEATRE_INSTAGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
 
@@ -145,22 +145,10 @@ export async function SiteFooter() {
           </div>
 
           {hasAnyTrustImage ? (
-            <div className="mt-5 isolate overflow-hidden rounded-xl border border-zinc-200/40 bg-white shadow-[0_1px_0_rgba(255,255,255,1)_inset,0_8px_28px_-12px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.04]">
-              {hasLogo ? (
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-zinc-200 bg-zinc-50/90 px-4 py-3.5 sm:gap-x-4 sm:px-6 sm:py-4">
-                  <span className="text-[12px] font-medium tracking-tight text-zinc-800 sm:text-[13px]">{t("p24TrustByline")}</span>
-                  <Image
-                    src={p24Gfx.logoUrl!}
-                    alt={t("p24LogoAlt")}
-                    width={1000}
-                    height={350}
-                    className="h-[1.5rem] w-auto object-contain object-left sm:h-8"
-                  />
-                </div>
-              ) : null}
+            <div className="mt-5 isolate overflow-hidden rounded-xl border border-poet-gold/20 bg-zinc-950/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_36px_-20px_rgba(0,0,0,0.65)]">
               {hasStrip ? (
-                <div className="relative bg-white">
-                  <div className="overflow-x-auto overscroll-x-contain bg-white px-2 py-5 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(113,113,122,0.55)_transparent] [scrollbar-width:thin] sm:px-6 sm:py-6">
+                <div className="relative">
+                  <div className="overflow-x-auto overscroll-x-contain bg-zinc-950/40 px-2 py-4 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(161,161,170,0.45)_transparent] [scrollbar-width:thin] sm:px-5 sm:py-5">
                     <Image
                       src={p24Gfx.methodsStripUrl!}
                       alt={t("p24MethodsCaption")}
@@ -170,9 +158,20 @@ export async function SiteFooter() {
                       className="mx-auto block h-auto w-[min(100%,1920px)] min-w-[720px] max-w-none object-contain object-center sm:min-w-0 sm:w-full"
                     />
                   </div>
-                  <p className="border-t border-zinc-200 bg-zinc-50/80 px-4 py-2.5 text-center text-[10px] leading-snug text-zinc-600 sm:hidden">
+                  <p className="border-t border-poet-gold/10 bg-black/25 px-4 py-2.5 text-center text-[10px] leading-snug text-zinc-500 sm:hidden">
                     {t("p24ScrollHint")}
                   </p>
+                </div>
+              ) : hasLogo ? (
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-poet-gold/10 px-4 py-3.5 sm:gap-x-4 sm:px-6 sm:py-4">
+                  <span className="text-[12px] font-medium tracking-tight text-zinc-300 sm:text-[13px]">{t("p24TrustByline")}</span>
+                  <Image
+                    src={p24Gfx.logoUrl!}
+                    alt={t("p24LogoAlt")}
+                    width={1000}
+                    height={350}
+                    className="h-[1.5rem] w-auto object-contain object-left sm:h-8"
+                  />
                 </div>
               ) : null}
             </div>
@@ -182,17 +181,6 @@ export async function SiteFooter() {
               <p className="text-[10px] leading-snug text-zinc-500">{t("p24MethodsVerifierHint")}</p>
             </div>
           )}
-
-          <p className="mt-4 text-center sm:text-right">
-            <a
-              href={PRZELEWY24_LINKS.graphics}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] text-poet-gold/60 underline decoration-poet-gold/20 underline-offset-[3px] transition hover:text-poet-gold-bright"
-            >
-              {t("p24TrustPackLink")}
-            </a>
-          </p>
         </section>
       </div>
     </footer>

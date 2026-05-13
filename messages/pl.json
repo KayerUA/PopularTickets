@@ -44,7 +44,6 @@
     "p24ScrollHint": "Na telefonie przesuń palcem w poziomie — widać wszystkie metody.",
     "p24LogoAlt": "Logo Przelewy24",
     "p24MethodsCaption": "Płatności online: Przelewy24 (m.in. BLIK, karty Visa i Mastercard).",
-    "p24TrustPackLink": "Pełny pakiet materiałów graficznych Przelewy24 (logo, flagi, wytyczne)",
     "p24MethodsVerifierHint": "Dla zgodności z wytycznymi Przelewy24 wgraj z pakietu m.in.: public/payments/p24-metody-platnosci.png (flagi metod) oraz opcjonalnie public/payments/p24-logo.png (logo)."
   },
   "Cookies": {
@@ -116,7 +115,6 @@
     "submitting": "Tworzymy zamówienie…",
     "hint": "Po opłaceniu bilety trafią na e-mail. Status płatności potwierdzamy automatycznie.",
     "p24CheckoutTrust": "Płatność obsługuje Przelewy24 (PayPro S.A.). Po kliknięciu przejdziesz na zabezpieczoną stronę operatora — tam wybierzesz metodę (BLIK, karta itd.).",
-    "p24MaterialsLink": "Logo i materiały Przelewy24",
     "hintBypass": "Upewnij się, że adres e-mail jest poprawny — na ten adres wyślemy bilety.",
     "errorGeneric": "Nie udało się utworzyć zamówienia",
     "legalConsent": "Akceptuję <terms>regulamin serwisu</terms> oraz <privacy>politykę prywatności</privacy> — jest to wymagane, aby złożyć zamówienie.",

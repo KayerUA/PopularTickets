@@ -44,7 +44,6 @@
     "p24ScrollHint": "На телефоне проведите пальцем в сторону — видны все способы оплаты.",
     "p24LogoAlt": "Логотип Przelewy24",
     "p24MethodsCaption": "Онлайн-оплата: Przelewy24 (в т.ч. BLIK, карты Visa и Mastercard).",
-    "p24TrustPackLink": "Полный пакет графики Przelewy24 (логотип, флаги, требования)",
     "p24MethodsVerifierHint": "По требованиям Przelewy24 загрузите из пакета: public/payments/p24-metody-platnosci.png (флаги методов) и при желании public/payments/p24-logo.png (логотип)."
   },
   "Cookies": {
@@ -116,7 +115,6 @@
     "submitting": "Создаём заказ…",
     "hint": "После оплаты билеты придут на email. Статус оплаты подтверждаем автоматически.",
     "p24CheckoutTrust": "Оплату принимает Przelewy24 (PayPro S.A.). После нажатия вы перейдёте на защищённую страницу оператора — там выберете способ (BLIK, карта и т.д.).",
-    "p24MaterialsLink": "Логотипы и графика Przelewy24",
     "hintBypass": "Проверьте адрес электронной почты — на него мы отправим билеты.",
     "errorGeneric": "Не удалось создать заказ",
     "legalConsent": "Я принимаю <terms>правила сервиса</terms> и <privacy>политику конфиденциальности</privacy> — это обязательно для оформления заказа.",

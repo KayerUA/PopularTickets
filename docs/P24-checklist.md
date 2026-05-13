@@ -58,4 +58,6 @@
 
 Код: [`lib/p24FooterAssets.ts`](../lib/p24FooterAssets.ts), блок в [`components/SiteFooter.tsx`](../components/SiteFooter.tsx). URL графики **фиксированные** (`/payments/...`), без `fs` — на Vercel Lambda не видит каталог `public/`, из‑за `existsSync` раньше пропадали картинки. Отключить блок: `NEXT_PUBLIC_HIDE_P24_FOOTER_GRAPHICS=1`.
 
+В подвале **нет** отдельной строки «оплачивает» рядом с полосой `p24-metody-platnosci.png`: в официальном PNG уже есть польская подпись — дублировать её переводом на других локалях не нужно.
+
 При расхождении с актуальной документацией **Przelewy24 / PayPro** приоритет у официальных материалов мерчанта.
