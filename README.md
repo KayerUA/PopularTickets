@@ -110,7 +110,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 Порядок **ручных шагов vs CLI** (Vercel, ошибка загрузки списка): **[docs/DEPLOY.md](docs/DEPLOY.md)** — там же команды `npm run verify:supabase` и `vercel env`.
 
-**Админка** не под префиксом языка: `https://<ваш-домен>/admin/login` — в футере публичного сайта есть ссылка «Панель организатора».
+**Админка** не под префиксом языка: `https://<ваш-домен>/admin/login` — прямой URL для команды (в публичном футере ссылки нет).
 
 ### Билеты и check-in
 
@@ -125,7 +125,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 3. **Почта (по желанию)**: Resend + `RESEND_*` — тогда в demo-режиме после «оплаты» уйдёт письмо с QR.
 4. **GitHub**: `git remote add origin …`, `git push -u origin main` (см. раздел ниже).
 5. **Автодеплой**: свяжите репозиторий с **Vercel** (раздел «Автодеплой») и перенесите переменные в **Environment Variables** проекта.
-6. **Przelewy24**: когда будет готов мерчант — `CHECKOUT_BYPASS_PAYMENT=false`, ключи `P24_*`, в панели P24 укажите `urlStatus` на ваш домен.
+6. **Przelewy24**: когда будет готов мерчант — `CHECKOUT_BYPASS_PAYMENT=false`, ключи `P24_*`, в панели P24 укажите `urlStatus` на ваш домен. Чеклист: **[docs/P24-checklist.md](docs/P24-checklist.md)**.
 
 ## Автодеплой при push в `main` (Vercel + GitHub)
 

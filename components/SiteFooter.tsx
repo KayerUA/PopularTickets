@@ -1,5 +1,4 @@
 import { getTranslations } from "next-intl/server";
-import Link from "next/link";
 import { Link as IntlLink } from "@/i18n/navigation";
 import { COMPANY, companyAddressOneLine } from "@/lib/company";
 import { THEATRE_INSTAGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
@@ -117,18 +116,6 @@ export async function SiteFooter() {
             >
               {t("ctaDetails")}
             </IntlLink>
-            <Link
-              href="/admin/login"
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-zinc-600/80 px-4 py-2.5 text-center text-zinc-400 transition hover:border-zinc-500 hover:text-zinc-200 sm:w-auto sm:min-h-0 sm:py-2"
-            >
-              {t("staffLogin")}
-            </Link>
-            <Link
-              href="/check-in"
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-zinc-600/80 px-4 py-2.5 text-center text-zinc-400 transition hover:border-zinc-500 hover:text-zinc-200 sm:w-auto sm:min-h-0 sm:py-2"
-            >
-              {t("staffCheckin")}
-            </Link>
             <p className="text-[11px] text-zinc-600 sm:text-right">{t("tagline")}</p>
           </div>
         </div>
