@@ -18,6 +18,7 @@ import { buildPublicPageMetadata, truncateMetaDescription } from "@/lib/seo";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { JsonLd } from "@/components/JsonLd";
 import { buildEventJsonLd } from "@/lib/seo/eventJsonLd";
+import { COMPANY } from "@/lib/company";
 
 export const revalidate = 30;
 
@@ -214,13 +215,18 @@ export default async function EventPage({
               {remaining > 0 ? t("purchaseClosedPast") : t("soldOut")}
             </p>
           ) : remaining > 0 ? (
-            <EventCheckoutForm
-              eventSlug={event.slug}
-              remaining={remaining}
-              locale={locale}
-              unitPriceGrosze={event.price_grosze}
-              bypassPayment={isCheckoutBypassPayment()}
-            />
+            <>
+              <aside className="mt-5 rounded-xl border border-poet-gold/15 bg-black/20 px-3 py-2.5 text-[11px] leading-relaxed text-zinc-500 sm:px-4 sm:text-xs">
+                {t("prePurchaseNote", { seller: COMPANY.legalNameShort, nip: COMPANY.nip })}
+              </aside>
+              <EventCheckoutForm
+                eventSlug={event.slug}
+                remaining={remaining}
+                locale={locale}
+                unitPriceGrosze={event.price_grosze}
+                bypassPayment={isCheckoutBypassPayment()}
+              />
+            </>
           ) : (
             <p className="mt-4 text-poet-gold-bright/90">{t("soldOut")}</p>
           )}

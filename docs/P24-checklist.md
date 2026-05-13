@@ -42,4 +42,20 @@
 - Режим sandbox vs production и отдельные учётные данные для каждого.
 - Юридические тексты на сайте: **регламин**, **политика конфиденциальности**, **данные продавца** — уже в роутингах `/regulamin`, `/polityka-prywatnosci`, `/firma` (и локали).
 
+## 5. Графика Przelewy24 в подвале (доверие / верификация)
+
+В репозитории уже лежат файлы из официальных ZIP на [do-pobrania → Materiały graficzne](https://www.przelewy24.pl/do-pobrania#materialy-graficzne):
+
+- `public/payments/p24-logo.png` — из `przelewy24_logo_materialy_graficzne.zip` (`Przelewy24_logo.png`).
+- `public/payments/p24-metody-platnosci.png` — из `flagi_metod_platnosci_Przelewy24.zip` (`flagi_bez_tla/flagi_Przelewy24_1.png`).
+
+При обновлении знаков скачайте свежие архивы и замените файлы в **`public/payments/`** (те же имена):
+
+| Файл (один из вариантов для полосы методов) | Назначение |
+|---------------------------------------------|------------|
+| `p24-metody-platnosci.png` *(рекомендуется)* или `p24-payment-methods.png`, `p24-metody.png` | Полоса **флагов / методов оплаты** (в т.ч. для требований по картам). |
+| `p24-logo.png` *(опционально)* или `przelewy24-logo.png`, `logo-przelewy24.png` | **Логотип Przelewy24** рядом с полосой. |
+
+Код: [`lib/p24FooterAssets.ts`](../lib/p24FooterAssets.ts), блок в [`components/SiteFooter.tsx`](../components/SiteFooter.tsx). Если полосы нет — в подвале показывается подсказка, какой файл добавить; ссылка на полный пакет P24 — второстепенная строка под блоком.
+
 При расхождении с актуальной документацией **Przelewy24 / PayPro** приоритет у официальных материалов мерчанта.

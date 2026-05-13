@@ -6,6 +6,7 @@ import type { AppLocale } from "@/i18n/routing";
 import { getServiceSupabase } from "@/lib/supabase/admin";
 import { loadOrderReceiptState } from "@/lib/checkoutReceipt";
 import { CheckoutPaidReceipt, type CheckoutReceiptLabels } from "@/components/CheckoutPaidReceipt";
+import { ScrollToTopOnMount } from "@/components/ScrollToTopOnMount";
 import { Link } from "@/i18n/navigation";
 import { isOrderReceiptSigningConfigured, verifyOrderReceiptToken } from "@/lib/orderReceiptToken";
 import { buildPublicPageMetadata } from "@/lib/seo";
@@ -113,6 +114,7 @@ export default async function CheckoutReturnPage({
 
   return (
     <div className="poet-safe-x mx-auto max-w-2xl py-16 sm:py-24">
+      <ScrollToTopOnMount />
       <div className="animate-fade-up rounded-2xl border border-poet-gold/25 bg-poet-surface/50 px-5 py-10 text-center shadow-gold-sm backdrop-blur-md sm:max-w-2xl sm:rounded-3xl sm:px-8 sm:py-12">
         <p className="text-xs font-semibold uppercase tracking-[0.35em] text-poet-gold/80">{t("brand")}</p>
         <h1 className="font-display mt-3 text-2xl font-semibold text-zinc-50 sm:mt-4 sm:text-3xl">

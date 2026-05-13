@@ -1,7 +1,9 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link as IntlLink } from "@/i18n/navigation";
 import { getRequestAppLocale } from "@/lib/requestLocale";
-import { COMPANY, companyAddressOneLine } from "@/lib/company";
+import { COMPANY, companyAddressOneLine, PRZELEWY24_LINKS } from "@/lib/company";
+import { getP24FooterPaymentGraphics } from "@/lib/p24FooterAssets";
 import { THEATRE_INSTAGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
 
 function InstagramGlyph({ className }: { className?: string }) {
@@ -29,6 +31,10 @@ function YouTubeGlyph({ className }: { className?: string }) {
 export async function SiteFooter() {
   const locale = await getRequestAppLocale();
   const t = await getTranslations({ locale, namespace: "Footer" });
+  const p24Gfx = getP24FooterPaymentGraphics();
+  const hasStrip = Boolean(p24Gfx.methodsStripUrl);
+  const hasLogo = Boolean(p24Gfx.logoUrl);
+  const hasAnyTrustImage = hasStrip || hasLogo;
 
   return (
     <footer className="relative z-0 border-t border-poet-gold/15 bg-poet-bg/90">
@@ -110,6 +116,55 @@ export async function SiteFooter() {
                 {t("linkPrivacy")}
               </IntlLink>
             </nav>
+            <div className="mt-4 border-t border-poet-gold/10 pt-4">
+              <section
+                aria-labelledby="footer-p24-trust-heading"
+                className="rounded-xl border border-poet-gold/20 bg-zinc-950/45 px-4 py-4 shadow-[inset_0_1px_0_rgba(197,160,89,0.06)] sm:px-5"
+              >
+                <h2
+                  id="footer-p24-trust-heading"
+                  className="text-[10px] font-semibold uppercase tracking-[0.28em] text-poet-gold/80"
+                >
+                  {t("p24TrustHeading")}
+                </h2>
+                {hasAnyTrustImage ? (
+                  <div className="mt-3 flex flex-col items-stretch gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+                    {hasLogo ? (
+                      <Image
+                        src={p24Gfx.logoUrl!}
+                        alt={t("p24LogoAlt")}
+                        width={1000}
+                        height={350}
+                        className="h-8 w-auto max-w-[12rem] shrink-0 object-contain object-left opacity-[0.97] sm:h-9"
+                      />
+                    ) : null}
+                    {hasStrip ? (
+                      <Image
+                        src={p24Gfx.methodsStripUrl!}
+                        alt={t("p24MethodsCaption")}
+                        width={1920}
+                        height={980}
+                        className="max-h-24 w-full min-w-0 max-w-3xl flex-1 object-contain object-left sm:max-h-28"
+                      />
+                    ) : null}
+                  </div>
+                ) : null}
+                <p className={`text-[11px] leading-relaxed text-zinc-500 ${hasAnyTrustImage ? "mt-3" : "mt-2"}`}>
+                  {t("p24MethodsCaption")}
+                </p>
+                {!hasStrip ? <p className="mt-2 text-[10px] leading-snug text-zinc-600">{t("p24MethodsVerifierHint")}</p> : null}
+                <p className="mt-3 border-t border-poet-gold/10 pt-3">
+                  <a
+                    href={PRZELEWY24_LINKS.graphics}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] text-poet-gold/75 underline decoration-poet-gold/25 underline-offset-2 transition hover:text-poet-gold-bright"
+                  >
+                    {t("p24TrustPackLink")}
+                  </a>
+                </p>
+              </section>
+            </div>
           </div>
           <div className="flex flex-col gap-4 text-sm text-zinc-400 sm:shrink-0 sm:items-end sm:text-xs">
             <IntlLink

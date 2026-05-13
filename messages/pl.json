@@ -38,7 +38,12 @@
     "socialYoutubeAria": "Kanał YouTube: Popular Poet",
     "linkTerms": "Regulamin",
     "linkReturns": "Zwroty i reklamacje",
-    "linkPrivacy": "Polityka prywatności"
+    "linkPrivacy": "Polityka prywatności",
+    "p24TrustHeading": "Bezpieczne płatności",
+    "p24LogoAlt": "Logo Przelewy24",
+    "p24MethodsCaption": "Płatności online: Przelewy24 (m.in. BLIK, karty Visa i Mastercard).",
+    "p24TrustPackLink": "Pełny pakiet materiałów graficznych Przelewy24 (logo, flagi, wytyczne)",
+    "p24MethodsVerifierHint": "Dla zgodności z wytycznymi Przelewy24 wgraj z pakietu m.in.: public/payments/p24-metody-platnosci.png (flagi metod) oraz opcjonalnie public/payments/p24-logo.png (logo)."
   },
   "Cookies": {
     "title": "Ustawienia cookies",
@@ -83,7 +88,8 @@
     "bruttoLabel": "Brutto",
     "nettoLabel": "Netto",
     "vatLabel": "w tym VAT (8%)",
-    "vatLegalNote": "Widziana cena jest końcowa — podatek jest wliczony (wydarzenia kulturalne w Polsce: obniżona stawka VAT 8%). Kwoty liczymy od ceny brutto."
+    "vatLegalNote": "Widziana cena jest końcowa — podatek jest wliczony (wydarzenia kulturalne w Polsce: obniżona stawka VAT 8%). Kwoty liczymy od ceny brutto.",
+    "prePurchaseNote": "Sprzedawca: {seller}, NIP {nip}. Bilet elektroniczny na e-mail — bez dodatkowych kosztów dostawy. Pełne dane i zasady płatności: zakładka „Dane sprzedawcy” w stopce oraz Regulamin."
   },
   "EventCard": {
     "buy": "Kup bilet",
@@ -188,7 +194,7 @@
     "s4Title": "§4 Ceny i zamówienia",
     "s4Body": "Ceny prezentowane w Serwisie podawane są w złotych polskich (PLN). Jeżeli przy wydarzeniu wskazano cenę „brutto”, zawiera ona należny podatek VAT zgodnie z informacją przy danym wydarzeniu.\n\nZamówienie składa się poprzez formularz zamówienia; Kupujący odpowiada za prawdziwość podanych danych, w szczególności adresu e-mail, na który zostaną wysłane bilety.\n\nLiczba dostępnych biletów jest ograniczona; brak możliwości realizacji zamówienia z przyczyn wyczerpania puli biletów skutkuje niewykonaniem umowy po stronie Sprzedawcy i zwrotem zapłaconej ceny, o ile płatność została pobrana.",
     "s5Title": "§5 Płatności (Przelewy24)",
-    "s5Body": "Operator płatności dla transakcji realizowanych w ramach Serwisu to PayPro S.A. z siedzibą w Poznaniu (60-327), przy ul. Pastelowej 8, wpisana do rejestru przedsiębiorców KRS pod numerem 0000347935, kapitał zakładowy w wysokości 4.500.000 zł w całości opłacony, NIP 7792369887, REGON 301345068, działająca pod marką Przelewy24.\n\nKorzystanie z usług płatniczych Przelewy24 podlega regulaminowi i polityce prywatności Przelewy24, dostępnym pod adresem https://www.przelewy24.pl/\n\nSprzedawca nie przechowuje pełnych danych płatniczych Kupującego (np. numeru karty); dane te przetwarza wyłącznie operator płatności zgodnie z własnymi dokumentami.",
+    "s5Body": "Dostawcą systemu płatności internetowych w Serwisie jest Przelewy24 (marka PayPro S.A.). Korzystanie z usług płatniczych podlega regulaminowi i polityce prywatności Przelewy24: https://www.przelewy24.pl/\n\nOperatorem kart płatniczych jest PayPro SA Agent Rozliczeniowy, ul. Pastelowa 8, 60-198 Poznań, wpisany do Rejestru Przedsiębiorców Krajowego Rejestru Sądowego prowadzonego przez Sąd Rejonowy Poznań Nowe Miasto i Wilda w Poznaniu, VIII Wydział Gospodarczy Krajowego Rejestru Sądowego pod numerem KRS 0000347935, NIP 7792369887, REGON 301345068.\n\nSprzedawca nie przechowuje pełnych danych płatniczych Kupującego (np. numeru karty); dane te przetwarza wyłącznie operator płatności zgodnie z własnymi dokumentami.",
     "s6Title": "§6 Bilety elektroniczne i check-in",
     "s6Body": "Po skutecznej płatności bilety elektroniczne są przekazywane na adres e-mail Kupującego oraz mogą być udostępnione na stronie podsumowania transakcji, jeżeli Serwis udostępnia taki link.\n\nKupujący zobowiązany jest do zachowania poufności danych biletu; powielenie lub nieuprawnione udostępnienie biletu może skutkować odmową wstępu na wydarzenie.\n\nWejście na wydarzenie może być potwierdzone w systemie check-in (np. skan kodu QR) zgodnie z organizacją wydarzenia.",
     "s7Title": "§7 Prawo odstąpienia, zwroty, reklamacje",
