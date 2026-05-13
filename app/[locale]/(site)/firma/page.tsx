@@ -150,6 +150,11 @@ export default async function FirmaPage({ params }: { params: Promise<{ locale: 
               {t("p24Merchants")}
             </a>
           </li>
+          <li>
+            <a href={PRZELEWY24_LINKS.graphics} target="_blank" rel="noopener noreferrer" className="text-poet-gold hover:text-poet-gold-bright">
+              {t("p24Graphics")}
+            </a>
+          </li>
         </ul>
       </section>
     </div>

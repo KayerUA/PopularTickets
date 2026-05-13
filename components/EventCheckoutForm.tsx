@@ -8,6 +8,7 @@ import { createPendingOrder } from "@/app/actions/checkout";
 import type { AppLocale } from "@/i18n/routing";
 import { splitTheatreTicketTotalGrosze } from "@/lib/plVatTheatreTicket";
 import { formatPlnFromGrosze } from "@/lib/format";
+import { PRZELEWY24_LINKS } from "@/lib/company";
 
 type Props = {
   eventSlug: string;
@@ -145,6 +146,19 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
       ) : null}
 
       <p className="text-xs leading-relaxed text-zinc-500 sm:mt-1">{bypassPayment ? t("hintBypass") : t("hint")}</p>
+      {!bypassPayment ? (
+        <p className="text-[11px] leading-relaxed text-zinc-500/95">
+          {t("p24CheckoutTrust")}{" "}
+          <a
+            href={PRZELEWY24_LINKS.graphics}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-poet-gold/95 underline decoration-poet-gold/35 underline-offset-2 hover:text-poet-gold-bright"
+          >
+            {t("p24MaterialsLink")}
+          </a>
+        </p>
+      ) : null}
 
       {/* Mobile: przyklejony pasek z CTA; desktop: zwykły blok w formularzu */}
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-poet-gold/25 bg-poet-bg/92 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-md supports-[backdrop-filter]:bg-poet-bg/88 sm:static sm:z-auto sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">

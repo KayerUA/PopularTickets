@@ -19,12 +19,19 @@ export const COMPANY = {
   },
 } as const;
 
-/** Oficjalne dokumenty i strona Przelewy24 (nie wymyślaj adresów — tylko domena operatora). */
+/**
+ * Oficjalne dokumenty Przelewy24 (tylko domena operatora).
+ * Materiały graficzne (logo, znaki): https://www.przelewy24.pl/do-pobrania#materialy-graficzne
+ */
 export const PRZELEWY24_LINKS = {
   site: "https://www.przelewy24.pl/",
   regulamin: "https://www.przelewy24.pl/regulamin",
   privacy: "https://www.przelewy24.pl/polityka-prywatnosci",
   merchants: "https://www.przelewy24.pl/dla-firmy",
+  /** Pakiety promocyjne / logotypy dla sklepu (stosować zgodnie z wytycznymi P24). */
+  graphics: "https://www.przelewy24.pl/do-pobrania#materialy-graficzne",
+  /** REST API (rejestracja transakcji itd.). */
+  apiDocs: "https://developers.przelewy24.pl/index.php?pl#tag/Transaction-service-API",
 } as const;
 
 export function companyAddressOneLine(): string {

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "homeTitle": "PopularTickets — bilety na wydarzenia",
-    "homeDescription": "Bilety na kameralne wydarzenia w Polsce — szybki zakup online.",
+    "homeDescription": "Bilety na kameralne spektakle i wydarzenia w Polsce — wybierz termin, zapłać online (Przelewy24), odbierz PDF z QR.",
     "firmaTitle": "Dane sprzedawcy",
     "firmaDescription": "Informacje o operatorze PopularTickets — POPULAR POET Sp. z o.o.",
     "eventTitleSuffix": " — PopularTickets",
@@ -11,7 +11,7 @@
     "zwrotyDescription": "Informacje o odstąpieniu od umowy, zwrotach i reklamacjach dotyczących biletów.",
     "privacyTitle": "Polityka prywatności",
     "privacyDescription": "Zasady przetwarzania danych osobowych w serwisie PopularTickets (RODO).",
-    "homeKeywords": "PopularTickets, bilety, wydarzenia, Polska, Warszawa, teatr, koncerty, płatność online",
+    "homeKeywords": "PopularTickets, bilety, wydarzenia, Polska, Warszawa, teatr, improwizacja, spektakl, bilety online, Przelewy24",
     "checkoutReturnTitle": "Dziękujemy za zamówienie — PopularTickets",
     "checkoutReturnDescription": "Potwierdzenie zamówienia i dostęp do biletów w serwisie PopularTickets."
   },
@@ -51,10 +51,10 @@
   "Home": {
     "brand": "Popular Poet",
     "title": "Aktualności",
-    "subtitle": "Lokalne sceny i kameralne imprezy w Polsce. Kup bilet w kilka kliknięć — wybierz wydarzenie, zapłać online, bez skomplikowanej rejestracji.",
+    "subtitle": "Kameralne sceny w Polsce — teatr, improwizacje, spotkania z publicznością. Wybierz termin, opłać bezpiecznie online, bilety na mailu z kodem QR.",
     "sectionLabel": "01 — wydarzenia",
     "empty": "Brak opublikowanych wydarzeń.",
-    "loadError": "Nie udało się wczytać listy wydarzeń. Spróbuj odświeżyć stronę za chwilę. Jeśli problem się powtarza, skontaktuj się z nami — dane w zakładce „Informacje”."
+    "loadError": "Nie udało się wczytać listy wydarzeń. Spróbuj odświeżyć stronę za chwilę. Jeśli problem się powtarza, skontaktuj się z nami — dane w zakładce „Dane sprzedawcy”."
   },
   "Marquee": {
     "phrase": "Popular Poet · PopularTickets · Warszawa · bilety · wydarzenia na żywo · "
@@ -107,6 +107,8 @@
     "submitBypass": "Złóż zamówienie i odbierz bilety",
     "submitting": "Tworzymy zamówienie…",
     "hint": "Po opłaceniu bilety trafią na e-mail. Status płatności potwierdzamy automatycznie.",
+    "p24CheckoutTrust": "Płatność obsługuje Przelewy24 (PayPro S.A.). Po kliknięciu przejdziesz na zabezpieczoną stronę operatora — tam wybierzesz metodę (BLIK, karta itd.).",
+    "p24MaterialsLink": "Logo i materiały Przelewy24",
     "hintBypass": "Upewnij się, że adres e-mail jest poprawny — na ten adres wyślemy bilety.",
     "errorGeneric": "Nie udało się utworzyć zamówienia",
     "legalConsent": "Akceptuję <terms>regulamin serwisu</terms> oraz <privacy>politykę prywatności</privacy> — jest to wymagane, aby złożyć zamówienie.",
@@ -165,7 +167,8 @@
     "paymentsBody": "Umowa kupna biletu zawierana jest między Tobą a sprzedawcą wydarzenia — {seller}. Operator płatności Przelewy24 przetwarza transakcję zgodnie z własnymi regulaminami.",
     "p24Terms": "Regulamin Przelewy24",
     "p24Privacy": "Polityka prywatności Przelewy24",
-    "p24Merchants": "Informacje dla merchantów (Przelewy24)",
+    "p24Merchants": "Informacje dla sprzedawców — Przelewy24",
+    "p24Graphics": "Materiały graficzne (logo Przelewy24)",
     "docNavTitle": "Dokumenty prawne",
     "docNavIntro": "Pełna treść zasad sprzedaży, zwrotów i ochrony danych:",
     "docLinkRegulamin": "Regulamin",

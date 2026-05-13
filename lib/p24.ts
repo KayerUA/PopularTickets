@@ -1,3 +1,10 @@
+/**
+ * Klient REST Przelewy24 v1: `transaction/register`, `transaction/verify`, podpis SHA-384 (CRC).
+ * Dokumentacja: https://developers.przelewy24.pl/index.php?pl#tag/Transaction-service-API
+ * Sandbox / produkcja: `P24_SANDBOX`, hosty w `getP24BaseUrl` / `getP24TrnUrl`.
+ * Aplikacje mobilne (natywne biblioteki): przykład React Native archiwum
+ * https://github.com/przelewy24/p24-mobile-lib-react-native-example — ten serwis używa przekierowania web (trnRequest).
+ */
 import crypto from "crypto";
 
 function sha384Hex(payload: Record<string, unknown>): string {
