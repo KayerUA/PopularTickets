@@ -130,48 +130,50 @@ export async function SiteFooter() {
 
         <section
           aria-labelledby="footer-p24-trust-heading"
-          className="mt-8 rounded-2xl border border-poet-gold/20 bg-gradient-to-b from-zinc-950/80 to-zinc-950/40 px-4 py-5 shadow-[0_12px_40px_-24px_rgba(0,0,0,0.75)] sm:px-6 sm:py-6"
+          className="mt-6 rounded-2xl border border-poet-gold/20 bg-gradient-to-b from-zinc-950/90 to-zinc-950/55 px-3 py-4 shadow-[0_12px_40px_-24px_rgba(0,0,0,0.75)] sm:mt-8 sm:px-6 sm:py-6"
         >
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
             <h2
               id="footer-p24-trust-heading"
-              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-poet-gold/90"
+              className="text-[10px] font-semibold uppercase tracking-[0.22em] text-poet-gold/90 sm:text-[11px]"
             >
               {t("p24TrustHeading")}
             </h2>
-            <p className="max-w-xl text-[12px] leading-relaxed text-zinc-400 sm:text-right sm:text-[11px]">
-              {t("p24MethodsCaption")}
-            </p>
+            {!(hasAnyTrustImage && hasStrip) ? (
+              <p className="max-w-xl text-[11px] leading-relaxed text-zinc-400 sm:text-right sm:text-[11px]">
+                {t("p24MethodsCaption")}
+              </p>
+            ) : null}
           </div>
 
           {hasAnyTrustImage ? (
-            <div className="mt-5 isolate overflow-hidden rounded-xl border border-poet-gold/20 bg-zinc-950/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_36px_-20px_rgba(0,0,0,0.65)]">
+            <div className="mt-4 isolate overflow-hidden rounded-xl border border-poet-gold/15 bg-zinc-950/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:mt-5">
               {hasStrip ? (
-                <div className="relative">
-                  <div className="overflow-x-auto overscroll-x-contain bg-zinc-950/40 px-2 py-4 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(161,161,170,0.45)_transparent] [scrollbar-width:thin] sm:px-5 sm:py-5">
+                <div className="relative px-2 pb-2 pt-2 sm:px-4 sm:pb-3 sm:pt-3">
+                  <p className="mb-2 px-1 text-[11px] leading-snug text-zinc-400 sm:hidden">{t("p24ScrollHint")}</p>
+                  <div className="overflow-x-auto overscroll-x-contain rounded-lg bg-zinc-100 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] ring-1 ring-zinc-950/20 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(82,82,91,0.5)_rgb(244,244,245)] [scrollbar-width:thin] sm:p-4">
                     <Image
                       src={p24Gfx.methodsStripUrl!}
                       alt={t("p24MethodsCaption")}
                       width={1920}
                       height={980}
-                      sizes="(max-width: 640px) 780px, (max-width: 1280px) 90vw, 1024px"
-                      className="mx-auto block h-auto w-[min(100%,1920px)] min-w-[720px] max-w-none object-contain object-center sm:min-w-0 sm:w-full"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 92vw, 960px"
+                      className="mx-auto block h-auto w-[min(100%,1920px)] min-w-[640px] max-w-none object-contain object-center sm:min-w-0 sm:w-full"
                     />
                   </div>
-                  <p className="border-t border-poet-gold/10 bg-black/25 px-4 py-2.5 text-center text-[10px] leading-snug text-zinc-500 sm:hidden">
-                    {t("p24ScrollHint")}
-                  </p>
                 </div>
               ) : hasLogo ? (
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-poet-gold/10 px-4 py-3.5 sm:gap-x-4 sm:px-6 sm:py-4">
-                  <span className="text-[12px] font-medium tracking-tight text-zinc-300 sm:text-[13px]">{t("p24TrustByline")}</span>
-                  <Image
-                    src={p24Gfx.logoUrl!}
-                    alt={t("p24LogoAlt")}
-                    width={1000}
-                    height={350}
-                    className="h-[1.5rem] w-auto object-contain object-left sm:h-8"
-                  />
+                <div className="rounded-lg bg-zinc-100 p-4 ring-1 ring-zinc-950/15 sm:px-6 sm:py-4">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                    <span className="text-[12px] font-medium tracking-tight text-zinc-800 sm:text-[13px]">{t("p24TrustByline")}</span>
+                    <Image
+                      src={p24Gfx.logoUrl!}
+                      alt={t("p24LogoAlt")}
+                      width={1000}
+                      height={350}
+                      className="h-[1.5rem] w-auto object-contain object-left sm:h-8"
+                    />
+                  </div>
                 </div>
               ) : null}
             </div>
