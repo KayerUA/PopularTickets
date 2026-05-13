@@ -60,7 +60,7 @@ const COPY: Record<AppLocale, TicketEmailStrings> = {
 
 /**
  * Подписи для PDF во вложении письма.
- * Для uk/ru строки `ticketQrSecondary`, `ticketKindSecondary`, `ticketDisclaimer`,
+ * Для uk/ru строки `ticketQrSecondary`, `ticketKindSecondary`, `ticketDisclaimer` (можно пусто),
  * `ticketNumberCaption` должны дословно совпадать с `messages/*.json` → `TicketPdf`,
  * иначе предпросмотр на /checkout/return и вложение в письме разъедутся.
  */
@@ -99,8 +99,7 @@ export function emailTicketPdfLayoutStrings(locale: AppLocale): Pick<
     uk: {
       ticketKindSecondary: "Електронний квиток",
       ticketQrSecondary: "Покажіть QR при вході (телефон або PDF).",
-      ticketDisclaimer:
-        "Текст нижче українською — лише довідковий переклад. Обов'язкові записи польською вказані вище.",
+      ticketDisclaimer: "",
       ticketNumberCaption: "Номер квитка",
       ticketLabel: "Номер квитка",
       ticketRibbon: "Один глядач",
@@ -109,8 +108,7 @@ export function emailTicketPdfLayoutStrings(locale: AppLocale): Pick<
     ru: {
       ticketKindSecondary: "Электронный билет",
       ticketQrSecondary: "Покажите QR при входе (телефон или PDF).",
-      ticketDisclaimer:
-        "Текст ниже на русском — только справочный перевод. Обязательные формулировки на польском указаны выше.",
+      ticketDisclaimer: "",
       ticketNumberCaption: "Номер билета",
       ticketLabel: "Номер билета",
       ticketRibbon: "Один зритель",

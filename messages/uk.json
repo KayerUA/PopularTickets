@@ -143,7 +143,7 @@
   "TicketPdf": {
     "kindSecondary": "Електронний квиток",
     "qrSecondary": "Покажіть QR при вході (телефон або PDF).",
-    "translationDisclaimer": "Текст нижче українською — лише довідковий переклад. Обов'язкові записи польською вказані вище.",
+    "translationDisclaimer": "",
     "ticketNumberCaption": "Номер квитка"
   },
   "Legal": {
