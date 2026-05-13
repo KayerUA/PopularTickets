@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition, useState, useMemo } from "react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { unstable_rethrow } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -9,6 +10,7 @@ import type { AppLocale } from "@/i18n/routing";
 import { splitTheatreTicketTotalGrosze } from "@/lib/plVatTheatreTicket";
 import { formatPlnFromGrosze } from "@/lib/format";
 import { PRZELEWY24_LINKS } from "@/lib/company";
+import { P24_FOOTER_GRAPHICS } from "@/lib/p24FooterAssets";
 
 type Props = {
   eventSlug: string;
@@ -147,17 +149,26 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
 
       <p className="text-xs leading-relaxed text-zinc-500 sm:mt-1">{bypassPayment ? t("hintBypass") : t("hint")}</p>
       {!bypassPayment ? (
-        <p className="text-[11px] leading-relaxed text-zinc-500/95">
-          {t("p24CheckoutTrust")}{" "}
-          <a
-            href={PRZELEWY24_LINKS.graphics}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-poet-gold/95 underline decoration-poet-gold/35 underline-offset-2 hover:text-poet-gold-bright"
-          >
-            {t("p24MaterialsLink")}
-          </a>
-        </p>
+        <div className="flex items-start gap-3 rounded-xl border border-poet-gold/15 bg-black/25 px-3 py-2.5">
+          <Image
+            src={P24_FOOTER_GRAPHICS.mark}
+            alt=""
+            width={1024}
+            height={1024}
+            className="mt-0.5 h-10 w-10 shrink-0 rounded-md object-contain sm:h-11 sm:w-11"
+          />
+          <p className="min-w-0 flex-1 text-[11px] leading-relaxed text-zinc-500/95">
+            {t("p24CheckoutTrust")}{" "}
+            <a
+              href={PRZELEWY24_LINKS.graphics}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-poet-gold/95 underline decoration-poet-gold/35 underline-offset-2 hover:text-poet-gold-bright"
+            >
+              {t("p24MaterialsLink")}
+            </a>
+          </p>
+        </div>
       ) : null}
 
       {/* Mobile: przyklejony pasek z CTA; desktop: zwykły blok w formularzu */}

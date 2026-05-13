@@ -8,6 +8,8 @@
 export const P24_FOOTER_GRAPHICS = {
   logo: "/payments/p24-logo.png",
   methodsStrip: "/payments/p24-metody-platnosci.png",
+  /** Kompaktowy znak P24 (np. przy koszyku). */
+  mark: "/payments/p24-mark.png",
 } as const;
 
 export type P24FooterPaymentGraphics = {

@@ -47,7 +47,7 @@
 В репозитории уже лежат файлы из официальных ZIP на [do-pobrania → Materiały graficzne](https://www.przelewy24.pl/do-pobrania#materialy-graficzne):
 
 - `public/payments/p24-logo.png` — из `przelewy24_logo_materialy_graficzne.zip` (`Przelewy24_logo.png`).
-- `public/payments/p24-metody-platnosci.png` — из `flagi_metod_platnosci_Przelewy24.zip` (`flagi_bez_tla/flagi_Przelewy24_1.png`).
+- `public/payments/p24-mark.png` — компактный знак **P24** (форма заказа).
 
 При обновлении знаков скачайте свежие архивы и замените файлы в **`public/payments/`** (те же имена):
 
