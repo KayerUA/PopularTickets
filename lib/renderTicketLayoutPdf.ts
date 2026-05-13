@@ -25,19 +25,15 @@ export type TicketLayoutDocInput = {
   stubControl: string;
 };
 
-const GOLD = rgb(0.91, 0.83, 0.55);
-const GOLD_BRIGHT = rgb(0.95, 0.88, 0.62);
-const GOLD_MUTED = rgb(0.55, 0.45, 0.28);
-const TEXT = rgb(0.82, 0.82, 0.85);
-const TEXT_DIM = rgb(0.45, 0.45, 0.48);
-const BG = rgb(0.055, 0.048, 0.042);
-const BG_HEADER = rgb(0.078, 0.068, 0.058);
-const VELVET_DEEP = rgb(0.14, 0.045, 0.065);
-const BURGUNDY_PANEL = rgb(0.22, 0.07, 0.1);
-const TICKET_LEFT_PANEL = rgb(0.165, 0.071, 0.094);
-const TICKET_RIP_BG = rgb(0.031, 0.02, 0.024);
-const TICKET_CENTER_PANEL = rgb(0.047, 0.027, 0.035);
-const TICKET_RIGHT_PANEL = rgb(0.11, 0.047, 0.063);
+const GOLD = rgb(0.9, 0.78, 0.48);
+const GOLD_BRIGHT = rgb(0.97, 0.9, 0.65);
+const GOLD_MUTED = rgb(0.52, 0.42, 0.26);
+const TEXT = rgb(0.9, 0.88, 0.92);
+const BG = rgb(0.042, 0.034, 0.03);
+const BG_HEADER = rgb(0.06, 0.05, 0.045);
+const VELVET_DEEP = rgb(0.12, 0.04, 0.055);
+const BURGUNDY_PANEL = rgb(0.2, 0.065, 0.09);
+const TICKET_RIP_BG = rgb(0.028, 0.018, 0.022);
 
 function drawDashedLine(
   page: PDFPage,
@@ -189,6 +185,58 @@ function drawCenteredBlock(
   return baseline;
 }
 
+/** Короткий показ UUID на билете (читаемость + меньше визуального шума). */
+function formatTicketIdDisplay(id: string): string {
+  const t = id.trim();
+  if (t.length <= 16) return t;
+  return `${t.slice(0, 8)}…${t.slice(-6)}`;
+}
+
+/** Лёгкая «подсветка» в шапке (несколько полос). */
+function drawHeaderSheen(page: PDFPage, W: number, H: number, headerH: number) {
+  const bands = 5;
+  for (let i = 0; i < bands; i++) {
+    const y0 = H - headerH + (headerH * i) / bands;
+    const h = headerH / bands + 0.5;
+    page.drawRectangle({
+      x: 0,
+      y: y0,
+      width: W,
+      height: h,
+      color: GOLD_BRIGHT,
+      opacity: 0.02 + i * 0.012,
+    });
+  }
+}
+
+/** Вертикальный градиент панели (наложение полос). */
+function drawPanelVerticalWash(
+  page: PDFPage,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  top: ReturnType<typeof rgb>,
+  bottom: ReturnType<typeof rgb>,
+  steps: number
+) {
+  const sh = h / steps;
+  for (let i = 0; i < steps; i++) {
+    const t = i / Math.max(1, steps - 1);
+    const r = top.red * (1 - t) + bottom.red * t;
+    const g = top.green * (1 - t) + bottom.green * t;
+    const b = top.blue * (1 - t) + bottom.blue * t;
+    page.drawRectangle({
+      x,
+      y: y + i * sh,
+      width: w,
+      height: sh + 0.4,
+      color: rgb(r, g, b),
+      opacity: 1,
+    });
+  }
+}
+
 /** Декоративные уголки (тонкая «рамка»). */
 function drawCornerFrames(page: PDFPage, W: number, H: number, inset: number, arm: number, color: ReturnType<typeof rgb>, thickness: number) {
   const t = thickness;
@@ -213,70 +261,71 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
   const font = await pdfDoc.embedFont(regularBytes, { subset: true });
   const fontBold = await pdfDoc.embedFont(boldBytes, { subset: true });
 
-  const W = 300;
-  const H = 560;
-  const margin = 20;
+  const W = 320;
+  const H = 582;
+  const margin = 22;
   const contentW = W - 2 * margin;
-  const headerH = 52;
+  const headerH = 56;
 
   const page = pdfDoc.addPage([W, H]);
 
   page.drawRectangle({ x: 0, y: 0, width: W, height: H, color: BG });
-  page.drawRectangle({ x: 0, y: 0, width: 6, height: H, color: VELVET_DEEP, opacity: 0.95 });
-  page.drawRectangle({ x: W - 6, y: 0, width: 6, height: H, color: VELVET_DEEP, opacity: 0.95 });
+  page.drawRectangle({ x: 0, y: 0, width: 7, height: H, color: VELVET_DEEP, opacity: 0.92 });
+  page.drawRectangle({ x: W - 7, y: 0, width: 7, height: H, color: VELVET_DEEP, opacity: 0.92 });
+  page.drawRectangle({
+    x: 0,
+    y: H * 0.38,
+    width: W,
+    height: H * 0.62,
+    color: BURGUNDY_PANEL,
+    opacity: 0.18,
+  });
   page.drawRectangle({
     x: 0,
     y: H * 0.4,
     width: W,
     height: H * 0.6,
-    color: BURGUNDY_PANEL,
-    opacity: 0.22,
-  });
-  page.drawRectangle({
-    x: 0,
-    y: H * 0.42,
-    width: W,
-    height: H * 0.58,
-    color: rgb(0.04, 0.035, 0.03),
-    opacity: 0.35,
+    color: rgb(0.035, 0.03, 0.026),
+    opacity: 0.32,
   });
 
   page.drawRectangle({
-    x: 10,
-    y: 10,
-    width: W - 20,
-    height: H - 20,
+    x: 11,
+    y: 11,
+    width: W - 22,
+    height: H - 22,
     borderColor: GOLD_MUTED,
-    borderWidth: 1,
+    borderWidth: 1.05,
   });
   page.drawRectangle({
-    x: 15,
-    y: 15,
-    width: W - 30,
-    height: H - 30,
-    borderColor: rgb(0.82, 0.68, 0.38),
-    borderOpacity: 0.45,
-    borderWidth: 0.65,
+    x: 17,
+    y: 17,
+    width: W - 34,
+    height: H - 34,
+    borderColor: rgb(0.88, 0.72, 0.42),
+    borderOpacity: 0.38,
+    borderWidth: 0.55,
   });
-  drawCornerFrames(page, W, H, 20, 24, GOLD_BRIGHT, 1);
+  drawCornerFrames(page, W, H, 22, 30, GOLD_BRIGHT, 1.05);
 
   page.drawRectangle({ x: 0, y: H - headerH, width: W, height: headerH, color: BG_HEADER });
+  drawHeaderSheen(page, W, H, headerH);
   page.drawRectangle({
     x: 0,
     y: H - headerH,
     width: W,
-    height: headerH * 0.55,
+    height: headerH * 0.52,
     color: BURGUNDY_PANEL,
-    opacity: 0.55,
+    opacity: 0.48,
   });
   page.drawLine({
     start: { x: 0, y: H - headerH },
     end: { x: W, y: H - headerH },
-    thickness: 1.35,
-    color: rgb(0.82, 0.66, 0.36),
+    thickness: 1.2,
+    color: rgb(0.85, 0.68, 0.38),
   });
 
-  const logoH = 36;
+  const logoH = 38;
   let textLeft = margin + 4;
   const logoBuf = loadBrandLogoPngBytes();
   if (logoBuf) {
@@ -293,7 +342,7 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
   }
 
   const brand = COMPANY.productName.toUpperCase();
-  const brandSize = 11;
+  const brandSize = 11.5;
   const brandBaseline = H - headerH / 2 + brandSize * 0.35;
   page.drawText(brand, {
     x: textLeft,
@@ -312,64 +361,78 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
     color: rgb(0.62, 0.58, 0.52),
   });
 
-  let y = H - headerH - 14;
+  let y = H - headerH - 16;
 
   page.drawLine({
-    start: { x: margin, y: y + 4 },
-    end: { x: W - margin, y: y + 4 },
-    thickness: 0.35,
-    color: GOLD_MUTED,
-    opacity: 0.6,
-  });
-  y -= 6;
-
-  page.drawText(TICKET_PDF_KIND_PL.toUpperCase(), {
-    x: margin,
-    y: y - 7,
-    size: 6.8,
-    font: fontBold,
-    color: rgb(0.72, 0.62, 0.42),
-  });
-  y -= 12;
-
-  const kindSec = input.ticketKindSecondary.trim();
-  if (kindSec) {
-    const secLines = wrapForWidth(kindSec, font, 5.2, contentW, 2);
-    for (const line of secLines) {
-      page.drawText(line, { x: margin, y: y - 2, size: 5.2, font, color: rgb(0.52, 0.5, 0.46) });
-      y -= 6.8;
-    }
-    y -= 3;
-  }
-
-  const titleLines = wrapForWidth(input.eventTitle, fontBold, 13, contentW, 4);
-  for (const line of titleLines) {
-    page.drawText(line, { x: margin, y: y - 12, size: 13, font: fontBold, color: GOLD });
-    y -= 15;
-  }
-  y -= 5;
-
-  const venueLines = wrapForWidth(input.venue, font, 9, contentW, 2);
-  for (const line of venueLines) {
-    page.drawText(line, { x: margin, y: y - 9, size: 9, font, color: TEXT });
-    y -= 11.5;
-  }
-  y -= 5;
-
-  page.drawText(input.dateTimeLabel, { x: margin, y: y - 9, size: 9, font, color: rgb(0.88, 0.86, 0.9) });
-  y -= 14;
-
-  page.drawLine({
-    start: { x: margin, y: y - 2 },
-    end: { x: W - margin, y: y - 2 },
-    thickness: 0.4,
+    start: { x: margin, y: y + 5 },
+    end: { x: W - margin, y: y + 5 },
+    thickness: 0.45,
     color: GOLD_MUTED,
     opacity: 0.55,
   });
   y -= 8;
 
-  const innerX = 16;
-  const leftW = 70;
+  const kindSec = input.ticketKindSecondary.trim();
+  const kindLine = kindSec ? `${TICKET_PDF_KIND_PL} · ${kindSec}` : TICKET_PDF_KIND_PL;
+  const kindLines = wrapForWidth(kindLine, fontBold, 6.5, contentW, 3);
+  for (const line of kindLines) {
+    page.drawText(line, {
+      x: margin,
+      y: y - 6,
+      size: 6.5,
+      font: fontBold,
+      color: rgb(0.78, 0.66, 0.44),
+    });
+    y -= 8.5;
+  }
+  y -= 4;
+
+  const titleSize = 14;
+  const titleLines = wrapForWidth(input.eventTitle, fontBold, titleSize, contentW, 4);
+  for (const line of titleLines) {
+    const shadow = rgb(0.22, 0.16, 0.1);
+    page.drawText(line, { x: margin + 0.5, y: y - titleSize * 0.92, size: titleSize, font: fontBold, color: shadow });
+    page.drawText(line, { x: margin, y: y - titleSize, size: titleSize, font: fontBold, color: GOLD });
+    y -= titleSize + 3;
+  }
+  y -= 6;
+
+  page.drawLine({
+    start: { x: margin, y: y + 2 },
+    end: { x: W - margin, y: y + 2 },
+    thickness: 0.25,
+    color: GOLD_MUTED,
+    opacity: 0.45,
+  });
+  y -= 4;
+
+  const venueLines = wrapForWidth(input.venue, font, 9.2, contentW, 2);
+  for (const line of venueLines) {
+    page.drawText(line, { x: margin, y: y - 9.2, size: 9.2, font, color: TEXT });
+    y -= 11.5;
+  }
+  y -= 4;
+
+  page.drawText(input.dateTimeLabel, {
+    x: margin,
+    y: y - 9,
+    size: 9,
+    font: fontBold,
+    color: rgb(0.92, 0.88, 0.82),
+  });
+  y -= 14;
+
+  page.drawLine({
+    start: { x: margin, y: y - 2 },
+    end: { x: W - margin, y: y - 2 },
+    thickness: 0.45,
+    color: GOLD_MUTED,
+    opacity: 0.5,
+  });
+  y -= 8;
+
+  const innerX = 18;
+  const leftW = 72;
   const ripW = 11;
   const rightW = 46;
   const innerW = W - 2 * innerX;
@@ -383,18 +446,36 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
   const rip2Cx = xRip2 + ripW / 2;
 
   const tripYHi = y;
-  const tripYLo = margin + 54;
+  const tripYLo = margin + 58;
   let tripH = tripYHi - tripYLo;
   if (tripH < 138) {
     tripH = 138;
   }
   const tripBottom = tripYHi - tripH;
 
-  page.drawRectangle({ x: xLeft, y: tripBottom, width: leftW, height: tripH, color: TICKET_LEFT_PANEL });
+  drawPanelVerticalWash(page, xLeft, tripBottom, leftW, tripH, rgb(0.17, 0.07, 0.095), rgb(0.095, 0.038, 0.055), 10);
   page.drawRectangle({ x: xRip1, y: tripBottom, width: ripW, height: tripH, color: TICKET_RIP_BG });
-  page.drawRectangle({ x: xCenter, y: tripBottom, width: centerW, height: tripH, color: TICKET_CENTER_PANEL });
+  drawPanelVerticalWash(
+    page,
+    xCenter,
+    tripBottom,
+    centerW,
+    tripH,
+    rgb(0.052, 0.03, 0.038),
+    rgb(0.034, 0.02, 0.028),
+    8
+  );
   page.drawRectangle({ x: xRip2, y: tripBottom, width: ripW, height: tripH, color: TICKET_RIP_BG });
-  page.drawRectangle({ x: xRight, y: tripBottom, width: rightW, height: tripH, color: TICKET_RIGHT_PANEL });
+  drawPanelVerticalWash(
+    page,
+    xRight,
+    tripBottom,
+    rightW,
+    tripH,
+    rgb(0.11, 0.045, 0.065),
+    rgb(0.06, 0.028, 0.042),
+    6
+  );
 
   drawVerticalRip(page, rip1Cx, tripYHi, tripBottom, TICKET_RIP_BG);
   drawVerticalRip(page, rip2Cx, tripYHi, tripBottom, TICKET_RIP_BG);
@@ -403,9 +484,9 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
   page.drawText(labelUpper, {
     x: xLeft + 5,
     y: tripYHi - 12,
-    size: 5.6,
+    size: 5.9,
     font: fontBold,
-    color: rgb(0.82, 0.72, 0.48),
+    color: rgb(0.86, 0.76, 0.52),
   });
   let yLeft = tripYHi - 22;
   const numCap = (input.ticketNumberCaption ?? "").trim();
@@ -413,11 +494,11 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
     page.drawText(numCap, { x: xLeft + 5, y: yLeft, size: 4.6, font, color: rgb(0.52, 0.5, 0.46) });
     yLeft -= 7;
   }
-  const numLines = wrapForWidth(input.ticketNumber, fontBold, 11, leftW - 10, 3);
+  const numLines = wrapForWidth(input.ticketNumber, fontBold, 12.5, leftW - 10, 3);
   let numY = yLeft - 2;
   for (const line of numLines) {
-    page.drawText(line, { x: xLeft + 5, y: numY, size: 11, font: fontBold, color: GOLD_BRIGHT });
-    numY -= 13;
+    page.drawText(line, { x: xLeft + 5, y: numY, size: 12.5, font: fontBold, color: GOLD_BRIGHT });
+    numY -= 14;
   }
   const ribbon = input.ticketRibbon.trim().toUpperCase();
   if (ribbon) {
@@ -433,50 +514,64 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
 
   const qrBytes = dataUrlPngToBytes(input.qrPngDataUrl);
   const qrImg = await pdfDoc.embedPng(qrBytes);
-  const qrSize = Math.min(102, Math.floor(centerW - 14));
-  const qrPad = 5;
+  const qrSize = Math.min(114, Math.floor(centerW - 18));
+  const qrPad = 7;
   const qrX = xCenter + (centerW - qrSize) / 2;
   const qrTop = tripBottom + tripH / 2 + qrSize / 2 + qrPad;
   const qrBoxY = qrTop - qrSize - 2 * qrPad;
+  const glowPad = 3;
+  page.drawRectangle({
+    x: qrX - qrPad - glowPad,
+    y: qrBoxY - glowPad,
+    width: qrSize + 2 * (qrPad + glowPad),
+    height: qrSize + 2 * (qrPad + glowPad),
+    color: GOLD_BRIGHT,
+    opacity: 0.08,
+  });
+  page.drawRectangle({
+    x: qrX - qrPad - 1.5,
+    y: qrBoxY - 1.5,
+    width: qrSize + 2 * qrPad + 3,
+    height: qrSize + 2 * qrPad + 3,
+    borderColor: GOLD_MUTED,
+    borderWidth: 0.55,
+  });
   page.drawRectangle({
     x: qrX - qrPad,
     y: qrBoxY,
     width: qrSize + 2 * qrPad,
     height: qrSize + 2 * qrPad,
-    color: rgb(0.99, 0.99, 0.99),
-    borderColor: rgb(0.72, 0.58, 0.32),
-    borderWidth: 0.75,
+    color: rgb(0.995, 0.995, 1),
+    borderColor: rgb(0.78, 0.62, 0.34),
+    borderWidth: 1,
   });
   page.drawImage(qrImg, { x: qrX, y: qrTop - qrPad - qrSize, width: qrSize, height: qrSize });
 
-  const idShort =
-    input.ticketId.length > 36
-      ? `${input.ticketId.slice(0, 8)}…${input.ticketId.slice(-8)}`
-      : input.ticketId;
-  const idSize = 5.8;
-  const idLines = wrapForWidth(idShort, font, idSize, centerW - 8, 3);
-  let yId = qrBoxY - 6;
+  const idDisplay = formatTicketIdDisplay(input.ticketId);
+  const idSize = 5;
+  const idLines = wrapForWidth(idDisplay, font, idSize, centerW - 8, 2);
+  let yId = qrBoxY - 8;
   for (const line of idLines) {
     const lw = font.widthOfTextAtSize(line, idSize);
-    page.drawText(line, { x: xCenter + (centerW - lw) / 2, y: yId, size: idSize, font, color: TEXT_DIM });
-    yId -= 6.5;
+    page.drawText(line, { x: xCenter + (centerW - lw) / 2, y: yId, size: idSize, font, color: rgb(0.4, 0.39, 0.44) });
+    yId -= 6;
   }
 
-  const plHintLines = wrapForWidth(TICKET_PDF_QR_HINT_PL, font, 5.4, centerW - 6, 2);
-  let yHint = yId - 2;
+  const plHintLines = wrapForWidth(TICKET_PDF_QR_HINT_PL, font, 5.1, centerW - 6, 2);
+  let yHint = yId - 3;
   for (const line of plHintLines) {
-    const lw = font.widthOfTextAtSize(line, 5.4);
-    page.drawText(line, { x: xCenter + (centerW - lw) / 2, y: yHint, size: 5.4, font, color: TEXT_DIM });
-    yHint -= 6.2;
+    const lw = font.widthOfTextAtSize(line, 5.1);
+    page.drawText(line, { x: xCenter + (centerW - lw) / 2, y: yHint, size: 5.1, font, color: rgb(0.48, 0.46, 0.5) });
+    yHint -= 6;
   }
 
   const qrSec = input.ticketQrSecondary.trim();
   if (qrSec) {
-    const hintSecLines = wrapForWidth(qrSec, font, 4.8, centerW - 6, 2);
+    const hintSecLines = wrapForWidth(qrSec, font, 4.7, centerW - 6, 2);
     for (const line of hintSecLines) {
-      const lw = font.widthOfTextAtSize(line, 4.8);
-      page.drawText(line, { x: xCenter + (centerW - lw) / 2, y: yHint, size: 4.8, font, color: rgb(0.42, 0.42, 0.45) });
-      yHint -= 6;
+      const lw = font.widthOfTextAtSize(line, 4.7);
+      page.drawText(line, { x: xCenter + (centerW - lw) / 2, y: yHint, size: 4.7, font, color: rgb(0.44, 0.42, 0.46) });
+      yHint -= 5.8;
     }
   }
 
