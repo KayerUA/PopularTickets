@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link as IntlLink } from "@/i18n/navigation";
 import { getRequestAppLocale } from "@/lib/requestLocale";
@@ -128,16 +127,16 @@ export async function SiteFooter() {
           </div>
         </div>
 
-        <section aria-labelledby="footer-p24-trust-heading" className="mt-10 border-t border-poet-gold/15 pt-8 sm:mt-12 sm:pt-10">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8">
+        <section aria-labelledby="footer-p24-trust-heading" className="mt-8 border-t border-poet-gold/12 pt-6 sm:mt-10 sm:pt-8">
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
             <h2
               id="footer-p24-trust-heading"
-              className="text-[10px] font-semibold uppercase tracking-[0.26em] text-poet-gold/85 sm:text-[11px]"
+              className="text-[9px] font-semibold uppercase tracking-[0.24em] text-poet-gold/80 sm:text-[10px]"
             >
               {t("p24TrustHeading")}
             </h2>
             {!(hasAnyTrustImage && hasStrip) ? (
-              <p className="max-w-xl text-[11px] leading-relaxed text-zinc-500 sm:text-right sm:text-[11px]">
+              <p className="max-w-xl text-[10px] leading-relaxed text-zinc-500 sm:text-right sm:text-[11px]">
                 {t("p24MethodsCaption")}
               </p>
             ) : null}
@@ -146,21 +145,24 @@ export async function SiteFooter() {
           {hasAnyTrustImage ? (
             <>
               {hasStrip ? (
-                <div className="mt-5 sm:mt-6">
-                  <p className="mb-3 text-[11px] leading-snug text-zinc-500 sm:hidden">{t("p24ScrollHint")}</p>
-                  <div className="-mx-1 overflow-x-auto overscroll-x-contain px-1 pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(161,161,170,0.35)_transparent] [scrollbar-width:thin] sm:mx-0 sm:px-0">
-                    <Image
+                <div className="mt-3 sm:mt-4">
+                  <p className="mb-2 text-[10px] leading-snug text-zinc-500 sm:hidden">{t("p24ScrollHint")}</p>
+                  <div className="-mx-1 overflow-x-auto overscroll-x-contain bg-transparent px-1 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(197,160,89,0.25)_transparent] [scrollbar-width:thin] sm:mx-0 sm:px-0">
+                    {/* img: PNG z alfą — bez ciemnego tła z next/image; kompaktowa wysokość */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={p24Gfx.methodsStripUrl!}
                       alt={t("p24MethodsCaption")}
                       width={1024}
                       height={402}
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 92vw, 960px"
-                      className="mx-auto block h-auto w-full max-w-[min(100%,1024px)] object-contain object-left opacity-[0.92] transition-opacity duration-300 hover:opacity-100 sm:object-center"
+                      loading="lazy"
+                      decoding="async"
+                      className="mx-auto block h-auto max-h-[3.75rem] w-auto max-w-[min(100%,720px)] bg-transparent object-contain object-left opacity-[0.88] transition-opacity duration-300 hover:opacity-100 sm:max-h-20 sm:object-center md:max-h-24"
                     />
                   </div>
                 </div>
               ) : hasLogo ? (
-                <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 sm:mt-6">
+                <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 sm:mt-5">
                   <span className="text-[12px] font-medium tracking-tight text-zinc-400 sm:text-[13px]">{t("p24TrustByline")}</span>
                   {/* eslint-disable-next-line @next/next/no-img-element -- lokalne SVG z public/ */}
                   <img
