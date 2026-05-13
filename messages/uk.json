@@ -44,7 +44,7 @@
     "p24ScrollHint": "На телефоні проведіть пальцем убік, щоб побачити всі методи.",
     "p24LogoAlt": "Логотип Przelewy24",
     "p24MethodsCaption": "Онлайн-оплата: Przelewy24 (зокрема BLIK, картки Visa та Mastercard).",
-    "p24MethodsVerifierHint": "За вимогами Przelewy24 додайте з пакета: public/payments/p24-metody-platnosci.png (прапорці методів) і за бажанням public/payments/p24-logo.png (логотип)."
+    "p24MethodsVerifierHint": "За вимогами Przelewy24 додайте з пакета: public/payments/p24-metody-platnosci.png (прапорці без фону) і за бажанням public/payments/p24-logo.svg."
   },
   "Cookies": {
     "title": "Налаштування cookie",

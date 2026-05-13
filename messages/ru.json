@@ -44,7 +44,7 @@
     "p24ScrollHint": "На телефоне проведите пальцем в сторону — видны все способы оплаты.",
     "p24LogoAlt": "Логотип Przelewy24",
     "p24MethodsCaption": "Онлайн-оплата: Przelewy24 (в т.ч. BLIK, карты Visa и Mastercard).",
-    "p24MethodsVerifierHint": "По требованиям Przelewy24 загрузите из пакета: public/payments/p24-metody-platnosci.png (флаги методов) и при желании public/payments/p24-logo.png (логотип)."
+    "p24MethodsVerifierHint": "По требованиям Przelewy24 загрузите из пакета: public/payments/p24-metody-platnosci.png (флаги без фона) и при желании public/payments/p24-logo.svg."
   },
   "Cookies": {
     "title": "Файлы cookie",

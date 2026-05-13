@@ -1,7 +1,6 @@
 "use client";
 
 import { useTransition, useState, useMemo } from "react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { unstable_rethrow } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -149,11 +148,12 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
       <p className="text-xs leading-relaxed text-zinc-500 sm:mt-1">{bypassPayment ? t("hintBypass") : t("hint")}</p>
       {!bypassPayment ? (
         <div className="flex items-start gap-3 rounded-xl border border-poet-gold/15 bg-black/25 px-3 py-2.5">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element -- lokalne SVG z public/ */}
+          <img
             src={P24_FOOTER_GRAPHICS.mark}
             alt=""
-            width={1024}
-            height={1024}
+            width={48}
+            height={48}
             className="mt-0.5 h-10 w-10 shrink-0 rounded-md object-contain sm:h-11 sm:w-11"
           />
           <p className="min-w-0 flex-1 text-[11px] leading-relaxed text-zinc-500/95">{t("p24CheckoutTrust")}</p>

@@ -151,27 +151,26 @@ export async function SiteFooter() {
               {hasStrip ? (
                 <div className="relative px-2 pb-2 pt-2 sm:px-4 sm:pb-3 sm:pt-3">
                   <p className="mb-2 px-1 text-[11px] leading-snug text-zinc-400 sm:hidden">{t("p24ScrollHint")}</p>
-                  <div className="overflow-x-auto overscroll-x-contain rounded-lg bg-zinc-100 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] ring-1 ring-zinc-950/20 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(82,82,91,0.5)_rgb(244,244,245)] [scrollbar-width:thin] sm:p-4">
+                  <div className="overflow-x-auto overscroll-x-contain rounded-lg bg-black/25 p-3 ring-1 ring-poet-gold/15 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(161,161,170,0.45)_transparent] [scrollbar-width:thin] sm:p-4">
                     <Image
                       src={p24Gfx.methodsStripUrl!}
                       alt={t("p24MethodsCaption")}
-                      width={1920}
-                      height={980}
+                      width={1024}
+                      height={402}
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 92vw, 960px"
-                      className="mx-auto block h-auto w-[min(100%,1920px)] min-w-[640px] max-w-none object-contain object-center sm:min-w-0 sm:w-full"
+                      className="mx-auto block h-auto w-full max-w-[1024px] object-contain object-center"
                     />
                   </div>
                 </div>
               ) : hasLogo ? (
-                <div className="rounded-lg bg-zinc-100 p-4 ring-1 ring-zinc-950/15 sm:px-6 sm:py-4">
+                <div className="rounded-lg bg-black/30 p-4 ring-1 ring-poet-gold/15 sm:px-6 sm:py-4">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                    <span className="text-[12px] font-medium tracking-tight text-zinc-800 sm:text-[13px]">{t("p24TrustByline")}</span>
-                    <Image
+                    <span className="text-[12px] font-medium tracking-tight text-zinc-300 sm:text-[13px]">{t("p24TrustByline")}</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- lokalne SVG z public/ */}
+                    <img
                       src={p24Gfx.logoUrl!}
                       alt={t("p24LogoAlt")}
-                      width={1000}
-                      height={350}
-                      className="h-[1.5rem] w-auto object-contain object-left sm:h-8"
+                      className="h-7 w-auto max-w-[11rem] object-contain object-left sm:h-9 sm:max-w-[13rem]"
                     />
                   </div>
                 </div>

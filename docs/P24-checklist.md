@@ -46,18 +46,20 @@
 
 В репозитории уже лежат файлы из официальных ZIP на [do-pobrania → Materiały graficzne](https://www.przelewy24.pl/do-pobrania#materialy-graficzne):
 
-- `public/payments/p24-logo.png` — из `przelewy24_logo_materialy_graficzne.zip` (`Przelewy24_logo.png`).
-- `public/payments/p24-mark.png` — компактный знак **P24** (форма заказа).
+- `public/payments/p24-logo.svg` — из пакета P24 (`Przelewy24_logo.svg`).
+- `public/payments/p24-mark.svg` — компактный знак **P24** (`P24_logo.svg`), форма заказа.
+- `public/payments/p24-metody-platnosci.png` — **flagi bez tła** из ZIP `flagi_metod_platnosci_Przelewy24.zip` (сейчас вариант `flagi_Przelewy24_5`); можно заменить на `…_1` … `…_7` из того же каталога.
 
 При обновлении знаков скачайте свежие архивы и замените файлы в **`public/payments/`** (те же имена):
 
-| Файл (один из вариантов для полосы методов) | Назначение |
-|---------------------------------------------|------------|
-| `p24-metody-platnosci.png` *(рекомендуется)* или `p24-payment-methods.png`, `p24-metody.png` | Полоса **флагов / методов оплаты** (в т.ч. для требований по картам). |
-| `p24-logo.png` *(опционально)* или `przelewy24-logo.png`, `logo-przelewy24.png` | **Логотип Przelewy24** рядом с полосой. |
+| Файл | Назначение |
+|------|------------|
+| `p24-metody-platnosci.png` | Полоса методов (**PNG без фона** из `flagi_bez_tla/`). |
+| `p24-logo.svg` | Полноразмерный логотип Przelewy24 (если полосы нет). |
+| `p24-mark.svg` | Знак P24 у формы заказа. |
 
 Код: [`lib/p24FooterAssets.ts`](../lib/p24FooterAssets.ts), блок в [`components/SiteFooter.tsx`](../components/SiteFooter.tsx). URL графики **фиксированные** (`/payments/...`), без `fs` — на Vercel Lambda не видит каталог `public/`, из‑за `existsSync` раньше пропадали картинки. Отключить блок: `NEXT_PUBLIC_HIDE_P24_FOOTER_GRAPHICS=1`.
 
-В подвале **нет** отдельной строки «оплачивает» рядом с полосой `p24-metody-platnosci.png`: в официальном PNG уже есть польская подпись — дублировать её переводом на других локалях не нужно. Полоса рендерится на **светло-серой подложке** (`zinc-100`) внутри тёмной карточки, чтобы цветные логотипы банков из PNG оставались читаемыми (у PNG часто непрозрачный белый фон в макете).
+В подвале **нет** отдельной строки «оплачивает» рядом с полосой `p24-metody-platnosci.png`: в официальном PNG уже есть польская подпись — дублировать её переводом на других локалях не нужно. Для **flagi bez tła** подложка под полосой тёмная (`bg-black/25`), чтобы вписаться в тёмный футер.
 
 При расхождении с актуальной документацией **Przelewy24 / PayPro** приоритет у официальных материалов мерчанта.
