@@ -56,6 +56,6 @@
 | `p24-metody-platnosci.png` *(рекомендуется)* или `p24-payment-methods.png`, `p24-metody.png` | Полоса **флагов / методов оплаты** (в т.ч. для требований по картам). |
 | `p24-logo.png` *(опционально)* или `przelewy24-logo.png`, `logo-przelewy24.png` | **Логотип Przelewy24** рядом с полосой. |
 
-Код: [`lib/p24FooterAssets.ts`](../lib/p24FooterAssets.ts), блок в [`components/SiteFooter.tsx`](../components/SiteFooter.tsx). Если полосы нет — в подвале показывается подсказка, какой файл добавить; ссылка на полный пакет P24 — второстепенная строка под блоком.
+Код: [`lib/p24FooterAssets.ts`](../lib/p24FooterAssets.ts), блок в [`components/SiteFooter.tsx`](../components/SiteFooter.tsx). URL графики **фиксированные** (`/payments/...`), без `fs` — на Vercel Lambda не видит каталог `public/`, из‑за `existsSync` раньше пропадали картинки. Отключить блок: `NEXT_PUBLIC_HIDE_P24_FOOTER_GRAPHICS=1`.
 
 При расхождении с актуальной документацией **Przelewy24 / PayPro** приоритет у официальных материалов мерчанта.
