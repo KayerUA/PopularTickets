@@ -10,7 +10,7 @@
 | 2 | Supabase → **SQL Editor** | Выполнить **`supabase/schema.sql`**. Предупреждение про *destructive* из‑за `DROP TRIGGER IF EXISTS` — нормально, данные таблиц не стираются. |
 | 2a | SQL Editor | **`supabase/storage-event-images.sql`** — бакет Storage `event-images` для загрузки обложек из админки (публичное чтение). Без этого файловая загрузка в форме события упадёт с ошибкой Storage. |
 | 2b | SQL Editor | Опционально: **`supabase/verify-data.sql`** — сколько строк в `events` / `orders` / `tickets` / `checkins`. |
-| 2c | SQL Editor | **`supabase/add-order-locale.sql`** — колонка `orders.locale` (pl/uk/ru) для языка письма с билетами. |
+| 2c | SQL Editor | Колонка **`orders.locale`** (pl/uk/ru): если заказ падает с **PGRST204** («Could not find the 'locale' column…»), выполните **`supabase/add-order-locale.sql`**. В свежем **`schema.sql`** тот же `ALTER … add column if not exists` уже идёт после индексов по `orders` — достаточно снова прогнать этот файл в SQL Editor. |
 | 2d | SQL Editor | **`supabase/add-maps-url.sql`** — колонка `maps_url` + RPC `pt_event_maps_url` / `pt_event_set_maps_url` (обход ошибки PostgREST *schema cache*). Обязательно для сохранения «ссылки на карту» из админки. |
 | 3 | (опционально) SQL Editor | **`supabase/seed-improv-event.sql`** — тестовое событие на афише. |
 | 4 | [vercel.com](https://vercel.com) → проект → **Settings → Environment Variables** | Для **Production** и **Preview**: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (+ остальное из `.env.example` по необходимости). Сохранить. |

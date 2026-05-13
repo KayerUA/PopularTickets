@@ -20,8 +20,9 @@ export async function generateMetadata({
   });
 }
 
-export default async function FirmaPage() {
-  const t = await getTranslations("Legal");
+export default async function FirmaPage({ params }: { params: Promise<{ locale: AppLocale }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Legal" });
   const addr = companyAddressOneLine();
   const email = publicContactEmail();
 

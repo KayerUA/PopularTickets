@@ -137,7 +137,8 @@
     "pendingHint": "Jeśli płatność się nie powiodła, zamówienie pozostanie oczekujące.",
     "refresh": "Odśwież",
     "unpaidBody": "Nie widzimy potwierdzonej płatności dla tego zamówienia. Jeśli płaciłeś/aś kartą, sprawdź e-mail od banku lub spróbuj ponownie ze strony wydarzenia.",
-    "receiptAccessDenied": "Ten link do potwierdzenia jest nieprawidłowy lub wygasł. Otwórz stronę, na którą wróciłeś/aś po płatności z banku, albo skontaktuj się z nami — dane w zakładce „Informacje”. Nie udostępniaj linku osobom postronnym."
+    "receiptAccessDenied": "Ten link do potwierdzenia jest nieprawidłowy lub wygasł. Otwórz stronę, na którą wróciłeś/aś po płatności z banku, albo skontaktuj się z nami — dane w zakładce „Informacje”. Nie udostępniaj linku osobom postronnym.",
+    "ticketRenderError": "Nie udało się wygenerować podglądu biletu na tej stronie — sprawdź skrzynkę e-mail (załącznik PDF) lub odśwież stronę za chwilę."
   },
   "TicketPdf": {
     "kindSecondary": "",

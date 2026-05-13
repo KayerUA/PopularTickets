@@ -1,4 +1,5 @@
--- Локаль оформления заказа (для письма с билетами). Выполнить в Supabase SQL Editor после schema.sql.
+-- Локаль оформления заказа (для письма с билетами).
+-- Если API возвращает PGRST204 «Could not find the 'locale' column of 'orders'» — выполните этот скрипт в Supabase SQL Editor (или блок миграции в конце `schema.sql` про orders).
 alter table public.orders
   add column if not exists locale text not null default 'pl'
   check (locale in ('pl', 'uk', 'ru'));

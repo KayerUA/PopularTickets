@@ -79,6 +79,7 @@ export default async function CheckoutReturnPage({
         ticketPdfQrSecondary: tPdf("qrSecondary"),
         ticketPdfDisclaimer: tPdf("translationDisclaimer"),
         ticketPdfNumberCaption: tPdf("ticketNumberCaption"),
+        ticketRenderError: t("ticketRenderError"),
       };
 
       const refreshHref =

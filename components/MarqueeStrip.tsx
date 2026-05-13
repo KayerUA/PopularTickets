@@ -1,7 +1,9 @@
 import { getTranslations } from "next-intl/server";
+import { getRequestAppLocale } from "@/lib/requestLocale";
 
 export async function MarqueeStrip() {
-  const t = await getTranslations("Marquee");
+  const locale = await getRequestAppLocale();
+  const t = await getTranslations({ locale, namespace: "Marquee" });
   const phrase = t("phrase");
   const run = (phrase + phrase).repeat(6);
 

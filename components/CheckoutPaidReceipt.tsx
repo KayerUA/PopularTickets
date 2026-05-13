@@ -19,6 +19,8 @@ export type CheckoutReceiptLabels = {
   ticketRibbon: string;
   /** Prawa kolumna — napis jak na fizycznym bilecie (np. KONTROLA). */
   stubControl: string;
+  /** Gdy generowanie QR/PDF się nie powiedzie — komunikat zamiast podglądu. */
+  ticketRenderError: string;
   ticketPdfKindSecondary: string;
   ticketPdfQrSecondary: string;
   ticketPdfDisclaimer: string;
@@ -38,24 +40,29 @@ export async function CheckoutPaidReceipt({
 
   const ticketRows = await Promise.all(
     receipt.tickets.map(async (t) => {
-      const dataUrl = await ticketQrDataUrl(t.id);
-      const pdfBuf = await renderTicketLayoutPdf({
-        qrPngDataUrl: dataUrl,
-        eventTitle: receipt.eventTitle,
-        venue: receipt.venue,
-        dateTimeLabel: when,
-        ticketNumber: t.ticket_number,
-        ticketId: t.id,
-        ticketKindSecondary: labels.ticketPdfKindSecondary,
-        ticketQrSecondary: labels.ticketPdfQrSecondary,
-        ticketDisclaimer: labels.ticketPdfDisclaimer,
-        ticketNumberCaption: labels.ticketPdfNumberCaption,
-        ticketLabel: labels.ticketLabel,
-        ticketRibbon: labels.ticketRibbon,
-        stubControl: labels.stubControl,
-      });
-      const ticketPdfDataUrl = `data:application/pdf;base64,${pdfBuf.toString("base64")}`;
-      return { ...t, dataUrl, ticketPdfDataUrl };
+      try {
+        const dataUrl = await ticketQrDataUrl(t.id);
+        const pdfBuf = await renderTicketLayoutPdf({
+          qrPngDataUrl: dataUrl,
+          eventTitle: receipt.eventTitle,
+          venue: receipt.venue,
+          dateTimeLabel: when,
+          ticketNumber: t.ticket_number,
+          ticketId: t.id,
+          ticketKindSecondary: labels.ticketPdfKindSecondary,
+          ticketQrSecondary: labels.ticketPdfQrSecondary,
+          ticketDisclaimer: labels.ticketPdfDisclaimer,
+          ticketNumberCaption: labels.ticketPdfNumberCaption,
+          ticketLabel: labels.ticketLabel,
+          ticketRibbon: labels.ticketRibbon,
+          stubControl: labels.stubControl,
+        });
+        const ticketPdfDataUrl = `data:application/pdf;base64,${pdfBuf.toString("base64")}`;
+        return { ...t, dataUrl, ticketPdfDataUrl, renderError: null as string | null };
+      } catch (err) {
+        console.error("[CheckoutPaidReceipt] ticket render failed", { ticketId: t.id }, err);
+        return { ...t, dataUrl: "", ticketPdfDataUrl: "", renderError: labels.ticketRenderError };
+      }
     })
   );
 
@@ -97,22 +104,30 @@ export async function CheckoutPaidReceipt({
 
             {/* Основная часть: QR и действия */}
             <div className="relative z-0 flex min-h-0 flex-1 flex-col items-center gap-4 border-b-2 border-dashed border-poet-gold/70 px-4 py-5 sm:border-b-0 sm:px-5 sm:py-6">
-              {/* eslint-disable-next-line @next/next/no-img-element -- data URL из QR */}
-              <img
-                src={t.dataUrl}
-                alt=""
-                width={200}
-                height={200}
-                className="shrink-0 rounded-md border-2 border-poet-gold/40 bg-white p-1.5 shadow-[0_0_22px_-4px_rgba(197,160,89,0.38)]"
-              />
+              {t.renderError ? (
+                <p className="max-w-xs text-center text-sm leading-relaxed text-amber-200/95">{t.renderError}</p>
+              ) : (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- data URL из QR */}
+                  <img
+                    src={t.dataUrl}
+                    alt=""
+                    width={200}
+                    height={200}
+                    className="shrink-0 rounded-md border-2 border-poet-gold/40 bg-white p-1.5 shadow-[0_0_22px_-4px_rgba(197,160,89,0.38)]"
+                  />
+                </>
+              )}
               <div className="flex w-full max-w-xs flex-col gap-2 sm:max-w-[16rem]">
-                <a
-                  href={t.ticketPdfDataUrl}
-                  download={`bilet-${t.ticket_number}.pdf`}
-                  className="btn-poet btn-poet-theatre inline-flex min-h-11 w-full items-center justify-center px-4 py-2.5 text-center text-sm"
-                >
-                  {labels.downloadTicket}
-                </a>
+                {t.renderError ? null : (
+                  <a
+                    href={t.ticketPdfDataUrl}
+                    download={`bilet-${t.ticket_number}.pdf`}
+                    className="btn-poet btn-poet-theatre inline-flex min-h-11 w-full items-center justify-center px-4 py-2.5 text-center text-sm"
+                  >
+                    {labels.downloadTicket}
+                  </a>
+                )}
                 <CopyTextButton text={t.id} label={labels.copyId} copiedLabel={labels.copiedId} />
                 <p className="break-all font-mono text-[11px] leading-relaxed text-zinc-500">{t.id}</p>
               </div>

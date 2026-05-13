@@ -55,6 +55,14 @@ create index if not exists orders_event_id_idx on public.orders (event_id);
 create index if not exists orders_status_idx on public.orders (status);
 create index if not exists orders_email_idx on public.orders (email);
 
+-- Миграция: `locale` у заказов (старые БД без колонки — `create table if not exists` её не добавляет).
+-- Ошибка PostgREST PGRST204 «Could not find the 'locale' column…» — выполните этот блок или `supabase/add-order-locale.sql`.
+alter table public.orders
+  add column if not exists locale text not null default 'pl'
+  check (locale in ('pl', 'uk', 'ru'));
+
+comment on column public.orders.locale is 'Язык интерфейса при оформлении (pl|uk|ru) — письмо с билетами.';
+
 -- Билеты (UUID = ticket_id для QR)
 create table if not exists public.tickets (
   id uuid primary key default gen_random_uuid(),

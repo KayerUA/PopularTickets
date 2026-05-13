@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link as IntlLink } from "@/i18n/navigation";
+import { getRequestAppLocale } from "@/lib/requestLocale";
 import { COMPANY, companyAddressOneLine } from "@/lib/company";
 import { THEATRE_INSTAGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
 
@@ -26,7 +27,8 @@ function YouTubeGlyph({ className }: { className?: string }) {
 }
 
 export async function SiteFooter() {
-  const t = await getTranslations("Footer");
+  const locale = await getRequestAppLocale();
+  const t = await getTranslations({ locale, namespace: "Footer" });
 
   return (
     <footer className="relative z-0 border-t border-poet-gold/15 bg-poet-bg/90">
