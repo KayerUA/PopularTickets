@@ -17,7 +17,7 @@
   },
   "Nav": {
     "events": "Wydarzenia",
-    "company": "Informacje"
+    "company": "Dane sprzedawcy"
   },
   "LocaleSwitcher": {
     "label": "Język",
@@ -179,7 +179,7 @@
     "s1Title": "§1 Postanowienia ogólne",
     "s1Body": "Niniejszy Regulamin określa zasady korzystania z serwisu internetowego PopularTickets (dalej: „Serwis”) prowadzonego przez POPULAR POET Sp. z o.o. z siedzibą w Warszawie, wpisaną do KRS pod numerem 0001156243, NIP 1133159208, REGON 540923962 (dalej: „Sprzedawca”).\n\nRegulamin ma charakter regulaminu świadczenia usług drogą elektroniczną w rozumieniu art. 8 ustawy z dnia 18 lipca 2002 r. o świadczeniu usług drogą elektroniczną.\n\nKorzystanie z Serwisu, w tym złożenie zamówienia, oznacza zapoznanie się i akceptację niniejszego Regulaminu oraz Polityki prywatności.",
     "s2Title": "§2 Definicje",
-    "s2Body": "„Kupujący” — osoba fizyczna, osoba prawna lub jednostka organizacyjna nieposiadająca osobowości prawnej, która składa zamówienie w Serwisie.\n\n„Bilet elektroniczny” — dokument uprawniający do udziału w wydarzeniu, przekazywany drogą elektroniczną (m.in. kod QR lub identyfikator UUID w wiadomości e-mail).\n\n„Wydarzenie” — impreza lub inna usługa rozrywkowa/kulturalna, na którą Sprzedawca udostępnia bilety za pośrednictwem Serwisu.",
+    "s2Body": "„Kupujący” — osoba fizyczna, osoba prawna lub jednostka organizacyjna nieposiadająca osobowości prawnej, która składa zamówienie w Serwisie.\n\n„Bilet elektroniczny” — dokument uprawniający do udziału w wydarzeniu, przekazywany drogą elektroniczną (w tym m.in. jako kod QR oraz powiązany z biletem unikalny identyfikator w wiadomości e-mail).\n\n„Wydarzenie” — impreza lub inna usługa rozrywkowa/kulturalna, na którą Sprzedawca udostępnia bilety za pośrednictwem Serwisu.",
     "s3Title": "§3 Przedmiot usługi i zawarcie umowy",
     "s3Body": "Przedmiotem usługi świadczonej drogą elektroniczną jest umożliwienie Kupującemu złożenia zamówienia na bilet oraz obsługa procesu płatności i przekazania biletu elektronicznego, z zastrzeżeniem opisu konkretnego wydarzenia.\n\nUmowa sprzedaży biletu zostaje zawarta z chwilą skutecznego potwierdzenia płatności za zamówienie (status opłacenia), po uprzednim wyświetleniu Kupującemu istotnych informacji o wydarzeniu i cenie.\n\nSprzedawca może odmówić realizacji zamówienia w przypadku braku dostępności biletów lub innych okoliczności technicznych uniemożliwiających realizację; w takim przypadku Kupujący nie zostanie obciążony ceną lub otrzyma zwrot zgodnie z zasadami określonymi w dokumencie „Zwroty i reklamacje”.",
     "s4Title": "§4 Ceny i zamówienia",
