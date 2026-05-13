@@ -39,8 +39,9 @@ export async function fetchPublishedEventBySlug(
     return { data: null, error: null };
   }
 
-  const row = main.data as Omit<PublishedEventRow, "maps_url">;
+  const row = main.data as Omit<PublishedEventRow, "maps_url" | "description"> & { description?: unknown };
   const mapsUrl = await fetchOptionalMapsUrl(supabase, row.id);
+  const description = typeof row.description === "string" ? row.description : "";
 
-  return { data: { ...row, maps_url: mapsUrl }, error: null };
+  return { data: { ...row, description, maps_url: mapsUrl }, error: null };
 }

@@ -33,7 +33,8 @@ export function buildEventJsonLd(
     }
   }
 
-  const desc = event.description.replace(/\s+/g, " ").trim().slice(0, 2000);
+  const rawDesc = typeof event.description === "string" ? event.description : "";
+  const desc = rawDesc.replace(/\s+/g, " ").trim().slice(0, 2000);
 
   return {
     "@context": "https://schema.org",

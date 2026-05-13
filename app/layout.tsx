@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import { getLocale } from "next-intl/server";
 import "./globals.css";
 import { MotionProvider } from "@/components/MotionProvider";
+import { routing } from "@/i18n/routing";
 import { getSiteMetadataBase } from "@/lib/seo";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-sans" });
@@ -36,7 +37,12 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   /** Для `/admin`, `/check-in` middleware выставляет локаль по умолчанию; для `[locale]` — см. `DocumentLangSync`. */
-  const locale = await getLocale();
+  let locale: string;
+  try {
+    locale = await getLocale();
+  } catch {
+    locale = routing.defaultLocale;
+  }
 
   return (
     <html lang={locale} suppressHydrationWarning className={`${inter.variable} ${playfair.variable}`}>

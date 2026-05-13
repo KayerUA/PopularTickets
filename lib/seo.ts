@@ -51,7 +51,8 @@ function hreflangLanguages(path: string): Record<string, string> | undefined {
   return languages;
 }
 
-export function truncateMetaDescription(text: string, max = 158): string {
+export function truncateMetaDescription(text: string | null | undefined, max = 158): string {
+  if (text == null || typeof text !== "string") return "";
   const flat = text.replace(/\s+/g, " ").trim();
   if (flat.length <= max) return flat;
   return `${flat.slice(0, max - 1).trimEnd()}…`;
