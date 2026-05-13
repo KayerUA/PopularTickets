@@ -145,22 +145,22 @@ export async function SiteFooter() {
           </div>
 
           {hasAnyTrustImage ? (
-            <div className="mt-5 overflow-hidden rounded-xl border border-zinc-200/25 bg-zinc-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
+            <div className="mt-5 isolate overflow-hidden rounded-xl border border-zinc-200/40 bg-white shadow-[0_1px_0_rgba(255,255,255,1)_inset,0_8px_28px_-12px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.04]">
               {hasLogo ? (
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-zinc-200/90 px-4 py-3 sm:gap-x-4 sm:px-5 sm:py-3.5">
-                  <span className="text-[12px] font-medium tracking-tight text-zinc-700 sm:text-[13px]">{t("p24TrustByline")}</span>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-zinc-200 bg-zinc-50/90 px-4 py-3.5 sm:gap-x-4 sm:px-6 sm:py-4">
+                  <span className="text-[12px] font-medium tracking-tight text-zinc-800 sm:text-[13px]">{t("p24TrustByline")}</span>
                   <Image
                     src={p24Gfx.logoUrl!}
                     alt={t("p24LogoAlt")}
                     width={1000}
                     height={350}
-                    className="h-[1.45rem] w-auto object-contain object-left sm:h-7"
+                    className="h-[1.5rem] w-auto object-contain object-left sm:h-8"
                   />
                 </div>
               ) : null}
               {hasStrip ? (
-                <div className="relative">
-                  <div className="overflow-x-auto overscroll-x-contain px-2 py-4 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(82,82,91,0.45)_transparent] [scrollbar-width:thin] sm:px-4 sm:py-5">
+                <div className="relative bg-white">
+                  <div className="overflow-x-auto overscroll-x-contain bg-white px-2 py-5 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(113,113,122,0.55)_transparent] [scrollbar-width:thin] sm:px-6 sm:py-6">
                     <Image
                       src={p24Gfx.methodsStripUrl!}
                       alt={t("p24MethodsCaption")}
@@ -170,7 +170,7 @@ export async function SiteFooter() {
                       className="mx-auto block h-auto w-[min(100%,1920px)] min-w-[720px] max-w-none object-contain object-center sm:min-w-0 sm:w-full"
                     />
                   </div>
-                  <p className="border-t border-zinc-200/80 px-4 py-2 text-center text-[10px] leading-snug text-zinc-500 sm:hidden">
+                  <p className="border-t border-zinc-200 bg-zinc-50/80 px-4 py-2.5 text-center text-[10px] leading-snug text-zinc-600 sm:hidden">
                     {t("p24ScrollHint")}
                   </p>
                 </div>
