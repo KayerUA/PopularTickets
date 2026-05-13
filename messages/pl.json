@@ -83,7 +83,7 @@
     "bruttoLabel": "Brutto",
     "nettoLabel": "Netto",
     "vatLabel": "w tym VAT (8%)",
-    "vatLegalNote": "Dla biletu na wydarzenie kulturalne (wstęp) stosujemy obniżoną stawkę VAT 8% wg polskiej ustawy o VAT; kwoty liczymy od ceny brutto."
+    "vatLegalNote": "Widziana cena jest końcowa — podatek jest wliczony (wydarzenia kulturalne w Polsce: obniżona stawka VAT 8%). Kwoty liczymy od ceny brutto."
   },
   "EventCard": {
     "buy": "Kup bilet",
@@ -114,20 +114,20 @@
     "bruttoLabel": "Razem brutto",
     "nettoLabel": "Netto",
     "vatLabel": "w tym VAT (8%)",
-    "vatLegalNote": "Stawka 8% — bilety na wydarzenia kulturalne (wstęp), cena zawiera podatek; wyliczenia od kwoty brutto."
+    "vatLegalNote": "W podsumowaniu widzisz cenę końcową z podatkiem (kultura w Polsce: 8% VAT); wyliczenia od kwoty brutto."
   },
   "CheckoutReturn": {
     "brand": "Popular Poet",
     "title": "Dziękujemy!",
     "titleWithTickets": "Bilety gotowe",
     "body": "Jeśli płatność się powiodła, bilety wyślemy na Twój adres e-mail w ciągu kilku minut. Status potwierdzenia banku może przyjść osobną wiadomością.",
-    "introWithTickets": "Poniżej są kody QR — to samo wyślemy na e-mail (możesz też zapisać zrzut ekranu na własny użytek).",
+    "introWithTickets": "Poniżej masz kody QR i podgląd biletu — pełne PDF wyślemy na e-mail (możesz też zapisać zrzut ekranu).",
     "ticketsHeading": "Twoje bilety",
     "ticketLabel": "Numer biletu",
     "ticketRibbon": "Jeden widz",
     "stubControl": "KONTROLA",
     "downloadTicket": "Pobierz bilet (PDF)",
-    "copyId": "Skopiuj kod zapasowy (dla obsługi)",
+    "copyId": "Skopiuj numer biletu dla obsługi",
     "copiedId": "Skopiowano",
     "emailAlso": "Kopia na e-mail:",
     "shareWarning": "Nie udostępniaj tej strony — link pozwala odczytać bilety.",

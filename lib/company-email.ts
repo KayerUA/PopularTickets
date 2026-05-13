@@ -18,9 +18,9 @@ const DOC_LINKS: Record<AppLocale, { terms: string; privacy: string; returns: st
 };
 
 const DOC_INTRO: Record<AppLocale, string> = {
-  pl: "Dokumenty dla kupującego:",
-  uk: "Документи для покупця:",
-  ru: "Документы для покупателя:",
+  pl: "Przydatne linki:",
+  uk: "Корисні посилання:",
+  ru: "Полезные ссылки:",
 };
 
 /** Krótki blok z danymi operatora w stopce maila (HTML). */
@@ -49,12 +49,14 @@ export function companyEmailFooterHtml(locale: AppLocale = "pl"): string {
     const privacyUrl = `${base}${canonicalPath(locale, "/polityka-prywatnosci")}`;
     const returnsUrl = `${base}${canonicalPath(locale, "/zwroty")}`;
     docBlock = `
-                <strong style="color:#8a7344;">${esc(DOC_INTRO[locale])}</strong><br />
+                <strong style="color:#8a7344;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;">${esc(DOC_INTRO[locale])}</strong><br />
+                <span style="display:inline-block;margin-top:6px;line-height:1.65;">
                 <a href="${esc(termsUrl)}" style="color:#e8d48b;text-decoration:none;">${esc(labels.terms)}</a>
                 <span style="color:#5c5754;"> · </span>
                 <a href="${esc(privacyUrl)}" style="color:#e8d48b;text-decoration:none;">${esc(labels.privacy)}</a>
                 <span style="color:#5c5754;"> · </span>
-                <a href="${esc(returnsUrl)}" style="color:#e8d48b;text-decoration:none;">${esc(labels.returns)}</a><br />`;
+                <a href="${esc(returnsUrl)}" style="color:#e8d48b;text-decoration:none;">${esc(labels.returns)}</a>
+                </span><br />`;
   }
 
   return `

@@ -10,55 +10,60 @@ export type TicketEmailStrings = {
   /** Druga kolumna: neutralny opis (przy awarii PDF w załączniku będzie PNG). */
   colAttachment: string;
   tagline: string;
-  /** Пояснение, почему в письме не показываем длинный UUID в таблице. */
+  /** Jak wejść: QR z załącznika/telefonu + krótki numer (bez technicznego żargonu). */
   backupIdNote: string;
-  /** Кратко про VAT 8% для билета (потребитель). */
+  /** Cena końcowa / podatek w cenie — prosto dla kupującego. */
   vatConsumerNote: string;
 };
 
 const COPY: Record<AppLocale, TicketEmailStrings> = {
   pl: {
-    subjectPrefix: "Bilety:",
+    subjectPrefix: "Twoje bilety:",
     intro:
-      "W załącznikach — plik PDF dla każdego biletu (układ jak na stronie: QR do wejścia + dane wydarzenia). Możesz też pokazać kod QR z ekranu telefonu.",
-    colTicket: "Numer biletu",
-    attachmentColumnTitle: "Załącznik",
-    colAttachment: "PDF w załączniku (jak na stronie)",
+      "Dziękujemy za zakup! W załącznikach masz bilety w PDF — ten sam ładny układ co na stronie, z kodem QR do wejścia i informacjami o wydarzeniu. Z telefonu też wystarczy.",
+    colTicket: "Twój numer",
+    attachmentColumnTitle: "Plik",
+    colAttachment: "Bilet PDF",
     tagline: "PopularTickets · bilety na wydarzenia w Polsce",
     backupIdNote:
-      "Długi identyfikator techniczny (UUID) jest zakodowany w QR i w pliku PDF — przy wejściu wystarczy numer biletu lub skan QR z PDF/telefonu.",
+      "Na wejściu pokaż kod QR z załącznika albo z ekranu telefonu — to wystarczy. Krótki numer biletu przyda się obsłudze, jeśli zapyta.",
     vatConsumerNote:
-      "Bilet na wydarzenie kulturalne (wstęp) — stawka VAT 8% wg polskiego prawa; cena brutto zawiera podatek.",
+      "Cena, którą widziałeś/aś przy zakupie, jest już końcowa — zawiera podatek (dla kultury w Polsce stosujemy 8% VAT).",
   },
   uk: {
-    subjectPrefix: "Квитки:",
+    subjectPrefix: "Ваші квитки:",
     intro:
-      "У вкладеннях — PDF на кожен квиток (оформлення як на сайті: QR для входу + дані події). Можна показати QR з екрана телефона.",
-    colTicket: "Номер квитка",
-    attachmentColumnTitle: "Вкладення",
-    colAttachment: "PDF у вкладенні (як на сайті)",
+      "Дякуємо за покупку! У вкладеннях — квитки PDF: такий самий зручний вигляд, як на сайті, з QR для входу та даними про подію. З екрана телефона теж зручно.",
+    colTicket: "Ваш номер",
+    attachmentColumnTitle: "Файл",
+    colAttachment: "Квиток PDF",
     tagline: "PopularTickets · квитки на події в Польщі",
     backupIdNote:
-      "Довгий технічний ідентифікатор (UUID) закодований у QR і в PDF — на вході достатньо номера квитка або скану QR з PDF/телефона.",
+      "На вході покажіть QR з вкладення або з екрана телефона — цього достатньо. Короткий номер стоїть поруч, якщо персонал попросить.",
     vatConsumerNote:
-      "Квиток на культурну подію (вхід) — ставка ПДВ 8% за польським правом; брутто-ціна включає податок.",
+      "Сума при оплаті вже фінальна — податки враховані (для культурних подій у Польщі застосовуємо ПДВ 8%).",
   },
   ru: {
-    subjectPrefix: "Билеты:",
+    subjectPrefix: "Ваши билеты:",
     intro:
-      "Во вложениях — PDF на каждый билет (оформление как на сайте: QR для входа + данные события). Можно показать QR с экрана телефона.",
-    colTicket: "Номер билета",
-    attachmentColumnTitle: "Вложение",
-    colAttachment: "PDF во вложении (как на сайте)",
+      "Спасибо за покупку! Во вложениях — билеты в PDF: тот же аккуратный макет, что на сайте, с QR для входа и данными о событии. С телефона тоже подойдёт.",
+    colTicket: "Ваш номер",
+    attachmentColumnTitle: "Файл",
+    colAttachment: "Билет PDF",
     tagline: "PopularTickets · билеты на события в Польше",
     backupIdNote:
-      "Длинный технический идентификатор (UUID) закодирован в QR и в PDF — на входе достаточно номера билета или сканирования QR из PDF/телефона.",
+      "На входе покажите QR из вложения или с экрана телефона — этого достаточно. Короткий номер рядом, если попросят на контроле.",
     vatConsumerNote:
-      "Билет на культурное мероприятие (вход) — ставка НДС 8% по польскому закону; цена брутто включает налог.",
+      "Сумма при оплате уже итоговая — налоги включены (для культурных событий в Польше действует ставка НДС 8%).",
   },
 };
 
-/** Подписи для PDF во вложении — согласовано с `CheckoutReturn` / `TicketPdf` в messages. */
+/**
+ * Подписи для PDF во вложении письма.
+ * Для uk/ru строки `ticketQrSecondary`, `ticketKindSecondary`, `ticketDisclaimer`,
+ * `ticketNumberCaption` должны дословно совпадать с `messages/*.json` → `TicketPdf`,
+ * иначе предпросмотр на /checkout/return и вложение в письме разъедутся.
+ */
 export function emailTicketPdfLayoutStrings(locale: AppLocale): Pick<
   TicketLayoutDocInput,
   | "ticketKindSecondary"
@@ -93,7 +98,7 @@ export function emailTicketPdfLayoutStrings(locale: AppLocale): Pick<
     },
     uk: {
       ticketKindSecondary: "Електронний квиток",
-      ticketQrSecondary: "QR-код = ідентифікатор для входу",
+      ticketQrSecondary: "Покажіть QR при вході (телефон або PDF).",
       ticketDisclaimer:
         "Текст нижче українською — лише довідковий переклад. Обов'язкові записи польською вказані вище.",
       ticketNumberCaption: "Номер квитка",
@@ -103,7 +108,7 @@ export function emailTicketPdfLayoutStrings(locale: AppLocale): Pick<
     },
     ru: {
       ticketKindSecondary: "Электронный билет",
-      ticketQrSecondary: "QR-код = идентификатор при входе",
+      ticketQrSecondary: "Покажите QR при входе (телефон или PDF).",
       ticketDisclaimer:
         "Текст ниже на русском — только справочный перевод. Обязательные формулировки на польском указаны выше.",
       ticketNumberCaption: "Номер билета",

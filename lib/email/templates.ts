@@ -101,25 +101,25 @@ export function ticketEmailHtml(params: {
                     </td>
                   </tr>
                   <tr>
-                    <td style="padding:4px 28px 18px 28px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:${C.muted};font-size:15px;line-height:1.55;">
-                      ${esc(params.venue)}<br />
-                      <span style="color:${C.text};font-weight:600;">${esc(params.startsAt)}</span>
+                    <td style="padding:8px 28px 20px 28px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:${C.muted};font-size:15px;line-height:1.6;">
+                      <span style="display:block;color:${C.muted};">${esc(params.venue)}</span>
+                      <span style="display:block;margin-top:8px;font-size:16px;font-weight:600;color:${C.goldBright};">${esc(params.startsAt)}</span>
                     </td>
                   </tr>
                   <tr>
-                    <td style="padding:0 28px 18px 28px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:${C.text};font-size:14px;line-height:1.6;border-top:1px solid ${C.borderSoft};">
+                    <td style="padding:0 28px 22px 28px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:${C.text};font-size:15px;line-height:1.65;border-top:1px solid ${C.borderSoft};">
                       ${esc(str.intro)}
                     </td>
                   </tr>
                   <tr>
-                    <td style="padding:0 20px 8px 20px;">
-                      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-radius:14px;overflow:hidden;border:1px solid ${C.borderSoft};">
+                    <td style="padding:0 22px 14px 22px;">
+                      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:0;border-radius:16px;border:1px solid ${C.borderSoft};overflow:hidden;">
                         <thead>
-                          <tr style="background:rgba(8,5,6,0.55);">
-                            <th align="left" style="padding:12px 14px;font-family:system-ui,-apple-system,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${C.gold};border-bottom:1px solid ${C.borderSoft};">
+                          <tr style="background:rgba(8,5,6,0.65);">
+                            <th align="left" style="padding:13px 16px;font-family:system-ui,-apple-system,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${C.gold};border-bottom:1px solid ${C.borderSoft};">
                               ${esc(str.colTicket)}
                             </th>
-                            <th align="left" style="padding:12px 14px;font-family:system-ui,-apple-system,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${C.gold};border-bottom:1px solid ${C.borderSoft};">
+                            <th align="left" style="padding:13px 16px;font-family:system-ui,-apple-system,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${C.gold};border-bottom:1px solid ${C.borderSoft};">
                               ${esc(str.attachmentColumnTitle)}
                             </th>
                           </tr>
@@ -129,17 +129,23 @@ export function ticketEmailHtml(params: {
                     </td>
                   </tr>
                   <tr>
-                    <td style="padding:8px 28px 0 28px;font-family:system-ui,-apple-system,sans-serif;font-size:12px;line-height:1.6;color:${C.muted};">
-                      ${esc(str.backupIdNote)}
+                    <td style="padding:6px 24px 24px 24px;">
+                      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;border-spacing:0;background:rgba(197,160,89,0.07);border:1px solid rgba(197,160,89,0.2);border-radius:14px;border-left:3px solid ${C.gold};">
+                        <tr>
+                          <td style="padding:15px 18px 8px 20px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:14px;line-height:1.6;color:#c9c4bc;">
+                            ${esc(str.backupIdNote)}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding:0 18px 16px 20px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:12px;line-height:1.55;color:#8a8580;">
+                            ${esc(str.vatConsumerNote)}
+                          </td>
+                        </tr>
+                      </table>
                     </td>
                   </tr>
                   <tr>
-                    <td style="padding:10px 28px 0 28px;font-family:system-ui,-apple-system,sans-serif;font-size:11px;line-height:1.55;color:${C.dim};">
-                      ${esc(str.vatConsumerNote)}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding:22px 28px 8px 28px;font-family:system-ui,-apple-system,sans-serif;font-size:12px;color:${C.dim};letter-spacing:0.04em;">
+                    <td style="padding:4px 28px 20px 28px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:12px;color:${C.dim};letter-spacing:0.04em;text-align:center;line-height:1.5;">
                       ${esc(str.tagline)}
                     </td>
                   </tr>
