@@ -130,57 +130,65 @@ export async function SiteFooter() {
 
         <section
           aria-labelledby="footer-p24-trust-heading"
-          className="mt-8 rounded-2xl border border-poet-gold/20 bg-zinc-950/50 px-4 py-4 sm:px-6 sm:py-5"
+          className="mt-8 rounded-2xl border border-poet-gold/20 bg-gradient-to-b from-zinc-950/80 to-zinc-950/40 px-4 py-5 shadow-[0_12px_40px_-24px_rgba(0,0,0,0.75)] sm:px-6 sm:py-6"
         >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
             <h2
               id="footer-p24-trust-heading"
-              className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.28em] text-poet-gold/85"
+              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-poet-gold/90"
             >
               {t("p24TrustHeading")}
             </h2>
-            <p className="text-[11px] leading-relaxed text-zinc-500 sm:max-w-md sm:text-right">{t("p24MethodsCaption")}</p>
+            <p className="max-w-xl text-[12px] leading-relaxed text-zinc-400 sm:text-right sm:text-[11px]">
+              {t("p24MethodsCaption")}
+            </p>
           </div>
 
           {hasAnyTrustImage ? (
-            <div className="mt-4 rounded-xl border border-zinc-700/40 bg-white px-3 py-3 shadow-inner shadow-black/10 sm:px-5 sm:py-4">
-              <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-6">
-                {hasLogo ? (
+            <div className="mt-5 overflow-hidden rounded-xl border border-zinc-200/25 bg-zinc-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
+              {hasLogo ? (
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-zinc-200/90 px-4 py-3 sm:gap-x-4 sm:px-5 sm:py-3.5">
+                  <span className="text-[12px] font-medium tracking-tight text-zinc-700 sm:text-[13px]">{t("p24TrustByline")}</span>
                   <Image
                     src={p24Gfx.logoUrl!}
                     alt={t("p24LogoAlt")}
                     width={1000}
                     height={350}
-                    className="h-9 w-auto max-w-[min(100%,14rem)] shrink-0 object-contain sm:h-10"
+                    className="h-[1.45rem] w-auto object-contain object-left sm:h-7"
                   />
-                ) : null}
-                {hasLogo && hasStrip ? (
-                  <span className="hidden h-10 w-px shrink-0 bg-zinc-300 sm:block" aria-hidden />
-                ) : null}
-                {hasStrip ? (
-                  <Image
-                    src={p24Gfx.methodsStripUrl!}
-                    alt={t("p24MethodsCaption")}
-                    width={1920}
-                    height={980}
-                    className="max-h-40 w-full max-w-full object-contain object-center sm:max-h-24 sm:flex-1 sm:object-contain"
-                  />
-                ) : null}
-              </div>
+                </div>
+              ) : null}
+              {hasStrip ? (
+                <div className="relative">
+                  <div className="overflow-x-auto overscroll-x-contain px-2 py-4 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(82,82,91,0.45)_transparent] [scrollbar-width:thin] sm:px-4 sm:py-5">
+                    <Image
+                      src={p24Gfx.methodsStripUrl!}
+                      alt={t("p24MethodsCaption")}
+                      width={1920}
+                      height={980}
+                      sizes="(max-width: 640px) 780px, (max-width: 1280px) 90vw, 1024px"
+                      className="mx-auto block h-auto w-[min(100%,1920px)] min-w-[720px] max-w-none object-contain object-center sm:min-w-0 sm:w-full"
+                    />
+                  </div>
+                  <p className="border-t border-zinc-200/80 px-4 py-2 text-center text-[10px] leading-snug text-zinc-500 sm:hidden">
+                    {t("p24ScrollHint")}
+                  </p>
+                </div>
+              ) : null}
             </div>
           ) : (
-            <div className="mt-4 space-y-2 rounded-xl border border-amber-500/25 bg-amber-950/20 px-4 py-3">
+            <div className="mt-5 space-y-2 rounded-xl border border-amber-500/25 bg-amber-950/20 px-4 py-3">
               <p className="text-[11px] leading-relaxed text-zinc-400">{t("p24MethodsCaption")}</p>
               <p className="text-[10px] leading-snug text-zinc-500">{t("p24MethodsVerifierHint")}</p>
             </div>
           )}
 
-          <p className="mt-3 text-center sm:text-right">
+          <p className="mt-4 text-center sm:text-right">
             <a
               href={PRZELEWY24_LINKS.graphics}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[10px] text-poet-gold/65 underline decoration-poet-gold/20 underline-offset-2 transition hover:text-poet-gold-bright"
+              className="text-[10px] text-poet-gold/60 underline decoration-poet-gold/20 underline-offset-[3px] transition hover:text-poet-gold-bright"
             >
               {t("p24TrustPackLink")}
             </a>

@@ -40,6 +40,8 @@
     "linkReturns": "Повернення та скарги",
     "linkPrivacy": "Політика конфіденційності",
     "p24TrustHeading": "Безпечна оплата",
+    "p24TrustByline": "Оплату обробляє:",
+    "p24ScrollHint": "На телефоні проведіть пальцем убік, щоб побачити всі методи.",
     "p24LogoAlt": "Логотип Przelewy24",
     "p24MethodsCaption": "Онлайн-оплата: Przelewy24 (зокрема BLIK, картки Visa та Mastercard).",
     "p24TrustPackLink": "Повний пакет графіки Przelewy24 (логотип, прапорці, вимоги)",
