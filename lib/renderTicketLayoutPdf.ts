@@ -166,6 +166,44 @@ function wrapForWidth(text: string, font: PDFFont, size: number, maxWidth: numbe
   return lines;
 }
 
+/**
+ * Номер билета без обрезки «…»: сначала уменьшаем кегль, затем перенос только по дефису (TKT- / хвост).
+ */
+function layoutTicketNumberLines(
+  ticketNumber: string,
+  fontBold: PDFFont,
+  maxWidth: number,
+  preferredSize: number,
+  minSize: number,
+  maxLines: number
+): { lines: string[]; size: number } {
+  const raw = ticketNumber.trim();
+  if (!raw) return { lines: [""], size: preferredSize };
+
+  const fits = (text: string, size: number) => fontBold.widthOfTextAtSize(text, size) <= maxWidth;
+
+  let size = preferredSize;
+  while (size > minSize && !fits(raw, size)) {
+    size -= 0.25;
+  }
+  if (fits(raw, size)) {
+    return { lines: [raw], size };
+  }
+
+  const dash = raw.indexOf("-");
+  if (dash > 0 && maxLines >= 2) {
+    const head = raw.slice(0, dash + 1);
+    const tail = raw.slice(dash + 1);
+    size = preferredSize;
+    while (size > minSize && (!fits(head, size) || !fits(tail, size))) {
+      size -= 0.25;
+    }
+    return { lines: [head, tail], size };
+  }
+
+  return { lines: [raw], size: minSize };
+}
+
 function drawCenteredBlock(
   page: PDFPage,
   pageW: number,
@@ -432,9 +470,9 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
   y -= 8;
 
   const innerX = 18;
-  const leftW = 72;
+  const leftW = 86;
   const ripW = 11;
-  const rightW = 46;
+  const rightW = 42;
   const innerW = W - 2 * innerX;
   const centerW = innerW - leftW - 2 * ripW - rightW;
   const xLeft = innerX;
@@ -494,11 +532,21 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
     page.drawText(numCap, { x: xLeft + 5, y: yLeft, size: 4.6, font, color: rgb(0.52, 0.5, 0.46) });
     yLeft -= 7;
   }
-  const numLines = wrapForWidth(input.ticketNumber, fontBold, 12.5, leftW - 10, 3);
+  const numPad = 6;
+  const numMaxW = leftW - 2 * numPad;
+  const { lines: numLines, size: numSize } = layoutTicketNumberLines(
+    input.ticketNumber,
+    fontBold,
+    numMaxW,
+    12.5,
+    8,
+    3
+  );
+  const lineStep = numSize * 1.15;
   let numY = yLeft - 2;
   for (const line of numLines) {
-    page.drawText(line, { x: xLeft + 5, y: numY, size: 12.5, font: fontBold, color: GOLD_BRIGHT });
-    numY -= 14;
+    page.drawText(line, { x: xLeft + numPad, y: numY, size: numSize, font: fontBold, color: GOLD_BRIGHT });
+    numY -= lineStep;
   }
   const ribbon = input.ticketRibbon.trim().toUpperCase();
   if (ribbon) {
