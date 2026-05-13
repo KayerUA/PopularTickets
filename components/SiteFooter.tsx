@@ -148,16 +148,16 @@ export async function SiteFooter() {
                 <div className="mt-3 sm:mt-4">
                   <p className="mb-2 text-[10px] leading-snug text-zinc-500 sm:hidden">{t("p24ScrollHint")}</p>
                   <div className="-mx-1 overflow-x-auto overscroll-x-contain bg-transparent px-1 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(197,160,89,0.25)_transparent] [scrollbar-width:thin] sm:mx-0 sm:px-0">
-                    {/* img: PNG z alfą — bez ciemnego tła z next/image; kompaktowa wysokość */}
+                    {/* img: PNG z alfą — rozmiar czytelny na stopce (proporcje 1920×754) */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={p24Gfx.methodsStripUrl!}
                       alt={t("p24MethodsCaption")}
-                      width={1024}
-                      height={402}
+                      width={1920}
+                      height={754}
                       loading="lazy"
                       decoding="async"
-                      className="mx-auto block h-auto max-h-[3.75rem] w-auto max-w-[min(100%,720px)] bg-transparent object-contain object-left opacity-[0.88] transition-opacity duration-300 hover:opacity-100 sm:max-h-20 sm:object-center md:max-h-24"
+                      className="mx-auto block h-auto max-h-[5.75rem] w-auto max-w-[min(100%,1100px)] bg-transparent object-contain object-left opacity-[0.88] transition-opacity duration-300 hover:opacity-100 sm:max-h-[7.75rem] sm:object-center md:max-h-44 lg:max-h-52"
                     />
                   </div>
                 </div>
