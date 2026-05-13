@@ -128,56 +128,51 @@ export async function SiteFooter() {
           </div>
         </div>
 
-        <section
-          aria-labelledby="footer-p24-trust-heading"
-          className="mt-6 rounded-2xl border border-poet-gold/20 bg-gradient-to-b from-zinc-950/90 to-zinc-950/55 px-3 py-4 shadow-[0_12px_40px_-24px_rgba(0,0,0,0.75)] sm:mt-8 sm:px-6 sm:py-6"
-        >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+        <section aria-labelledby="footer-p24-trust-heading" className="mt-10 border-t border-poet-gold/15 pt-8 sm:mt-12 sm:pt-10">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8">
             <h2
               id="footer-p24-trust-heading"
-              className="text-[10px] font-semibold uppercase tracking-[0.22em] text-poet-gold/90 sm:text-[11px]"
+              className="text-[10px] font-semibold uppercase tracking-[0.26em] text-poet-gold/85 sm:text-[11px]"
             >
               {t("p24TrustHeading")}
             </h2>
             {!(hasAnyTrustImage && hasStrip) ? (
-              <p className="max-w-xl text-[11px] leading-relaxed text-zinc-400 sm:text-right sm:text-[11px]">
+              <p className="max-w-xl text-[11px] leading-relaxed text-zinc-500 sm:text-right sm:text-[11px]">
                 {t("p24MethodsCaption")}
               </p>
             ) : null}
           </div>
 
           {hasAnyTrustImage ? (
-            <div className="mt-4 isolate overflow-hidden rounded-xl border border-poet-gold/15 bg-zinc-950/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:mt-5">
+            <>
               {hasStrip ? (
-                <div className="relative px-2 pb-2 pt-2 sm:px-4 sm:pb-3 sm:pt-3">
-                  <p className="mb-2 px-1 text-[11px] leading-snug text-zinc-400 sm:hidden">{t("p24ScrollHint")}</p>
-                  <div className="overflow-x-auto overscroll-x-contain rounded-lg bg-black/25 p-3 ring-1 ring-poet-gold/15 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(161,161,170,0.45)_transparent] [scrollbar-width:thin] sm:p-4">
+                <div className="mt-5 sm:mt-6">
+                  <p className="mb-3 text-[11px] leading-snug text-zinc-500 sm:hidden">{t("p24ScrollHint")}</p>
+                  <div className="-mx-1 overflow-x-auto overscroll-x-contain px-1 pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(161,161,170,0.35)_transparent] [scrollbar-width:thin] sm:mx-0 sm:px-0">
                     <Image
                       src={p24Gfx.methodsStripUrl!}
                       alt={t("p24MethodsCaption")}
                       width={1024}
                       height={402}
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 92vw, 960px"
-                      className="mx-auto block h-auto w-full max-w-[1024px] object-contain object-center"
+                      className="mx-auto block h-auto w-full max-w-[min(100%,1024px)] object-contain object-left opacity-[0.92] transition-opacity duration-300 hover:opacity-100 sm:object-center"
                     />
                   </div>
                 </div>
               ) : hasLogo ? (
-                <div className="rounded-lg bg-black/30 p-4 ring-1 ring-poet-gold/15 sm:px-6 sm:py-4">
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                    <span className="text-[12px] font-medium tracking-tight text-zinc-300 sm:text-[13px]">{t("p24TrustByline")}</span>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- lokalne SVG z public/ */}
-                    <img
-                      src={p24Gfx.logoUrl!}
-                      alt={t("p24LogoAlt")}
-                      className="h-7 w-auto max-w-[11rem] object-contain object-left sm:h-9 sm:max-w-[13rem]"
-                    />
-                  </div>
+                <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 sm:mt-6">
+                  <span className="text-[12px] font-medium tracking-tight text-zinc-400 sm:text-[13px]">{t("p24TrustByline")}</span>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- lokalne SVG z public/ */}
+                  <img
+                    src={p24Gfx.logoUrl!}
+                    alt={t("p24LogoAlt")}
+                    className="h-7 w-auto max-w-[11rem] object-contain object-left sm:h-9 sm:max-w-[13rem]"
+                  />
                 </div>
               ) : null}
-            </div>
+            </>
           ) : (
-            <div className="mt-5 space-y-2 rounded-xl border border-amber-500/25 bg-amber-950/20 px-4 py-3">
+            <div className="mt-5 space-y-2 rounded-lg border border-amber-500/20 bg-amber-950/15 px-4 py-3 sm:mt-6">
               <p className="text-[11px] leading-relaxed text-zinc-400">{t("p24MethodsCaption")}</p>
               <p className="text-[10px] leading-snug text-zinc-500">{t("p24MethodsVerifierHint")}</p>
             </div>
