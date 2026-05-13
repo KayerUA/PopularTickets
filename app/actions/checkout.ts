@@ -107,6 +107,7 @@ export async function createPendingOrder(formData: FormData) {
     currency: "PLN",
     status: "pending",
     p24_session_id: orderId,
+    locale: parsed.data.locale,
   });
 
   if (insErr) {

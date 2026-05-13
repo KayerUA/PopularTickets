@@ -1,6 +1,8 @@
 import QRCode from "qrcode";
 import { Resend } from "resend";
 import { ticketEmailHtml } from "@/lib/email/templates";
+import { ticketEmailStrings } from "@/lib/email/ticketEmailI18n";
+import type { AppLocale } from "@/i18n/routing";
 
 const fromDefault = "PopularTickets <onboarding@resend.dev>";
 
@@ -10,6 +12,7 @@ export async function sendTicketsEmail(params: {
   venue: string;
   startsAt: string;
   tickets: { id: string; ticketNumber: string }[];
+  locale: AppLocale;
 }): Promise<void> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
@@ -36,12 +39,14 @@ export async function sendTicketsEmail(params: {
     venue: params.venue,
     startsAt: params.startsAt,
     tickets: params.tickets,
+    locale: params.locale,
   });
 
+  const sub = ticketEmailStrings(params.locale);
   const { error } = await resend.emails.send({
     from,
     to: params.to,
-    subject: `Билеты: ${params.eventTitle}`,
+    subject: `${sub.subjectPrefix} ${params.eventTitle}`,
     html,
     attachments,
   });

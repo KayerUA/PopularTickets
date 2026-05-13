@@ -1,4 +1,6 @@
 import { companyEmailFooterHtml } from "@/lib/company-email";
+import { ticketEmailStrings } from "@/lib/email/ticketEmailI18n";
+import type { AppLocale } from "@/i18n/routing";
 
 function esc(s: string): string {
   return s
@@ -13,7 +15,9 @@ export function ticketEmailHtml(params: {
   venue: string;
   startsAt: string;
   tickets: { id: string; ticketNumber: string }[];
+  locale: AppLocale;
 }): string {
+  const str = ticketEmailStrings(params.locale);
   const rows = params.tickets
     .map(
       (t) => `
@@ -51,7 +55,7 @@ export function ticketEmailHtml(params: {
             </tr>
             <tr>
               <td style="font-family:system-ui,sans-serif;color:#e4e4e7;font-size:14px;padding-bottom:12px;">
-                W załącznikach — kody QR dla każdego biletu. Na wejściu pokaż odpowiedni kod QR.
+                ${esc(str.intro)}
               </td>
             </tr>
             <tr>
@@ -59,8 +63,8 @@ export function ticketEmailHtml(params: {
                 <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
                   <thead>
                     <tr>
-                      <th align="left" style="padding:8px 12px;font-family:system-ui,sans-serif;font-size:12px;color:#71717a;text-transform:uppercase;">Numer biletu</th>
-                      <th align="left" style="padding:8px 12px;font-family:system-ui,sans-serif;font-size:12px;color:#71717a;text-transform:uppercase;">Identyfikator (QR)</th>
+                      <th align="left" style="padding:8px 12px;font-family:system-ui,sans-serif;font-size:12px;color:#71717a;text-transform:uppercase;">${esc(str.colTicket)}</th>
+                      <th align="left" style="padding:8px 12px;font-family:system-ui,sans-serif;font-size:12px;color:#71717a;text-transform:uppercase;">${esc(str.colQr)}</th>
                     </tr>
                   </thead>
                   <tbody>${rows}</tbody>
@@ -69,10 +73,10 @@ export function ticketEmailHtml(params: {
             </tr>
             <tr>
               <td style="padding-top:20px;font-family:system-ui,sans-serif;font-size:12px;color:#52525e;">
-                PopularTickets · bilety na wydarzenia w Polsce
+                ${esc(str.tagline)}
               </td>
             </tr>
-            ${companyEmailFooterHtml()}
+            ${companyEmailFooterHtml(params.locale)}
           </table>
         </td>
       </tr>

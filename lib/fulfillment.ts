@@ -9,6 +9,8 @@ import {
 } from "@/lib/p24";
 import { randomTicketNumber } from "@/lib/tickets";
 import { sendTicketsEmail } from "@/lib/email/sendTickets";
+import { formatEventDateTime } from "@/lib/format";
+import type { AppLocale } from "@/i18n/routing";
 
 const NotifySchema = z.object({
   merchantId: z.number(),
@@ -23,16 +25,8 @@ const NotifySchema = z.object({
   sign: z.string(),
 });
 
-function formatEmailEventDatePl(iso: string): string {
-  try {
-    return new Intl.DateTimeFormat("pl-PL", {
-      dateStyle: "long",
-      timeStyle: "short",
-      timeZone: "Europe/Warsaw",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
+function orderLocale(raw: string | null | undefined): AppLocale {
+  return raw === "uk" || raw === "ru" || raw === "pl" ? raw : "pl";
 }
 
 async function ensureTicketsAndEmail(params: {
@@ -41,6 +35,7 @@ async function ensureTicketsAndEmail(params: {
     event_id: string;
     quantity: number;
     email: string;
+    locale: string;
   };
 }): Promise<void> {
   const supabase = requireServiceSupabase();
@@ -113,12 +108,14 @@ async function ensureTicketsAndEmail(params: {
 
   if (need > 0) {
     try {
+      const loc = orderLocale(params.order.locale);
       await sendTicketsEmail({
         to: params.order.email,
         eventTitle: event.title,
         venue: event.venue,
-        startsAt: formatEmailEventDatePl(event.starts_at),
+        startsAt: formatEventDateTime(event.starts_at as string, loc),
         tickets: allTickets.map((t) => ({ id: t.id, ticketNumber: t.ticket_number })),
+        locale: loc,
       });
     } catch (e) {
       console.error("email failed", e);
@@ -135,7 +132,7 @@ export async function bypassPaymentAndFulfillOrder(orderId: string): Promise<voi
 
   const { data: order, error: oErr } = await supabase
     .from("orders")
-    .select("id,event_id,quantity,amount_grosze,currency,status,email,buyer_name")
+    .select("id,event_id,quantity,amount_grosze,currency,status,email,buyer_name,locale")
     .eq("id", orderId)
     .maybeSingle();
 
@@ -194,6 +191,7 @@ export async function bypassPaymentAndFulfillOrder(orderId: string): Promise<voi
       event_id: order.event_id,
       quantity: order.quantity,
       email: order.email,
+      locale: (order as { locale?: string }).locale ?? "pl",
     },
   });
 }
@@ -227,7 +225,7 @@ export async function handleP24Notification(
 
   const { data: order, error: oErr } = await supabase
     .from("orders")
-    .select("id,event_id,quantity,amount_grosze,currency,status,email,buyer_name")
+    .select("id,event_id,quantity,amount_grosze,currency,status,email,buyer_name,locale")
     .eq("p24_session_id", n.sessionId)
     .maybeSingle();
 
@@ -323,6 +321,7 @@ export async function handleP24Notification(
         event_id: order.event_id,
         quantity: order.quantity,
         email: order.email,
+        locale: (order as { locale?: string }).locale ?? "pl",
       },
     });
   } catch (e) {

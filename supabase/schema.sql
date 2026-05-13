@@ -44,6 +44,7 @@ create table if not exists public.orders (
   currency text not null default 'PLN',
   status text not null default 'pending'
     check (status in ('pending', 'paid', 'failed', 'cancelled')),
+  locale text not null default 'pl' check (locale in ('pl', 'uk', 'ru')),
   p24_session_id text not null unique,
   p24_order_id bigint unique,
   created_at timestamptz not null default now(),
