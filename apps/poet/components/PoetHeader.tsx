@@ -64,9 +64,6 @@ export async function PoetHeader() {
                 >
                   {t("navTickets")}
                 </a>
-                <a href={`${tickets}/${locale}/firma`} className={navLinkClass}>
-                  {t("navCompany")}
-                </a>
               </>
             ) : (
               <span className="shrink-0 px-2 text-[10px] leading-tight text-amber-200/80 sm:text-[11px]">{t("envMissing")}</span>
