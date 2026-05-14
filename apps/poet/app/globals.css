@@ -230,4 +230,33 @@
   .btn-poet-theatre:hover:not(:disabled) {
     @apply border-[#722f3f]/95 shadow-[0_0_0_1px_rgba(232,212,139,0.5),0_14px_36px_-10px_rgba(197,160,89,0.35)];
   }
+
+  /** Курси: окремі «світла» для кожного напряму */
+  .poet-course-card {
+    @apply border-poet-gold/20;
+  }
+
+  .poet-course-card--improv {
+    border-color: rgba(180, 100, 140, 0.38);
+    background:
+      radial-gradient(120% 90% at 10% 0%, rgba(120, 40, 72, 0.45), transparent 55%),
+      radial-gradient(80% 60% at 100% 100%, rgba(40, 12, 28, 0.5), transparent 45%),
+      linear-gradient(165deg, rgba(28, 12, 20, 0.92) 0%, rgba(12, 8, 14, 0.55) 100%);
+  }
+
+  .poet-course-card--acting {
+    border-color: rgba(197, 160, 89, 0.35);
+    background:
+      radial-gradient(100% 80% at 50% -10%, rgba(90, 48, 28, 0.4), transparent 50%),
+      radial-gradient(70% 50% at 0% 100%, rgba(52, 28, 18, 0.35), transparent 48%),
+      linear-gradient(168deg, rgba(24, 14, 12, 0.9) 0%, rgba(10, 8, 12, 0.6) 100%);
+  }
+
+  .poet-course-card--playback {
+    border-color: rgba(120, 160, 200, 0.35);
+    background:
+      radial-gradient(90% 70% at 100% 0%, rgba(32, 56, 88, 0.42), transparent 52%),
+      radial-gradient(100% 80% at 0% 90%, rgba(24, 20, 48, 0.45), transparent 50%),
+      linear-gradient(170deg, rgba(14, 16, 32, 0.88) 0%, rgba(8, 10, 18, 0.58) 100%);
+  }
 }

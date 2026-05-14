@@ -1,9 +1,14 @@
 import Image from "next/image";
-import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
+import type { AppLocale } from "@/i18n/routing";
+import { PoetLocaleSwitcher } from "@/components/PoetLocaleSwitcher";
 
-export function PoetHeader() {
+export async function PoetHeader() {
   const tickets = getTicketsSiteBase();
+  const locale = (await getLocale()) as AppLocale;
+  const t = await getTranslations("Poet");
 
   return (
     <header className="sticky top-0 z-40 shrink-0 border-b border-poet-gold/15 bg-poet-bg/80 pt-[max(0px,env(safe-area-inset-top,0px))] backdrop-blur-md supports-[backdrop-filter]:bg-poet-bg/75">
@@ -13,7 +18,7 @@ export function PoetHeader() {
             <div className="animate-float-slow absolute inset-0">
               <Image
                 src="/brand/popular-poet-logo.png"
-                alt="Popular Poet"
+                alt={t("logoAlt")}
                 fill
                 className="object-contain drop-shadow-[0_0_14px_rgba(197,160,89,0.45)]"
                 sizes="44px"
@@ -24,7 +29,7 @@ export function PoetHeader() {
           <div className="min-w-0 leading-tight">
             <span className="font-display block truncate text-base tracking-wide text-gradient-gold sm:text-lg">Popular Poet</span>
             <span className="block text-[9px] font-medium uppercase tracking-[0.22em] text-zinc-400 sm:text-[10px] sm:tracking-[0.28em]">
-              Warszawa · teatr · kursy
+              {t("tagline")}
             </span>
           </div>
         </Link>
@@ -34,32 +39,33 @@ export function PoetHeader() {
             href="/#kursy"
             className="inline-flex min-h-11 min-w-[2.75rem] items-center justify-center rounded-xl px-3 text-sm text-zinc-300 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright sm:min-w-0"
           >
-            Kursy
+            {t("navCourses")}
           </Link>
           <Link
             href="/#proby"
             className="inline-flex min-h-11 min-w-[2.75rem] items-center justify-center rounded-xl px-3 text-sm text-zinc-300 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright sm:min-w-0"
           >
-            Próby
+            {t("navTrials")}
           </Link>
           {tickets ? (
             <>
               <a
-                href={ticketsHome("pl")}
+                href={ticketsHome(locale)}
                 className="inline-flex min-h-11 min-w-[2.75rem] items-center justify-center rounded-xl px-3 text-sm text-zinc-300 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright sm:min-w-0"
               >
-                Bilety
+                {t("navTickets")}
               </a>
               <a
-                href={`${tickets}/pl/firma`}
+                href={`${tickets}/${locale}/firma`}
                 className="inline-flex min-h-11 min-w-[2.75rem] items-center justify-center rounded-xl px-3 text-sm text-zinc-300 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright sm:min-w-0"
               >
-                Dane sprzedawcy
+                {t("navCompany")}
               </a>
             </>
           ) : (
-            <span className="px-2 text-[11px] text-amber-200/80">Ustaw NEXT_PUBLIC_TICKETS_SITE_URL</span>
+            <span className="px-2 text-[11px] text-amber-200/80">{t("envMissing")}</span>
           )}
+          <PoetLocaleSwitcher />
         </nav>
       </div>
     </header>

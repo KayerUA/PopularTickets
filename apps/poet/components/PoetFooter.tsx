@@ -1,5 +1,7 @@
+import { getLocale, getTranslations } from "next-intl/server";
 import { THEATRE_INSTAGRAM_URL, THEATRE_TELEGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
 import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
+import type { AppLocale } from "@/i18n/routing";
 
 function InstagramGlyph({ className }: { className?: string }) {
   return (
@@ -34,8 +36,10 @@ function TelegramGlyph({ className }: { className?: string }) {
   );
 }
 
-export function PoetFooter() {
+export async function PoetFooter() {
   const tickets = getTicketsSiteBase();
+  const locale = (await getLocale()) as AppLocale;
+  const t = await getTranslations("Poet");
 
   return (
     <footer className="relative z-0 border-t border-poet-gold/15 bg-poet-bg/90">
@@ -43,10 +47,8 @@ export function PoetFooter() {
         <section className="mb-10 sm:mb-12">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
             <div className="min-w-0 max-w-xl">
-              <h2 className="font-display text-sm font-semibold tracking-tight text-gradient-gold sm:text-base">Teatr w mediach</h2>
-              <p className="mt-2 text-[11px] leading-relaxed text-zinc-400 sm:text-xs">
-                Obserwuj nas na Instagramie i YouTube — ogłoszenia i kulisy. Grupa na Telegramie: społeczność widzów.
-              </p>
+              <h2 className="font-display text-sm font-semibold tracking-tight text-gradient-gold sm:text-base">{t("footerSocialTitle")}</h2>
+              <p className="mt-2 text-[11px] leading-relaxed text-zinc-400 sm:text-xs">{t("footerSocialIntro")}</p>
             </div>
             <div className="flex min-w-0 flex-wrap gap-2.5 sm:shrink-0 sm:justify-end">
               <a
@@ -57,7 +59,7 @@ export function PoetFooter() {
               >
                 <InstagramGlyph className="h-4 w-4 shrink-0 text-poet-gold-bright" />
                 <span className="min-w-0">
-                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">Instagram</span>
+                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">{t("footerInstagramLabel")}</span>
                   <span className="block truncate text-[11px] font-medium text-zinc-200">@popular_poet_theatre</span>
                 </span>
                 <span aria-hidden className="text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright">
@@ -72,7 +74,7 @@ export function PoetFooter() {
               >
                 <YouTubeGlyph className="h-4 w-4 shrink-0 text-poet-gold-bright" />
                 <span className="min-w-0">
-                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">YouTube</span>
+                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">{t("footerYoutubeLabel")}</span>
                   <span className="block truncate text-[11px] font-medium text-zinc-200">Popular Poet</span>
                 </span>
                 <span aria-hidden className="text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright">
@@ -87,8 +89,8 @@ export function PoetFooter() {
               >
                 <TelegramGlyph className="h-4 w-4 shrink-0 text-poet-gold-bright" />
                 <span className="min-w-0">
-                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">Telegram</span>
-                  <span className="block truncate text-[11px] font-medium text-zinc-200">Społeczność</span>
+                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">{t("footerTelegramLabel")}</span>
+                  <span className="block truncate text-[11px] font-medium text-zinc-200">{t("footerTelegramCommunity")}</span>
                 </span>
                 <span aria-hidden className="text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright">
                   ↗
@@ -100,27 +102,27 @@ export function PoetFooter() {
 
         <div className="flex flex-col gap-6 border-t border-poet-gold/10 pt-8 text-xs text-zinc-500 sm:flex-row sm:justify-between sm:gap-10">
           <div className="max-w-xl space-y-2">
-            <p className="font-display text-base text-gradient-gold">Popular Poet — przestrzeń</p>
+            <p className="font-display text-base text-gradient-gold">{t("footerSpaceTitle")}</p>
             <p className="leading-relaxed text-zinc-400">
-              Warszawa, ul. Domaniewska 37
+              {t("footerAddressLine1")}
               <br />
-              Centrum biznesowe Zepter, piętro 5, lokal 42
+              {t("footerAddressLine2")}
             </p>
             {tickets ? (
               <p>
-                <a href={ticketsHome("pl")} className="text-poet-gold/90 hover:text-poet-gold-bright">
-                  Bilety na wydarzenia — PopularTickets
+                <a href={ticketsHome(locale)} className="text-poet-gold/90 hover:text-poet-gold-bright">
+                  {t("footerTicketsLink")}
                 </a>
                 {" · "}
-                <a href={`${tickets}/pl/firma`} className="text-poet-gold/90 hover:text-poet-gold-bright">
-                  Dane sprzedawcy i płatności
+                <a href={`${tickets}/${locale}/firma`} className="text-poet-gold/90 hover:text-poet-gold-bright">
+                  {t("footerCompanyLink")}
                 </a>
               </p>
             ) : (
-              <p className="text-zinc-500">Ustaw NEXT_PUBLIC_TICKETS_SITE_URL, aby pokazać link do bileów.</p>
+              <p className="text-zinc-500">{t("footerEnvMissing")}</p>
             )}
           </div>
-          <p className="text-[11px] text-zinc-600 sm:text-right sm:shrink-0">Polska · teatr · kursy · bilety online</p>
+          <p className="text-[11px] text-zinc-600 sm:text-right sm:shrink-0">{t("footerTagline")}</p>
         </div>
       </div>
     </footer>

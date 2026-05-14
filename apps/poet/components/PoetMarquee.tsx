@@ -1,8 +1,9 @@
-const PHRASE =
-  "Popular Poet · improwizacja · warsztaty aktorskie · PLAY-BACK · próby · ";
+import { getTranslations } from "next-intl/server";
 
-export function PoetMarquee() {
-  const run = (PHRASE + PHRASE).repeat(5);
+export async function PoetMarquee() {
+  const t = await getTranslations("Poet");
+  const phrase = t("marqueePhrase");
+  const run = (phrase + phrase).repeat(5);
 
   return (
     <div className="relative mb-10 overflow-hidden rounded-xl border-y border-poet-gold/20 bg-zinc-950/40 py-2.5 sm:mb-12 sm:rounded-full sm:border">
