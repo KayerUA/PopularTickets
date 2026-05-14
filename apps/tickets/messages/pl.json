@@ -100,7 +100,8 @@
     "prePurchaseNote": "Po płatności dostaniesz bilet elektroniczny na e-mail — bez kosztów dostawy i bez drukowania. Sprzedawca: {seller}, NIP {nip}. Pełne zasady: „Dane sprzedawcy” i Regulamin."
   },
   "EventCard": {
-    "buy": "Rezerwuję miejsce",
+    "buyTicket": "Kup bilet",
+    "buyTrial": "Rezerwuję miejsce",
     "ctaPast": "Szczegóły",
     "ctaSoldOut": "Brak biletów"
   },
@@ -108,7 +109,8 @@
     "past": "Minęło",
     "sold_out": "Wyprzedane",
     "last_tickets": "Ostatnie miejsca",
-    "starting_soon": "Start wkrótce",
+    "starting_soon_show": "Niedługo w sali",
+    "starting_soon_trial": "Start wkrótce",
     "this_week": "W tym tygodniu"
   },
   "CheckoutForm": {

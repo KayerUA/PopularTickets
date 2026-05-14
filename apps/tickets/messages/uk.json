@@ -100,7 +100,8 @@
     "prePurchaseNote": "Після оплати ви отримаєте електронний квиток на email — без доставки й без друку. Продавець: {seller}, NIP {nip}. Повні правила: «Дані продавця» та Регламент."
   },
   "EventCard": {
-    "buy": "Бронюю місце",
+    "buyTicket": "Купити квиток",
+    "buyTrial": "Бронюю місце",
     "ctaPast": "Деталі",
     "ctaSoldOut": "Немає квитків"
   },
@@ -108,7 +109,8 @@
     "past": "Минуло",
     "sold_out": "Розпродано",
     "last_tickets": "Останні місця",
-    "starting_soon": "Скоро старт",
+    "starting_soon_show": "Незабаром у залі",
+    "starting_soon_trial": "Скоро старт",
     "this_week": "Цього тижня"
   },
   "CheckoutForm": {

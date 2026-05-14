@@ -4,7 +4,7 @@ import { MarqueeStrip } from "@/components/MarqueeStrip";
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { SupabaseQueryErrorPanel } from "@/components/SupabaseQueryErrorPanel";
 import type { EventCardProps } from "@/components/EventCard";
-import { resolveEventMarketingStatus, sortEventsForMarketing } from "@/lib/eventMarketingStatus";
+import { resolveEventMarketingStatus, sortEventsForMarketing, normalizeEventListingKind } from "@/lib/eventMarketingStatus";
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import type { AppLocale } from "@/i18n/routing";
@@ -83,6 +83,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
         imageUrl: (ev.image_url as string | null) ?? null,
         locale,
         status,
+        listingKind: normalizeEventListingKind((ev as { listing_kind?: string | null }).listing_kind),
       };
     })
   );

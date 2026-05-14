@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import type { EventMarketingStatus } from "@/lib/eventMarketingStatus";
+import type { EventMarketingStatus, EventListingKind } from "@/lib/eventMarketingStatus";
 
 /** Тёмная «таблетка» + blur — иначе на ярком фото бейдж сливается (особенно this_week / starting_soon). */
 const STYLES: Record<Exclude<EventMarketingStatus, null>, string> = {
@@ -14,17 +14,24 @@ const STYLES: Record<Exclude<EventMarketingStatus, null>, string> = {
 
 type Props = {
   status: EventMarketingStatus;
+  listingKind?: EventListingKind;
   className?: string;
 };
 
-export function EventStatusBadge({ status, className = "" }: Props) {
+export function EventStatusBadge({ status, listingKind = "performance", className = "" }: Props) {
   const t = useTranslations("EventStatus");
   if (!status) return null;
+  const label =
+    status === "starting_soon"
+      ? listingKind === "trial"
+        ? t("starting_soon_trial")
+        : t("starting_soon_show")
+      : t(status);
   const base =
     "inline-flex max-w-full items-center rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] backdrop-blur-md sm:text-xs sm:px-3.5 sm:py-1.5 [text-shadow:0_1px_1px_rgba(0,0,0,0.65)]";
   return (
     <span className={`${base} ${STYLES[status]} ${className}`.trim()} data-event-status={status}>
-      {t(status)}
+      {label}
     </span>
   );
 }

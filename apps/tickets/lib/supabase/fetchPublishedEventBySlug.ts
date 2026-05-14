@@ -3,7 +3,7 @@ import { fetchOptionalMapsUrl } from "@/lib/supabase/fetchOptionalMapsUrl";
 
 /** Без maps_url — иначе при «schema cache» без колонки падает весь запрос. */
 const EVENT_SELECT_PUBLIC =
-  "id,slug,title,description,image_url,venue,starts_at,price_grosze,total_tickets" as const;
+  "id,slug,title,description,image_url,venue,starts_at,price_grosze,total_tickets,listing_kind" as const;
 
 export type PublishedEventRow = {
   id: string;
@@ -16,6 +16,8 @@ export type PublishedEventRow = {
   starts_at: string;
   price_grosze: number;
   total_tickets: number;
+  /** `performance` — спектакль/шоу; `trial` — пробное / вводное занятие. */
+  listing_kind: string | null;
 };
 
 /**
@@ -43,5 +45,9 @@ export async function fetchPublishedEventBySlug(
   const mapsUrl = await fetchOptionalMapsUrl(supabase, row.id);
   const description = typeof row.description === "string" ? row.description : "";
 
-  return { data: { ...row, description, maps_url: mapsUrl }, error: null };
+  const listing_kind =
+    typeof (row as { listing_kind?: unknown }).listing_kind === "string"
+      ? ((row as { listing_kind: string }).listing_kind as string)
+      : null;
+  return { data: { ...row, description, maps_url: mapsUrl, listing_kind }, error: null };
 }

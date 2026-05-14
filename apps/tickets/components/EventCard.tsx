@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { formatPlnFromGrosze, formatEventDateTime } from "@/lib/format";
 import type { AppLocale } from "@/i18n/routing";
-import type { EventMarketingStatus } from "@/lib/eventMarketingStatus";
+import type { EventMarketingStatus, EventListingKind } from "@/lib/eventMarketingStatus";
 import { EventStatusBadge } from "@/components/EventStatusBadge";
 
 export type EventCardProps = {
@@ -17,13 +17,22 @@ export type EventCardProps = {
   imageUrl: string | null;
   locale: AppLocale;
   status: EventMarketingStatus;
+  /** Афиша (билет) или пробное/вводное — влияет на CTA и бейдж «скоро». */
+  listingKind?: EventListingKind;
 };
 
 export function EventCard(e: EventCardProps) {
   const t = useTranslations("EventCard");
+  const listingKind = e.listingKind ?? "performance";
   const href = `/events/${e.slug}`;
   const cta =
-    e.status === "past" ? t("ctaPast") : e.status === "sold_out" ? t("ctaSoldOut") : t("buy");
+    e.status === "past"
+      ? t("ctaPast")
+      : e.status === "sold_out"
+        ? t("ctaSoldOut")
+        : listingKind === "trial"
+          ? t("buyTrial")
+          : t("buyTicket");
   const label = `${e.title} — ${cta}`;
 
   return (
@@ -50,7 +59,7 @@ export function EventCard(e: EventCardProps) {
           )}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-poet-bg/80 via-transparent to-transparent opacity-60" />
           <div className="pointer-events-none absolute left-3 top-3 z-[1] flex flex-wrap gap-2 sm:left-4 sm:top-4">
-            <EventStatusBadge status={e.status} />
+            <EventStatusBadge status={e.status} listingKind={listingKind} />
           </div>
         </div>
         <div className="flex flex-1 flex-col space-y-2 p-4 text-zinc-100 sm:p-5">

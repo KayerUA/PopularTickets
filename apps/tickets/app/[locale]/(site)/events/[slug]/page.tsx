@@ -12,7 +12,7 @@ import { getTranslations } from "next-intl/server";
 import type { AppLocale } from "@/i18n/routing";
 import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
 import { resolveEventMapsUrl } from "@/lib/mapsUrl";
-import { resolveEventMarketingStatus } from "@/lib/eventMarketingStatus";
+import { resolveEventMarketingStatus, normalizeEventListingKind } from "@/lib/eventMarketingStatus";
 import { EventStatusBadge } from "@/components/EventStatusBadge";
 import { buildPublicPageMetadata, truncateMetaDescription } from "@/lib/seo";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
@@ -110,6 +110,7 @@ export default async function EventPage({
     remaining,
     totalTickets: event.total_tickets,
   });
+  const listingKind = normalizeEventListingKind(event.listing_kind);
   const mapsHref = resolveEventMapsUrl({
     maps_url: event.maps_url,
     description: event.description,
@@ -158,7 +159,7 @@ export default async function EventPage({
             </h1>
             {marketingStatus ? (
               <div className="mt-3">
-                <EventStatusBadge status={marketingStatus} />
+                <EventStatusBadge status={marketingStatus} listingKind={listingKind} />
               </div>
             ) : null}
             <p className="mt-2 break-words text-sm text-zinc-400 sm:text-base">
