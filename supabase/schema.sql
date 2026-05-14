@@ -32,6 +32,16 @@ create index if not exists events_published_idx on public.events (is_published);
 
 alter table public.events add column if not exists maps_url text;
 
+alter table public.events
+  add column if not exists listing_kind text not null default 'performance'
+  check (listing_kind in ('performance', 'trial'));
+
+comment on column public.events.listing_kind is
+  'performance = афіша виступів на PopularTickets; trial = пробний слот на popularpoet.pl (оплата на тій же події).';
+
+create index if not exists events_listing_published_starts_idx
+  on public.events (listing_kind, is_published, starts_at);
+
 -- Заказы
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
@@ -133,11 +143,15 @@ grant execute on function public.pt_event_maps_url(uuid) to service_role;
 revoke all on function public.pt_event_set_maps_url(uuid, text) from public;
 grant execute on function public.pt_event_set_maps_url(uuid, text) to service_role;
 
--- RLS: доступ только через service role (ключ на сервере). Анониму — без политик.
+-- RLS: заказы/билеты — только service role. События: публичный SELECT опубликованных (для popularpoet.pl + SSR).
 alter table public.events enable row level security;
 alter table public.orders enable row level security;
 alter table public.tickets enable row level security;
 alter table public.checkins enable row level security;
 
--- При необходимости публичного чтения событий с клиента добавьте политику SELECT для anon.
--- В MVP чтение идёт только с сервера через service role.
+drop policy if exists "events_select_published" on public.events;
+create policy "events_select_published"
+  on public.events for select to anon, authenticated
+  using (is_published = true);
+
+grant select on public.events to anon, authenticated;

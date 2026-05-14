@@ -10,7 +10,7 @@ export default async function AdminHome() {
   }
   const { data: events, error } = await supabase
     .from("events")
-    .select("id,slug,title,starts_at,is_published,total_tickets")
+    .select("id,slug,title,starts_at,is_published,total_tickets,listing_kind")
     .order("starts_at", { ascending: false });
 
   if (error) {
@@ -45,6 +45,7 @@ export default async function AdminHome() {
         <table className="min-w-full text-left text-sm">
           <thead className="bg-zinc-900/80 text-xs uppercase text-zinc-500">
             <tr>
+              <th className="px-4 py-3">Тип</th>
               <th className="px-4 py-3">Название</th>
               <th className="px-4 py-3">Дата</th>
               <th className="px-4 py-3">Билеты</th>
@@ -53,8 +54,13 @@ export default async function AdminHome() {
             </tr>
           </thead>
           <tbody className="divide-y divide-poet-gold/10">
-            {rows.map((ev) => (
+            {rows.map((ev) => {
+              const listingKind = (ev as { listing_kind?: string }).listing_kind ?? "performance";
+              return (
               <tr key={ev.id} className="bg-zinc-950/40">
+                <td className="px-4 py-3 text-zinc-400">
+                  {listingKind === "trial" ? "пробний" : "виступ"}
+                </td>
                 <td className="px-4 py-3 text-white">{ev.title}</td>
                 <td className="px-4 py-3 text-zinc-400">{formatPlDateTime(ev.starts_at)}</td>
                 <td className="px-4 py-3 text-zinc-300">
@@ -73,7 +79,8 @@ export default async function AdminHome() {
                   </Link>
                 </td>
               </tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
       </div>

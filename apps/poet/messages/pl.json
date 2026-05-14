@@ -2,7 +2,10 @@
   "metadata": {
     "titleDefault": "Popular Poet — teatr i kursy",
     "titleTemplate": "%s · Popular Poet",
-    "description": "Popular Poet — improwizacja aktorska, warsztaty aktorskie, grupy PLAY-BACK i zajęcia próbne. Bilety na wydarzenia w serwisie PopularTickets."
+    "description": "Popular Poet w Warszawie: improwizacja, warsztaty aktorskie, PLAY-BACK, zajęcia próbne. Bilety na spektakle i płatność próbnych — w PopularTickets (PLN, Przelewy24). Zapisy na Telegramie @Stefan_stepp.",
+    "keywords": "Popular Poet, teatr Warszawa, kursy aktorskie, improwizacja, PLAY-BACK, zajęcia próbne, bilety online, PopularTickets",
+    "ogImagePath": "/courses/theatre-photo.jpg",
+    "ogImageAlt": "Popular Poet — teatr i kursy w Warszawie"
   },
   "LocaleSwitcher": {
     "label": "Język",
@@ -31,6 +34,8 @@
     "courseImprovTag": "Improwizacja",
     "courseActingTag": "Warsztat",
     "coursePlaybackTag": "PLAY-BACK",
+    "courseOtherTag": "Kurs",
+    "courseOtherBody": "Program i terminy — dopytaj na Telegramie lub po publikacji w bazie.",
     "courseImprovTitle": "Improwizacja aktorska",
     "courseImprovBody": "Formaty sceniczne, reakcja „tu i teraz”, praca z publicznością i komedią — bez sztywnego scenariusza.",
     "courseActingTitle": "Warsztaty aktorskie",

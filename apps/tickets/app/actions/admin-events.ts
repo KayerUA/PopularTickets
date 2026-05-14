@@ -45,6 +45,7 @@ const EventSchema = z.object({
     (v) => v === "on" || v === true || v === "true",
     z.boolean()
   ).default(false),
+  listingKind: z.enum(["performance", "trial"]).default("performance"),
 });
 
 function groszeFromPln(pln: number): number {
@@ -76,6 +77,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       pricePln: formData.get("pricePln"),
       totalTickets: formData.get("totalTickets"),
       isPublished: formData.get("isPublished"),
+      listingKind: formData.get("listingKind") || "performance",
     });
 
     if (!parsed.success) {
@@ -104,6 +106,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       price_grosze: priceGrosze,
       total_tickets: v.totalTickets,
       is_published: isPublished,
+      listing_kind: v.listingKind,
     };
 
     let eventIdForMaps: string;

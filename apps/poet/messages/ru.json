@@ -2,7 +2,10 @@
   "metadata": {
     "titleDefault": "Popular Poet — театр и курсы",
     "titleTemplate": "%s · Popular Poet",
-    "description": "Popular Poet — актёрская импровизация, актёрские мастер-классы, группы PLAY-BACK и пробные занятия. Билеты на события — в PopularTickets."
+    "description": "Popular Poet в Варшаве: актёрская импровизация, мастер-классы, PLAY-BACK, пробные занятия. Билеты на спектакли и оплата пробных — в PopularTickets (PLN, Przelewy24). Запись в Telegram @Stefan_stepp.",
+    "keywords": "Popular Poet, театр Варшава, актёрские курсы, импровизация, PLAY-BACK, пробный урок, билеты онлайн, PopularTickets",
+    "ogImagePath": "/courses/theatre-photo.jpg",
+    "ogImageAlt": "Popular Poet — театр и курсы в Варшаве"
   },
   "LocaleSwitcher": {
     "label": "Язык",
@@ -31,6 +34,8 @@
     "courseImprovTag": "Импровизация",
     "courseActingTag": "Мастерская",
     "coursePlaybackTag": "PLAY-BACK",
+    "courseOtherTag": "Курс",
+    "courseOtherBody": "Программа и расписание — уточняйте в Telegram или после публикации в базе.",
     "courseImprovTitle": "Актёрская импровизация",
     "courseImprovBody": "Сценические форматы, реакция «здесь и сейчас», работа с зрителем и комедией — без жёсткого сценария.",
     "courseActingTitle": "Актёрские мастерские",

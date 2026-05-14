@@ -5,7 +5,7 @@ import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { EventForm, type AdminEventRow } from "@/components/EventForm";
 
 const ADMIN_EVENT_SELECT =
-  "id,slug,title,description,image_url,venue,starts_at,price_grosze,total_tickets,is_published" as const;
+  "id,slug,title,description,image_url,venue,starts_at,price_grosze,total_tickets,is_published,listing_kind" as const;
 
 export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -35,6 +35,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
     price_grosze: event.price_grosze,
     total_tickets: event.total_tickets,
     is_published: event.is_published,
+    listing_kind: (event.listing_kind as "performance" | "trial") ?? "performance",
   };
 
   return (

@@ -16,6 +16,7 @@ export type AdminEventRow = {
   price_grosze: number;
   total_tickets: number;
   is_published: boolean;
+  listing_kind: "performance" | "trial";
 };
 
 const initialUpsertState: UpsertEventState = null;
@@ -54,6 +55,20 @@ export function EventForm({ event }: { event?: AdminEventRow }) {
             defaultValue={event?.title}
             className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
           />
+        </label>
+        <label className="block text-sm text-zinc-300 sm:col-span-2">
+          Тип в публікації
+          <select
+            name="listingKind"
+            defaultValue={event?.listing_kind ?? "performance"}
+            className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+          >
+            <option value="performance">Виступ / шоу — афіша PopularTickets</option>
+            <option value="trial">Пробний урок — афіша на popularpoet.pl, оплата на цій події</option>
+          </select>
+          <p className="mt-1 text-xs text-zinc-500">
+            Пробні не показуються на головній квиткового сайту; курс на головній poet — розділ «Курси Popular Poet» в адмінці.
+          </p>
         </label>
         <label className="block text-sm text-zinc-300 sm:col-span-2">
           Описание
@@ -145,9 +160,14 @@ export function EventForm({ event }: { event?: AdminEventRow }) {
             className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
           />
         </label>
-        <label className="flex items-center gap-2 text-sm text-zinc-300 sm:col-span-2">
-          <input type="checkbox" name="isPublished" defaultChecked={event?.is_published ?? false} />
-          Опубликовать на главной
+        <label className="flex flex-col gap-1 text-sm text-zinc-300 sm:col-span-2">
+          <span className="flex items-center gap-2">
+            <input type="checkbox" name="isPublished" defaultChecked={event?.is_published ?? false} />
+            Опубликовать
+          </span>
+          <span className="pl-7 text-xs text-zinc-500">
+            Для типа «виступ» — у афіші PopularTickets; для «пробний» — у блоці пробних на popularpoet.pl (квиток і оплата на цьому ж slug).
+          </span>
         </label>
       </div>
       <button type="submit" disabled={pending} className="btn-poet poet-shine px-8 disabled:opacity-50">

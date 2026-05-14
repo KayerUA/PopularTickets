@@ -6,6 +6,8 @@ import { PoetDocumentLangSync } from "@/components/PoetDocumentLangSync";
 import { PoetFooter } from "@/components/PoetFooter";
 import { PoetHeader } from "@/components/PoetHeader";
 import { routing, type AppLocale } from "@/i18n/routing";
+import { buildPoetPageMetadata } from "@/lib/seoPoet";
+import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
 
 type Props = { children: React.ReactNode; params: Promise<{ locale: string }> };
 
@@ -19,13 +21,31 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {};
   }
   const t = await getTranslations({ locale, namespace: "metadata" });
-  return {
-    title: { default: t("titleDefault"), template: t("titleTemplate") },
+  const keywords = t("keywords")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const base = getPoetSiteUrl();
+  const ogImages =
+    base && t("ogImagePath")
+      ? [
+          {
+            url: `${base}${t("ogImagePath")}`,
+            width: 1200,
+            height: 630,
+            alt: t("ogImageAlt"),
+          },
+        ]
+      : undefined;
+
+  return buildPoetPageMetadata({
+    locale: locale as AppLocale,
+    path: "/",
+    title: t("titleDefault"),
     description: t("description"),
-    applicationName: "Popular Poet",
-    openGraph: { siteName: "Popular Poet", type: "website" },
-    robots: { index: true, follow: true },
-  };
+    keywords,
+    ogImages,
+  });
 }
 
 export default async function LocaleLayout({ children, params }: Props) {
