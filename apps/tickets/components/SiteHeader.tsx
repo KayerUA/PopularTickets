@@ -76,7 +76,7 @@ export function SiteHeader() {
             >
               {t("theatre")}
             </a>
-            <Link href="/" className={navLinkClass}>
+            <Link href="/#afisha" className={navLinkClass}>
               {t("events")}
             </Link>
             <Link href="/firma" className={navLinkClass}>

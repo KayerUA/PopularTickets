@@ -111,14 +111,16 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
         </ul>
       </div>
       <MarqueeStrip />
-      {list.length ? (
-        <div className="space-y-6">
-          <p className="text-[11px] font-mono uppercase tracking-[0.4em] text-zinc-500">{t("sectionLabel")}</p>
-          <HomeEventsGrid events={list} />
-        </div>
-      ) : (
-        <p className="text-zinc-500">{t("empty")}</p>
-      )}
+      <section id="afisha" className="scroll-mt-24 space-y-6 sm:scroll-mt-28">
+        {list.length ? (
+          <>
+            <p className="text-[11px] font-mono uppercase tracking-[0.4em] text-zinc-500">{t("sectionLabel")}</p>
+            <HomeEventsGrid events={list} />
+          </>
+        ) : (
+          <p className="text-zinc-500">{t("empty")}</p>
+        )}
+      </section>
     </div>
   );
 }
