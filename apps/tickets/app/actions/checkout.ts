@@ -98,7 +98,7 @@ export async function createPendingOrder(formData: FormData) {
 
   const marketingEmailOptIn = formData.get("marketingEmailOptIn") === "on";
 
-  const { error: insErr } = await supabase.from("orders").insert({
+  const orderInsert = {
     id: orderId,
     event_id: event.id,
     buyer_name: buyerName,
@@ -111,7 +111,18 @@ export async function createPendingOrder(formData: FormData) {
     p24_session_id: orderId,
     locale: parsed.data.locale,
     marketing_email_opt_in: marketingEmailOptIn,
-  });
+  };
+
+  let { error: insErr } = await supabase.from("orders").insert(orderInsert);
+
+  if (insErr && insErr.code === "PGRST204" && /marketing_email_opt_in/i.test(insErr.message ?? "")) {
+    const { marketing_email_opt_in: _marketingEmailOptIn, ...legacyOrderInsert } = orderInsert;
+    console.warn(
+      "[PopularTickets][checkout] orders.marketing_email_opt_in is missing in Supabase schema cache; creating order without marketing opt-in"
+    );
+    const retry = await supabase.from("orders").insert(legacyOrderInsert);
+    insErr = retry.error;
+  }
 
   if (insErr) {
     console.error(insErr);

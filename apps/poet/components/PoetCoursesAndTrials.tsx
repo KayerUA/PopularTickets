@@ -32,7 +32,7 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
               <li key={c.id} className="list-none">
                 <Link
                   href={`/kursy/${c.slug}`}
-                  className={`poet-course-card poet-course-card--${variant} group relative block h-full overflow-hidden rounded-2xl border p-5 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 sm:p-6`}
+                  className={`poet-course-card poet-course-card--${variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 sm:p-6`}
                 >
                   <div className="poet-shine pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
                   <div className="relative -mx-1 -mt-1 mb-3 overflow-hidden rounded-lg border border-poet-gold/15">
@@ -49,7 +49,7 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
                   <h3 className="relative mt-2 font-display text-xl font-semibold tracking-tight text-gradient-gold sm:text-[1.35rem]">
                     {c.title}
                   </h3>
-                  <p className="relative mt-3 text-sm leading-relaxed text-zinc-400">{displayBody}</p>
+                  <p className="relative mt-3 flex-1 text-sm leading-relaxed text-zinc-400">{displayBody}</p>
                   <span className="relative mt-5 inline-flex w-full items-center justify-center rounded-lg border border-poet-gold/25 bg-black/25 px-3 py-2 text-center text-xs font-semibold text-poet-gold-bright transition group-hover:border-poet-gold/45 group-hover:bg-poet-gold/10">
                     {t("courseCardCta")}
                   </span>
@@ -63,7 +63,7 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
               <li key={slug} className="list-none">
                 <Link
                   href={`/kursy/${slug}`}
-                  className={`poet-course-card poet-course-card--${keys.variant} group relative block h-full overflow-hidden rounded-2xl border p-5 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 sm:p-6`}
+                  className={`poet-course-card poet-course-card--${keys.variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 sm:p-6`}
                 >
                   <div className="poet-shine pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
                   <div className="relative -mx-1 -mt-1 mb-3 overflow-hidden rounded-lg border border-poet-gold/15">
@@ -80,7 +80,7 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
                   <h3 className="relative mt-2 font-display text-xl font-semibold tracking-tight text-gradient-gold sm:text-[1.35rem]">
                     {t(keys.titleKey)}
                   </h3>
-                  <p className="relative mt-3 text-sm leading-relaxed text-zinc-400">{t(keys.bodyKey)}</p>
+                  <p className="relative mt-3 flex-1 text-sm leading-relaxed text-zinc-400">{t(keys.bodyKey)}</p>
                   <span className="relative mt-5 inline-flex w-full items-center justify-center rounded-lg border border-poet-gold/25 bg-black/25 px-3 py-2 text-center text-xs font-semibold text-poet-gold-bright transition group-hover:border-poet-gold/45 group-hover:bg-poet-gold/10">
                     {t("courseCardCta")}
                   </span>
