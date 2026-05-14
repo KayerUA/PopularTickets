@@ -121,7 +121,7 @@ async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
   const full = await supabase
     .from("events")
     .select("id, slug, title, description, starts_at, poet_course_id, poet_course ( id, slug, title )")
-    .eq("is_published", true)
+    .eq("visibility", "published")
     .eq("listing_kind", "trial")
     .order("starts_at", { ascending: true });
 
@@ -134,7 +134,7 @@ async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
   const basic = await supabase
     .from("events")
     .select("id, slug, title, description, starts_at")
-    .eq("is_published", true)
+    .eq("visibility", "published")
     .eq("listing_kind", "trial")
     .order("starts_at", { ascending: true });
 
@@ -210,7 +210,7 @@ async function loadTrialEventsForCourse(supabase: SupabaseClient, courseId: stri
   const full = await supabase
     .from("events")
     .select(fullSel)
-    .eq("is_published", true)
+    .in("visibility", ["published", "unlisted"])
     .eq("listing_kind", "trial")
     .eq("poet_course_id", courseId)
     .order("starts_at", { ascending: true });
@@ -224,7 +224,7 @@ async function loadTrialEventsForCourse(supabase: SupabaseClient, courseId: stri
   const idOnly = await supabase
     .from("events")
     .select("id, slug, title, description, starts_at, poet_course_id")
-    .eq("is_published", true)
+    .in("visibility", ["published", "unlisted"])
     .eq("listing_kind", "trial")
     .eq("poet_course_id", courseId)
     .order("starts_at", { ascending: true });

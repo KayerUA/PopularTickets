@@ -20,6 +20,7 @@ import { rateLimit, clientIp } from "@/lib/security";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { requirePublicAppUrlForP24 } from "@/lib/publicAppUrl";
 import { buildCheckoutReturnPath } from "@/lib/orderReceiptToken";
+import { allowsPublicEventByVisibility } from "@/lib/contentVisibility";
 
 const CheckoutSchema = z.object({
   eventSlug: z.string().min(1),
@@ -68,11 +69,11 @@ export async function createPendingOrder(formData: FormData) {
   const supabase = requireServiceSupabase();
   const { data: event, error: evErr } = await supabase
     .from("events")
-    .select("id,slug,title,price_grosze,total_tickets,is_published,starts_at")
+    .select("id,slug,title,price_grosze,total_tickets,visibility,starts_at")
     .eq("slug", eventSlug)
     .maybeSingle();
 
-  if (evErr || !event || !event.is_published) {
+  if (evErr || !event || !allowsPublicEventByVisibility(String(event.visibility ?? ""))) {
     throw new Error(t("eventNotFound"));
   }
 

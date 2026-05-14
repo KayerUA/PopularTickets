@@ -12,7 +12,7 @@ insert into public.events (
   starts_at,
   price_grosze,
   total_tickets,
-  is_published
+  visibility
 )
 values (
   'improv-swietlica-2026-05-08',
@@ -44,7 +44,7 @@ values (
   timestamptz '2026-05-08T21:00:00+02',
   10000,
   120,
-  true
+  'published'
 )
 on conflict (slug) do update set
   title = excluded.title,
@@ -55,5 +55,5 @@ on conflict (slug) do update set
   starts_at = excluded.starts_at,
   price_grosze = excluded.price_grosze,
   total_tickets = excluded.total_tickets,
-  is_published = excluded.is_published,
+  visibility = excluded.visibility,
   updated_at = now();

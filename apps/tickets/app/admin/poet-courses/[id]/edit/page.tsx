@@ -2,8 +2,9 @@ import { notFound } from "next/navigation";
 import { getServiceSupabase } from "@/lib/supabase/admin";
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { PoetCourseForm, type AdminPoetCourseRow } from "@/components/PoetCourseForm";
+import { parseContentVisibilityFromForm } from "@/lib/contentVisibility";
 
-const SELECT = "id,slug,title,kind,body,is_published,sort_order" as const;
+const SELECT = "id,slug,title,kind,body,visibility,sort_order" as const;
 
 export default async function EditPoetCoursePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -22,7 +23,7 @@ export default async function EditPoetCoursePage({ params }: { params: Promise<{
     title: row.title as string,
     kind: row.kind as AdminPoetCourseRow["kind"],
     body: row.body as string | null,
-    is_published: Boolean(row.is_published),
+    visibility: parseContentVisibilityFromForm(row.visibility),
     sort_order: row.sort_order as number,
   };
 

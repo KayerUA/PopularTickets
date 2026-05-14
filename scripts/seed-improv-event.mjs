@@ -83,7 +83,7 @@ const row = {
   starts_at: "2026-05-08T19:00:00.000Z",
   price_grosze: 10000,
   total_tickets: 120,
-  is_published: true,
+  visibility: "published",
 };
 
 const { data: existing, error: selErr } = await supabase.from("events").select("id").eq("slug", slug).maybeSingle();

@@ -11,13 +11,14 @@ create table if not exists public.poet_course (
   kind text not null
     check (kind in ('improvisation', 'acting', 'playback', 'masterclass', 'other')),
   body text,
-  is_published boolean not null default false,
+  visibility text not null default 'inactive'
+    check (visibility in ('published', 'unlisted', 'inactive')),
   sort_order int not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
-create index if not exists poet_course_published_idx on public.poet_course (is_published, sort_order);
+create index if not exists poet_course_visibility_sort_idx on public.poet_course (visibility, sort_order);
 
 create table if not exists public.poet_trial_slot (
   id uuid primary key default gen_random_uuid(),
@@ -54,7 +55,7 @@ alter table public.poet_trial_slot enable row level security;
 drop policy if exists "poet_course_select_published" on public.poet_course;
 create policy "poet_course_select_published"
   on public.poet_course for select to anon, authenticated
-  using (is_published = true);
+  using (visibility in ('published', 'unlisted'));
 
 drop policy if exists "poet_trial_slot_select_published" on public.poet_trial_slot;
 create policy "poet_trial_slot_select_published"

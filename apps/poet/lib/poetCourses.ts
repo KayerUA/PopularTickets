@@ -6,6 +6,7 @@ export type PoetCourseRow = {
   title: string;
   kind: "improvisation" | "acting" | "playback" | "masterclass" | "other";
   body: string | null;
+  visibility: "published" | "unlisted" | "inactive";
 };
 
 export async function fetchPublishedPoetCourses(): Promise<PoetCourseRow[]> {
@@ -14,8 +15,8 @@ export async function fetchPublishedPoetCourses(): Promise<PoetCourseRow[]> {
 
   const { data, error } = await supabase
     .from("poet_course")
-    .select("id, slug, title, kind, body")
-    .eq("is_published", true)
+    .select("id, slug, title, kind, body, visibility")
+    .eq("visibility", "published")
     .order("sort_order", { ascending: true });
 
   if (error) {
@@ -32,8 +33,8 @@ export async function fetchPublishedPoetCourseBySlug(slug: string): Promise<Poet
 
   const { data, error } = await supabase
     .from("poet_course")
-    .select("id, slug, title, kind, body")
-    .eq("is_published", true)
+    .select("id, slug, title, kind, body, visibility")
+    .in("visibility", ["published", "unlisted"])
     .eq("slug", slug)
     .maybeSingle();
 

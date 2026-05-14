@@ -5,9 +5,10 @@ import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { EventForm, type AdminEventRow } from "@/components/EventForm";
 import { fetchPoetCourseSelectOptions } from "@/lib/fetchPoetCourseSelectOptions";
 import { isEventsPoetCourseIdUnavailable } from "@/lib/supabase/eventsPoetCourseColumn";
+import { parseContentVisibilityFromForm } from "@/lib/contentVisibility";
 
 const ADMIN_EVENT_SELECT_BASE =
-  "id,slug,title,description,image_url,venue,starts_at,price_grosze,total_tickets,is_published,listing_kind" as const;
+  "id,slug,title,description,image_url,venue,starts_at,price_grosze,total_tickets,visibility,listing_kind" as const;
 const ADMIN_EVENT_SELECT_FULL = `${ADMIN_EVENT_SELECT_BASE},poet_course_id` as const;
 
 export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
@@ -47,7 +48,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
     starts_at: event.starts_at as string,
     price_grosze: event.price_grosze as number,
     total_tickets: event.total_tickets as number,
-    is_published: event.is_published as boolean,
+    visibility: parseContentVisibilityFromForm(event.visibility),
     listing_kind: (event.listing_kind as "performance" | "trial") ?? "performance",
     poet_course_id: (event.poet_course_id as string | null | undefined) ?? null,
   };

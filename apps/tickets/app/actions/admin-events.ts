@@ -9,6 +9,7 @@ import { uploadEventCoverImage } from "@/lib/supabase/eventImageUpload";
 import { requireAdmin } from "@/lib/adminGuard";
 import { routing } from "@/i18n/routing";
 import { isEventsPoetCourseIdUnavailable } from "@/lib/supabase/eventsPoetCourseColumn";
+import { contentVisibilitySchema } from "@/lib/contentVisibility";
 
 export type UpsertEventState = { error: string } | null;
 
@@ -42,10 +43,7 @@ const EventSchema = z.object({
   startsAt: z.string().min(1),
   pricePln: z.coerce.number().positive(),
   totalTickets: z.coerce.number().int().min(1).max(5000),
-  isPublished: z.preprocess(
-    (v) => v === "on" || v === true || v === "true",
-    z.boolean()
-  ).default(false),
+  visibility: contentVisibilitySchema.default("inactive"),
   listingKind: z.enum(["performance", "trial"]).default("performance"),
   poetCourseId: z.preprocess(
     (v) => (typeof v === "string" && v.trim() !== "" ? v.trim() : undefined),
@@ -81,7 +79,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       startsAt: formData.get("startsAt"),
       pricePln: formData.get("pricePln"),
       totalTickets: formData.get("totalTickets"),
-      isPublished: formData.get("isPublished"),
+      visibility: formData.get("visibility") || "inactive",
       listingKind: formData.get("listingKind") || "performance",
       poetCourseId: formData.get("poetCourseId"),
     });
@@ -92,7 +90,6 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
 
     const v = parsed.data;
     const priceGrosze = groszeFromPln(v.pricePln);
-    const isPublished = Boolean(v.isPublished);
 
     const supabase = requireServiceSupabase();
 
@@ -111,7 +108,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       starts_at: new Date(v.startsAt).toISOString(),
       price_grosze: priceGrosze,
       total_tickets: v.totalTickets,
-      is_published: isPublished,
+      visibility: v.visibility,
       listing_kind: v.listingKind,
       poet_course_id: v.listingKind === "trial" && v.poetCourseId ? v.poetCourseId : null,
     };

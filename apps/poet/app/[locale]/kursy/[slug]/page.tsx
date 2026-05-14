@@ -53,6 +53,8 @@ export async function generateMetadata({ params }: PageProps) {
       ? [{ url: `${base}${tMeta("ogImagePath")}`, width: 1200, height: 630, alt: tMeta("ogImageAlt") }]
       : undefined;
 
+  const robots =
+    course?.visibility === "unlisted" ? ({ index: false, follow: true } as const) : undefined;
   return buildPoetPageMetadata({
     locale: locale as AppLocale,
     path,
@@ -63,6 +65,7 @@ export async function generateMetadata({ params }: PageProps) {
       .map((s) => s.trim())
       .filter(Boolean),
     ogImages,
+    robots,
   });
 }
 

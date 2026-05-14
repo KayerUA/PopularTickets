@@ -10,7 +10,7 @@ export default async function AdminHome() {
   }
   const { data: events, error } = await supabase
     .from("events")
-    .select("id,slug,title,starts_at,is_published,total_tickets,listing_kind")
+    .select("id,slug,title,starts_at,visibility,total_tickets,listing_kind")
     .order("starts_at", { ascending: false });
 
   if (error) {
@@ -67,10 +67,12 @@ export default async function AdminHome() {
                   {ev.sold}/{ev.total_tickets}
                 </td>
                 <td className="px-4 py-3">
-                  {ev.is_published ? (
+                  {(ev as { visibility?: string }).visibility === "published" ? (
                     <span className="text-poet-gold-bright">опубликовано</span>
+                  ) : (ev as { visibility?: string }).visibility === "unlisted" ? (
+                    <span className="text-amber-200/90">только ссылка</span>
                   ) : (
-                    <span className="text-zinc-500">черновик</span>
+                    <span className="text-zinc-500">не активен</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-right">

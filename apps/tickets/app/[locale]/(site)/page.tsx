@@ -45,7 +45,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
   const { data: events, error } = await supabase
     .from("events")
     .select("id,slug,title,venue,starts_at,price_grosze,image_url,total_tickets,listing_kind")
-    .eq("is_published", true)
+    .eq("visibility", "published")
     .eq("listing_kind", "performance")
     .order("starts_at", { ascending: true });
 

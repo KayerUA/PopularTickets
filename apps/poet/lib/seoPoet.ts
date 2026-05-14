@@ -46,6 +46,7 @@ export type PoetPageMetaInput = {
   description: string;
   keywords?: string[];
   ogImages?: { url: string; width?: number; height?: number; alt?: string }[];
+  robots?: Metadata["robots"];
 };
 
 export function buildPoetPageMetadata(input: PoetPageMetaInput): Metadata {
@@ -89,7 +90,7 @@ export function buildPoetPageMetadata(input: PoetPageMetaInput): Metadata {
       description: input.description,
       ...(input.ogImages?.length ? { images: input.ogImages.map((i) => i.url) } : {}),
     },
-    robots: { index: true, follow: true },
+    robots: input.robots ?? { index: true, follow: true },
     other: { ...GEO_OTHER },
     category: "entertainment",
   };

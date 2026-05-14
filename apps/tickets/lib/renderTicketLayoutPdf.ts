@@ -99,8 +99,24 @@ function dataUrlPngToBytes(dataUrl: string): Uint8Array {
   return Uint8Array.from(Buffer.from(m[1], "base64"));
 }
 
+/** Работает при hoisted `node_modules` в корне монорепо (не только `cwd/node_modules`). */
 function dejavuPath(file: "DejaVuSans.ttf" | "DejaVuSans-Bold.ttf"): string {
-  return path.join(process.cwd(), "node_modules/dejavu-fonts-ttf/ttf", file);
+  const cwd = process.cwd();
+  const segments = ["node_modules", "dejavu-fonts-ttf", "ttf", file] as const;
+  const candidates = [
+    path.join(cwd, ...segments),
+    path.join(cwd, "..", ...segments),
+    path.join(cwd, "..", "..", ...segments),
+    path.join(cwd, "..", "..", "..", ...segments),
+  ];
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) return p;
+    } catch {
+      /* ignore */
+    }
+  }
+  throw new Error(`ticket pdf: не найден шрифт DejaVu (${file}), cwd=${cwd}`);
 }
 
 /** Логотип для PDF (fs — нужен outputFileTracingIncludes на Vercel). */

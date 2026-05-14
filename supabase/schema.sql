@@ -22,13 +22,13 @@ create table if not exists public.events (
   starts_at timestamptz not null,
   price_grosze int not null check (price_grosze > 0),
   total_tickets int not null check (total_tickets > 0),
-  is_published boolean not null default false,
+  visibility text not null default 'inactive' check (visibility in ('published', 'unlisted', 'inactive')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 create index if not exists events_starts_at_idx on public.events (starts_at);
-create index if not exists events_published_idx on public.events (is_published);
+create index if not exists events_visibility_idx on public.events (visibility);
 
 alter table public.events add column if not exists maps_url text;
 
@@ -39,8 +39,8 @@ alter table public.events
 comment on column public.events.listing_kind is
   'performance = афіша виступів на PopularTickets; trial = пробний слот на popularpoet.pl (оплата на тій же події).';
 
-create index if not exists events_listing_published_starts_idx
-  on public.events (listing_kind, is_published, starts_at);
+create index if not exists events_listing_visibility_starts_idx
+  on public.events (listing_kind, visibility, starts_at);
 
 -- Заказы
 create table if not exists public.orders (
@@ -150,7 +150,7 @@ grant execute on function public.pt_event_maps_url(uuid) to service_role;
 revoke all on function public.pt_event_set_maps_url(uuid, text) from public;
 grant execute on function public.pt_event_set_maps_url(uuid, text) to service_role;
 
--- RLS: заказы/билеты — только service role. События: публичный SELECT опубликованных (для popularpoet.pl + SSR).
+-- RLS: заказы/билеты — только service role. События: anon видит published + unlisted (списки в приложении фильтруют только published).
 alter table public.events enable row level security;
 alter table public.orders enable row level security;
 alter table public.tickets enable row level security;
@@ -159,6 +159,6 @@ alter table public.checkins enable row level security;
 drop policy if exists "events_select_published" on public.events;
 create policy "events_select_published"
   on public.events for select to anon, authenticated
-  using (is_published = true);
+  using (visibility in ('published', 'unlisted'));
 
 grant select on public.events to anon, authenticated;

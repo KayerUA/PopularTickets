@@ -6,14 +6,20 @@ export type PoetCourseSelectOption = {
   title: string;
 };
 
-/** Для формы события: привязка пробного к курсу на popularpoet.pl (все курсы, включая черновики). */
+function optionLabel(title: string, visibility: string): string {
+  if (visibility === "published") return title;
+  if (visibility === "unlisted") return `${title} (только ссылка)`;
+  return `${title} (не активен)`;
+}
+
+/** Для формы события: привязка пробного к курсу на popularpoet.pl (все курсы). */
 export async function fetchPoetCourseSelectOptions(): Promise<PoetCourseSelectOption[]> {
   const supabase = getServiceSupabase();
   if (!supabase) return [];
 
   const { data, error } = await supabase
     .from("poet_course")
-    .select("id, slug, title, is_published")
+    .select("id, slug, title, visibility")
     .order("sort_order", { ascending: true });
 
   if (error) {
@@ -24,6 +30,6 @@ export async function fetchPoetCourseSelectOptions(): Promise<PoetCourseSelectOp
   return (data ?? []).map((row) => ({
     id: row.id as string,
     slug: row.slug as string,
-    title: row.is_published ? (row.title as string) : `${row.title as string} (черновик)`,
+    title: optionLabel(row.title as string, String(row.visibility ?? "inactive")),
   }));
 }

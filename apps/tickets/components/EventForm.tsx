@@ -5,6 +5,7 @@ import { upsertEvent, type UpsertEventState } from "@/app/actions/admin-events";
 import { toDatetimeLocalValue } from "@/lib/datetime";
 import type { PoetCourseSelectOption } from "@/lib/fetchPoetCourseSelectOptions";
 import { POPULAR_POET_THEATRE_MAPS_URL, POPULAR_POET_TRIAL_VENUE_PL } from "@/lib/theatreVenueDefaults";
+import type { ContentVisibility } from "@/lib/contentVisibility";
 
 export type AdminEventRow = {
   id: string;
@@ -17,7 +18,7 @@ export type AdminEventRow = {
   starts_at: string;
   price_grosze: number;
   total_tickets: number;
-  is_published: boolean;
+  visibility: ContentVisibility;
   listing_kind: "performance" | "trial";
   poet_course_id?: string | null;
 };
@@ -34,6 +35,7 @@ export function EventForm({
   const pricePlnDefault = event ? (event.price_grosze / 100).toFixed(2) : "50.00";
   const [state, formAction, pending] = useActionState(upsertEvent, initialUpsertState);
   const [listingKind, setListingKind] = useState<"performance" | "trial">(event?.listing_kind ?? "performance");
+  const defaultVisibility: ContentVisibility = event?.visibility ?? "inactive";
 
   const venueFieldKey = event ? `venue-${event.id}` : `venue-${listingKind}`;
   const mapsFieldKey = event ? `maps-${event.id}` : `maps-${listingKind}`;
@@ -86,7 +88,7 @@ export function EventForm({
             <option value="trial">Пробный урок — календарь на popularpoet.pl, оплата на этом событии</option>
           </select>
           <p className="mt-1 text-xs text-zinc-500">
-            Пробные не показываются на главной PopularTickets. На popularpoet.pl слот появится только если включено «Опубликовать» и выбран тип «Пробный урок». Привязка к курсу — после SQL{" "}
+            Пробные не показываются на главной PopularTickets. На popularpoet.pl слот появится только при видимости «Опубликован» и типе «Пробный урок». Привязка к курсу — после SQL{" "}
             <code className="rounded bg-zinc-900 px-1 font-mono text-zinc-400">add-events-poet-course-id-column.sql</code>{" "}
             (или полный <code className="rounded bg-zinc-900 px-1 font-mono text-zinc-400">add-poet-course-masterclass-and-event-fk.sql</code>
             ); если после SQL ошибка про schema cache — в Supabase: Settings → API → Reload schema.
@@ -94,7 +96,7 @@ export function EventForm({
         </label>
         {listingKind === "trial" && !event ? (
           <p className="rounded-lg border border-amber-500/30 bg-amber-950/25 px-3 py-2 text-xs text-amber-100/95 sm:col-span-2">
-            Чтобы событие сразу попало в календарь пробных на popularpoet.pl, отметьте галочку «Опубликовать» перед сохранением.
+            Чтобы событие сразу попало в календарь пробных на popularpoet.pl, в блоке «Видимость» выберите «Опубликован» перед сохранением.
           </p>
         ) : null}
         {listingKind === "trial" && poetCourseOptions.length > 0 ? (
@@ -209,15 +211,54 @@ export function EventForm({
             className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-zinc-300 sm:col-span-2">
-          <span className="flex items-center gap-2">
-            <input type="checkbox" name="isPublished" defaultChecked={event?.is_published ?? false} />
-            Опубликовать
-          </span>
-          <span className="pl-7 text-xs text-zinc-500">
-            Для спектакля / шоу — в афише PopularTickets; для пробного — в календаре на popularpoet.pl (оплата на этом же slug в кассе).
-          </span>
-        </label>
+        <fieldset className="space-y-2 sm:col-span-2">
+          <legend className="text-sm text-zinc-300">Видимость</legend>
+          <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-poet-gold/15 bg-zinc-950/40 px-3 py-2 text-sm text-zinc-200 has-[:checked]:border-poet-gold/40">
+            <input
+              type="radio"
+              name="visibility"
+              value="published"
+              className="mt-1"
+              defaultChecked={defaultVisibility === "published"}
+            />
+            <span>
+              <span className="font-medium text-zinc-100">Опубликован</span>
+              <span className="mt-0.5 block text-xs text-zinc-500">
+                В афише PopularTickets (спектакли). Для пробного — в календаре на popularpoet.pl.
+              </span>
+            </span>
+          </label>
+          <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-poet-gold/15 bg-zinc-950/40 px-3 py-2 text-sm text-zinc-200 has-[:checked]:border-poet-gold/40">
+            <input
+              type="radio"
+              name="visibility"
+              value="unlisted"
+              className="mt-1"
+              defaultChecked={defaultVisibility === "unlisted"}
+            />
+            <span>
+              <span className="font-medium text-zinc-100">Только по ссылке</span>
+              <span className="mt-0.5 block text-xs text-zinc-500">
+                Не в списках на сайте; страница события и оплата открываются по прямой ссылке (без индекса в поиске).
+              </span>
+            </span>
+          </label>
+          <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-poet-gold/15 bg-zinc-950/40 px-3 py-2 text-sm text-zinc-200 has-[:checked]:border-poet-gold/40">
+            <input
+              type="radio"
+              name="visibility"
+              value="inactive"
+              className="mt-1"
+              defaultChecked={defaultVisibility === "inactive"}
+            />
+            <span>
+              <span className="font-medium text-zinc-100">Не активен</span>
+              <span className="mt-0.5 block text-xs text-zinc-500">
+                Скрыто: публичная страница события недоступна, оплата недоступна.
+              </span>
+            </span>
+          </label>
+        </fieldset>
       </div>
       <button type="submit" disabled={pending} className="btn-poet poet-shine px-8 disabled:opacity-50">
         {pending ? "Сохранение…" : "Сохранить"}

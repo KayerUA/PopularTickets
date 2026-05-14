@@ -65,6 +65,8 @@ export async function generateMetadata({
     event.title,
     event.venue,
   ];
+  const robots =
+    event.visibility === "unlisted" ? ({ index: false, follow: true } as const) : undefined;
   return buildPublicPageMetadata({
     locale,
     path: `/events/${slug}`,
@@ -73,6 +75,7 @@ export async function generateMetadata({
     keywords: [...new Set(keywords)].slice(0, 24),
     ogType: "article",
     ogImages,
+    robots,
   });
 }
 

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/adminGuard";
+import { contentVisibilitySchema } from "@/lib/contentVisibility";
 
 export type UpsertPoetCourseState = { error: string } | null;
 
@@ -18,7 +19,7 @@ const PoetCourseSchema = z.object({
   title: z.string().min(2).max(200),
   kind: z.enum(["improvisation", "acting", "playback", "masterclass", "other"]),
   body: z.string().max(20000).optional().default(""),
-  isPublished: z.preprocess((v) => v === "on" || v === true || v === "true", z.boolean()).default(false),
+  visibility: contentVisibilitySchema.default("inactive"),
   sortOrder: z.coerce.number().int().min(0).max(9999).default(0),
 });
 
@@ -41,7 +42,7 @@ export async function upsertPoetCourse(_prev: UpsertPoetCourseState, formData: F
       title: formData.get("title"),
       kind: formData.get("kind"),
       body: formData.get("body") || "",
-      isPublished: formData.get("isPublished"),
+      visibility: formData.get("visibility") || "inactive",
       sortOrder: formData.get("sortOrder"),
     });
 
@@ -57,7 +58,7 @@ export async function upsertPoetCourse(_prev: UpsertPoetCourseState, formData: F
       title: v.title,
       kind: v.kind,
       body: v.body || null,
-      is_published: Boolean(v.isPublished),
+      visibility: v.visibility,
       sort_order: v.sortOrder,
     };
 

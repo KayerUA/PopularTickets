@@ -1,7 +1,8 @@
 -- Одноразовый сид Popular Poet: 4 курса (по направлению) + 4 пробных события (по одному на курс).
 -- Дальше контент только вручную через админку — этот файл просто «разворачивает» стартовый набор один раз.
 --
--- Условия: уже выполнены schema.sql, courses-poet.sql, add-events-listing-kind.sql
+-- Условия: уже выполнены schema.sql, courses-poet.sql, add-events-listing-kind.sql,
+--         add-content-visibility.sql (колонка visibility вместо is_published),
 --         и миграция с колонкой events.poet_course_id (add-events-poet-course-id-column.sql
 --         или add-poet-course-masterclass-and-event-fk.sql).
 --
@@ -11,14 +12,14 @@
 -- чтобы страница /{locale}/events/{slug} открывала картинку на том же домене.
 
 -- ─── Курсы (slug совпадают с popularpoet.pl /kursy/{slug}) ─────────────────
-insert into public.poet_course (slug, title, kind, body, is_published, sort_order)
+insert into public.poet_course (slug, title, kind, body, visibility, sort_order)
 values
   (
     'improv',
     'Актёрская импровизация',
     'improvisation',
     'Сцена «здесь и сейчас», форматы и зритель — без заученного текста. Пробное: оплата на PopularTickets.',
-    true,
+    'published',
     10
   ),
   (
@@ -26,7 +27,7 @@ values
     'Актёрское мастерство',
     'acting',
     'Голос, текст и присутствие на сцене. Пробное: оплата на PopularTickets.',
-    true,
+    'published',
     20
   ),
   (
@@ -34,7 +35,7 @@ values
     'Мастер-классы',
     'masterclass',
     'Сжатый интенсив по теме. Пробное: оплата на PopularTickets.',
-    true,
+    'published',
     30
   ),
   (
@@ -42,14 +43,14 @@ values
     'Группы PLAY-BACK',
     'playback',
     'Музыка, движение и истории зрителей на сцене. Пробное: оплата на PopularTickets.',
-    true,
+    'published',
     40
   )
 on conflict (slug) do update set
   title = excluded.title,
   kind = excluded.kind,
   body = excluded.body,
-  is_published = excluded.is_published,
+  visibility = excluded.visibility,
   sort_order = excluded.sort_order,
   updated_at = now();
 
@@ -65,7 +66,7 @@ insert into public.events (
   starts_at,
   price_grosze,
   total_tickets,
-  is_published,
+  visibility,
   listing_kind,
   poet_course_id
 )
@@ -84,7 +85,7 @@ values
     (now() at time zone 'utc') + interval '10 days',
     5000,
     24,
-    true,
+    'published',
     'trial',
     (select id from public.poet_course where slug = 'improv' limit 1)
   ),
@@ -102,7 +103,7 @@ values
     (now() at time zone 'utc') + interval '11 days',
     5000,
     24,
-    true,
+    'published',
     'trial',
     (select id from public.poet_course where slug = 'acting' limit 1)
   ),
@@ -120,7 +121,7 @@ values
     (now() at time zone 'utc') + interval '12 days',
     5000,
     24,
-    true,
+    'published',
     'trial',
     (select id from public.poet_course where slug = 'masterclass' limit 1)
   ),
@@ -138,7 +139,7 @@ values
     (now() at time zone 'utc') + interval '13 days',
     5000,
     24,
-    true,
+    'published',
     'trial',
     (select id from public.poet_course where slug = 'playback' limit 1)
   )
@@ -151,7 +152,7 @@ on conflict (slug) do update set
   starts_at = excluded.starts_at,
   price_grosze = excluded.price_grosze,
   total_tickets = excluded.total_tickets,
-  is_published = excluded.is_published,
+  visibility = excluded.visibility,
   listing_kind = excluded.listing_kind,
   poet_course_id = excluded.poet_course_id,
   updated_at = now();

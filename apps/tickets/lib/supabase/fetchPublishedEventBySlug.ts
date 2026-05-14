@@ -3,7 +3,7 @@ import { fetchOptionalMapsUrl } from "@/lib/supabase/fetchOptionalMapsUrl";
 
 /** Без maps_url — иначе при «schema cache» без колонки падает весь запрос. */
 const EVENT_SELECT_PUBLIC =
-  "id,slug,title,description,image_url,venue,starts_at,price_grosze,total_tickets,listing_kind" as const;
+  "id,slug,title,description,image_url,venue,starts_at,price_grosze,total_tickets,listing_kind,visibility" as const;
 
 export type PublishedEventRow = {
   id: string;
@@ -18,6 +18,8 @@ export type PublishedEventRow = {
   total_tickets: number;
   /** `performance` — спектакль/шоу; `trial` — пробное / вводное занятие. */
   listing_kind: string | null;
+  /** `published` — в афіші; `unlisted` — лише за прямим посиланням; `inactive` — не повинен потрапляти сюди. */
+  visibility: string;
 };
 
 /**
@@ -31,7 +33,7 @@ export async function fetchPublishedEventBySlug(
     .from("events")
     .select(EVENT_SELECT_PUBLIC)
     .eq("slug", slug)
-    .eq("is_published", true)
+    .in("visibility", ["published", "unlisted"])
     .maybeSingle();
 
   if (main.error) {
@@ -49,5 +51,9 @@ export async function fetchPublishedEventBySlug(
     typeof (row as { listing_kind?: unknown }).listing_kind === "string"
       ? ((row as { listing_kind: string }).listing_kind as string)
       : null;
-  return { data: { ...row, description, maps_url: mapsUrl, listing_kind }, error: null };
+  const visibility =
+    typeof (row as { visibility?: unknown }).visibility === "string"
+      ? String((row as { visibility: string }).visibility)
+      : "inactive";
+  return { data: { ...row, description, maps_url: mapsUrl, listing_kind, visibility }, error: null };
 }

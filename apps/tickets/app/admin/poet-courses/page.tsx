@@ -10,7 +10,7 @@ export default async function AdminPoetCoursesPage() {
 
   const { data: rows, error } = await supabase
     .from("poet_course")
-    .select("id,slug,title,kind,sort_order,is_published")
+    .select("id,slug,title,kind,sort_order,visibility")
     .order("sort_order", { ascending: true });
 
   if (error) {
@@ -53,10 +53,12 @@ export default async function AdminPoetCoursesPage() {
                 <td className="px-4 py-3 text-zinc-400">{r.kind as string}</td>
                 <td className="px-4 py-3 font-mono text-xs text-zinc-500">{r.slug as string}</td>
                 <td className="px-4 py-3">
-                  {r.is_published ? (
+                  {(r as { visibility?: string }).visibility === "published" ? (
                     <span className="text-poet-gold-bright">опубликовано</span>
+                  ) : (r as { visibility?: string }).visibility === "unlisted" ? (
+                    <span className="text-amber-200/90">только ссылка</span>
                   ) : (
-                    <span className="text-zinc-500">черновик</span>
+                    <span className="text-zinc-500">не активен</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-right">
