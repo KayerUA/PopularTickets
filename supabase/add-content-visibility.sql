@@ -1,12 +1,16 @@
--- Три состояния видимости вместо булева is_published:
---   published  — в списках на сайте (афиша, курсы на Poet)
---   unlisted   — не в списках, но страница по прямой ссылке и оплата (PopularTickets checkout)
---   inactive   — скрыто: 404 на странице события / курса на Poet; оплата недоступна
---
--- После выполнения в Supabase: Settings → API → Reload schema cache.
--- Anon RLS: по-прежнему только строки visibility = 'published' (unlisted читает только service role на Tickets).
+/*
+  Три состояния видимости вместо булева is_published:
+    published  — в списках на сайте (афиша, курсы на Poet)
+    unlisted   — не в списках, но страница по прямой ссылке и оплата (PopularTickets checkout)
+    inactive   — скрыто: 404 на странице события / курса на Poet; оплата недоступна
 
--- ─── events ───────────────────────────────────────────────────────────
+  После выполнения в Supabase: Settings → API → Reload schema cache.
+  Anon RLS: строки visibility in (published, unlisted); списки в приложении фильтруют только published.
+
+  Важно: сначала снимаем RLS/индексы, зависящие от is_published, затем удаляем колонку.
+*/
+
+-- events: колонка и данные
 alter table public.events add column if not exists visibility text;
 
 update public.events
@@ -27,21 +31,22 @@ alter table public.events
 comment on column public.events.visibility is
   'published = в афіші; unlisted = лише за прямим посиланням; inactive = приховано з сайту.';
 
-alter table public.events drop column if exists is_published;
-
+-- events: индексы и политика, которые ссылаются на is_published, — до drop column
 drop index if exists events_listing_published_starts_idx;
-create index if not exists events_listing_visibility_starts_idx
-  on public.events (listing_kind, visibility, starts_at);
-
 drop index if exists events_published_idx;
-create index if not exists events_visibility_idx on public.events (visibility);
 
 drop policy if exists "events_select_published" on public.events;
 create policy "events_select_published"
   on public.events for select to anon, authenticated
   using (visibility in ('published', 'unlisted'));
 
--- ─── poet_course ──────────────────────────────────────────────────────
+alter table public.events drop column if exists is_published;
+
+create index if not exists events_listing_visibility_starts_idx
+  on public.events (listing_kind, visibility, starts_at);
+create index if not exists events_visibility_idx on public.events (visibility);
+
+-- poet_course: колонка и данные
 alter table public.poet_course add column if not exists visibility text;
 
 update public.poet_course
@@ -62,12 +67,14 @@ alter table public.poet_course
 comment on column public.poet_course.visibility is
   'published = на главной Poet; unlisted = только страница /kursy/{slug}; inactive = скрыт.';
 
-alter table public.poet_course drop column if exists is_published;
-
+-- poet_course: индекс и политика до drop column
 drop index if exists poet_course_published_idx;
-create index if not exists poet_course_visibility_sort_idx on public.poet_course (visibility, sort_order);
 
 drop policy if exists "poet_course_select_published" on public.poet_course;
 create policy "poet_course_select_published"
   on public.poet_course for select to anon, authenticated
   using (visibility in ('published', 'unlisted'));
+
+alter table public.poet_course drop column if exists is_published;
+
+create index if not exists poet_course_visibility_sort_idx on public.poet_course (visibility, sort_order);

@@ -27,7 +27,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               className="inline-flex min-h-10 items-center rounded-lg px-2 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright"
               href="/admin/poet-courses"
             >
-              Курси Poet
+              Курсы
             </Link>
             <Link
               className="inline-flex min-h-10 items-center rounded-lg px-2 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright"
