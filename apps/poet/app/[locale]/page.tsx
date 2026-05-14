@@ -81,8 +81,6 @@ export default async function HomePage() {
         <PoetCourseShowcase dbCourses={dbCourses} />
       </section>
 
-      <div id="probny-kalendar" className="scroll-mt-32 sm:scroll-mt-28" aria-hidden />
-      <div id="zajecia-kalendar" className="scroll-mt-32 sm:scroll-mt-28" aria-hidden />
       <section id="schedule" className="mt-14 scroll-mt-32 sm:mt-20 sm:scroll-mt-28">
         <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("calendarTitle")}</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-500">{t("calendarIntro")}</p>

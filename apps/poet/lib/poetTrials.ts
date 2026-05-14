@@ -16,6 +16,48 @@ export type PoetTrialDisplay = {
 
 type PoetCourseJoin = { id: string; slug: string; title: string };
 
+function tidyText(value: string): string {
+  return value.replace(/\s+/g, " ").replace(/\s+([,.!?;:])/g, "$1").trim();
+}
+
+function normalizeTrialTitle(value: string): string {
+  const title = tidyText(value);
+
+  return tidyText(
+    title
+      .replace(/^пробное\s+занятие\s+по\s+/i, "Открытое занятие: ")
+      .replace(/^пробное\s+занятие\b/i, "Открытое занятие")
+      .replace(/^пробный\s+урок\b/i, "Открытое занятие")
+      .replace(/^пробное\s*[:—-]\s*/i, "Открытое занятие: ")
+      .replace(/^пробне\s+заняття\s+з\s+/i, "Відкрите заняття: ")
+      .replace(/^пробне\s+заняття\b/i, "Відкрите заняття")
+      .replace(/^пробний\s+урок\b/i, "Відкрите заняття")
+      .replace(/^пробне\s*[:—-]\s*/i, "Відкрите заняття: ")
+      .replace(/^zaj[eę]cia\s+pr[oó]bne\s+z\s+/i, "Zajęcia otwarte: ")
+      .replace(/^zaj[eę]cia\s+pr[oó]bne\b/i, "Zajęcia otwarte")
+      .replace(/^lekcja\s+pr[oó]bna\b/i, "Zajęcia otwarte")
+      .replace(/^pr[oó]bne\s*[:—-]\s*/i, "Zajęcia otwarte: "),
+  );
+}
+
+function normalizeTrialBody(value: string | null): string | null {
+  if (!value) return null;
+
+  const body = tidyText(value)
+    .replace(/^Пробное:\s*оплата\s+на\s+PopularTickets\.?\s*/i, "")
+    .replace(/^Пробний:\s*оплата\s+на\s+PopularTickets\.?\s*/i, "")
+    .replace(/^Pr[oó]bne:\s*płatność\s+na\s+PopularTickets\.?\s*/i, "")
+    .replace(/^Пробный\s+слот\s+Popular Poet\s+в\s+Варшаве\.?\s*/i, "")
+    .replace(/^Пробний\s+слот\s+Popular Poet\s+у\s+Варшаві\.?\s*/i, "")
+    .replace(/^Pr[oó]bny\s+slot\s+Popular Poet\s+w\s+Warszawie\.?\s*/i, "")
+    .replace(/Вы\s+оформляете\s+билет\s+на\s+PopularTickets:\s*оплата\s+Przelewy24,\s*подтверждение\s+на\s+email\.?\s*/i, "")
+    .replace(/Ви\s+оформлюєте\s+квиток\s+на\s+PopularTickets:\s*оплата\s+Przelewy24,\s*підтвердження\s+на\s+email\.?\s*/i, "")
+    .replace(/Bilet\s+kupujesz\s+na\s+PopularTickets:\s*płatność\s+Przelewy24,\s*potwierdzenie\s+na\s+email\.?\s*/i, "");
+
+  const clean = tidyText(body);
+  return clean.length > 0 ? clean : null;
+}
+
 function nestedOne<T>(v: T | T[] | null | undefined): T | null {
   if (v == null) return null;
   return Array.isArray(v) ? (v[0] ?? null) : v;
@@ -36,8 +78,8 @@ function mapEventRow(r: Record<string, unknown>, mode: "full" | "basic" | "idOnl
   }
   return {
     id: `event:${r.id as string}`,
-    title: r.title as string,
-    body: desc && desc.length > 0 ? desc : null,
+    title: normalizeTrialTitle(r.title as string),
+    body: normalizeTrialBody(desc && desc.length > 0 ? desc : null),
     starts_at: r.starts_at as string,
     slug: r.slug as string,
     courseId,
@@ -61,8 +103,8 @@ function mapSlotRow(raw: Record<string, unknown>, withCourse: boolean, implicitC
   }
   return {
     id: `slot:${raw.id as string}`,
-    title: raw.title as string,
-    body: (raw.body as string | null) ?? null,
+    title: normalizeTrialTitle(raw.title as string),
+    body: normalizeTrialBody((raw.body as string | null) ?? null),
     starts_at: (raw.starts_at as string | null) ?? null,
     slug,
     courseId,
