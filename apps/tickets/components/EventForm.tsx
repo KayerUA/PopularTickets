@@ -86,9 +86,10 @@ export function EventForm({
             <option value="trial">Пробный урок — календарь на popularpoet.pl, оплата на этом событии</option>
           </select>
           <p className="mt-1 text-xs text-zinc-500">
-            Пробные не показываются на главной PopularTickets. На popularpoet.pl слот появится только если включено «Опубликовать» и выбран тип «Пробный урок». Привязка к курсу (страница /kursy/…) — поле ниже, после SQL{" "}
-            <code className="rounded bg-zinc-900 px-1 font-mono text-zinc-400">add-poet-course-masterclass-and-event-fk.sql</code>
-            .
+            Пробные не показываются на главной PopularTickets. На popularpoet.pl слот появится только если включено «Опубликовать» и выбран тип «Пробный урок». Привязка к курсу — после SQL{" "}
+            <code className="rounded bg-zinc-900 px-1 font-mono text-zinc-400">add-events-poet-course-id-column.sql</code>{" "}
+            (или полный <code className="rounded bg-zinc-900 px-1 font-mono text-zinc-400">add-poet-course-masterclass-and-event-fk.sql</code>
+            ); если после SQL ошибка про schema cache — в Supabase: Settings → API → Reload schema.
           </p>
         </label>
         {listingKind === "trial" && !event ? (

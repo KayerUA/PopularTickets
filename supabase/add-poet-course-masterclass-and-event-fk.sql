@@ -14,3 +14,7 @@ create index if not exists events_poet_course_id_idx on public.events (poet_cour
 
 comment on column public.events.poet_course_id is
   'If listing_kind = trial: FK to poet_course for course page trials filter and calendar.';
+
+-- Обновить кэш схемы PostgREST (иначе возможна ошибка про schema cache до перезагрузки API).
+notify pgrst, 'reload schema';
+

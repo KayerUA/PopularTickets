@@ -8,6 +8,7 @@ import { setMapsUrlRpc } from "@/lib/supabase/mapsUrlRpc";
 import { uploadEventCoverImage } from "@/lib/supabase/eventImageUpload";
 import { requireAdmin } from "@/lib/adminGuard";
 import { routing } from "@/i18n/routing";
+import { isEventsPoetCourseIdUnavailable } from "@/lib/supabase/eventsPoetCourseColumn";
 
 export type UpsertEventState = { error: string } | null;
 
@@ -101,7 +102,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       imageUrlFinal = await uploadEventCoverImage(supabase, imageFile, v.slug);
     }
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       slug: v.slug,
       title: v.title,
       description: v.description,
@@ -118,13 +119,32 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
     let eventIdForMaps: string;
 
     if (v.id) {
-      const { error } = await supabase.from("events").update(payload).eq("id", v.id);
+      let error = (await supabase.from("events").update(payload).eq("id", v.id)).error;
+      if (error && isEventsPoetCourseIdUnavailable(error.message)) {
+        const { poet_course_id: _drop, ...withoutCourse } = payload;
+        const r2 = await supabase.from("events").update(withoutCourse).eq("id", v.id);
+        error = r2.error;
+        if (!error) {
+          console.warn(
+            "[upsertEvent] колонка events.poet_course_id недоступна в API — сохранено без привязки к курсу. Выполните supabase/add-events-poet-course-id-column.sql в SQL Editor.",
+          );
+        }
+      }
       if (error) return { error: error.message };
       eventIdForMaps = v.id;
     } else {
-      const { data: inserted, error } = await supabase.from("events").insert(payload).select("id").single();
-      if (error || !inserted?.id) return { error: error?.message ?? "insert events" };
-      eventIdForMaps = inserted.id as string;
+      let ins = await supabase.from("events").insert(payload).select("id").single();
+      if (ins.error && isEventsPoetCourseIdUnavailable(ins.error.message)) {
+        const { poet_course_id: _drop, ...withoutCourse } = payload;
+        ins = await supabase.from("events").insert(withoutCourse).select("id").single();
+        if (!ins.error) {
+          console.warn(
+            "[upsertEvent] колонка events.poet_course_id недоступна в API — событие создано без привязки к курсу. Выполните supabase/add-events-poet-course-id-column.sql в SQL Editor.",
+          );
+        }
+      }
+      if (ins.error || !ins.data?.id) return { error: ins.error?.message ?? "insert events" };
+      eventIdForMaps = ins.data.id as string;
     }
 
     const mapsErr = await setMapsUrlRpc(supabase, eventIdForMaps, v.mapsUrl || null);
