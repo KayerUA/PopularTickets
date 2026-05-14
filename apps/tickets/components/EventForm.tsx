@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { upsertEvent, type UpsertEventState } from "@/app/actions/admin-events";
 import { toDatetimeLocalValue } from "@/lib/datetime";
 import type { PoetCourseSelectOption } from "@/lib/fetchPoetCourseSelectOptions";
+import { POPULAR_POET_THEATRE_MAPS_URL, POPULAR_POET_TRIAL_VENUE_PL } from "@/lib/theatreVenueDefaults";
 
 export type AdminEventRow = {
   id: string;
@@ -33,6 +34,14 @@ export function EventForm({
   const pricePlnDefault = event ? (event.price_grosze / 100).toFixed(2) : "50.00";
   const [state, formAction, pending] = useActionState(upsertEvent, initialUpsertState);
   const [listingKind, setListingKind] = useState<"performance" | "trial">(event?.listing_kind ?? "performance");
+
+  const venueFieldKey = event ? `venue-${event.id}` : `venue-${listingKind}`;
+  const mapsFieldKey = event ? `maps-${event.id}` : `maps-${listingKind}`;
+
+  const defaultVenue =
+    event?.venue ?? (listingKind === "trial" && !event ? POPULAR_POET_TRIAL_VENUE_PL : "");
+  const defaultMaps =
+    event?.maps_url ?? (listingKind === "trial" && !event ? POPULAR_POET_THEATRE_MAPS_URL : "");
 
   return (
     <form action={formAction} encType="multipart/form-data" className="max-w-2xl space-y-5">
@@ -66,31 +75,36 @@ export function EventForm({
           />
         </label>
         <label className="block text-sm text-zinc-300 sm:col-span-2">
-          Тип в публікації
+          Тип публикации
           <select
             name="listingKind"
             defaultValue={event?.listing_kind ?? "performance"}
             onChange={(e) => setListingKind(e.target.value === "trial" ? "trial" : "performance")}
             className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
           >
-            <option value="performance">Виступ / шоу — афіша PopularTickets</option>
-            <option value="trial">Пробний урок — афіша на popularpoet.pl, оплата на цій події</option>
+            <option value="performance">Спектакль / шоу — афиша PopularTickets</option>
+            <option value="trial">Пробный урок — календарь на popularpoet.pl, оплата на этом событии</option>
           </select>
           <p className="mt-1 text-xs text-zinc-500">
-            Пробні не показуються на головній квиткового сайту. Для картки курсу на popularpoet.pl оберіть курс у полі нижче (після SQL{" "}
+            Пробные не показываются на главной PopularTickets. На popularpoet.pl слот появится только если включено «Опубликовать» и выбран тип «Пробный урок». Привязка к курсу (страница /kursy/…) — поле ниже, после SQL{" "}
             <code className="rounded bg-zinc-900 px-1 font-mono text-zinc-400">add-poet-course-masterclass-and-event-fk.sql</code>
-            ).
+            .
           </p>
         </label>
+        {listingKind === "trial" && !event ? (
+          <p className="rounded-lg border border-amber-500/30 bg-amber-950/25 px-3 py-2 text-xs text-amber-100/95 sm:col-span-2">
+            Чтобы событие сразу попало в календарь пробных на popularpoet.pl, отметьте галочку «Опубликовать» перед сохранением.
+          </p>
+        ) : null}
         {listingKind === "trial" && poetCourseOptions.length > 0 ? (
           <label className="block text-sm text-zinc-300 sm:col-span-2">
-            Курс на popularpoet.pl (для сторінки /kursy/… і календаря)
+            Курс на popularpoet.pl (страница курса и календарь)
             <select
               name="poetCourseId"
               defaultValue={event?.poet_course_id ?? ""}
               className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
             >
-              <option value="">{"— без прив\u2019язки до курсу —"}</option>
+              <option value="">— без привязки к курсу —</option>
               {poetCourseOptions.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.title} ({c.slug})
@@ -98,7 +112,7 @@ export function EventForm({
               ))}
             </select>
             <p className="mt-1 text-xs text-zinc-500">
-              {"Якщо оберете курс, пробний з\u2019явиться на сторінці цього курсу та в календарі з посиланням на курс."}
+              Если выбрать курс, в календаре появится ссылка на страницу этого курса; сами пробные всё равно проходят в театре по адресу ниже (по умолчанию подставляется польский адрес).
             </p>
           </label>
         ) : null}
@@ -141,19 +155,21 @@ export function EventForm({
         <label className="block text-sm text-zinc-300 sm:col-span-2">
           Ссылка на карту (Google Maps, опционально)
           <input
+            key={mapsFieldKey}
             name="mapsUrl"
             type="url"
-            defaultValue={event?.maps_url ?? ""}
+            defaultValue={defaultMaps}
             className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
             placeholder="https://maps.app.goo.gl/..."
           />
         </label>
         <label className="block text-sm text-zinc-300 sm:col-span-2">
-          Место
+          Место проведения (адрес не переводите — для пробных по умолчанию польский адрес театра)
           <input
+            key={venueFieldKey}
             name="venue"
             required
-            defaultValue={event?.venue}
+            defaultValue={defaultVenue}
             className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
           />
         </label>
@@ -198,7 +214,7 @@ export function EventForm({
             Опубликовать
           </span>
           <span className="pl-7 text-xs text-zinc-500">
-            Для типа «виступ» — у афіші PopularTickets; для «пробний» — у блоці пробних на popularpoet.pl (квиток і оплата на цьому ж slug).
+            Для спектакля / шоу — в афише PopularTickets; для пробного — в календаре на popularpoet.pl (оплата на этом же slug в кассе).
           </span>
         </label>
       </div>

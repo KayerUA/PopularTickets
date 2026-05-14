@@ -28,7 +28,7 @@ export default async function EditPoetCoursePage({ params }: { params: Promise<{
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-2xl font-semibold text-zinc-50">Редагування курсу</h1>
+      <h1 className="font-display text-2xl font-semibold text-zinc-50">Редактирование курса</h1>
       <PoetCourseForm course={course} />
     </div>
   );

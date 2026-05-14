@@ -27,7 +27,7 @@ export function PoetCourseForm({ course }: { course?: AdminPoetCourseRow }) {
       ) : null}
       {course ? <input type="hidden" name="id" value={course.id} /> : null}
       <label className="block text-sm text-zinc-300">
-        Slug (на popularpoet.pl / у базі)
+        Slug (на popularpoet.pl и в базе)
         <input
           name="slug"
           required
@@ -46,21 +46,21 @@ export function PoetCourseForm({ course }: { course?: AdminPoetCourseRow }) {
         />
       </label>
       <label className="block text-sm text-zinc-300">
-        Напрямок (для картки й фото)
+        Направление (карточка и фото)
         <select
           name="kind"
           defaultValue={course?.kind ?? "improvisation"}
           className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
         >
-          <option value="improvisation">Імпровізація</option>
-          <option value="acting">Акторська майстерність</option>
+          <option value="improvisation">Импровизация</option>
+          <option value="acting">Актёрское мастерство</option>
           <option value="playback">PLAY-BACK</option>
-          <option value="masterclass">Майстер-класи</option>
-          <option value="other">Інше</option>
+          <option value="masterclass">Мастер-классы</option>
+          <option value="other">Другое</option>
         </select>
       </label>
       <label className="block text-sm text-zinc-300">
-        Текст на картці
+        Текст на карточке
         <textarea
           name="body"
           rows={6}
@@ -69,7 +69,7 @@ export function PoetCourseForm({ course }: { course?: AdminPoetCourseRow }) {
         />
       </label>
       <label className="block text-sm text-zinc-300">
-        Порядок (менше — вище)
+        Порядок (меньше — выше в списке)
         <input
           name="sortOrder"
           type="number"
@@ -82,11 +82,11 @@ export function PoetCourseForm({ course }: { course?: AdminPoetCourseRow }) {
       <label className="flex flex-col gap-1 text-sm text-zinc-300">
         <span className="flex items-center gap-2">
           <input type="checkbox" name="isPublished" defaultChecked={course?.is_published ?? false} />
-          Опубликовать на popularpoet.pl (головна, блок курсів)
+          Опубликовать на popularpoet.pl (главная, блок курсов)
         </span>
       </label>
       <button type="submit" disabled={pending} className="btn-poet poet-shine px-8 disabled:opacity-50">
-        {pending ? "Збереження…" : "Зберегти"}
+        {pending ? "Сохранение…" : "Сохранить"}
       </button>
     </form>
   );

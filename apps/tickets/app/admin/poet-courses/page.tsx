@@ -16,8 +16,8 @@ export default async function AdminPoetCoursesPage() {
   if (error) {
     return (
       <p className="text-red-400">
-        {error.message} — виконайте SQL <code className="font-mono">supabase/courses-poet.sql</code>, якщо таблиці ще
-        немає.
+        {error.message} — выполните SQL <code className="font-mono">supabase/courses-poet.sql</code>, если таблицы ещё
+        нет.
       </p>
     );
   }
@@ -26,11 +26,11 @@ export default async function AdminPoetCoursesPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-zinc-50">Курси Popular Poet</h1>
-          <p className="text-sm text-zinc-500">Головна popularpoet.pl — три напрями та текст карток.</p>
+          <h1 className="font-display text-2xl font-semibold text-zinc-50">Курсы Popular Poet</h1>
+          <p className="text-sm text-zinc-500">Главная popularpoet.pl — направления и текст карточек.</p>
         </div>
         <Link href="/admin/poet-courses/new" className="btn-poet poet-shine px-5 py-2 text-sm">
-          Додати курс
+          Добавить курс
         </Link>
       </div>
       <div className="overflow-x-auto rounded-2xl border border-poet-gold/15">
@@ -38,7 +38,7 @@ export default async function AdminPoetCoursesPage() {
           <thead className="bg-zinc-900/80 text-xs uppercase text-zinc-500">
             <tr>
               <th className="px-4 py-3">Порядок</th>
-              <th className="px-4 py-3">Назва</th>
+              <th className="px-4 py-3">Название</th>
               <th className="px-4 py-3">Тип</th>
               <th className="px-4 py-3">Slug</th>
               <th className="px-4 py-3">Статус</th>
@@ -54,14 +54,14 @@ export default async function AdminPoetCoursesPage() {
                 <td className="px-4 py-3 font-mono text-xs text-zinc-500">{r.slug as string}</td>
                 <td className="px-4 py-3">
                   {r.is_published ? (
-                    <span className="text-poet-gold-bright">опубліковано</span>
+                    <span className="text-poet-gold-bright">опубликовано</span>
                   ) : (
-                    <span className="text-zinc-500">чернетка</span>
+                    <span className="text-zinc-500">черновик</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <Link href={`/admin/poet-courses/${r.id}/edit`} className="text-poet-gold hover:text-poet-gold-bright">
-                    Змінити
+                    Изменить
                   </Link>
                 </td>
               </tr>

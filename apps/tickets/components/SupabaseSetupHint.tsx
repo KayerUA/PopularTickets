@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { routing, type AppLocale } from "@/i18n/routing";
+import type { AppLocale } from "@/i18n/routing";
 
 type Variant = "setup" | "disconnected";
 
@@ -10,7 +10,8 @@ const titleKey: Record<Variant, "titleSetup" | "titleDisconnected"> = {
 };
 
 export async function SupabaseSetupHint({ variant, locale }: { variant: Variant; locale?: AppLocale }) {
-  const loc = locale ?? routing.defaultLocale;
+  /** Админка без префикса локали — тексты на русском (см. messages/ru.json → SupabaseHint). */
+  const loc = locale ?? ("ru" as AppLocale);
   const t = await getTranslations({ locale: loc, namespace: "SupabaseHint" });
 
   return (

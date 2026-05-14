@@ -59,7 +59,7 @@ export default async function AdminHome() {
               return (
               <tr key={ev.id} className="bg-zinc-950/40">
                 <td className="px-4 py-3 text-zinc-400">
-                  {listingKind === "trial" ? "пробний" : "виступ"}
+                  {listingKind === "trial" ? "пробный" : "спектакль / шоу"}
                 </td>
                 <td className="px-4 py-3 text-white">{ev.title}</td>
                 <td className="px-4 py-3 text-zinc-400">{formatPlDateTime(ev.starts_at)}</td>

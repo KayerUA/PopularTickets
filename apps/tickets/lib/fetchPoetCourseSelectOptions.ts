@@ -6,7 +6,7 @@ export type PoetCourseSelectOption = {
   title: string;
 };
 
-/** Для форми події: прив'язка пробного до курсу на popularpoet.pl (усі курси, включно з чернетками). */
+/** Для формы события: привязка пробного к курсу на popularpoet.pl (все курсы, включая черновики). */
 export async function fetchPoetCourseSelectOptions(): Promise<PoetCourseSelectOption[]> {
   const supabase = getServiceSupabase();
   if (!supabase) return [];
@@ -24,6 +24,6 @@ export async function fetchPoetCourseSelectOptions(): Promise<PoetCourseSelectOp
   return (data ?? []).map((row) => ({
     id: row.id as string,
     slug: row.slug as string,
-    title: row.is_published ? (row.title as string) : `${row.title as string} (чернетка)`,
+    title: row.is_published ? (row.title as string) : `${row.title as string} (черновик)`,
   }));
 }
