@@ -51,7 +51,8 @@ export async function PoetHeader() {
             <>
               <a
                 href={ticketsHome(locale)}
-                className="inline-flex min-h-11 min-w-[2.75rem] items-center justify-center rounded-xl px-3 text-sm text-zinc-300 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright sm:min-w-0"
+                title={t("navTicketsTitle")}
+                className="inline-flex min-h-11 max-w-[11.5rem] items-center justify-center rounded-xl px-2.5 text-center text-xs font-medium leading-snug text-zinc-300 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright sm:max-w-none sm:px-3 sm:text-sm"
               >
                 {t("navTickets")}
               </a>

@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "homeTitle": "PopularTickets — bilety na wydarzenia",
-    "homeDescription": "Bilety na kameralne spektakle i wydarzenia w Polsce — wybierz termin, zapłać online (Przelewy24), odbierz PDF z QR.",
+    "homeTitle": "PopularTickets — bilety na spektakle Popular Poet",
+    "homeDescription": "Kupujesz bilety na nasze kameralne spektakle i wieczory w Polsce: wybierasz termin, płacisz online (Przelewy24), dostajesz PDF z QR na e-mail.",
     "firmaTitle": "Dane sprzedawcy",
     "firmaDescription": "Informacje o operatorze PopularTickets — POPULAR POET Sp. z o.o.",
     "eventTitleSuffix": " — PopularTickets",
@@ -11,12 +11,14 @@
     "zwrotyDescription": "Informacje o odstąpieniu od umowy, zwrotach i reklamacjach dotyczących biletów.",
     "privacyTitle": "Polityka prywatności",
     "privacyDescription": "Zasady przetwarzania danych osobowych w serwisie PopularTickets (RODO).",
-    "homeKeywords": "PopularTickets, bilety, wydarzenia, Polska, Warszawa, teatr, improwizacja, spektakl, bilety online, Przelewy24",
+    "homeKeywords": "PopularTickets, bilety na spektakl, Warszawa, teatr Popular Poet, improwizacja, Przelewy24, kup bilet online",
     "checkoutReturnTitle": "Dziękujemy za zamówienie — PopularTickets",
     "checkoutReturnDescription": "Potwierdzenie zamówienia i dostęp do biletów w serwisie PopularTickets."
   },
   "Nav": {
-    "events": "Wydarzenia",
+    "theatre": "Teatr Popular Poet",
+    "theatreAria": "Wróć na stronę teatru — kursy, zajęcia próbne, kontakt",
+    "events": "Spektakle i wieczory",
     "company": "Dane sprzedawcy"
   },
   "LocaleSwitcher": {
@@ -30,7 +32,7 @@
     "ctaDetails": "Dane sprzedawcy i płatności",
     "tagline": "Polska · wydarzenia · bilety online",
     "socialHeading": "Teatr w mediach społecznościowych",
-    "socialIntro": "Wesprzyj nasz teatr — Instagram, YouTube i grupa na Telegramie: ogłoszenia, kulisy i linki do występów.",
+    "socialIntro": "Zasubskrybuj kanały — jako pierwszy zobaczysz afisz i linki do biletów; na Telegramie — społeczność widzów.",
     "socialInstagramHandle": "@popular_poet_theatre",
     "socialYoutubeHandle": "Popular Poet",
     "socialOutro": "Na YouTube — improwizacje i spektakle; na Telegramie — społeczność widzów. Subskrypcja i polubienia naprawdę pomagają. Dziękujemy!",
@@ -58,8 +60,8 @@
   },
   "Home": {
     "brand": "Popular Poet",
-    "title": "Aktualności",
-    "subtitle": "Kameralne sceny w Polsce — teatr, improwizacje, spotkania z publicznością. Wybierz termin, opłać bezpiecznie online, bilety na mailu z kodem QR.",
+    "title": "Afisz spektakli",
+    "subtitle": "Tu kupujesz bilety na nasze kameralne spektakle, improwizacje i wieczory w Polsce. Wybierz datę, opłać bezpiecznie online — bilety z QR trafią na Twój e-mail.",
     "sectionLabel": "01 — wydarzenia",
     "empty": "Brak opublikowanych wydarzeń.",
     "loadError": "Nie udało się wczytać listy wydarzeń. Spróbuj odświeżyć stronę za chwilę. Jeśli problem się powtarza, skontaktuj się z nami — dane w zakładce „Dane sprzedawcy”."

@@ -2,12 +2,17 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
+import type { AppLocale } from "@/i18n/routing";
 
 export function SiteHeader() {
   const t = useTranslations("Nav");
+  const locale = useLocale() as AppLocale;
+  const poetBase = POPULAR_POET_SITE_URL.replace(/\/+$/, "");
+  const poetHomeUrl = `${poetBase}/${locale}`;
 
   return (
     <motion.header
@@ -50,6 +55,14 @@ export function SiteHeader() {
 
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:justify-end">
           <nav className="flex flex-1 flex-wrap items-center gap-1 sm:flex-none sm:gap-1">
+            <a
+              href={poetHomeUrl}
+              className="inline-flex min-h-11 min-w-[2.75rem] flex-1 items-center justify-center rounded-xl px-3 text-sm font-medium text-poet-gold/95 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright sm:flex-none sm:min-w-0 sm:justify-start"
+              rel="noopener noreferrer"
+              title={t("theatreAria")}
+            >
+              {t("theatre")}
+            </a>
             <Link
               href="/"
               className="inline-flex min-h-11 min-w-[2.75rem] flex-1 items-center justify-center rounded-xl px-3 text-sm text-zinc-300 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright sm:flex-none sm:min-w-0 sm:justify-start"

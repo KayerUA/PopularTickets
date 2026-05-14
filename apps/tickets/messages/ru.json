@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "homeTitle": "PopularTickets — билеты на события",
-    "homeDescription": "Билеты на камерные спектакли и события в Польше — выберите дату, оплатите онлайн (Przelewy24), получите PDF с QR на почту.",
+    "homeTitle": "PopularTickets — билеты на спектакли Popular Poet",
+    "homeDescription": "Вы покупаете билеты на наши камерные спектакли и шоу в Польше: выбираете дату, оплачиваете онлайн (Przelewy24), получаете PDF с QR на email.",
     "firmaTitle": "Данные продавца",
     "firmaDescription": "Информация об операторе PopularTickets — POPULAR POET Sp. z o.o.",
     "eventTitleSuffix": " — PopularTickets",
@@ -11,12 +11,14 @@
     "zwrotyDescription": "Информация об отказе от договора, возврате средств и рекламациях по билетам.",
     "privacyTitle": "Политика конфиденциальности",
     "privacyDescription": "Правила обработки персональных данных в сервисе PopularTickets (GDPR).",
-    "homeKeywords": "PopularTickets, билеты, события, Польша, Варшава, театр, импровизация, онлайн оплата, Przelewy24",
+    "homeKeywords": "PopularTickets, билеты на спектакль, шоу Варшава, театр Popular Poet, импровизация, Przelewy24, купить билет онлайн",
     "checkoutReturnTitle": "Спасибо за заказ — PopularTickets",
     "checkoutReturnDescription": "Подтверждение заказа и доступ к билетам в сервисе PopularTickets."
   },
   "Nav": {
-    "events": "События",
+    "theatre": "Театр Popular Poet",
+    "theatreAria": "Вернуться на сайт театра — курсы, пробные, контакты",
+    "events": "Спектакли и шоу",
     "company": "Данные продавца"
   },
   "LocaleSwitcher": {
@@ -30,7 +32,7 @@
     "ctaDetails": "Данные продавца и оплаты",
     "tagline": "Польша · события · билеты онлайн",
     "socialHeading": "Театр в соцсетях",
-    "socialIntro": "Поддержите наш театр — Instagram, YouTube и группа в Telegram: анонсы, закулисье и ссылки на выступления.",
+    "socialIntro": "Подпишитесь — вы первыми увидите анонсы спектаклей и ссылки на билеты; в Telegram — живое общение со зрителями.",
     "socialInstagramHandle": "@popular_poet_theatre",
     "socialYoutubeHandle": "Popular Poet",
     "socialOutro": "На YouTube — импровизации и спектакли; в Telegram — живое общение со зрителями. Подписка и лайки очень помогают. Спасибо!",
@@ -58,8 +60,8 @@
   },
   "Home": {
     "brand": "Popular Poet",
-    "title": "Афиша",
-    "subtitle": "Камерные сцены в Польше — театр, импровизации и встречи с зрителями. Выбираете дату, оплачиваете онлайн, билеты на email с QR — без лишних шагов.",
+    "title": "Афиша спектаклей",
+    "subtitle": "Здесь вы покупаете билеты на наши камерные спектакли, импровизации и творческие вечера в Польше. Выберите дату, оплатите онлайн — билеты с QR придут вам на email.",
     "sectionLabel": "01 — события",
     "empty": "Пока нет опубликованных событий.",
     "loadError": "Не удалось загрузить список событий. Попробуйте обновить страницу через несколько минут. Если проблема повторяется — свяжитесь с нами, контакты в разделе «Данные продавца»."
