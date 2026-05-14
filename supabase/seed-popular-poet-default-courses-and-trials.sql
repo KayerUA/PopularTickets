@@ -6,6 +6,9 @@
 --         или add-poet-course-masterclass-and-event-fk.sql).
 --
 -- Выполните в Supabase → SQL Editor. Повторный запуск безопасен (ON CONFLICT по slug).
+--
+-- Обложки событий: пути /courses/*.jpg — статика в apps/tickets/public/courses/ (PopularTickets),
+-- чтобы страница /{locale}/events/{slug} открывала картинку на том же домене.
 
 -- ─── Курсы (slug совпадают с popularpoet.pl /kursy/{slug}) ─────────────────
 insert into public.poet_course (slug, title, kind, body, is_published, sort_order)
