@@ -3,7 +3,7 @@ import { Link as IntlLink } from "@/i18n/navigation";
 import { getRequestAppLocale } from "@/lib/requestLocale";
 import { COMPANY, companyAddressOneLine } from "@/lib/company";
 import { getP24FooterPaymentGraphics } from "@/lib/p24FooterAssets";
-import { THEATRE_INSTAGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
+import { THEATRE_INSTAGRAM_URL, THEATRE_TELEGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
 
 function InstagramGlyph({ className }: { className?: string }) {
   return (
@@ -22,6 +22,17 @@ function YouTubeGlyph({ className }: { className?: string }) {
       <path
         fill="currentColor"
         d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+      />
+    </svg>
+  );
+}
+
+function TelegramGlyph({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M21.95 4.54c.16-.63-.48-1.15-1.06-.94L2.5 10.28c-.58.23-.51 1.08.1 1.2l4.98 1 2.12 6.93c.13.42.74.53 1.03.18l2.87-3.7 4.47 3.27c.4.3.97.05 1.06-.45l2.82-13.17ZM17.28 7.2 9.32 13.4l-.22 3.45-1.2-3.92 9.38-5.73Z"
       />
     </svg>
   );
@@ -83,6 +94,22 @@ export async function SiteFooter() {
                   ↗
                 </span>
               </a>
+              <a
+                href={THEATRE_TELEGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t("socialTelegramAria")}
+                className="group inline-flex min-w-0 max-w-full flex-1 items-center gap-2.5 rounded-full border border-poet-gold/28 bg-poet-gold/[0.04] px-3.5 py-2.5 text-left transition hover:border-poet-gold/45 hover:bg-poet-gold/[0.07] sm:flex-initial sm:min-w-[11rem]"
+              >
+                <TelegramGlyph className="h-4 w-4 shrink-0 text-poet-gold-bright" />
+                <span className="min-w-0">
+                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">Telegram</span>
+                  <span className="block truncate text-[11px] font-medium text-zinc-200">{t("socialTelegramHandle")}</span>
+                </span>
+                <span aria-hidden className="ml-0.5 shrink-0 text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright">
+                  ↗
+                </span>
+              </a>
             </div>
           </div>
         </section>
@@ -120,9 +147,9 @@ export async function SiteFooter() {
           </div>
         </div>
 
-        <section aria-labelledby="footer-p24-trust-heading" className="mt-8 border-t border-poet-gold/10 pt-7 sm:mt-10 sm:pt-9">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-            <div className="space-y-1">
+        <section aria-labelledby="footer-p24-trust-heading" className="mt-8 border-t border-poet-gold/10 pt-6 sm:mt-10 sm:pt-7">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <div className="min-w-0 space-y-1">
               <h2
                 id="footer-p24-trust-heading"
                 className="text-[9px] font-semibold uppercase tracking-[0.22em] text-poet-gold/75 sm:text-[10px]"
@@ -133,14 +160,25 @@ export async function SiteFooter() {
                 <p className="max-w-xl text-[10px] leading-relaxed text-zinc-500 sm:text-[11px]">{t("p24MethodsCaption")}</p>
               ) : null}
             </div>
+            {hasLogo ? (
+              <div className="flex items-center gap-3 text-[11px] text-zinc-400 sm:shrink-0">
+                <span>{t("p24TrustByline")}</span>
+                {/* eslint-disable-next-line @next/next/no-img-element -- lokalne SVG z public/ */}
+                <img
+                  src={p24Gfx.logoUrl!}
+                  alt={t("p24LogoAlt")}
+                  className="h-6 w-auto max-w-[8rem] object-contain object-left sm:h-7 sm:max-w-[10rem]"
+                />
+              </div>
+            ) : null}
           </div>
 
           {hasAnyTrustImage ? (
             <>
               {hasStrip ? (
-                <div className="mt-4 sm:mt-5">
+                <div className="mt-4 max-w-3xl">
                   <p className="mb-2 text-[10px] leading-snug text-zinc-500 sm:hidden">{t("p24ScrollHint")}</p>
-                  <div className="-mx-1 overflow-x-auto overscroll-x-contain px-1 [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(197,160,89,0.2)_transparent] [scrollbar-width:thin] sm:mx-0 sm:px-0">
+                  <div className="overflow-x-auto overscroll-x-contain rounded-lg border border-poet-gold/12 bg-[#f4f0e8] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(197,160,89,0.28)_transparent] [scrollbar-width:thin] sm:px-4 sm:py-2.5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={p24Gfx.methodsStripUrl!}
@@ -149,7 +187,7 @@ export async function SiteFooter() {
                       height={754}
                       loading="lazy"
                       decoding="async"
-                      className="mr-auto block h-auto max-h-[4.5rem] w-auto max-w-[min(100%,920px)] bg-transparent object-contain object-left sm:max-h-[6.25rem] md:max-h-36 lg:max-h-[9.25rem]"
+                      className="mr-auto block h-auto max-h-12 w-auto min-w-[34rem] max-w-[min(100%,44rem)] bg-transparent object-contain object-left sm:max-h-14 sm:min-w-0"
                     />
                   </div>
                 </div>
