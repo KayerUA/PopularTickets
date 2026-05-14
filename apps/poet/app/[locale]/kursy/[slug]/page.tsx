@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: PageProps) {
   } else if (isPoetStaticCourseSlug(slug)) {
     const keys = staticCourseKeys(slug);
     title = tCourse(keys.titleKey);
-    description = tCourse(keys.bodyKey);
+    description = tCourse(keys.seoDescriptionKey);
   } else {
     return {};
   }

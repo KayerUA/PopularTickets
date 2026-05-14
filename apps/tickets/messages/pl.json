@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "homeTitle": "PopularTickets — bilety na wieczory Popular Poet",
-    "homeDescription": "Zarezerwuj miejsce na kameralny wieczór Popular Poet w Warszawie. Wybierasz termin, płacisz bezpiecznie online i od razu dostajesz bilet PDF z QR na e-mail.",
+    "homeTitle": "PopularTickets — bilety na show impro i spektakle Popular Poet",
+    "homeDescription": "Komediowe show improwizowane i przygotowane spektakle Popular Poet w Warszawie. Wybierz datę, zapłać online i odbierz PDF z QR na e-mail.",
     "firmaTitle": "Dane sprzedawcy",
     "firmaDescription": "Informacje o operatorze PopularTickets — POPULAR POET Sp. z o.o.",
     "eventTitleSuffix": " — PopularTickets",
@@ -11,7 +11,7 @@
     "zwrotyDescription": "Informacje o odstąpieniu od umowy, zwrotach i reklamacjach dotyczących biletów.",
     "privacyTitle": "Polityka prywatności",
     "privacyDescription": "Zasady przetwarzania danych osobowych w serwisie PopularTickets (RODO).",
-    "homeKeywords": "PopularTickets, bilety na spektakl, Warszawa, teatr Popular Poet, improwizacja, wieczór teatralny, Przelewy24, kup bilet online",
+    "homeKeywords": "PopularTickets, bilety na spektakl, show impro Warszawa, komediowe show, teatr Popular Poet, improwizacja, spektakle po rosyjsku, Przelewy24, kup bilet online",
     "checkoutReturnTitle": "Dziękujemy za zamówienie — PopularTickets",
     "checkoutReturnDescription": "Potwierdzenie zamówienia i dostęp do biletów w serwisie PopularTickets."
   },
@@ -60,8 +60,8 @@
   },
   "Home": {
     "brand": "Popular Poet na żywo",
-    "title": "Wieczór, który dzieje się tylko raz",
-    "subtitle": "Kameralna scena, żywy kontakt z widownią i bilety bez kombinowania. Wybierz termin, opłać przez Przelewy24, a PDF z QR przyjdzie na e-mail.",
+    "title": "Improwizacja dziś. Spektakle według afisza.",
+    "subtitle": "W afiszu Popular Poet są dwa formaty: komediowe show improwizowane, które powstają przy widzach, oraz przygotowane spektakle z gotową inscenizacją. Wybierz datę, opłać przez Przelewy24 — bilet z QR przyjdzie na e-mail.",
     "proofFast": "PDF z QR na e-mail",
     "proofSecure": "Bezpieczna płatność online",
     "proofLimited": "Kameralne sale, ograniczona pula",
@@ -70,7 +70,7 @@
     "loadError": "Nie udało się wczytać listy wydarzeń. Spróbuj odświeżyć stronę za chwilę. Jeśli problem się powtarza, skontaktuj się z nami — dane w zakładce „Dane sprzedawcy”."
   },
   "Marquee": {
-    "phrase": "Popular Poet · scena na żywo · Warszawa · bilety online · wieczory teatralne · "
+    "phrase": "Popular Poet · show improwizowane · przygotowane spektakle · Warszawa · bilety online · "
   },
   "SupabaseHint": {
     "titleSetup": "Konfiguracja serwisu",

@@ -13,11 +13,17 @@ export type PoetCourseCardVariant = "improv" | "acting" | "masterclass" | "playb
 
 type TitleKey = "courseImprovTitle" | "courseActingTitle" | "courseMasterclassTitle" | "coursePlaybackTitle";
 type BodyKey = "courseImprovBody" | "courseActingBody" | "courseMasterclassBody" | "coursePlaybackBody";
+type SeoDescriptionKey =
+  | "courseImprovSeoDescription"
+  | "courseActingSeoDescription"
+  | "courseMasterclassSeoDescription"
+  | "coursePlaybackSeoDescription";
 type TagKey = "courseImprovTag" | "courseActingTag" | "courseMasterclassTag" | "coursePlaybackTag";
 
 export function staticCourseKeys(slug: PoetStaticCourseSlug): {
   titleKey: TitleKey;
   bodyKey: BodyKey;
+  seoDescriptionKey: SeoDescriptionKey;
   tagKey: TagKey;
   variant: PoetCourseCardVariant;
   image: string;
@@ -27,6 +33,7 @@ export function staticCourseKeys(slug: PoetStaticCourseSlug): {
       return {
         titleKey: "courseImprovTitle",
         bodyKey: "courseImprovBody",
+        seoDescriptionKey: "courseImprovSeoDescription",
         tagKey: "courseImprovTag",
         variant: "improv",
         image: "/courses/impro.jpg",
@@ -35,6 +42,7 @@ export function staticCourseKeys(slug: PoetStaticCourseSlug): {
       return {
         titleKey: "courseActingTitle",
         bodyKey: "courseActingBody",
+        seoDescriptionKey: "courseActingSeoDescription",
         tagKey: "courseActingTag",
         variant: "acting",
         image: "/courses/akterka.jpg",
@@ -43,6 +51,7 @@ export function staticCourseKeys(slug: PoetStaticCourseSlug): {
       return {
         titleKey: "courseMasterclassTitle",
         bodyKey: "courseMasterclassBody",
+        seoDescriptionKey: "courseMasterclassSeoDescription",
         tagKey: "courseMasterclassTag",
         variant: "masterclass",
         image: "/courses/theatre.jpg",
@@ -51,6 +60,7 @@ export function staticCourseKeys(slug: PoetStaticCourseSlug): {
       return {
         titleKey: "coursePlaybackTitle",
         bodyKey: "coursePlaybackBody",
+        seoDescriptionKey: "coursePlaybackSeoDescription",
         tagKey: "coursePlaybackTag",
         variant: "playback",
         image: "/courses/play-back.jpg",
