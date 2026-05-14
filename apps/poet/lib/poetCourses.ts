@@ -4,7 +4,7 @@ export type PoetCourseRow = {
   id: string;
   slug: string;
   title: string;
-  kind: "improvisation" | "acting" | "playback" | "other";
+  kind: "improvisation" | "acting" | "playback" | "masterclass" | "other";
   body: string | null;
 };
 
@@ -24,4 +24,23 @@ export async function fetchPublishedPoetCourses(): Promise<PoetCourseRow[]> {
   }
 
   return (data ?? []) as PoetCourseRow[];
+}
+
+export async function fetchPublishedPoetCourseBySlug(slug: string): Promise<PoetCourseRow | null> {
+  const supabase = getPoetSupabase();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from("poet_course")
+    .select("id, slug, title, kind, body")
+    .eq("is_published", true)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[poetCourses by slug]", error.message);
+    return null;
+  }
+
+  return (data as PoetCourseRow | null) ?? null;
 }

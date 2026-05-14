@@ -259,4 +259,12 @@
       radial-gradient(100% 80% at 0% 90%, rgba(24, 20, 48, 0.45), transparent 50%),
       linear-gradient(170deg, rgba(14, 16, 32, 0.88) 0%, rgba(8, 10, 18, 0.58) 100%);
   }
+
+  .poet-course-card--masterclass {
+    border-color: rgba(140, 120, 200, 0.38);
+    background:
+      radial-gradient(100% 80% at 20% 0%, rgba(72, 48, 120, 0.42), transparent 52%),
+      radial-gradient(80% 60% at 100% 100%, rgba(88, 64, 32, 0.38), transparent 48%),
+      linear-gradient(168deg, rgba(22, 14, 32, 0.92) 0%, rgba(10, 8, 14, 0.58) 100%);
+  }
 }

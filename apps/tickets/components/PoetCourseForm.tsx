@@ -7,7 +7,7 @@ export type AdminPoetCourseRow = {
   id: string;
   slug: string;
   title: string;
-  kind: "improvisation" | "acting" | "playback" | "other";
+  kind: "improvisation" | "acting" | "playback" | "masterclass" | "other";
   body: string | null;
   is_published: boolean;
   sort_order: number;
@@ -55,6 +55,7 @@ export function PoetCourseForm({ course }: { course?: AdminPoetCourseRow }) {
           <option value="improvisation">Імпровізація</option>
           <option value="acting">Акторська майстерність</option>
           <option value="playback">PLAY-BACK</option>
+          <option value="masterclass">Майстер-класи</option>
           <option value="other">Інше</option>
         </select>
       </label>

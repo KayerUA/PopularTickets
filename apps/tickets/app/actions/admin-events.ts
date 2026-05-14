@@ -46,6 +46,10 @@ const EventSchema = z.object({
     z.boolean()
   ).default(false),
   listingKind: z.enum(["performance", "trial"]).default("performance"),
+  poetCourseId: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() !== "" ? v.trim() : undefined),
+    z.string().uuid().optional(),
+  ),
 });
 
 function groszeFromPln(pln: number): number {
@@ -78,6 +82,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       totalTickets: formData.get("totalTickets"),
       isPublished: formData.get("isPublished"),
       listingKind: formData.get("listingKind") || "performance",
+      poetCourseId: formData.get("poetCourseId"),
     });
 
     if (!parsed.success) {
@@ -107,6 +112,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       total_tickets: v.totalTickets,
       is_published: isPublished,
       listing_kind: v.listingKind,
+      poet_course_id: v.listingKind === "trial" && v.poetCourseId ? v.poetCourseId : null,
     };
 
     let eventIdForMaps: string;

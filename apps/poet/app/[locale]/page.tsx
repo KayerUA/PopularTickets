@@ -1,5 +1,6 @@
 import { PoetMarquee } from "@/components/PoetMarquee";
 import { PoetCourseShowcase, PoetTrialsAndFlow } from "@/components/PoetCoursesAndTrials";
+import { PoetTrialCalendar } from "@/components/PoetTrialCalendar";
 import { getLocale, getTranslations } from "next-intl/server";
 import { fetchPublishedTrials } from "@/lib/poetTrials";
 import { fetchPublishedPoetCourses } from "@/lib/poetCourses";
@@ -53,11 +54,19 @@ export default async function HomePage() {
         <PoetCourseShowcase dbCourses={dbCourses} />
       </section>
 
+      <section id="probny-kalendar" className="mt-16 scroll-mt-24 sm:mt-20">
+        <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("calendarTitle")}</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-500">{t("calendarIntro")}</p>
+        <div className="mt-8">
+          <PoetTrialCalendar locale={locale} trials={trials} />
+        </div>
+      </section>
+
       <section id="proby" className="mt-16 scroll-mt-24 sm:mt-20">
-        <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("trialsTitle")}</h2>
+        <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("trialsBuyerTitle")}</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-500">{t("trialsSectionLead")}</p>
         <div className="mt-8">
-          <PoetTrialsAndFlow locale={locale} trials={trials} />
+          <PoetTrialsAndFlow locale={locale} />
         </div>
       </section>
     </div>

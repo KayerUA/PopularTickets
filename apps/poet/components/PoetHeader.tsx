@@ -42,7 +42,7 @@ export async function PoetHeader() {
             {t("navCourses")}
           </Link>
           <Link
-            href="/#proby"
+            href="/#probny-kalendar"
             className="inline-flex min-h-11 min-w-[2.75rem] items-center justify-center rounded-xl px-3 text-sm text-zinc-300 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright sm:min-w-0"
           >
             {t("navTrials")}

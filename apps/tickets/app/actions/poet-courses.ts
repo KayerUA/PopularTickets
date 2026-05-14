@@ -16,7 +16,7 @@ const PoetCourseSchema = z.object({
     .max(80)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug: только латиница, цифры и дефис"),
   title: z.string().min(2).max(200),
-  kind: z.enum(["improvisation", "acting", "playback", "other"]),
+  kind: z.enum(["improvisation", "acting", "playback", "masterclass", "other"]),
   body: z.string().max(20000).optional().default(""),
   isPublished: z.preprocess((v) => v === "on" || v === true || v === "true", z.boolean()).default(false),
   sortOrder: z.coerce.number().int().min(0).max(9999).default(0),

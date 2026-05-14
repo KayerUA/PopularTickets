@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { upsertEvent, type UpsertEventState } from "@/app/actions/admin-events";
 import { toDatetimeLocalValue } from "@/lib/datetime";
+import type { PoetCourseSelectOption } from "@/lib/fetchPoetCourseSelectOptions";
 
 export type AdminEventRow = {
   id: string;
@@ -17,13 +18,21 @@ export type AdminEventRow = {
   total_tickets: number;
   is_published: boolean;
   listing_kind: "performance" | "trial";
+  poet_course_id?: string | null;
 };
 
 const initialUpsertState: UpsertEventState = null;
 
-export function EventForm({ event }: { event?: AdminEventRow }) {
+export function EventForm({
+  event,
+  poetCourseOptions = [],
+}: {
+  event?: AdminEventRow;
+  poetCourseOptions?: PoetCourseSelectOption[];
+}) {
   const pricePlnDefault = event ? (event.price_grosze / 100).toFixed(2) : "50.00";
   const [state, formAction, pending] = useActionState(upsertEvent, initialUpsertState);
+  const [listingKind, setListingKind] = useState<"performance" | "trial">(event?.listing_kind ?? "performance");
 
   return (
     <form action={formAction} encType="multipart/form-data" className="max-w-2xl space-y-5">
@@ -61,15 +70,38 @@ export function EventForm({ event }: { event?: AdminEventRow }) {
           <select
             name="listingKind"
             defaultValue={event?.listing_kind ?? "performance"}
+            onChange={(e) => setListingKind(e.target.value === "trial" ? "trial" : "performance")}
             className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
           >
             <option value="performance">Виступ / шоу — афіша PopularTickets</option>
             <option value="trial">Пробний урок — афіша на popularpoet.pl, оплата на цій події</option>
           </select>
           <p className="mt-1 text-xs text-zinc-500">
-            Пробні не показуються на головній квиткового сайту; курс на головній poet — розділ «Курси Popular Poet» в адмінці.
+            Пробні не показуються на головній квиткового сайту. Для картки курсу на popularpoet.pl оберіть курс у полі нижче (після SQL{" "}
+            <code className="rounded bg-zinc-900 px-1 font-mono text-zinc-400">add-poet-course-masterclass-and-event-fk.sql</code>
+            ).
           </p>
         </label>
+        {listingKind === "trial" && poetCourseOptions.length > 0 ? (
+          <label className="block text-sm text-zinc-300 sm:col-span-2">
+            Курс на popularpoet.pl (для сторінки /kursy/… і календаря)
+            <select
+              name="poetCourseId"
+              defaultValue={event?.poet_course_id ?? ""}
+              className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+            >
+              <option value="">{"— без прив\u2019язки до курсу —"}</option>
+              {poetCourseOptions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title} ({c.slug})
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-zinc-500">
+              {"Якщо оберете курс, пробний з\u2019явиться на сторінці цього курсу та в календарі з посиланням на курс."}
+            </p>
+          </label>
+        ) : null}
         <label className="block text-sm text-zinc-300 sm:col-span-2">
           Описание
           <textarea

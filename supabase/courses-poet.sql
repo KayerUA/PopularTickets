@@ -9,7 +9,7 @@ create table if not exists public.poet_course (
   slug text not null unique,
   title text not null,
   kind text not null
-    check (kind in ('improvisation', 'acting', 'playback', 'other')),
+    check (kind in ('improvisation', 'acting', 'playback', 'masterclass', 'other')),
   body text,
   is_published boolean not null default false,
   sort_order int not null default 0,
