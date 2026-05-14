@@ -121,16 +121,20 @@ async function embedQrPng(pdfDoc: PDFDocument, dataUrl: string): Promise<PDFImag
   }
 }
 
-/** Работает при hoisted `node_modules` в корне монорепо (не только `cwd/node_modules`). */
+/** DejaVu: копии в `lib/ticket-pdf-assets/` (лицензия Bitstream Vera / DejaVu) — в serverless часто нет `node_modules/dejavu-fonts-ttf`. */
 function dejavuPath(file: "DejaVuSans.ttf" | "DejaVuSans-Bold.ttf"): string {
   const cwd = process.cwd();
   const segments = ["node_modules", "dejavu-fonts-ttf", "ttf", file] as const;
+
   const candidates = [
+    path.join(cwd, "lib/ticket-pdf-assets", file),
+    path.join(cwd, "apps/tickets/lib/ticket-pdf-assets", file),
     path.join(cwd, ...segments),
     path.join(cwd, "..", ...segments),
     path.join(cwd, "..", "..", ...segments),
     path.join(cwd, "..", "..", "..", ...segments),
   ];
+
   for (const p of candidates) {
     try {
       if (fs.existsSync(p)) return p;

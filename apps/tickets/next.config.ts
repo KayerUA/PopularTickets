@@ -14,15 +14,15 @@ const useMonorepoTracingRoot = !fs.existsSync(localDejavuSans) && fs.existsSync(
 
 /** Ресурсы для `renderTicketLayoutPdf` (шрифты, логотип) — включать в serverless bundle для перечисленных маршрутов. */
 const ticketPdfAssetsMonorepo: string[] = [
-  "./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf",
-  "./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf",
+  "./apps/tickets/lib/ticket-pdf-assets/DejaVuSans.ttf",
+  "./apps/tickets/lib/ticket-pdf-assets/DejaVuSans-Bold.ttf",
   "./apps/tickets/public/brand/popular-poet-logo.png",
   "./apps/tickets/app/icon.png",
 ];
 
 const ticketPdfAssetsAppOnly: string[] = [
-  "./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf",
-  "./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf",
+  "./lib/ticket-pdf-assets/DejaVuSans.ttf",
+  "./lib/ticket-pdf-assets/DejaVuSans-Bold.ttf",
   "./public/brand/popular-poet-logo.png",
   "./app/icon.png",
 ];
