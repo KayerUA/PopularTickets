@@ -8,5 +8,4 @@ create index if not exists events_poet_course_id_idx on public.events (poet_cour
 comment on column public.events.poet_course_id is
   'If listing_kind = trial: FK to poet_course for course page trials filter and calendar.';
 
--- После ALTER кэш PostgREST может быть старым — обновите схему (иначе ошибка "Could not find poet_course_id in the schema cache"):
-notify pgrst, 'reload schema';
+-- Если PostgREST ругается на schema cache: Supabase Dashboard → Settings → API → Reload schema (NOTIFY в SQL на hosted часто недоступен / не нужен).
