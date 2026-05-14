@@ -8,21 +8,17 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const ticketsAppDir = path.dirname(fileURLToPath(import.meta.url));
 const monorepoRoot = path.resolve(ticketsAppDir, "../..");
-const localDejavuSans = path.join(ticketsAppDir, "node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf");
-const hoistedDejavuSans = path.join(monorepoRoot, "node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf");
-const useMonorepoTracingRoot = !fs.existsSync(localDejavuSans) && fs.existsSync(hoistedDejavuSans);
+const useMonorepoTracingRoot =
+  fs.existsSync(path.join(monorepoRoot, "package.json")) &&
+  fs.existsSync(path.join(monorepoRoot, "apps", "tickets", "package.json"));
 
 /** Ресурсы для `renderTicketLayoutPdf` (шрифты, логотип) — включать в serverless bundle для перечисленных маршрутов. */
 const ticketPdfAssetsMonorepo: string[] = [
-  "./apps/tickets/lib/ticket-pdf-assets/DejaVuSans.ttf",
-  "./apps/tickets/lib/ticket-pdf-assets/DejaVuSans-Bold.ttf",
   "./apps/tickets/public/brand/popular-poet-logo.png",
   "./apps/tickets/app/icon.png",
 ];
 
 const ticketPdfAssetsAppOnly: string[] = [
-  "./lib/ticket-pdf-assets/DejaVuSans.ttf",
-  "./lib/ticket-pdf-assets/DejaVuSans-Bold.ttf",
   "./public/brand/popular-poet-logo.png",
   "./app/icon.png",
 ];

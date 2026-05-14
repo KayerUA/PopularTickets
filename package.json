@@ -13,6 +13,7 @@
     "check:env": "node scripts/check-env.mjs",
     "check:ticket-pdf-i18n": "node scripts/check-ticket-pdf-i18n-sync.mjs",
     "verify:supabase": "node scripts/verify-supabase.mjs",
-    "seed:improv": "node scripts/seed-improv-event.mjs"
+    "seed:improv": "node scripts/seed-improv-event.mjs",
+    "gen:ticket-fonts": "node scripts/gen-ticket-pdf-fonts-embedded.mjs"
   }
 }

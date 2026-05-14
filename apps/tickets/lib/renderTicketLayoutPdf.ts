@@ -5,6 +5,7 @@ import { PDFDocument, type PDFFont, type PDFImage, type PDFPage, rgb } from "pdf
 import sharp from "sharp";
 import { COMPANY, companyFooterShort } from "@/lib/company";
 import { TICKET_PDF_KIND_PL, TICKET_PDF_QR_HINT_PL } from "@/lib/ticketPdfLegalPl";
+import { DEJAVU_SANS_BOLD_TTF, DEJAVU_SANS_TTF } from "@/lib/ticketPdfFontsEmbedded";
 
 export type TicketLayoutDocInput = {
   /** `data:image/png;base64,...` — QR как на странице */
@@ -119,30 +120,6 @@ async function embedQrPng(pdfDoc: PDFDocument, dataUrl: string): Promise<PDFImag
     const normalized = await sharp(Buffer.from(bytes)).png().toBuffer();
     return await pdfDoc.embedPng(new Uint8Array(normalized));
   }
-}
-
-/** DejaVu: копии в `lib/ticket-pdf-assets/` (лицензия Bitstream Vera / DejaVu) — в serverless часто нет `node_modules/dejavu-fonts-ttf`. */
-function dejavuPath(file: "DejaVuSans.ttf" | "DejaVuSans-Bold.ttf"): string {
-  const cwd = process.cwd();
-  const segments = ["node_modules", "dejavu-fonts-ttf", "ttf", file] as const;
-
-  const candidates = [
-    path.join(cwd, "lib/ticket-pdf-assets", file),
-    path.join(cwd, "apps/tickets/lib/ticket-pdf-assets", file),
-    path.join(cwd, ...segments),
-    path.join(cwd, "..", ...segments),
-    path.join(cwd, "..", "..", ...segments),
-    path.join(cwd, "..", "..", "..", ...segments),
-  ];
-
-  for (const p of candidates) {
-    try {
-      if (fs.existsSync(p)) return p;
-    } catch {
-      /* ignore */
-    }
-  }
-  throw new Error(`ticket pdf: не найден шрифт DejaVu (${file}), cwd=${cwd}`);
 }
 
 /** Логотип для PDF (fs — нужен outputFileTracingIncludes на Vercel). */
@@ -333,8 +310,8 @@ function drawCornerFrames(page: PDFPage, W: number, H: number, inset: number, ar
 
 /** PDF-билет: шапка с логотипом, золотая сетка, футер оператора. */
 export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promise<Buffer> {
-  const regularBytes = fs.readFileSync(dejavuPath("DejaVuSans.ttf"));
-  const boldBytes = fs.readFileSync(dejavuPath("DejaVuSans-Bold.ttf"));
+  const regularBytes = new Uint8Array(DEJAVU_SANS_TTF);
+  const boldBytes = new Uint8Array(DEJAVU_SANS_BOLD_TTF);
 
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
