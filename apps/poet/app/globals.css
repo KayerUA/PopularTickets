@@ -1,29 +1,233 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   color-scheme: dark;
-  --bg: #0b0609;
-  --fg: #e4e4e7;
-  --muted: #a1a1aa;
-  --gold: #c5a059;
-  --gold-bright: #e8d48b;
+  /* Кулиса: тёплый бархат, лёгкий красновато-винный подтон (не бордо) */
+  --poet-bg: #0b0609;
+  --poet-surface: #151017;
+  --poet-curtain-velvet: #0f080c;
+  --poet-curtain-pleat-dark: #080506;
+  --poet-curtain-pleat-mid: #160d12;
+  --poet-curtain-wing: rgba(14, 2, 10, 0.5);
+  --poet-curtain-fold: rgba(42, 16, 28, 0.4);
+  --poet-gold: #c5a059;
+  --poet-gold-bright: #e8d48b;
+  --poet-gold-dim: #8a7344;
+  --poet-border: rgba(197, 160, 89, 0.22);
 }
 
-* {
-  box-sizing: border-box;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply min-h-screen min-h-dvh antialiased text-zinc-100;
+    background-color: var(--poet-bg);
+    /* Свет сверху (рампа), боковые кулисы, крупные вертикальные складки, глубина сцены */
+    background-image:
+      radial-gradient(ellipse 115% 55% at 50% -18%, rgba(96, 44, 58, 0.32), transparent 58%),
+      radial-gradient(ellipse 70% 85% at 50% 110%, rgba(18, 4, 10, 0.5), transparent 46%),
+      radial-gradient(ellipse 55% 40% at 0% 50%, rgba(52, 18, 32, 0.12), transparent 55%),
+      radial-gradient(ellipse 55% 40% at 100% 50%, rgba(52, 18, 32, 0.12), transparent 55%),
+      linear-gradient(90deg, var(--poet-curtain-wing) 0%, transparent 16%, transparent 84%, var(--poet-curtain-wing) 100%),
+      repeating-linear-gradient(
+        90deg,
+        var(--poet-curtain-pleat-dark) 0px,
+        var(--poet-curtain-pleat-mid) 52px,
+        var(--poet-curtain-pleat-dark) 104px,
+        #120c10 128px,
+        var(--poet-curtain-pleat-dark) 156px,
+        var(--poet-curtain-pleat-mid) 208px,
+        var(--poet-curtain-pleat-dark) 260px
+      ),
+      linear-gradient(192deg, #1a0f16 0%, var(--poet-curtain-velvet) 44%, #060304 100%);
+    background-attachment: fixed;
+  }
+
+  a {
+    @apply text-poet-gold transition-colors duration-300 hover:text-poet-gold-bright;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-poet-gold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--poet-bg)];
+  }
 }
 
-html,
-body {
-  margin: 0;
-  min-height: 100%;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  line-height: 1.55;
+/**
+ * Наложение «занавес»: только мягкие складки и боковой затемнитель.
+ * Без feTurbulence и без анимации — иначе ощущение помех / зерна.
+ */
+.poet-curtain {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.72;
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% 100%, rgba(48, 14, 26, 0.14), transparent 55%),
+    linear-gradient(90deg, rgba(22, 6, 12, 0.44) 0%, transparent 14%, transparent 86%, rgba(22, 6, 12, 0.44) 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 46px,
+      rgba(32, 10, 18, 0.16) 50px,
+      rgba(18, 4, 10, 0.22) 56px,
+      rgba(32, 10, 18, 0.16) 62px,
+      transparent 68px,
+      transparent 118px
+    );
 }
 
-a {
-  color: var(--gold-bright);
+@media (prefers-reduced-motion: reduce) {
+  .poet-curtain {
+    opacity: 0.68;
+  }
 }
-a:hover {
-  color: var(--gold);
+
+@layer utilities {
+  /** Горизонтальные отступы с учётом выреза (iPhone и др.) */
+  .poet-safe-x {
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  }
+
+  .poet-safe-b {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .font-display {
+    font-family: var(--font-display), ui-serif, Georgia, serif;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(
+      110deg,
+      var(--poet-gold-bright) 0%,
+      var(--poet-gold) 35%,
+      #f5e6a8 52%,
+      var(--poet-gold) 68%,
+      var(--poet-gold-dim) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .poet-shine {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .poet-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%) skewX(-18deg);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 248, 220, 0.18),
+      rgba(255, 248, 220, 0.05),
+      transparent
+    );
+    animation: poet-shine-sweep 3.2s ease-in-out infinite;
+  }
+
+  .animate-float-slow {
+    animation: poet-float 7s ease-in-out infinite;
+  }
+
+  .animate-glow-pulse {
+    animation: poet-glow 4s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poet-shine::after,
+  .animate-float-slow,
+  .animate-glow-pulse {
+    animation: none !important;
+  }
+}
+
+@keyframes poet-shine-sweep {
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  45%,
+  100% {
+    transform: translateX(130%) skewX(-18deg);
+  }
+}
+
+@keyframes poet-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes poet-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(197, 160, 89, 0);
+  }
+  50% {
+    box-shadow: 0 0 28px -6px rgba(197, 160, 89, 0.35);
+  }
+}
+
+@keyframes poet-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: poet-fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up {
+    animation: none;
+  }
+
+  .animate-marquee {
+    animation: none !important;
+  }
+}
+
+@layer components {
+  .btn-poet {
+    @apply relative inline-flex min-h-11 min-w-[2.75rem] items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-poet-gold-dim via-poet-gold to-poet-gold-bright px-5 py-2.5 text-[0.9375rem] font-semibold leading-tight text-zinc-950 shadow-gold-sm transition duration-300 hover:shadow-gold disabled:pointer-events-none disabled:opacity-45 sm:px-6 sm:py-2 sm:text-sm;
+  }
+
+  /** Przycisk „teatralny”: aksamitna oprawa, złoty filar. */
+  .btn-poet-theatre {
+    @apply rounded-lg border-2 border-[#5c1a2e]/90 px-6 shadow-[0_0_0_1px_rgba(232,212,139,0.35),0_12px_32px_-12px_rgba(0,0,0,0.75)];
+    background:
+      linear-gradient(165deg, rgba(255, 248, 220, 0.22) 0%, transparent 42%),
+      linear-gradient(90deg, #7a5a2a 0%, #c5a059 38%, #e8d48b 52%, #c5a059 65%, #6b4a22 100%);
+    letter-spacing: 0;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+
+  .btn-poet-theatre:hover:not(:disabled) {
+    @apply border-[#722f3f]/95 shadow-[0_0_0_1px_rgba(232,212,139,0.5),0_14px_36px_-10px_rgba(197,160,89,0.35)];
+  }
 }
