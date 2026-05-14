@@ -50,8 +50,9 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
                     {c.title}
                   </h3>
                   <p className="relative mt-3 text-sm leading-relaxed text-zinc-400">{displayBody}</p>
-                  <div className="relative mt-5 h-px w-full bg-gradient-to-r from-transparent via-poet-gold/35 to-transparent" aria-hidden />
-                  <p className="relative mt-4 text-[11px] leading-snug text-zinc-500">{t("courseCardCta")}</p>
+                  <span className="relative mt-5 inline-flex w-full items-center justify-center rounded-lg border border-poet-gold/25 bg-black/25 px-3 py-2 text-center text-xs font-semibold text-poet-gold-bright transition group-hover:border-poet-gold/45 group-hover:bg-poet-gold/10">
+                    {t("courseCardCta")}
+                  </span>
                 </Link>
               </li>
             );
@@ -80,8 +81,9 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
                     {t(keys.titleKey)}
                   </h3>
                   <p className="relative mt-3 text-sm leading-relaxed text-zinc-400">{t(keys.bodyKey)}</p>
-                  <div className="relative mt-5 h-px w-full bg-gradient-to-r from-transparent via-poet-gold/35 to-transparent" aria-hidden />
-                  <p className="relative mt-4 text-[11px] leading-snug text-zinc-500">{t("courseCardCta")}</p>
+                  <span className="relative mt-5 inline-flex w-full items-center justify-center rounded-lg border border-poet-gold/25 bg-black/25 px-3 py-2 text-center text-xs font-semibold text-poet-gold-bright transition group-hover:border-poet-gold/45 group-hover:bg-poet-gold/10">
+                    {t("courseCardCta")}
+                  </span>
                 </Link>
               </li>
             );
