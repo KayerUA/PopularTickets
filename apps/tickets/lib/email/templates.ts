@@ -43,7 +43,7 @@ export function ticketEmailHtml(params: {
   eventTitle: string;
   venue: string;
   startsAt: string;
-  tickets: { id: string; ticketNumber: string }[];
+  tickets: { id: string; ticketNumber: string; attachmentLabel: string }[];
   locale: AppLocale;
 }): string {
   const str = ticketEmailStrings(params.locale);
@@ -55,7 +55,7 @@ export function ticketEmailHtml(params: {
           <strong style="color:${C.goldBright};letter-spacing:0.02em;">${esc(t.ticketNumber)}</strong>
         </td>
         <td style="padding:14px 12px;border-bottom:1px solid ${C.borderSoft};font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:13px;color:${C.muted};line-height:1.45;">
-          ${esc(str.colAttachment)}
+          ${esc(t.attachmentLabel)}
         </td>
       </tr>`
     )

@@ -12,7 +12,7 @@ const localDejavuSans = path.join(ticketsAppDir, "node_modules/dejavu-fonts-ttf/
 const hoistedDejavuSans = path.join(monorepoRoot, "node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf");
 const useMonorepoTracingRoot = !fs.existsSync(localDejavuSans) && fs.existsSync(hoistedDejavuSans);
 
-/** Ресурсы для `renderTicketLayoutPdf` (fs) — Vercel / monorepo trace. */
+/** Ресурсы для `renderTicketLayoutPdf` (шрифты, логотип) — включать в serverless bundle для перечисленных маршрутов. */
 const ticketPdfAssetsMonorepo: string[] = [
   "./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf",
   "./node_modules/dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf",
@@ -27,10 +27,20 @@ const ticketPdfAssetsAppOnly: string[] = [
   "./app/icon.png",
 ];
 
-const ticketPdfTracingIncludes: Record<string, string[]> = {
-  "/*/checkout/return": useMonorepoTracingRoot ? ticketPdfAssetsMonorepo : ticketPdfAssetsAppOnly,
-  "/[locale]/checkout/return": useMonorepoTracingRoot ? ticketPdfAssetsMonorepo : ticketPdfAssetsAppOnly,
-};
+const ticketPdfAssets = useMonorepoTracingRoot ? ticketPdfAssetsMonorepo : ticketPdfAssetsAppOnly;
+
+/** PDF/QR билета вызываются со страницы return, из /api/p24/notify и из server actions на странице события. */
+const ticketPdfTracingRouteKeys = [
+  "/*/checkout/return",
+  "/[locale]/checkout/return",
+  "/api/p24/notify",
+  "/[locale]/events/[slug]",
+  "/*/events/[slug]",
+] as const;
+
+const ticketPdfTracingIncludes: Record<string, string[]> = Object.fromEntries(
+  ticketPdfTracingRouteKeys.map((key) => [key, [...ticketPdfAssets]])
+);
 
 function supabaseStorageImageHost(): string | undefined {
   const raw = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || process.env.SUPABASE_URL?.trim();

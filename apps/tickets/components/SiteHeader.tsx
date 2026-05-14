@@ -9,7 +9,7 @@ import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
 import type { AppLocale } from "@/i18n/routing";
 
 const navLinkClass =
-  "inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs text-zinc-300 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright min-h-9 sm:min-h-10 sm:rounded-xl sm:px-3 sm:text-sm";
+  "inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-lg px-2 py-1.5 text-[0.7rem] leading-snug text-zinc-300 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright min-h-8 sm:min-h-10 sm:rounded-xl sm:px-3 sm:text-sm";
 
 const navLinkGoldClass = `${navLinkClass} font-medium text-poet-gold/95 hover:text-poet-gold-bright`;
 
@@ -50,7 +50,7 @@ export function SiteHeader() {
               </div>
             </motion.div>
             <div className="min-w-0 leading-tight">
-              <span className="font-display block truncate text-sm tracking-wide text-gradient-gold sm:text-base md:text-lg">
+              <span className="font-display block truncate text-xs tracking-wide text-gradient-gold sm:text-base md:text-lg">
                 PopularTickets
               </span>
               <span className="block text-[8px] font-medium uppercase tracking-[0.18em] text-zinc-400 sm:text-[10px] sm:tracking-[0.28em]">

@@ -40,8 +40,14 @@ export async function CheckoutPaidReceipt({
 
   const ticketRows = await Promise.all(
     receipt.tickets.map(async (t) => {
+      let dataUrl: string;
       try {
-        const dataUrl = await ticketQrDataUrl(t.id);
+        dataUrl = await ticketQrDataUrl(t.id);
+      } catch (err) {
+        console.error("[CheckoutPaidReceipt] QR data URL failed", { ticketId: t.id }, err);
+        return { ...t, dataUrl: "", ticketPdfDataUrl: "", renderError: labels.ticketRenderError };
+      }
+      try {
         const pdfBuf = await renderTicketLayoutPdf({
           qrPngDataUrl: dataUrl,
           eventTitle: receipt.eventTitle,
@@ -60,8 +66,8 @@ export async function CheckoutPaidReceipt({
         const ticketPdfDataUrl = `data:application/pdf;base64,${pdfBuf.toString("base64")}`;
         return { ...t, dataUrl, ticketPdfDataUrl, renderError: null as string | null };
       } catch (err) {
-        console.error("[CheckoutPaidReceipt] ticket render failed", { ticketId: t.id }, err);
-        return { ...t, dataUrl: "", ticketPdfDataUrl: "", renderError: labels.ticketRenderError };
+        console.error("[CheckoutPaidReceipt] ticket PDF render failed", { ticketId: t.id }, err);
+        return { ...t, dataUrl, ticketPdfDataUrl: "", renderError: labels.ticketRenderError };
       }
     })
   );
@@ -104,10 +110,13 @@ export async function CheckoutPaidReceipt({
 
             {/* Основная часть: QR и действия */}
             <div className="relative z-0 flex min-h-0 flex-1 flex-col items-center gap-4 border-b-2 border-dashed border-poet-gold/70 px-4 py-5 sm:border-b-0 sm:px-5 sm:py-6">
-              {t.renderError ? (
+              {t.renderError && !t.dataUrl ? (
                 <p className="max-w-xs text-center text-sm leading-relaxed text-amber-200/95">{t.renderError}</p>
               ) : (
                 <>
+                  {t.renderError ? (
+                    <p className="max-w-xs text-center text-sm leading-relaxed text-amber-200/95">{t.renderError}</p>
+                  ) : null}
                   {/* eslint-disable-next-line @next/next/no-img-element -- data URL из QR */}
                   <img
                     src={t.dataUrl}
@@ -119,7 +128,7 @@ export async function CheckoutPaidReceipt({
                 </>
               )}
               <div className="flex w-full max-w-xs flex-col gap-2 sm:max-w-[16rem]">
-                {t.renderError ? null : (
+                {t.ticketPdfDataUrl ? (
                   <a
                     href={t.ticketPdfDataUrl}
                     download={`bilet-${t.ticket_number}.pdf`}
@@ -127,7 +136,7 @@ export async function CheckoutPaidReceipt({
                   >
                     {labels.downloadTicket}
                   </a>
-                )}
+                ) : null}
                 <CopyTextButton text={t.id} label={labels.copyId} copiedLabel={labels.copiedId} />
                 <p className="break-all font-mono text-[11px] leading-relaxed text-zinc-500">{t.id}</p>
               </div>

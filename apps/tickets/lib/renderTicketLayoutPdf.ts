@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, type PDFFont, type PDFImage, type PDFPage, rgb } from "pdf-lib";
+import sharp from "sharp";
 import { COMPANY, companyFooterShort } from "@/lib/company";
 import { TICKET_PDF_KIND_PL, TICKET_PDF_QR_HINT_PL } from "@/lib/ticketPdfLegalPl";
 
@@ -93,10 +94,31 @@ async function embedLogoImage(pdfDoc: PDFDocument, bytes: Uint8Array): Promise<P
   return pdfDoc.embedPng(bytes);
 }
 
+/** PNG из data URL (допускаем charset и пробелы в base64 — иначе pdf-lib может не встроить QR). */
 function dataUrlPngToBytes(dataUrl: string): Uint8Array {
-  const m = /^data:image\/png;base64,(.+)$/i.exec(dataUrl.trim());
-  if (!m) throw new Error("ticket pdf: ожидается data:image/png;base64,…");
-  return Uint8Array.from(Buffer.from(m[1], "base64"));
+  const raw = dataUrl.trim();
+  const head = /^data:image\/png/i;
+  if (!head.test(raw)) throw new Error("ticket pdf: ожидается data:image/png…");
+  const marker = ";base64,";
+  const i = raw.indexOf(marker);
+  if (i === -1) throw new Error("ticket pdf: в data URL нет ;base64,");
+  const b64 = raw.slice(i + marker.length).replace(/\s+/g, "");
+  const buf = Buffer.from(b64, "base64");
+  if (buf.length < 24 || buf[0] !== 0x89 || buf[1] !== 0x50 || buf[2] !== 0x4e || buf[3] !== 0x47) {
+    throw new Error("ticket pdf: после декодирования base64 это не PNG");
+  }
+  return new Uint8Array(buf);
+}
+
+async function embedQrPng(pdfDoc: PDFDocument, dataUrl: string): Promise<PDFImage> {
+  const bytes = dataUrlPngToBytes(dataUrl);
+  try {
+    return await pdfDoc.embedPng(bytes);
+  } catch (e) {
+    console.warn("[renderTicketLayoutPdf] embedPng(QR) не удался, повтор через sharp", e);
+    const normalized = await sharp(Buffer.from(bytes)).png().toBuffer();
+    return await pdfDoc.embedPng(new Uint8Array(normalized));
+  }
 }
 
 /** Работает при hoisted `node_modules` в корне монорепо (не только `cwd/node_modules`). */
@@ -312,8 +334,9 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
 
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
-  const font = await pdfDoc.embedFont(regularBytes, { subset: true });
-  const fontBold = await pdfDoc.embedFont(boldBytes, { subset: true });
+  /* subset:false — надёжнее для кириллицы/смешанных строк в названии события (subset иногда падает в fontkit). */
+  const font = await pdfDoc.embedFont(regularBytes, { subset: false });
+  const fontBold = await pdfDoc.embedFont(boldBytes, { subset: false });
 
   const W = 320;
   const H = 582;
@@ -396,7 +419,12 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
   }
 
   const brand = COMPANY.productName.toUpperCase();
-  const brandSize = 11.5;
+  const sub = COMPANY.legalNameShort;
+  const brandMaxW = Math.max(80, W - margin - textLeft - 6);
+  let brandSize = 11.5;
+  while (brandSize > 6.5 && fontBold.widthOfTextAtSize(brand, brandSize) > brandMaxW) {
+    brandSize -= 0.35;
+  }
   const brandBaseline = H - headerH / 2 + brandSize * 0.35;
   page.drawText(brand, {
     x: textLeft,
@@ -405,8 +433,10 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
     font: fontBold,
     color: GOLD_BRIGHT,
   });
-  const sub = COMPANY.legalNameShort;
-  const subSize = 5.8;
+  let subSize = 5.8;
+  while (subSize > 4.2 && font.widthOfTextAtSize(sub, subSize) > brandMaxW) {
+    subSize -= 0.25;
+  }
   page.drawText(sub, {
     x: textLeft,
     y: brandBaseline - subSize * 1.35,
@@ -576,8 +606,7 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
     });
   }
 
-  const qrBytes = dataUrlPngToBytes(input.qrPngDataUrl);
-  const qrImg = await pdfDoc.embedPng(qrBytes);
+  const qrImg = await embedQrPng(pdfDoc, input.qrPngDataUrl);
   const qrSize = Math.min(114, Math.floor(centerW - 18));
   const qrPad = 7;
   const qrX = xCenter + (centerW - qrSize) / 2;

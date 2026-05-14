@@ -9,6 +9,8 @@ export type TicketEmailStrings = {
   attachmentColumnTitle: string;
   /** Druga kolumna: neutralny opis (przy awarii PDF w załączniku będzie PNG). */
   colAttachment: string;
+  /** Gdy PDF się nie wygenerował — w załączniku jest sam PNG z QR. */
+  colAttachmentPng: string;
   tagline: string;
   /** Jak wejść: QR z załącznika/telefonu + krótki numer (bez technicznego żargonu). */
   backupIdNote: string;
@@ -20,10 +22,11 @@ const COPY: Record<AppLocale, TicketEmailStrings> = {
   pl: {
     subjectPrefix: "Twoje bilety:",
     intro:
-      "Dziękujemy za zakup! W załącznikach masz bilety w PDF — ten sam ładny układ co na stronie, z kodem QR do wejścia i informacjami o wydarzeniu. Z telefonu też wystarczy.",
+      "Dziękujemy za zakup! W załącznikach masz bilety w PDF (albo obraz PNG z QR, jeśli PDF się nie wygeneruje) — ten sam układ co na stronie, z kodem do wejścia i informacjami o wydarzeniu. Z telefonu też wystarczy.",
     colTicket: "Twój numer",
     attachmentColumnTitle: "Plik",
     colAttachment: "Bilet PDF",
+    colAttachmentPng: "Kod QR (PNG)",
     tagline: "PopularTickets · bilety na wydarzenia w Polsce",
     backupIdNote:
       "Na wejściu pokaż kod QR z załącznika albo z ekranu telefonu — to wystarczy. Krótki numer biletu przyda się obsłudze, jeśli zapyta.",
@@ -37,6 +40,7 @@ const COPY: Record<AppLocale, TicketEmailStrings> = {
     colTicket: "Ваш номер",
     attachmentColumnTitle: "Файл",
     colAttachment: "Квиток PDF",
+    colAttachmentPng: "QR-код (PNG)",
     tagline: "PopularTickets · квитки на події в Польщі",
     backupIdNote:
       "На вході покажіть QR з вкладення або з екрана телефона — цього достатньо. Короткий номер стоїть поруч, якщо персонал попросить.",
@@ -46,10 +50,11 @@ const COPY: Record<AppLocale, TicketEmailStrings> = {
   ru: {
     subjectPrefix: "Ваши билеты:",
     intro:
-      "Спасибо за покупку! Во вложениях — билеты в PDF: тот же аккуратный макет, что на сайте, с QR для входа и данными о событии. С телефона тоже подойдёт.",
+      "Спасибо за покупку! Во вложениях — билеты в PDF (или изображение QR в PNG, если PDF не сформируется): тот же макет, что на сайте, с кодом для входа и данными о событии. С телефона тоже подойдёт.",
     colTicket: "Ваш номер",
     attachmentColumnTitle: "Файл",
     colAttachment: "Билет PDF",
+    colAttachmentPng: "QR-код (PNG)",
     tagline: "PopularTickets · билеты на события в Польше",
     backupIdNote:
       "На входе покажите QR из вложения или с экрана телефона — этого достаточно. Короткий номер рядом, если попросят на контроле.",

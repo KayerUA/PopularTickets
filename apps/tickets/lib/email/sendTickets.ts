@@ -29,7 +29,9 @@ export async function sendTicketsEmail(params: {
   const from = process.env.RESEND_FROM_EMAIL || fromDefault;
 
   const pdfLabels = emailTicketPdfLayoutStrings(params.locale);
+  const str = ticketEmailStrings(params.locale);
   const attachments: { filename: string; content: Buffer }[] = [];
+  const emailTickets: { id: string; ticketNumber: string; attachmentLabel: string }[] = [];
 
   for (const t of params.tickets) {
     const base = safeFileBase(t.ticketNumber);
@@ -45,6 +47,7 @@ export async function sendTicketsEmail(params: {
         ...pdfLabels,
       });
       attachments.push({ filename: `bilet-${base}.pdf`, content: pdfBuf });
+      emailTickets.push({ id: t.id, ticketNumber: t.ticketNumber, attachmentLabel: str.colAttachment });
     } catch (err) {
       console.error("[sendTicketsEmail] PDF failed, fallback PNG", { ticketId: t.id }, err);
       const png = await QRCode.toBuffer(t.id, {
@@ -54,6 +57,7 @@ export async function sendTicketsEmail(params: {
         errorCorrectionLevel: "M",
       });
       attachments.push({ filename: `qr-${base}.png`, content: png });
+      emailTickets.push({ id: t.id, ticketNumber: t.ticketNumber, attachmentLabel: str.colAttachmentPng });
     }
   }
 
@@ -61,15 +65,14 @@ export async function sendTicketsEmail(params: {
     eventTitle: params.eventTitle,
     venue: params.venue,
     startsAt: params.startsAt,
-    tickets: params.tickets,
+    tickets: emailTickets,
     locale: params.locale,
   });
 
-  const sub = ticketEmailStrings(params.locale);
   const { error } = await resend.emails.send({
     from,
     to: params.to,
-    subject: `${sub.subjectPrefix} ${params.eventTitle}`,
+    subject: `${str.subjectPrefix} ${params.eventTitle}`,
     html,
     attachments,
   });
