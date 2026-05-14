@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "homeTitle": "PopularTickets — bilety na spektakle Popular Poet",
-    "homeDescription": "Kupujesz bilety na nasze kameralne spektakle i wieczory w Polsce: wybierasz termin, płacisz online (Przelewy24), dostajesz PDF z QR na e-mail.",
+    "homeTitle": "PopularTickets — bilety na wieczory Popular Poet",
+    "homeDescription": "Zarezerwuj miejsce na kameralny wieczór Popular Poet w Warszawie. Wybierasz termin, płacisz bezpiecznie online i od razu dostajesz bilet PDF z QR na e-mail.",
     "firmaTitle": "Dane sprzedawcy",
     "firmaDescription": "Informacje o operatorze PopularTickets — POPULAR POET Sp. z o.o.",
     "eventTitleSuffix": " — PopularTickets",
@@ -11,14 +11,14 @@
     "zwrotyDescription": "Informacje o odstąpieniu od umowy, zwrotach i reklamacjach dotyczących biletów.",
     "privacyTitle": "Polityka prywatności",
     "privacyDescription": "Zasady przetwarzania danych osobowych w serwisie PopularTickets (RODO).",
-    "homeKeywords": "PopularTickets, bilety na spektakl, Warszawa, teatr Popular Poet, improwizacja, Przelewy24, kup bilet online",
+    "homeKeywords": "PopularTickets, bilety na spektakl, Warszawa, teatr Popular Poet, improwizacja, wieczór teatralny, Przelewy24, kup bilet online",
     "checkoutReturnTitle": "Dziękujemy za zamówienie — PopularTickets",
     "checkoutReturnDescription": "Potwierdzenie zamówienia i dostęp do biletów w serwisie PopularTickets."
   },
   "Nav": {
     "theatre": "Teatr Popular Poet",
     "theatreAria": "Wróć na stronę teatru — kursy, zajęcia próbne, kontakt",
-    "events": "Spektakle i wieczory",
+    "events": "Afisz i bilety",
     "company": "Dane sprzedawcy"
   },
   "LocaleSwitcher": {
@@ -28,14 +28,14 @@
     "ru": "RU"
   },
   "Footer": {
-    "operator": "Usługa sprzedaży biletów. Operator:",
-    "ctaDetails": "Dane sprzedawcy i płatności",
-    "tagline": "Polska · wydarzenia · bilety online",
-    "socialHeading": "Teatr w mediach społecznościowych",
-    "socialIntro": "Zasubskrybuj kanały — jako pierwszy zobaczysz afisz i linki do biletów; na Telegramie — społeczność widzów.",
+    "operator": "Oficjalna kasa biletowa Popular Poet. Operator:",
+    "ctaDetails": "Sprzedawca i płatności",
+    "tagline": "Warszawa · scena na żywo · bilety online",
+    "socialHeading": "Bądź bliżej sceny",
+    "socialIntro": "Na Instagramie pokazujemy afisz i kulisy, na YouTube — fragmenty występów, a na Telegramie zbiera się społeczność widzów.",
     "socialInstagramHandle": "@popular_poet_theatre",
     "socialYoutubeHandle": "Popular Poet",
-    "socialOutro": "Na YouTube — improwizacje i spektakle; na Telegramie — społeczność widzów. Subskrypcja i polubienia naprawdę pomagają. Dziękujemy!",
+    "socialOutro": "Dołącz, jeśli chcesz łapać miejsca wcześniej i widzieć, co dzieje się między premierami.",
     "socialInstagramAria": "Instagram: @popular_poet_theatre",
     "socialYoutubeAria": "Kanał YouTube: Popular Poet",
     "socialTelegramHandle": "Popular poet — społeczność",
@@ -59,15 +59,18 @@
     "storageNote": "Twój wybór zapisujemy w tej przeglądarce. Możesz go zmienić, czyszcząc dane witryny PopularTickets w ustawieniach przeglądarki."
   },
   "Home": {
-    "brand": "Popular Poet",
-    "title": "Afisz spektakli",
-    "subtitle": "Tu kupujesz bilety na nasze kameralne spektakle, improwizacje i wieczory w Polsce. Wybierz datę, opłać bezpiecznie online — bilety z QR trafią na Twój e-mail.",
-    "sectionLabel": "01 — wydarzenia",
-    "empty": "Brak opublikowanych wydarzeń.",
+    "brand": "Popular Poet na żywo",
+    "title": "Wieczór, który dzieje się tylko raz",
+    "subtitle": "Kameralna scena, żywy kontakt z widownią i bilety bez kombinowania. Wybierz termin, opłać przez Przelewy24, a PDF z QR przyjdzie na e-mail.",
+    "proofFast": "PDF z QR na e-mail",
+    "proofSecure": "Bezpieczna płatność online",
+    "proofLimited": "Kameralne sale, ograniczona pula",
+    "sectionLabel": "Najbliższe terminy",
+    "empty": "Nowe terminy pojawią się wkrótce. Zajrzyj na Instagram albo Telegram Popular Poet, jeśli chcesz złapać je jako pierwszy.",
     "loadError": "Nie udało się wczytać listy wydarzeń. Spróbuj odświeżyć stronę za chwilę. Jeśli problem się powtarza, skontaktuj się z nami — dane w zakładce „Dane sprzedawcy”."
   },
   "Marquee": {
-    "phrase": "Popular Poet · PopularTickets · Warszawa · bilety · wydarzenia na żywo · "
+    "phrase": "Popular Poet · scena na żywo · Warszawa · bilety online · wieczory teatralne · "
   },
   "SupabaseHint": {
     "titleSetup": "Konfiguracja serwisu",
@@ -83,8 +86,8 @@
     "queryFailedDevPrefix": "Szczegóły techniczne (środowisko developerskie):"
   },
   "EventPage": {
-    "priceLabel": "Cena za bilet",
-    "remainingLabel": "Pozostało",
+    "priceLabel": "Bilet",
+    "remainingLabel": "Wolne miejsca",
     "soldOut": "Wyprzedane.",
     "purchaseClosedPast": "To wydarzenie już się odbyło — sprzedaż biletów jest zamknięta.",
     "loadRemainingError": "Błąd wczytywania dostępności",
@@ -94,10 +97,10 @@
     "nettoLabel": "Netto",
     "vatLabel": "w tym VAT (8%)",
     "vatLegalNote": "Widziana cena jest końcowa — podatek jest wliczony (wydarzenia kulturalne w Polsce: obniżona stawka VAT 8%). Kwoty liczymy od ceny brutto.",
-    "prePurchaseNote": "Sprzedawca: {seller}, NIP {nip}. Bilet elektroniczny na e-mail — bez dodatkowych kosztów dostawy. Pełne dane i zasady płatności: zakładka „Dane sprzedawcy” w stopce oraz Regulamin."
+    "prePurchaseNote": "Po płatności dostaniesz bilet elektroniczny na e-mail — bez kosztów dostawy i bez drukowania. Sprzedawca: {seller}, NIP {nip}. Pełne zasady: „Dane sprzedawcy” i Regulamin."
   },
   "EventCard": {
-    "buy": "Kup bilet",
+    "buy": "Rezerwuję miejsce",
     "ctaPast": "Szczegóły",
     "ctaSoldOut": "Brak biletów"
   },
@@ -114,12 +117,12 @@
     "phone": "Telefon (opcjonalnie)",
     "quantity": "Liczba biletów",
     "bypassHint": "Bieżąca konfiguracja sklepu: zamówienie realizujemy od razu po wysłaniu formularza (bez przekierowania do operatora płatności). Bilety wysyłamy na podany adres e-mail po zakończeniu procesu.",
-    "submit": "Przejdź do płatności (Przelewy24)",
-    "submitBypass": "Złóż zamówienie i odbierz bilety",
-    "submitting": "Tworzymy zamówienie…",
-    "hint": "Po opłaceniu bilety trafią na e-mail. Status płatności potwierdzamy automatycznie.",
+    "submit": "Kupuję bilet",
+    "submitBypass": "Rezerwuję i odbieram bilet",
+    "submitting": "Rezerwujemy miejsce…",
+    "hint": "Po płatności bilet z QR trafi na e-mail. Na wejściu wystarczy telefon.",
     "p24CheckoutTrust": "Płatność obsługuje Przelewy24 (PayPro S.A.). Po kliknięciu przejdziesz na zabezpieczoną stronę operatora — tam wybierzesz metodę (BLIK, karta itd.).",
-    "hintBypass": "Upewnij się, że adres e-mail jest poprawny — na ten adres wyślemy bilety.",
+    "hintBypass": "Sprawdź e-mail — tam wyślemy bilet z QR.",
     "errorGeneric": "Nie udało się utworzyć zamówienia",
     "legalConsent": "Akceptuję <terms>regulamin serwisu</terms> oraz <privacy>politykę prywatności</privacy> — jest to wymagane, aby złożyć zamówienie.",
     "marketingEmailConsent": "Chcę otrzymywać na e-mail informacje i nowości Popular Poet (kursy, afiszę, wydarzenia). To opcjonalne; w każdej chwili możesz zrezygnować. Szczegóły — w <privacy>polityce prywatności</privacy>.",

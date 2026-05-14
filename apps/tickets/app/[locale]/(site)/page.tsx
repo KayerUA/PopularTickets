@@ -37,6 +37,7 @@ export async function generateMetadata({
 export default async function HomePage({ params }: { params: Promise<{ locale: AppLocale }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Home" });
+  const proofItems = [t("proofFast"), t("proofSecure"), t("proofLimited")];
   const supabase = getServiceSupabase();
   if (!supabase) {
     return <SupabaseSetupHint variant="setup" locale={locale} />;
@@ -89,14 +90,24 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
   return (
     <div className="poet-safe-x mx-auto max-w-5xl py-10 sm:py-16">
       <JsonLd data={buildHomeJsonLd(locale)} />
-      <div className="animate-fade-up mb-10 max-w-2xl sm:mb-12">
+      <div className="animate-fade-up mb-10 overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/45 p-5 shadow-gold-sm backdrop-blur-sm sm:mb-12 sm:p-8">
         <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-poet-gold/80 sm:text-xs sm:tracking-[0.35em]">
           {t("brand")}
         </p>
-        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-zinc-50 sm:mt-3 sm:text-5xl">
+        <h1 className="mt-2 max-w-3xl font-display text-3xl font-semibold tracking-tight text-zinc-50 sm:mt-3 sm:text-5xl">
           <span className="text-gradient-gold">{t("title")}</span>
         </h1>
-        <p className="mt-3 text-base leading-relaxed text-zinc-400 sm:mt-4 sm:text-lg">{t("subtitle")}</p>
+        <p className="mt-3 max-w-2xl text-base leading-relaxed text-zinc-300 sm:mt-4 sm:text-lg">{t("subtitle")}</p>
+        <ul className="mt-5 flex flex-wrap gap-2">
+          {proofItems.map((item) => (
+            <li
+              key={item}
+              className="rounded-full border border-poet-gold/20 bg-black/25 px-3 py-1.5 text-xs font-medium text-zinc-300"
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
       </div>
       <MarqueeStrip />
       {list.length ? (
