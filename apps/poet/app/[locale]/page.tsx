@@ -23,7 +23,7 @@ export default async function HomePage() {
           style={{ backgroundImage: "url(/courses/theatre-photo.jpg)" }}
           aria-hidden
         />
-        <div className="relative bg-poet-bg/75 px-4 py-8 sm:px-8 sm:py-10">
+        <div className="relative bg-poet-bg/75 px-3 py-6 sm:px-8 sm:py-10">
           <PoetMarquee />
 
           <header className="animate-fade-up text-center sm:text-left">
@@ -48,13 +48,13 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <section id="kursy" className="mt-14 scroll-mt-24 sm:mt-16">
+      <section id="kursy" className="mt-12 scroll-mt-32 sm:mt-16 sm:scroll-mt-28">
         <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("coursesTitle")}</h2>
         <p className="mt-2 max-w-2xl text-sm text-zinc-500">{t("coursesIntro")}</p>
         <PoetCourseShowcase dbCourses={dbCourses} />
       </section>
 
-      <section id="probny-kalendar" className="mt-16 scroll-mt-24 sm:mt-20">
+      <section id="probny-kalendar" className="mt-14 scroll-mt-32 sm:mt-20 sm:scroll-mt-28">
         <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("calendarTitle")}</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-500">{t("calendarIntro")}</p>
         <div className="mt-8">
@@ -62,7 +62,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="proby" className="mt-16 scroll-mt-24 sm:mt-20">
+      <section id="proby" className="mt-14 scroll-mt-32 sm:mt-20 sm:scroll-mt-28">
         <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("trialsBuyerTitle")}</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-500">{t("trialsSectionLead")}</p>
         <div className="mt-8">

@@ -147,7 +147,7 @@ export default async function PoetCoursePage({ params }: PageProps) {
         </div>
       </article>
 
-      <section className="mt-12 scroll-mt-24" id="proby-kursu">
+      <section className="mt-10 scroll-mt-32 sm:mt-12 sm:scroll-mt-28" id="proby-kursu">
         <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{tPage("trialsHeading")}</h2>
         <p className="mt-2 max-w-2xl text-sm text-zinc-500">{tPage("trialsIntro")}</p>
 
