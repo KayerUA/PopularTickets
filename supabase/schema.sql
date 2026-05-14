@@ -73,6 +73,13 @@ alter table public.orders
 
 comment on column public.orders.locale is 'Язык интерфейса при оформлении (pl|uk|ru) — письмо с билетами.';
 
+-- Миграция: согласие на маркетинговые email — `supabase/add-order-marketing-email-opt-in.sql`.
+alter table public.orders
+  add column if not exists marketing_email_opt_in boolean not null default false;
+
+comment on column public.orders.marketing_email_opt_in is
+  'Согласие покупателя на информационные/маркетинговые email (отдельно от транзакционных писем о заказе).';
+
 -- Билеты (UUID = ticket_id для QR)
 create table if not exists public.tickets (
   id uuid primary key default gen_random_uuid(),

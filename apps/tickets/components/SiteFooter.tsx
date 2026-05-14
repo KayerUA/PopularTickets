@@ -38,13 +38,14 @@ function TelegramGlyph({ className }: { className?: string }) {
   );
 }
 
+const socialLinkClass =
+  "group inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-poet-gold/[0.08] text-poet-gold-bright transition hover:bg-poet-gold/[0.14] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-poet-gold/45 sm:h-auto sm:min-w-[10.75rem] sm:w-auto sm:inline-flex sm:flex-row sm:items-center sm:justify-start sm:gap-2.5 sm:rounded-xl sm:bg-poet-gold/[0.05] sm:px-3.5 sm:py-2.5 sm:hover:bg-poet-gold/[0.09]";
+
 export async function SiteFooter() {
   const locale = await getRequestAppLocale();
   const t = await getTranslations({ locale, namespace: "Footer" });
   const p24Gfx = getP24FooterPaymentGraphics();
-  const hasStrip = Boolean(p24Gfx.methodsStripUrl);
   const hasLogo = Boolean(p24Gfx.logoUrl);
-  const hasAnyTrustImage = hasStrip || hasLogo;
 
   return (
     <footer className="relative z-0 border-t border-poet-gold/15 bg-poet-bg/90">
@@ -61,20 +62,20 @@ export async function SiteFooter() {
               <p className="mt-2 text-[11px] leading-relaxed text-zinc-400 sm:text-xs">{t("socialIntro")}</p>
               <p className="mt-3 text-[10px] leading-snug text-zinc-500 sm:text-[11px]">{t("socialOutro")}</p>
             </div>
-            <div className="flex min-w-0 flex-wrap gap-2.5 sm:shrink-0 sm:justify-end">
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:min-w-0 sm:shrink-0 sm:justify-end sm:gap-2.5">
               <a
                 href={THEATRE_INSTAGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={t("socialInstagramAria")}
-                className="group inline-flex min-w-0 max-w-full flex-1 items-center gap-2.5 rounded-full border border-poet-gold/28 bg-poet-gold/[0.04] px-3.5 py-2.5 text-left transition hover:border-poet-gold/45 hover:bg-poet-gold/[0.07] sm:flex-initial sm:min-w-[11rem]"
+                className={socialLinkClass}
               >
-                <InstagramGlyph className="h-4 w-4 shrink-0 text-poet-gold-bright" />
-                <span className="min-w-0">
-                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">Instagram</span>
-                  <span className="block truncate text-[11px] font-medium text-zinc-200">{t("socialInstagramHandle")}</span>
+                <InstagramGlyph className="h-5 w-5 shrink-0 sm:h-4 sm:w-4" />
+                <span className="hidden min-w-0 flex-col text-left sm:flex">
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">Instagram</span>
+                  <span className="break-words text-[11px] font-medium leading-snug text-zinc-200">{t("socialInstagramHandle")}</span>
                 </span>
-                <span aria-hidden className="ml-0.5 shrink-0 text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright">
+                <span aria-hidden className="hidden text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright sm:ml-auto sm:inline">
                   ↗
                 </span>
               </a>
@@ -83,14 +84,14 @@ export async function SiteFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={t("socialYoutubeAria")}
-                className="group inline-flex min-w-0 max-w-full flex-1 items-center gap-2.5 rounded-full border border-poet-gold/28 bg-poet-gold/[0.04] px-3.5 py-2.5 text-left transition hover:border-poet-gold/45 hover:bg-poet-gold/[0.07] sm:flex-initial sm:min-w-[11rem]"
+                className={socialLinkClass}
               >
-                <YouTubeGlyph className="h-4 w-4 shrink-0 text-poet-gold-bright" />
-                <span className="min-w-0">
-                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">YouTube</span>
-                  <span className="block truncate text-[11px] font-medium text-zinc-200">{t("socialYoutubeHandle")}</span>
+                <YouTubeGlyph className="h-5 w-5 shrink-0 sm:h-4 sm:w-4" />
+                <span className="hidden min-w-0 flex-col text-left sm:flex">
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">YouTube</span>
+                  <span className="break-words text-[11px] font-medium leading-snug text-zinc-200">{t("socialYoutubeHandle")}</span>
                 </span>
-                <span aria-hidden className="ml-0.5 shrink-0 text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright">
+                <span aria-hidden className="hidden text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright sm:ml-auto sm:inline">
                   ↗
                 </span>
               </a>
@@ -99,14 +100,14 @@ export async function SiteFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={t("socialTelegramAria")}
-                className="group inline-flex min-w-0 max-w-full flex-1 items-center gap-2.5 rounded-full border border-poet-gold/28 bg-poet-gold/[0.04] px-3.5 py-2.5 text-left transition hover:border-poet-gold/45 hover:bg-poet-gold/[0.07] sm:flex-initial sm:min-w-[11rem]"
+                className={socialLinkClass}
               >
-                <TelegramGlyph className="h-4 w-4 shrink-0 text-poet-gold-bright" />
-                <span className="min-w-0">
-                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">Telegram</span>
-                  <span className="block truncate text-[11px] font-medium text-zinc-200">{t("socialTelegramHandle")}</span>
+                <TelegramGlyph className="h-5 w-5 shrink-0 sm:h-4 sm:w-4" />
+                <span className="hidden min-w-0 flex-col text-left sm:flex">
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">Telegram</span>
+                  <span className="break-words text-[11px] font-medium leading-snug text-zinc-200">{t("socialTelegramHandle")}</span>
                 </span>
-                <span aria-hidden className="ml-0.5 shrink-0 text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright">
+                <span aria-hidden className="hidden text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright sm:ml-auto sm:inline">
                   ↗
                 </span>
               </a>
@@ -148,67 +149,33 @@ export async function SiteFooter() {
         </div>
 
         <section aria-labelledby="footer-p24-trust-heading" className="mt-8 border-t border-poet-gold/10 pt-6 sm:mt-10 sm:pt-7">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-            <div className="min-w-0 space-y-1">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <div className="min-w-0 space-y-1.5">
               <h2
                 id="footer-p24-trust-heading"
                 className="text-[9px] font-semibold uppercase tracking-[0.22em] text-poet-gold/75 sm:text-[10px]"
               >
                 {t("p24TrustHeading")}
               </h2>
-              {!hasStrip ? (
-                <p className="max-w-xl text-[10px] leading-relaxed text-zinc-500 sm:text-[11px]">{t("p24MethodsCaption")}</p>
-              ) : null}
+              <p className="max-w-xl text-[11px] leading-relaxed text-zinc-500 sm:text-xs">{t("p24MethodsCaption")}</p>
             </div>
             {hasLogo ? (
-              <div className="flex items-center gap-3 text-[11px] text-zinc-400 sm:shrink-0">
-                <span>{t("p24TrustByline")}</span>
+              <div className="flex flex-wrap items-center gap-3 text-[11px] text-zinc-400 sm:shrink-0 sm:justify-end sm:text-sm">
+                <span className="shrink-0">{t("p24TrustByline")}</span>
                 {/* eslint-disable-next-line @next/next/no-img-element -- lokalne SVG z public/ */}
                 <img
                   src={p24Gfx.logoUrl!}
                   alt={t("p24LogoAlt")}
-                  className="h-6 w-auto max-w-[8rem] object-contain object-left sm:h-7 sm:max-w-[10rem]"
+                  className="h-7 w-auto max-w-[10rem] object-contain object-left opacity-95 sm:h-8 sm:max-w-[12rem]"
                 />
               </div>
-            ) : null}
+            ) : (
+              <div className="space-y-2 rounded-lg border border-amber-500/20 bg-amber-950/15 px-4 py-3">
+                <p className="text-[11px] leading-relaxed text-zinc-400">{t("p24MethodsCaption")}</p>
+                <p className="text-[10px] leading-snug text-zinc-500">{t("p24MethodsVerifierHint")}</p>
+              </div>
+            )}
           </div>
-
-          {hasAnyTrustImage ? (
-            <>
-              {hasStrip ? (
-                <div className="mt-4 max-w-3xl">
-                  <p className="mb-2 text-[10px] leading-snug text-zinc-500 sm:hidden">{t("p24ScrollHint")}</p>
-                  <div className="overflow-x-auto overscroll-x-contain rounded-lg border border-poet-gold/12 bg-[#f4f0e8] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] [-webkit-overflow-scrolling:touch] [scrollbar-color:rgba(197,160,89,0.28)_transparent] [scrollbar-width:thin] sm:px-4 sm:py-2.5">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={p24Gfx.methodsStripUrl!}
-                      alt={t("p24MethodsCaption")}
-                      width={1920}
-                      height={754}
-                      loading="lazy"
-                      decoding="async"
-                      className="mr-auto block h-auto max-h-12 w-auto min-w-[34rem] max-w-[min(100%,44rem)] bg-transparent object-contain object-left sm:max-h-14 sm:min-w-0"
-                    />
-                  </div>
-                </div>
-              ) : hasLogo ? (
-                <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 sm:mt-5">
-                  <span className="text-[12px] font-medium tracking-tight text-zinc-400 sm:text-[13px]">{t("p24TrustByline")}</span>
-                  {/* eslint-disable-next-line @next/next/no-img-element -- lokalne SVG z public/ */}
-                  <img
-                    src={p24Gfx.logoUrl!}
-                    alt={t("p24LogoAlt")}
-                    className="h-7 w-auto max-w-[11rem] object-contain object-left sm:h-9 sm:max-w-[13rem]"
-                  />
-                </div>
-              ) : null}
-            </>
-          ) : (
-            <div className="mt-5 space-y-2 rounded-lg border border-amber-500/20 bg-amber-950/15 px-4 py-3 sm:mt-6">
-              <p className="text-[11px] leading-relaxed text-zinc-400">{t("p24MethodsCaption")}</p>
-              <p className="text-[10px] leading-snug text-zinc-500">{t("p24MethodsVerifierHint")}</p>
-            </div>
-          )}
         </section>
       </div>
     </footer>

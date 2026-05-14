@@ -21,7 +21,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
   let query = supabase
     .from("orders")
     .select(
-      "id,created_at,buyer_name,email,phone,quantity,status,amount_grosze,event_id,events(id,title,slug),tickets(id,ticket_number,used_at)"
+      "id,created_at,buyer_name,email,phone,quantity,status,amount_grosze,marketing_email_opt_in,event_id,events(id,title,slug),tickets(id,ticket_number,used_at)"
     )
     .order("created_at", { ascending: false })
     .limit(500);
@@ -86,6 +86,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
               <th className="px-3 py-3">Создан</th>
               <th className="px-3 py-3">Событие</th>
               <th className="px-3 py-3">Покупатель</th>
+              <th className="px-3 py-3">Рассылка</th>
               <th className="px-3 py-3">Сумма</th>
               <th className="px-3 py-3">Статус</th>
               <th className="px-3 py-3">Билеты / вход</th>
@@ -113,6 +114,9 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                   <td className="px-3 py-3 text-zinc-300">
                     <div>{o.buyer_name}</div>
                     <div className="text-xs text-zinc-500">{o.email}</div>
+                  </td>
+                  <td className="px-3 py-3 text-xs text-zinc-400 whitespace-nowrap">
+                    {(o as { marketing_email_opt_in?: boolean }).marketing_email_opt_in ? "да" : "—"}
                   </td>
                   <td className="px-3 py-3 text-zinc-300 whitespace-nowrap">
                     {formatPlnFromGrosze(o.amount_grosze)} ×{o.quantity}

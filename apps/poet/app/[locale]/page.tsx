@@ -44,6 +44,22 @@ export default async function HomePage() {
               )}
               {t("heroLeadAfter")}
             </p>
+            <div className="mx-auto mt-6 flex flex-wrap items-center justify-center gap-2 sm:mx-0 sm:justify-start">
+              <a
+                href="#probny-kalendar"
+                className="inline-flex items-center justify-center rounded-full border border-poet-gold/35 bg-black/30 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-poet-gold-bright transition hover:border-poet-gold/55 hover:bg-poet-gold/10 sm:text-sm sm:normal-case sm:tracking-normal"
+              >
+                {t("heroCtaCalendar")}
+              </a>
+              {tickets ? (
+                <a
+                  href={ticketsHome(locale)}
+                  className="inline-flex items-center justify-center rounded-full border border-zinc-600/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-200 transition hover:border-zinc-500 hover:text-white sm:text-sm sm:normal-case sm:tracking-normal"
+                >
+                  {t("heroCtaTickets")}
+                </a>
+              ) : null}
+            </div>
           </header>
         </div>
       </div>

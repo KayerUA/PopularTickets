@@ -17,6 +17,13 @@ export function ticketsFirma(locale: AppLocale): string {
   return `${b}/${locale}/firma`;
 }
 
+/** Политика конфиденциальности кассы PopularTickets (тот же домен, что и firma). */
+export function ticketsPrivacyPolicy(locale: AppLocale): string {
+  const b = getTicketsSiteBase();
+  if (!b) return "#";
+  return `${b}/${locale}/polityka-prywatnosci`;
+}
+
 /** Сторінка події з формою оплати (Przelewy24 тощо). */
 export function ticketsEventPage(locale: AppLocale, eventSlug: string): string {
   const b = getTicketsSiteBase();

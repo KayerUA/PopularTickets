@@ -96,6 +96,8 @@ export async function createPendingOrder(formData: FormData) {
   const orderId = crypto.randomUUID();
   const amountGrosze = event.price_grosze * quantity;
 
+  const marketingEmailOptIn = formData.get("marketingEmailOptIn") === "on";
+
   const { error: insErr } = await supabase.from("orders").insert({
     id: orderId,
     event_id: event.id,
@@ -108,6 +110,7 @@ export async function createPendingOrder(formData: FormData) {
     status: "pending",
     p24_session_id: orderId,
     locale: parsed.data.locale,
+    marketing_email_opt_in: marketingEmailOptIn,
   });
 
   if (insErr) {

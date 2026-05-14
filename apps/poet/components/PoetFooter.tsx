@@ -36,6 +36,9 @@ function TelegramGlyph({ className }: { className?: string }) {
   );
 }
 
+const socialLinkClass =
+  "group inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-poet-gold/[0.08] text-poet-gold-bright transition hover:bg-poet-gold/[0.14] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-poet-gold/45 sm:h-auto sm:min-w-[10.75rem] sm:w-auto sm:inline-flex sm:flex-row sm:items-center sm:justify-start sm:gap-2.5 sm:rounded-xl sm:bg-poet-gold/[0.05] sm:px-3.5 sm:py-2.5 sm:hover:bg-poet-gold/[0.09]";
+
 export async function PoetFooter() {
   const tickets = getTicketsSiteBase();
   const locale = (await getLocale()) as AppLocale;
@@ -50,19 +53,20 @@ export async function PoetFooter() {
               <h2 className="font-display text-sm font-semibold tracking-tight text-gradient-gold sm:text-base">{t("footerSocialTitle")}</h2>
               <p className="mt-2 text-[11px] leading-relaxed text-zinc-400 sm:text-xs">{t("footerSocialIntro")}</p>
             </div>
-            <div className="flex min-w-0 flex-wrap gap-2.5 sm:shrink-0 sm:justify-end">
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:min-w-0 sm:shrink-0 sm:justify-end sm:gap-2.5">
               <a
                 href={THEATRE_INSTAGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex min-w-0 max-w-full flex-1 items-center gap-2.5 rounded-full border border-poet-gold/28 bg-poet-gold/[0.04] px-3.5 py-2.5 text-left transition hover:border-poet-gold/45 hover:bg-poet-gold/[0.07] sm:flex-initial sm:min-w-[11rem]"
+                aria-label={`${t("footerInstagramLabel")} @popular_poet_theatre`}
+                className={socialLinkClass}
               >
-                <InstagramGlyph className="h-4 w-4 shrink-0 text-poet-gold-bright" />
-                <span className="min-w-0">
-                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">{t("footerInstagramLabel")}</span>
-                  <span className="block truncate text-[11px] font-medium text-zinc-200">@popular_poet_theatre</span>
+                <InstagramGlyph className="h-5 w-5 shrink-0 sm:h-4 sm:w-4" />
+                <span className="hidden min-w-0 flex-col text-left sm:flex">
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">{t("footerInstagramLabel")}</span>
+                  <span className="break-words text-[11px] font-medium leading-snug text-zinc-200">@popular_poet_theatre</span>
                 </span>
-                <span aria-hidden className="text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright">
+                <span aria-hidden className="hidden text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright sm:ml-auto sm:inline">
                   ↗
                 </span>
               </a>
@@ -70,14 +74,15 @@ export async function PoetFooter() {
                 href={THEATRE_YOUTUBE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex min-w-0 max-w-full flex-1 items-center gap-2.5 rounded-full border border-poet-gold/28 bg-poet-gold/[0.04] px-3.5 py-2.5 text-left transition hover:border-poet-gold/45 hover:bg-poet-gold/[0.07] sm:flex-initial sm:min-w-[11rem]"
+                aria-label={`${t("footerYoutubeLabel")} Popular Poet`}
+                className={socialLinkClass}
               >
-                <YouTubeGlyph className="h-4 w-4 shrink-0 text-poet-gold-bright" />
-                <span className="min-w-0">
-                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">{t("footerYoutubeLabel")}</span>
-                  <span className="block truncate text-[11px] font-medium text-zinc-200">Popular Poet</span>
+                <YouTubeGlyph className="h-5 w-5 shrink-0 sm:h-4 sm:w-4" />
+                <span className="hidden min-w-0 flex-col text-left sm:flex">
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">{t("footerYoutubeLabel")}</span>
+                  <span className="break-words text-[11px] font-medium leading-snug text-zinc-200">Popular Poet</span>
                 </span>
-                <span aria-hidden className="text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright">
+                <span aria-hidden className="hidden text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright sm:ml-auto sm:inline">
                   ↗
                 </span>
               </a>
@@ -85,14 +90,15 @@ export async function PoetFooter() {
                 href={THEATRE_TELEGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex min-w-0 max-w-full flex-1 items-center gap-2.5 rounded-full border border-poet-gold/28 bg-poet-gold/[0.04] px-3.5 py-2.5 text-left transition hover:border-poet-gold/45 hover:bg-poet-gold/[0.07] sm:flex-initial sm:min-w-[11rem]"
+                aria-label={`${t("footerTelegramLabel")}: ${t("footerTelegramCommunity")}`}
+                className={socialLinkClass}
               >
-                <TelegramGlyph className="h-4 w-4 shrink-0 text-poet-gold-bright" />
-                <span className="min-w-0">
-                  <span className="block text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">{t("footerTelegramLabel")}</span>
-                  <span className="block truncate text-[11px] font-medium text-zinc-200">{t("footerTelegramCommunity")}</span>
+                <TelegramGlyph className="h-5 w-5 shrink-0 sm:h-4 sm:w-4" />
+                <span className="hidden min-w-0 flex-col text-left sm:flex">
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-poet-gold/90">{t("footerTelegramLabel")}</span>
+                  <span className="break-words text-[11px] font-medium leading-snug text-zinc-200">{t("footerTelegramCommunity")}</span>
                 </span>
-                <span aria-hidden className="text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright">
+                <span aria-hidden className="hidden text-[10px] text-poet-gold/60 group-hover:text-poet-gold-bright sm:ml-auto sm:inline">
                   ↗
                 </span>
               </a>

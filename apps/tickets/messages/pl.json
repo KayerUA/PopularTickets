@@ -122,6 +122,7 @@
     "hintBypass": "Upewnij się, że adres e-mail jest poprawny — na ten adres wyślemy bilety.",
     "errorGeneric": "Nie udało się utworzyć zamówienia",
     "legalConsent": "Akceptuję <terms>regulamin serwisu</terms> oraz <privacy>politykę prywatności</privacy> — jest to wymagane, aby złożyć zamówienie.",
+    "marketingEmailConsent": "Chcę otrzymywać na e-mail informacje i nowości Popular Poet (kursy, afiszę, wydarzenia). To opcjonalne; w każdej chwili możesz zrezygnować. Szczegóły — w <privacy>polityce prywatności</privacy>.",
     "summaryTitle": "Podsumowanie (PL, VAT 8%)",
     "bruttoLabel": "Razem brutto",
     "nettoLabel": "Netto",
