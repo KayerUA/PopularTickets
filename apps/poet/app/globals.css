@@ -22,7 +22,7 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    /* Якоря (#kursy, #probny-kalendar) под липкой шапкой на мобиле */
+    /* Якоря (#kursy, #schedule) под липкой шапкой на мобиле */
     scroll-padding-top: 6.5rem;
   }
 
@@ -236,7 +236,7 @@
   }
 
   .btn-poet-theatre:hover:not(:disabled) {
-    @apply border-[#722f3f]/95 shadow-[0_0_0_1px_rgba(232,212,139,0.5),0_14px_36px_-10px_rgba(197,160,89,0.35)];
+    @apply border-[#722f3f]/95 text-zinc-950 shadow-[0_0_0_1px_rgba(232,212,139,0.5),0_14px_36px_-10px_rgba(197,160,89,0.35)];
   }
 
   /** Курси: окремі «світла» для кожного напряму */

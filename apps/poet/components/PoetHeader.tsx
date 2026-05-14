@@ -52,7 +52,7 @@ export async function PoetHeader() {
             <Link href="/#kursy" className={navLinkClass}>
               {t("navCourses")}
             </Link>
-            <Link href="/#probny-kalendar" className={navLinkClass}>
+            <Link href="/#schedule" className={navLinkClass}>
               {t("navTrials")}
             </Link>
             {tickets ? (

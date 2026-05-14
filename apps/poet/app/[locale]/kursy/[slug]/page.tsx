@@ -155,7 +155,7 @@ export default async function PoetCoursePage({ params }: PageProps) {
           <div className="mt-6 rounded-2xl border border-dashed border-poet-gold/25 bg-zinc-950/25 px-5 py-8 sm:px-8">
             <p className="text-sm leading-relaxed text-zinc-400">{tPage("emptyTrials")}</p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/#probny-kalendar" className="btn-poet-theatre btn-poet inline-flex no-underline">
+              <Link href="/#schedule" className="btn-poet-theatre btn-poet inline-flex no-underline">
                 {tPage("ctaFullCalendar")}
               </Link>
               {tickets ? (

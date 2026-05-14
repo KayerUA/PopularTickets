@@ -57,7 +57,7 @@ export default async function HomePage() {
             </ul>
             <div className="mx-auto mt-6 flex flex-wrap items-center justify-center gap-2 sm:mx-0 sm:justify-start">
               <a
-                href="#probny-kalendar"
+                href="#schedule"
                 className="inline-flex items-center justify-center rounded-full border border-poet-gold/35 bg-black/30 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-poet-gold-bright transition hover:border-poet-gold/55 hover:bg-poet-gold/10 sm:text-sm sm:normal-case sm:tracking-normal"
               >
                 {t("heroCtaCalendar")}
@@ -81,7 +81,9 @@ export default async function HomePage() {
         <PoetCourseShowcase dbCourses={dbCourses} />
       </section>
 
-      <section id="probny-kalendar" className="mt-14 scroll-mt-32 sm:mt-20 sm:scroll-mt-28">
+      <div id="probny-kalendar" className="scroll-mt-32 sm:scroll-mt-28" aria-hidden />
+      <div id="zajecia-kalendar" className="scroll-mt-32 sm:scroll-mt-28" aria-hidden />
+      <section id="schedule" className="mt-14 scroll-mt-32 sm:mt-20 sm:scroll-mt-28">
         <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("calendarTitle")}</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-500">{t("calendarIntro")}</p>
         <div className="mt-8">

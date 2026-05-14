@@ -228,6 +228,6 @@
   }
 
   .btn-poet-theatre:hover:not(:disabled) {
-    @apply border-[#722f3f]/95 shadow-[0_0_0_1px_rgba(232,212,139,0.5),0_14px_36px_-10px_rgba(197,160,89,0.35)];
+    @apply border-[#722f3f]/95 text-zinc-950 shadow-[0_0_0_1px_rgba(232,212,139,0.5),0_14px_36px_-10px_rgba(197,160,89,0.35)];
   }
 }
