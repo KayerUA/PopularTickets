@@ -117,14 +117,16 @@ export async function CheckoutPaidReceipt({
                   {t.renderError ? (
                     <p className="max-w-xs text-center text-sm leading-relaxed text-amber-200/95">{t.renderError}</p>
                   ) : null}
-                  {/* eslint-disable-next-line @next/next/no-img-element -- data URL из QR */}
-                  <img
-                    src={t.dataUrl}
-                    alt=""
-                    width={200}
-                    height={200}
-                    className="shrink-0 rounded-md border-2 border-poet-gold/40 bg-white p-1.5 shadow-[0_0_22px_-4px_rgba(197,160,89,0.38)]"
-                  />
+                  {t.dataUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element -- data URL из QR */
+                    <img
+                      src={t.dataUrl}
+                      alt=""
+                      width={200}
+                      height={200}
+                      className="shrink-0 rounded-md border-2 border-poet-gold/40 bg-white p-1.5 shadow-[0_0_22px_-4px_rgba(197,160,89,0.38)]"
+                    />
+                  ) : null}
                 </>
               )}
               <div className="flex w-full max-w-xs flex-col gap-2 sm:max-w-[16rem]">
