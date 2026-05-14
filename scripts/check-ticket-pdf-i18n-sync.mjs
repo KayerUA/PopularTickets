@@ -7,9 +7,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const root = path.join(__dirname, "..");
+const repoRoot = path.join(__dirname, "..");
+const ticketsApp = path.join(repoRoot, "apps", "tickets");
 
-const TS_PATH = path.join(root, "lib/email/ticketEmailI18n.ts");
+const TS_PATH = path.join(ticketsApp, "lib/email/ticketEmailI18n.ts");
 
 /** Ключ в JSON TicketPdf → поле в объекте L[locale] в TS */
 const PAIRS = [
@@ -20,7 +21,7 @@ const PAIRS = [
 ];
 
 function readJsonTicketPdf(locale) {
-  const raw = fs.readFileSync(path.join(root, `messages/${locale}.json`), "utf8");
+  const raw = fs.readFileSync(path.join(ticketsApp, `messages/${locale}.json`), "utf8");
   const data = JSON.parse(raw);
   const tp = data.TicketPdf;
   if (!tp) throw new Error(`messages/${locale}.json: нет секции TicketPdf`);

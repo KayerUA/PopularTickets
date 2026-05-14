@@ -25,8 +25,11 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: ESLint
-        run: npm run lint
+      - name: ESLint (workspaces)
+        run: npm run lint --workspaces --if-present
 
-      - name: TypeScript
-        run: npx tsc --noEmit
+      - name: TypeScript (tickets)
+        run: npx tsc --noEmit -p apps/tickets/tsconfig.json
+
+      - name: TypeScript (poet)
+        run: npx tsc --noEmit -p apps/poet/tsconfig.json

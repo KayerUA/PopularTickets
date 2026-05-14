@@ -14,17 +14,17 @@
 | `P24_SECRET_ID` | Секрет для API. |
 | `P24_CRC_KEY` | Ключ CRC (участвует в подписи запросов и уведомлений). |
 
-Без корректных `P24_*` регистрация транзакции и проверка подписи в [`lib/p24.ts`](../lib/p24.ts) / [`lib/fulfillment.ts`](../lib/fulfillment.ts) не сработают.
+Без корректных `P24_*` регистрация транзакции и проверка подписи в [`lib/p24.ts`](../apps/tickets/lib/p24.ts) / [`lib/fulfillment.ts`](../apps/tickets/lib/fulfillment.ts) не сработают.
 
 ## 2. URL в панели Przelewy24 (мерчант)
 
 1. **Powiadomienia URL / URL statusu** (уведомление о статусе транзакции):  
    **`{NEXT_PUBLIC_APP_URL}/api/p24/notify`**  
    Пример: `https://www.populartickets.pl/api/p24/notify`  
-   Метод в коде: **`POST`**, тело — **JSON** (обработка в [`app/api/p24/notify/route.ts`](../app/api/p24/notify/route.ts)).
+   Метод в коде: **`POST`**, тело — **JSON** (обработка в [`app/api/p24/notify/route.ts`](../apps/tickets/app/api/p24/notify/route.ts)).
 
 2. **URL powrotu / return** задаётся **при регистрации транзакции** из приложения:  
-   `{baseUrl}/{locale}/checkout/return?...` (см. [`buildCheckoutReturnPath`](../lib/orderReceiptToken.ts) и [`app/actions/checkout.ts`](../app/actions/checkout.ts)).  
+   `{baseUrl}/{locale}/checkout/return?...` (см. [`buildCheckoutReturnPath`](../apps/tickets/lib/orderReceiptToken.ts) и [`app/actions/checkout.ts`](../apps/tickets/app/actions/checkout.ts)).  
    В панели P24 отдельно «return» часто не дублируют — уточните в актуальной инструкции PayPro для вашего типа интеграции.
 
 3. Сайт должен быть доступен по **HTTPS** с валидным сертификатом (у вас после привязки домена на Vercel — да).
@@ -58,7 +58,7 @@
 | `p24-logo.svg` | Полноразмерный логотип Przelewy24 (если полосы нет). |
 | `p24-mark.svg` | Знак P24 у формы заказа. |
 
-Код: [`lib/p24FooterAssets.ts`](../lib/p24FooterAssets.ts), блок в [`components/SiteFooter.tsx`](../components/SiteFooter.tsx). URL графики **фиксированные** (`/payments/...`), без `fs` — на Vercel Lambda не видит каталог `public/`, из‑за `existsSync` раньше пропадали картинки. Отключить блок: `NEXT_PUBLIC_HIDE_P24_FOOTER_GRAPHICS=1`.
+Код: [`lib/p24FooterAssets.ts`](../apps/tickets/lib/p24FooterAssets.ts), блок в [`components/SiteFooter.tsx`](../apps/tickets/components/SiteFooter.tsx). URL графики **фиксированные** (`/payments/...`), без `fs` — на Vercel Lambda не видит каталог `public/`, из‑за `existsSync` раньше пропадали картинки. Отключить блок: `NEXT_PUBLIC_HIDE_P24_FOOTER_GRAPHICS=1`.
 
 В подвале **нет** отдельной строки «оплачивает» рядом с полосой `p24-metody-platnosci.png`: в официальном PNG уже есть польская подпись — дублировать её переводом на других локалях не нужно. Блок оплаты **без вложенных рамок**: одна линия-разделитель и полоса на фоне футера (PNG bez tła).
 

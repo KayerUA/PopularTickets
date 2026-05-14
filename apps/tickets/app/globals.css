@@ -223,7 +223,7 @@
     background:
       linear-gradient(165deg, rgba(255, 248, 220, 0.22) 0%, transparent 42%),
       linear-gradient(90deg, #7a5a2a 0%, #c5a059 38%, #e8d48b 52%, #c5a059 65%, #6b4a22 100%);
-    letter-spacing: 0.04em;
+    letter-spacing: 0;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
   }
 

@@ -2,39 +2,30 @@
 
 Платформа для небольших событий в Польше: афиша на **польском**, **украинском** и **русском** (`/pl`, `/uk`, `/ru`), оплата **Przelewy24**, билеты с **QR**, **Resend**, админка и **check-in**.
 
-## Структура проекта
+## Структура проекта (monorepo)
 
 ```
-PopularTickets/
-├── app/
-│   ├── [locale]/(site)/        # Публичный сайт: /pl/..., /uk/..., /ru/...
-│   │   ├── layout.tsx
-│   │   ├── page.tsx
-│   │   ├── events/[slug]/page.tsx
-│   │   ├── checkout/return/page.tsx
-│   │   └── firma/page.tsx
-│   ├── check-in/               # Контроль входа (без языкового префикса)
-│   ├── admin/                  # Админка (JWT cookie + middleware)
-│   ├── actions/
-│   ├── api/
-│   ├── globals.css
-│   └── layout.tsx
-├── components/
+PopularTickets/                 # repo (workspaces npm)
+├── apps/
+│   ├── tickets/                # serwis biletowy Next.js (dawniej korzeń repo)
+│   │   ├── app/ …
+│   │   ├── components/, lib/, i18n/, messages/, public/
+│   │   └── package.json       # nazwa workspace: popular-tickets
+│   └── poet/                   # popularpoet.pl — strona marki / kursów (MVP)
+│       ├── app/
+│       └── package.json       # popular-poet
 ├── docs/
-│   └── SUPABASE.md             # Пошаговая настройка Supabase
-├── i18n/                       # next-intl: routing, request, navigation
-├── messages/                   # pl.json, uk.json
-├── lib/
-│   └── checkoutBypass.ts       # флаг CHECKOUT_BYPASS_PAYMENT
-├── .github/
-│   └── workflows/
-│       └── ci.yml              # lint + tsc при push/PR в main
-├── middleware.ts               # JWT /admin + next-intl + редиректы локали
-├── scripts/check-env.mjs       # npm run check:env
-├── supabase/schema.sql
-├── .env.example
-└── package.json
+│   ├── MONOREPO.md            # Vercel: 2 projekty, 1 Supabase, zmienne
+│   └── …
+├── scripts/                    # skrypty (ładują .env z korzenia repo)
+├── supabase/
+│   ├── schema.sql
+│   └── courses-poet.sql       # kursy + sloty próbne → events.slug
+├── package.json                # workspaces: apps/*
+└── .env.example
 ```
+
+Szczegóły deployu dwóch domen: **[docs/MONOREPO.md](docs/MONOREPO.md)**.
 
 ## Локали и URL
 
@@ -76,7 +67,7 @@ PopularTickets/
 1. **Node.js 20+** и npm.
 2. `cp .env.example .env.local` и заполните значения (см. ниже и [docs/SUPABASE.md](docs/SUPABASE.md)).
 3. В Supabase: **SQL Editor** → выполните `supabase/schema.sql`.
-4. `npm install` → `npm run dev` → откройте `http://localhost:3000` (откроется `/pl/...`).
+4. `npm install` → `npm run dev` (workspace **popular-tickets**, port 3000) → `http://localhost:3000/pl/...`. Strona poet: `npm run dev:poet` → port **3001**.
 
 Опционально перед деплоем: `npm run check:env` — проверяет наличие ключевых переменных без запуска сервера.
 
@@ -120,7 +111,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ## Что делать дальше (чеклист)
 
-1. **Локально**: заполните `.env` / `.env.local` по [`.env.example`](.env.example), выполните `supabase/schema.sql` в панели Supabase, затем **`npm run verify:supabase`** — если OK, ключи и таблица на месте. Дальше `npm run dev`, проверьте `/pl` и заказ (при `CHECKOUT_BYPASS_PAYMENT=true`). Подробнее: [docs/DEPLOY.md](docs/DEPLOY.md).
+1. **Локально**: заполните `.env` / `.env.local` по [`.env.example`](.env.example), выполните `supabase/schema.sql` в панели Supabase, затем **`npm run verify:supabase`** — если OK, ключи и таблица на месте. Дальше `npm run dev`, проверьте `/pl` и заказ (при `CHECKOUT_BYPASS_PAYMENT=true`). Подробнее: [docs/DEPLOY.md](docs/DEPLOY.md). Monorepo / dwie domeny: [docs/MONOREPO.md](docs/MONOREPO.md).
 2. **Админка**: задайте `ADMIN_PASSWORD` и `ADMIN_JWT_SECRET` (≥16 символов) → `/admin/login` → создайте и **опубликуйте** событие.
 3. **Почта (по желанию)**: Resend + `RESEND_*` — тогда после оплаты уйдёт письмо с **PDF-билетами** (и резервно PNG QR, если PDF не соберётся).
 4. **GitHub**: `git remote add origin …`, `git push -u origin main` (см. раздел ниже).
@@ -132,13 +123,14 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 Рекомендуемый способ для Next.js — **не отдельный workflow деплоя**, а встроенная интеграция Vercel ↔ GitHub: каждый push в ветку **Production** (обычно `main`) запускает сборку и выкладку.
 
 1. Зайдите на [vercel.com](https://vercel.com), войдите (можно через GitHub).
-2. **Add New… → Project → Import** ваш репозиторий `PopularTickets`.
-3. **Framework Preset**: Next.js. **Output Directory** оставьте **пустым** (не `build` — это не Create React App). В корне репозитория есть [`vercel.json`](vercel.json) с `"framework": "nextjs"`, чтобы Vercel не подхватил неверный пресет.
-4. **Environment Variables**: для **MVP с bypass** достаточно Supabase, `CHECKOUT_BYPASS_PAYMENT=true`, опционально `SKIP_ORDER_EMAIL=true` (билеты создаются, письмо не уходит). **`NEXT_PUBLIC_APP_URL`** задайте на свой домен (Production), если нужен один URL в письмах и P24 независимо от внутреннего `*.vercel.app`. После привязки домена в Vercel production-деплой и так получит канонический хост через системную переменную (см. `lib/publicAppUrl.ts`). Админка, Resend/P24 — по мере готовности.
-5. **Deploy**. В настройках проекта: **Settings → Git → Production Branch** = `main` (по умолчанию так и есть).
-6. Дальше: **любой push в `main`** → Vercel сам собирает и деплоит; в PR можно включить **Preview Deployments** (по умолчанию включены для PR).
+2. **Add New… → Project → Import** ваш репозиторий.
+3. **Root Directory:** `apps/tickets` (serwis biletowy). Drugi projekt (popularpoet.pl): ten sam repo, **Root Directory:** `apps/poet` — szczegóły: [docs/MONOREPO.md](docs/MONOREPO.md).
+4. **Framework Preset**: Next.js. **Output Directory** оставьте **пустым**. W każdym `apps/*` jest [`vercel.json`](apps/tickets/vercel.json) z `"framework": "nextjs"`.
+5. **Environment Variables**: для **MVP с bypass** достаточно Supabase, `CHECKOUT_BYPASS_PAYMENT=true`, опционально `SKIP_ORDER_EMAIL=true` (билеты создаются, письмо не уходит). **`NEXT_PUBLIC_APP_URL`** задайте на свой домен (Production), если нужен один URL в письмах и P24 независимо от внутреннего `*.vercel.app`. После привязки домена в Vercel production-деплой и так получит канонический хост через системную переменную (см. `apps/tickets/lib/publicAppUrl.ts`). Админка, Resend/P24 — по мере готовности.
+6. **Deploy**. В настройках проекта: **Settings → Git → Production Branch** = `main` (по умолчанию так и есть).
+7. Дальше: **любой push в `main`** → Vercel сам собирает i деплоит każdy projekt według własnego Root Directory; w PR — Preview.
 
-В репозитории уже есть [`.github/workflows/ci.yml`](.github/workflows/ci.yml): при push/PR в `main` гоняются **ESLint** и **`tsc --noEmit`** (без вызова Supabase). Полную `next build` Vercel выполняет на своих раннерах при деплое.
+В репозитории уже есть [`.github/workflows/ci.yml`](.github/workflows/ci.yml): при push/PR в `main` гоняются **ESLint** (workspaces) и **`tsc --noEmit`** dla `apps/tickets` i `apps/poet`. Полную `next build` Vercel выполняет на своих раннерах при деплое.
 
 **Не включайте одновременно** второй кастомный деплой тем же коммитом (дублирующий workflow с `vercel deploy`), если уже подключили Git через Vercel — получатся лишние двойные сборки.
 
@@ -178,11 +170,14 @@ git push -u origin main
 ## Полезные команды
 
 ```bash
-npm run dev       # разработка
-npm run build     # production-сборка
-npm run start     # запуск после build
-npm run lint      # ESLint
-npm run check:env # проверка обязательных env
+npm run dev          # popular-tickets (port 3000)
+npm run dev:poet     # popular-poet (port 3001)
+npm run build:tickets
+npm run build:poet
+npm run build        # oba workspace (jeśli mają skrypt build)
+npm run start -w popular-tickets   # po build:tickets, z katalogu głównego
+npm run lint         # wszystkie workspace
+npm run check:env
 ```
 
 После деплоя: `/admin/login` → создайте и опубликуйте событие. Реквизиты и блок Przelewy24: **`/pl/firma`**, **`/uk/firma`** или **`/ru/firma`**.

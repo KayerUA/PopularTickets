@@ -12,11 +12,12 @@
 | 2b | SQL Editor | Опционально: **`supabase/verify-data.sql`** — сколько строк в `events` / `orders` / `tickets` / `checkins`. |
 | 2c | SQL Editor | Колонка **`orders.locale`** (pl/uk/ru): если заказ падает с **PGRST204** («Could not find the 'locale' column…»), выполните **`supabase/add-order-locale.sql`**. В свежем **`schema.sql`** тот же `ALTER … add column if not exists` уже идёт после индексов по `orders` — достаточно снова прогнать этот файл в SQL Editor. |
 | 2d | SQL Editor | **`supabase/add-maps-url.sql`** — колонка `maps_url` + RPC `pt_event_maps_url` / `pt_event_set_maps_url` (обход ошибки PostgREST *schema cache*). Обязательно для сохранения «ссылки на карту» из админки. |
+| 2e | SQL Editor | **`supabase/courses-poet.sql`** — kursy i sloty próbne (powiązanie z `events.slug`); opcjonalnie po stronie **popularpoet.pl**. |
 | 3 | (опционально) SQL Editor | **`supabase/seed-improv-event.sql`** — тестовое событие на афише. |
 | 4 | [vercel.com](https://vercel.com) → проект → **Settings → Environment Variables** | Для **Production** и **Preview**: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (+ остальное из `.env.example` по необходимости). Сохранить. |
 | 5 | Vercel → **Deployments** | **Redeploy** последнего деплоя (или пустой commit push), чтобы подтянулись переменные. |
 | 6 | Vercel → **Build & Development Settings** | **Framework**: Next.js, **Output Directory** пустой (не `build`). |
-| 7 | Vercel → **Settings → Domains** | Добавьте купленный домен, DNS по инструкции Vercel. После активации **production**-сборки получают канонический хост через `VERCEL_PROJECT_PRODUCTION_URL` (см. `lib/publicAppUrl.ts`). Для явного контроля (письма, P24, один URL) задайте **`NEXT_PUBLIC_APP_URL=https://ваш-домен`** в **Production**. Przelewy24: `urlStatus` → `https://ваш-домен/api/p24/notify`. |
+| 7 | Vercel → **Settings → Domains** | Добавьте купленный домен, DNS по инструкции Vercel. После активации **production**-сборки получают канонический хост через `VERCEL_PROJECT_PRODUCTION_URL` (см. `apps/tickets/lib/publicAppUrl.ts`). Для явного контроля (письма, P24, один URL) задайте **`NEXT_PUBLIC_APP_URL=https://ваш-домен`** в **Production**. Przelewy24: `urlStatus` → `https://ваш-домен/api/p24/notify`. |
 
 Без шагов 1–2 CLI **не** создаст таблицы в облачной базе — только SQL в панели Supabase или связка **Supabase CLI** + `db push` (если вы сами настроили `supabase link`).
 
@@ -29,8 +30,11 @@ npm install
 npm run verify:supabase    # проверка: events доступна, ключи верные
 npm run check:env        # остальные обязательные переменные (если настроены)
 npm run seed:improv        # опционально: вставить событие импровизации (если сид SQL не делали)
-npm run build              # локально убедиться, что сборка проходит
+npm run build:tickets              # сборка только сервиса билетов (monorepo: apps/tickets)
+# опционально: npm run build:poet
 ```
+
+Monorepo (dwa fronty, jedna baza): [docs/MONOREPO.md](MONOREPO.md).
 
 | Команда | Назначение |
 |---------|------------|

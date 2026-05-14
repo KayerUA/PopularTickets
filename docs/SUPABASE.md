@@ -16,6 +16,7 @@
 1. W panelu Supabase otwórz **SQL Editor**.
 2. Wklej zawartość pliku [`supabase/schema.sql`](/supabase/schema.sql) z repozytorium i uruchom (**Run**).
 3. Upewnij się, że nie ma błędów wykonania (tabele `events`, `orders`, `tickets` itd.).
+4. Opcjonalnie (kursy / popularpoet.pl): uruchom [`supabase/courses-poet.sql`](/supabase/courses-poet.sql) — tabele `poet_course`, `poet_trial_slot` (FK do `events.slug`). Szczegóły: [MONOREPO.md](MONOREPO.md).
 
 > **Ostrzeżenie Supabase „destructive operations”:** w `schema.sql` są tylko `DROP TRIGGER IF EXISTS` przed utworzeniem triggerów — to normalne, **nie usuwa danych** z tabel. Możesz potwierdzić wykonanie zapytania.
 

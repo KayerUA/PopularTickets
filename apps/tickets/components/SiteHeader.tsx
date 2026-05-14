@@ -42,7 +42,7 @@ export function SiteHeader() {
             <span className="font-display block truncate text-base tracking-wide text-gradient-gold sm:text-lg">
               PopularTickets
             </span>
-            <span className="block text-[9px] font-medium uppercase tracking-[0.22em] text-zinc-500 sm:text-[10px] sm:tracking-[0.28em]">
+            <span className="block text-[9px] font-medium uppercase tracking-[0.22em] text-zinc-400 sm:text-[10px] sm:tracking-[0.28em]">
               Popular Poet
             </span>
           </div>
@@ -52,13 +52,13 @@ export function SiteHeader() {
           <nav className="flex flex-1 flex-wrap items-center gap-1 sm:flex-none sm:gap-1">
             <Link
               href="/"
-              className="inline-flex min-h-11 min-w-[2.75rem] flex-1 items-center justify-center rounded-xl px-3 text-sm text-zinc-400 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright sm:flex-none sm:min-w-0 sm:justify-start"
+              className="inline-flex min-h-11 min-w-[2.75rem] flex-1 items-center justify-center rounded-xl px-3 text-sm text-zinc-300 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright sm:flex-none sm:min-w-0 sm:justify-start"
             >
               {t("events")}
             </Link>
             <Link
               href="/firma"
-              className="inline-flex min-h-11 min-w-[2.75rem] flex-1 items-center justify-center rounded-xl px-3 text-sm text-zinc-400 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright sm:flex-none sm:min-w-0 sm:justify-start"
+              className="inline-flex min-h-11 min-w-[2.75rem] flex-1 items-center justify-center rounded-xl px-3 text-sm text-zinc-300 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright sm:flex-none sm:min-w-0 sm:justify-start"
             >
               {t("company")}
             </Link>

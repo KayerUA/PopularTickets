@@ -161,10 +161,10 @@ export default async function EventPage({
                 <EventStatusBadge status={marketingStatus} />
               </div>
             ) : null}
-            <p className="mt-2 break-words text-sm text-zinc-500 sm:text-base">
+            <p className="mt-2 break-words text-sm text-zinc-400 sm:text-base">
               {formatEventDateTime(event.starts_at, locale)}
             </p>
-            <p className="break-words text-sm text-zinc-500 sm:text-base">{event.venue}</p>
+            <p className="break-words text-sm text-zinc-400 sm:text-base">{event.venue}</p>
             {mapsHref ? (
               <p className="mt-2">
                 <a
@@ -188,7 +188,7 @@ export default async function EventPage({
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{t("priceLabel")}</p>
               <p className="text-xl font-semibold text-poet-gold-bright">{formatPlnFromGrosze(event.price_grosze)}</p>
-              <dl className="mt-2 space-y-0.5 text-xs text-zinc-500">
+              <dl className="mt-2 space-y-0.5 text-xs text-zinc-400">
                 <div className="flex gap-4">
                   <dt>{t("bruttoLabel")}</dt>
                   <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.grossGrosze)}</dd>
@@ -202,7 +202,7 @@ export default async function EventPage({
                   <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.vatGrosze)}</dd>
                 </div>
               </dl>
-              <p className="mt-2 max-w-md text-[11px] leading-relaxed text-zinc-600">{t("vatLegalNote")}</p>
+              <p className="mt-2 max-w-md text-[11px] leading-relaxed text-zinc-500">{t("vatLegalNote")}</p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{t("remainingLabel")}</p>
@@ -216,7 +216,7 @@ export default async function EventPage({
             </p>
           ) : remaining > 0 ? (
             <>
-              <aside className="mt-5 rounded-xl border border-poet-gold/15 bg-black/20 px-3 py-2.5 text-[11px] leading-relaxed text-zinc-500 sm:px-4 sm:text-xs">
+              <aside className="mt-5 rounded-xl border border-poet-gold/15 bg-black/20 px-3 py-2.5 text-[11px] leading-relaxed text-zinc-400 sm:px-4 sm:text-xs">
                 {t("prePurchaseNote", { seller: COMPANY.legalNameShort, nip: COMPANY.nip })}
               </aside>
               <EventCheckoutForm

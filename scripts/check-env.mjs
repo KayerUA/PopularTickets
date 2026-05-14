@@ -6,6 +6,10 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.join(__dirname, "..");
 
 const optionalAlways = [
   "NEXT_PUBLIC_APP_URL",
@@ -23,7 +27,7 @@ const optionalAlways = [
 const optionalP24 = ["P24_MERCHANT_ID", "P24_POS_ID", "P24_SECRET_ID", "P24_CRC_KEY"];
 
 function loadEnvFile(name) {
-  const p = path.join(process.cwd(), name);
+  const p = path.join(repoRoot, name);
   if (!fs.existsSync(p)) return;
   const raw = fs.readFileSync(p, "utf8");
   for (const line of raw.split("\n")) {

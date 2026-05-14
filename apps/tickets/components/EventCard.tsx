@@ -57,14 +57,14 @@ export function EventCard(e: EventCardProps) {
           <h2 className="font-display text-lg font-semibold leading-snug tracking-tight text-zinc-50 transition [overflow-wrap:anywhere] group-hover:text-poet-gold-bright sm:text-xl">
             {e.title}
           </h2>
-          <p className="text-sm text-zinc-500">{formatEventDateTime(e.startsAt, e.locale)}</p>
-          <p className="line-clamp-2 text-sm text-zinc-500 [overflow-wrap:anywhere]">{e.venue}</p>
+          <p className="text-sm text-zinc-400">{formatEventDateTime(e.startsAt, e.locale)}</p>
+          <p className="line-clamp-2 text-sm text-zinc-400 [overflow-wrap:anywhere]">{e.venue}</p>
           <div className="mt-auto flex flex-col gap-3 border-t border-poet-gold/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-lg font-medium text-poet-gold-bright sm:text-base">{formatPlnFromGrosze(e.priceGrosze)}</span>
             <span
               className={`w-full justify-center px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wide sm:w-auto sm:py-2 ${
                 e.status === "past" || e.status === "sold_out"
-                  ? "inline-flex rounded-full border border-poet-gold/25 bg-zinc-900/60 text-zinc-300"
+                  ? "inline-flex rounded-full border border-poet-gold/25 bg-zinc-900/60 text-zinc-200"
                   : "btn-poet poet-shine inline-flex"
               }`}
             >
