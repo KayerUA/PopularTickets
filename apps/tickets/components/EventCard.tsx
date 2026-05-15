@@ -46,7 +46,7 @@ export function EventCard(e: EventCardProps) {
       className="group flex h-full min-h-0 flex-col rounded-2xl no-underline outline-none transition duration-500 ease-out focus-visible:ring-2 focus-visible:ring-poet-gold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--poet-bg)]"
     >
       <article
-        className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/55 shadow-gold-sm backdrop-blur-sm transition duration-500 ease-out group-hover:-translate-y-0.5 group-hover:border-poet-gold/45 group-hover:shadow-gold sm:group-hover:-translate-y-1 ${e.status === "past" ? "opacity-[0.88]" : ""} ${e.status === "sold_out" ? "opacity-95 saturate-[0.85]" : ""}`}
+        className={`flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/55 shadow-gold-sm backdrop-blur-sm transition duration-500 ease-out group-hover:-translate-y-0.5 group-hover:border-poet-gold/45 group-hover:shadow-gold sm:group-hover:-translate-y-1 ${e.status === "past" ? "opacity-[0.88]" : ""} ${e.status === "sold_out" ? "opacity-95 saturate-[0.85]" : ""}`}
       >
         <div className="relative aspect-video w-full overflow-hidden bg-zinc-950">
           {e.imageUrl ? (
@@ -66,13 +66,15 @@ export function EventCard(e: EventCardProps) {
             <EventStatusBadge status={e.status} listingKind={listingKind} />
           </div>
         </div>
-        <div className="flex flex-1 flex-col space-y-2 p-4 text-zinc-100 sm:p-5">
-          <h2 className="font-display text-lg font-semibold leading-snug tracking-tight text-zinc-50 transition [overflow-wrap:anywhere] group-hover:text-poet-gold-bright sm:text-xl">
-            {e.title}
-          </h2>
-          <p className="text-sm text-zinc-400">{formatEventDateTime(e.startsAt, e.locale)}</p>
-          <p className="line-clamp-2 text-sm text-zinc-400 [overflow-wrap:anywhere]">{e.venue}</p>
-          <div className="mt-auto flex flex-col gap-3 border-t border-poet-gold/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-h-0 flex-1 flex-col justify-between gap-4 p-4 text-zinc-100 sm:p-5">
+          <div className="flex shrink-0 flex-col gap-2">
+            <h2 className="font-display text-lg font-semibold leading-snug tracking-tight text-zinc-50 transition [overflow-wrap:anywhere] group-hover:text-poet-gold-bright sm:text-xl">
+              {e.title}
+            </h2>
+            <p className="text-sm text-zinc-400">{formatEventDateTime(e.startsAt, e.locale)}</p>
+            <p className="line-clamp-2 text-sm text-zinc-400 [overflow-wrap:anywhere]">{e.venue}</p>
+          </div>
+          <div className="flex shrink-0 flex-col gap-3 border-t border-poet-gold/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-lg font-medium text-poet-gold-bright sm:text-base">{formatPlnFromGrosze(e.priceGrosze)}</span>
             <span
               className={`w-full justify-center px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wide sm:w-auto sm:py-2 ${

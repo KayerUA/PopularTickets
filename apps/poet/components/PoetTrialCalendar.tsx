@@ -32,7 +32,7 @@ export async function PoetTrialCalendar({ locale, trials }: { locale: AppLocale;
   }
 
   return (
-    <ul className="grid items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <ul className="grid auto-rows-[minmax(0,1fr)] items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
       {sortedTrials.map((slot) => {
         const when = formatPoetTrialWhen(slot.starts_at, locale) ?? t("calendarDateTbd");
         return (
@@ -68,24 +68,26 @@ export async function PoetTrialCalendar({ locale, trials }: { locale: AppLocale;
                 </span>
               )}
             </div>
-            <div className="flex min-h-0 flex-1 flex-col">
-              <h4 className="font-display text-xl font-medium leading-snug text-zinc-100 transition group-hover:text-poet-gold-bright sm:text-2xl">
-                {slot.title}
-              </h4>
-              {slot.body ? (
-                <p className="mt-3 line-clamp-6 text-sm leading-relaxed text-zinc-400 sm:line-clamp-5">{slot.body}</p>
-              ) : null}
+            <div className="flex min-h-0 flex-1 flex-col justify-between gap-4">
+              <div className="flex min-h-0 flex-col gap-2">
+                <h4 className="font-display text-xl font-medium leading-snug text-zinc-100 transition group-hover:text-poet-gold-bright sm:text-2xl">
+                  {slot.title}
+                </h4>
+                {slot.body ? (
+                  <p className="line-clamp-6 text-sm leading-relaxed text-zinc-400 sm:line-clamp-5">{slot.body}</p>
+                ) : null}
+              </div>
+              {tickets ? (
+                <a
+                  href={ticketsEventPage(locale, slot.slug)}
+                  className="btn-poet-theatre btn-poet flex w-full shrink-0 items-center justify-center text-center no-underline"
+                >
+                  {t("trialBuyCta")}
+                </a>
+              ) : (
+                <span className="shrink-0 text-xs text-amber-200/80">{t("envMissing")}</span>
+              )}
             </div>
-            {tickets ? (
-              <a
-                href={ticketsEventPage(locale, slot.slug)}
-                className="btn-poet-theatre btn-poet mt-auto flex w-full shrink-0 items-center justify-center pt-6 text-center no-underline"
-              >
-                {t("trialBuyCta")}
-              </a>
-            ) : (
-              <span className="mt-auto pt-6 text-xs text-amber-200/80">{t("envMissing")}</span>
-            )}
           </li>
         );
       })}
