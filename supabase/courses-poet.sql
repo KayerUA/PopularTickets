@@ -8,9 +8,12 @@ create table if not exists public.poet_course (
   id uuid primary key default gen_random_uuid(),
   slug text not null unique,
   title text not null,
-  kind text not null
-    check (kind in ('improvisation', 'acting', 'playback', 'masterclass', 'other')),
   body text,
+  card_image_url text not null default '/courses/theatre.jpg',
+  hero_image_url text,
+  card_variant text not null default 'improv'
+    check (card_variant in ('improv', 'acting', 'masterclass', 'playback')),
+  card_tag text not null default '',
   visibility text not null default 'inactive'
     check (visibility in ('published', 'unlisted', 'inactive')),
   sort_order int not null default 0,
@@ -46,6 +49,10 @@ before update on public.poet_trial_slot
 for each row execute function public.set_updated_at();
 
 comment on table public.poet_course is 'Kursy Popular Poet (treść na popularpoet.pl).';
+comment on column public.poet_course.card_image_url is 'Kafel na stronie głównej (ścieżka lub URL).';
+comment on column public.poet_course.hero_image_url is 'Hero /kursy/{slug}; NULL = użyj card_image_url w aplikacji.';
+comment on column public.poet_course.card_variant is 'Preset CSS kafelka: improv | acting | masterclass | playback.';
+comment on column public.poet_course.card_tag is 'Krótka etykieta nad tytułem (dowolny tekst).';
 comment on table public.poet_trial_slot is 'Terminy zajęć próbnych; płatność przez istniejące wydarzenie events.slug → PopularTickets checkout.';
 comment on column public.poet_trial_slot.tickets_checkout_event_slug is 'Musi wskazywać na opublikowane wydarzenie-bilet (trial) w public.events.';
 

@@ -9,6 +9,8 @@ import { contentVisibilitySchema } from "@/lib/contentVisibility";
 
 export type UpsertPoetCourseState = { error: string } | null;
 
+const cardVariantSchema = z.enum(["improv", "acting", "masterclass", "playback"]);
+
 const PoetCourseSchema = z.object({
   id: z.string().uuid().optional(),
   slug: z
@@ -17,7 +19,10 @@ const PoetCourseSchema = z.object({
     .max(80)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug: только латиница, цифры и дефис"),
   title: z.string().min(2).max(200),
-  kind: z.enum(["improvisation", "acting", "playback", "masterclass", "other"]),
+  cardImageUrl: z.string().min(1).max(800),
+  heroImageUrl: z.string().max(800).optional().default(""),
+  cardVariant: cardVariantSchema,
+  cardTag: z.string().max(120).optional().default(""),
   body: z.string().max(20000).optional().default(""),
   visibility: contentVisibilitySchema.default("inactive"),
   sortOrder: z.coerce.number().int().min(0).max(9999).default(0),
@@ -36,11 +41,16 @@ export async function upsertPoetCourse(_prev: UpsertPoetCourseState, formData: F
   try {
     await requireAdmin();
 
+    const heroRaw = String(formData.get("heroImageUrl") ?? "").trim();
+
     const parsed = PoetCourseSchema.safeParse({
       id: formData.get("id") || undefined,
       slug: formData.get("slug"),
       title: formData.get("title"),
-      kind: formData.get("kind"),
+      cardImageUrl: formData.get("cardImageUrl"),
+      heroImageUrl: heroRaw,
+      cardVariant: formData.get("cardVariant"),
+      cardTag: formData.get("cardTag") ?? "",
       body: formData.get("body") || "",
       visibility: formData.get("visibility") || "inactive",
       sortOrder: formData.get("sortOrder"),
@@ -56,7 +66,10 @@ export async function upsertPoetCourse(_prev: UpsertPoetCourseState, formData: F
     const payload = {
       slug: v.slug,
       title: v.title,
-      kind: v.kind,
+      card_image_url: v.cardImageUrl.trim(),
+      hero_image_url: v.heroImageUrl.trim() ? v.heroImageUrl.trim() : null,
+      card_variant: v.cardVariant,
+      card_tag: v.cardTag.trim(),
       body: v.body || null,
       visibility: v.visibility,
       sort_order: v.sortOrder,

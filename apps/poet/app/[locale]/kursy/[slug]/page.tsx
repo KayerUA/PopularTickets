@@ -9,12 +9,9 @@ import { getTicketsSiteBase, ticketsEventPage, ticketsHome } from "@/lib/tickets
 import { buildPoetPageMetadata } from "@/lib/seoPoet";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
 import {
-  bodyKeyForDbKind,
-  courseImageForDbKind,
   isPoetStaticCourseSlug,
+  normalizeCourseCardVariant,
   staticCourseKeys,
-  tagKeyForDbKind,
-  variantForDbKind,
 } from "@/lib/poetStaticCourses";
 import { formatPoetTrialWhen } from "@/lib/formatPoetTrialDate";
 
@@ -37,7 +34,10 @@ export async function generateMetadata({ params }: PageProps) {
   if (course) {
     title = course.title;
     const body = course.body?.trim();
-    description = body && body.length > 10 ? body.slice(0, 155) : tCourse(bodyKeyForDbKind(course.kind));
+    description =
+      body && body.length > 10
+        ? body.slice(0, 155)
+        : `${title} — ${tPage("metaCourseLabel")}`.slice(0, 160);
   } else if (isPoetStaticCourseSlug(slug)) {
     const keys = staticCourseKeys(slug);
     title = tCourse(keys.titleKey);
@@ -92,16 +92,17 @@ export default async function PoetCoursePage({ params }: PageProps) {
   };
 
   if (dbCourse) {
-    const variant = variantForDbKind(dbCourse.kind);
-    const img = courseImageForDbKind(dbCourse.kind);
-    const tagKey = tagKeyForDbKind(dbCourse.kind);
-    const bodyFallback = bodyKeyForDbKind(dbCourse.kind);
+    const variant = normalizeCourseCardVariant(dbCourse.card_variant);
+    const cardUrl = dbCourse.card_image_url.trim() || "/courses/theatre.jpg";
+    const heroUrl = (dbCourse.hero_image_url?.trim() || cardUrl).trim();
+    const tagLine = (dbCourse.card_tag ?? "").trim();
+    const bodyText = dbCourse.body?.trim() ?? "";
     display = {
       title: dbCourse.title,
-      body: dbCourse.body?.trim() ? dbCourse.body.trim() : t(bodyFallback),
-      tag: t(tagKey),
+      body: bodyText,
+      tag: tagLine,
       variant,
-      image: img,
+      image: heroUrl,
     };
   } else if (staticSlug) {
     const keys = staticCourseKeys(staticSlug);
@@ -139,11 +140,21 @@ export default async function PoetCoursePage({ params }: PageProps) {
 
       <article className="mt-8 overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/25 shadow-gold-sm backdrop-blur-sm">
         <div className="relative aspect-[16/10] max-h-56 w-full bg-zinc-950 sm:aspect-[2/1] sm:max-h-64">
-          <Image src={display.image} alt="" fill className="object-contain object-center" sizes="(max-width:1024px) 100vw, 896px" priority />
+          <Image
+            src={display.image}
+            alt=""
+            fill
+            className="object-contain object-center"
+            sizes="(max-width:1024px) 100vw, 896px"
+            priority
+            unoptimized={display.image.startsWith("http://") || display.image.startsWith("https://")}
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-poet-bg via-poet-bg/40 to-transparent" aria-hidden />
         </div>
         <div className="space-y-4 px-5 py-7 sm:px-8 sm:py-9">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500">{display.tag}</p>
+          {display.tag ? (
+            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500">{display.tag}</p>
+          ) : null}
           <h1 className="font-display text-3xl font-semibold tracking-tight text-gradient-gold sm:text-4xl">{display.title}</h1>
           <p className="max-w-3xl text-sm leading-relaxed text-zinc-400 sm:text-base">{display.body}</p>
           <p className="text-xs leading-relaxed text-zinc-500">{t("courseTrialHint")}</p>

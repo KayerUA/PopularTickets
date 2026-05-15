@@ -10,7 +10,7 @@ export default async function AdminPoetCoursesPage() {
 
   const { data: rows, error } = await supabase
     .from("poet_course")
-    .select("id,slug,title,kind,sort_order,visibility")
+    .select("id,slug,title,card_variant,card_tag,sort_order,visibility")
     .order("sort_order", { ascending: true });
 
   if (error) {
@@ -39,7 +39,8 @@ export default async function AdminPoetCoursesPage() {
             <tr>
               <th className="px-4 py-3">Порядок</th>
               <th className="px-4 py-3">Название</th>
-              <th className="px-4 py-3">Тип</th>
+              <th className="px-4 py-3">Метка</th>
+              <th className="px-4 py-3">Стиль</th>
               <th className="px-4 py-3">Slug</th>
               <th className="px-4 py-3">Статус</th>
               <th className="px-4 py-3" />
@@ -50,7 +51,8 @@ export default async function AdminPoetCoursesPage() {
               <tr key={r.id as string} className="bg-zinc-950/40">
                 <td className="px-4 py-3 text-zinc-400">{r.sort_order as number}</td>
                 <td className="px-4 py-3 text-white">{r.title as string}</td>
-                <td className="px-4 py-3 text-zinc-400">{r.kind as string}</td>
+                <td className="px-4 py-3 text-zinc-400">{(r as { card_tag?: string }).card_tag || "—"}</td>
+                <td className="px-4 py-3 font-mono text-xs text-zinc-500">{(r as { card_variant?: string }).card_variant}</td>
                 <td className="px-4 py-3 font-mono text-xs text-zinc-500">{r.slug as string}</td>
                 <td className="px-4 py-3">
                   {(r as { visibility?: string }).visibility === "published" ? (

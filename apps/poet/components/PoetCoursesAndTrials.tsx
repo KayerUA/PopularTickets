@@ -5,14 +5,7 @@ import type { AppLocale } from "@/i18n/routing";
 import { THEATRE_DIRECTOR_TELEGRAM_HANDLE, THEATRE_DIRECTOR_TELEGRAM_URL } from "@/lib/theatre";
 import { getTicketsSiteBase, ticketsFirma, ticketsHome } from "@/lib/ticketsSite";
 import type { PoetCourseRow } from "@/lib/poetCourses";
-import {
-  bodyKeyForDbKind,
-  courseImageForDbKind,
-  staticCourseKeys,
-  tagKeyForDbKind,
-  variantForDbKind,
-  type PoetStaticCourseSlug,
-} from "@/lib/poetStaticCourses";
+import { normalizeCourseCardVariant, staticCourseKeys, type PoetStaticCourseSlug } from "@/lib/poetStaticCourses";
 
 const STATIC_SLUGS: readonly PoetStaticCourseSlug[] = ["improv", "acting", "masterclass", "playback"];
 
@@ -24,10 +17,10 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
     <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {useDb
         ? dbCourses.map((c) => {
-            const variant = variantForDbKind(c.kind);
-            const img = courseImageForDbKind(c.kind);
-            const tagKey = tagKeyForDbKind(c.kind);
-            const displayBody = c.body?.trim() ? c.body.trim() : t(bodyKeyForDbKind(c.kind));
+            const variant = normalizeCourseCardVariant(c.card_variant);
+            const img = c.card_image_url.trim() || "/courses/theatre.jpg";
+            const displayBody = c.body?.trim() ?? "";
+            const tagLine = (c.card_tag ?? "").trim();
             return (
               <li key={c.id} className="list-none">
                 <Link
@@ -36,9 +29,18 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
                 >
                   <div className="poet-shine pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
                   <div className="relative -mx-1 -mt-1 mb-3 aspect-[16/10] w-full overflow-hidden rounded-lg border border-poet-gold/15 bg-zinc-950">
-                    <Image src={img} alt="" fill className="object-contain object-center" sizes="(max-width:640px) 100vw, 25vw" />
+                    <Image
+                      src={img}
+                      alt=""
+                      fill
+                      className="object-contain object-center"
+                      sizes="(max-width:640px) 100vw, 25vw"
+                      unoptimized={img.startsWith("http://") || img.startsWith("https://")}
+                    />
                   </div>
-                  <p className="relative text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500">{t(tagKey)}</p>
+                  {tagLine ? (
+                    <p className="relative text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500">{tagLine}</p>
+                  ) : null}
                   <h3 className="relative mt-2 font-display text-xl font-semibold tracking-tight text-gradient-gold sm:text-[1.35rem]">
                     {c.title}
                   </h3>

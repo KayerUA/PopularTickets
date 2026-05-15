@@ -8,13 +8,23 @@ export type AdminPoetCourseRow = {
   id: string;
   slug: string;
   title: string;
-  kind: "improvisation" | "acting" | "playback" | "masterclass" | "other";
   body: string | null;
   visibility: ContentVisibility;
   sort_order: number;
+  card_image_url: string;
+  hero_image_url: string | null;
+  card_variant: string;
+  card_tag: string;
 };
 
 const initialState: UpsertPoetCourseState = null;
+
+const CARD_VARIANT_OPTIONS = [
+  { value: "improv", label: "Импро (золотой акцент)" },
+  { value: "acting", label: "Актёрское (изумрудный)" },
+  { value: "masterclass", label: "Мастер-класс (бордо)" },
+  { value: "playback", label: "PLAY-BACK (индиго)" },
+] as const;
 
 export function PoetCourseForm({ course }: { course?: AdminPoetCourseRow }) {
   const [state, formAction, pending] = useActionState(upsertPoetCourse, initialState);
@@ -48,18 +58,46 @@ export function PoetCourseForm({ course }: { course?: AdminPoetCourseRow }) {
         />
       </label>
       <label className="block text-sm text-zinc-300">
-        Направление (карточка и фото)
+        Картинка карточки (URL или путь, напр. <code className="font-mono text-zinc-500">/courses/impro.jpg</code>)
+        <input
+          name="cardImageUrl"
+          required
+          defaultValue={course?.card_image_url ?? "/courses/theatre.jpg"}
+          className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 font-mono text-sm text-white"
+          placeholder="/courses/impro.jpg"
+        />
+      </label>
+      <label className="block text-sm text-zinc-300">
+        Картинка на странице курса (если пусто — как в карточке)
+        <input
+          name="heroImageUrl"
+          defaultValue={course?.hero_image_url ?? ""}
+          className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 font-mono text-sm text-white"
+          placeholder="оставьте пустым или укажите URL"
+        />
+      </label>
+      <label className="block text-sm text-zinc-300">
+        Стиль карточки (цвет рамки / градиент на popularpoet.pl)
         <select
-          name="kind"
-          defaultValue={course?.kind ?? "improvisation"}
+          name="cardVariant"
+          defaultValue={course?.card_variant ?? "improv"}
           className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
         >
-          <option value="improvisation">Импровизация</option>
-          <option value="acting">Актёрское мастерство</option>
-          <option value="playback">PLAY-BACK</option>
-          <option value="masterclass">Мастер-классы</option>
-          <option value="other">Другое</option>
+          {CARD_VARIANT_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
         </select>
+      </label>
+      <label className="block text-sm text-zinc-300">
+        Короткая метка над названием (например «Импро»; можно пусто)
+        <input
+          name="cardTag"
+          defaultValue={course?.card_tag ?? ""}
+          className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+          placeholder=""
+        />
       </label>
       <label className="block text-sm text-zinc-300">
         Текст на карточке

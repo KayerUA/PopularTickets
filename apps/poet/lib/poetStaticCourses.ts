@@ -68,36 +68,9 @@ export function staticCourseKeys(slug: PoetStaticCourseSlug): {
   }
 }
 
-export function variantForDbKind(kind: string): PoetCourseCardVariant {
-  if (kind === "acting") return "acting";
-  if (kind === "playback") return "playback";
-  if (kind === "masterclass") return "masterclass";
+/** Нормалізація значення з БД для класу `poet-course-card--{variant}`. */
+export function normalizeCourseCardVariant(raw: string | null | undefined): PoetCourseCardVariant {
+  const v = (raw ?? "").trim();
+  if (v === "acting" || v === "masterclass" || v === "playback" || v === "improv") return v;
   return "improv";
-}
-
-export function courseImageForDbKind(kind: string): string {
-  if (kind === "improvisation") return "/courses/impro.jpg";
-  if (kind === "acting") return "/courses/akterka.jpg";
-  if (kind === "playback") return "/courses/play-back.jpg";
-  if (kind === "masterclass") return "/courses/theatre.jpg";
-  return "/courses/theatre.jpg";
-}
-
-type TagKeyAll = TagKey | "courseOtherTag";
-type BodyKeyAll = BodyKey | "courseOtherBody";
-
-export function tagKeyForDbKind(kind: string): TagKeyAll {
-  if (kind === "acting") return "courseActingTag";
-  if (kind === "playback") return "coursePlaybackTag";
-  if (kind === "masterclass") return "courseMasterclassTag";
-  if (kind === "improvisation") return "courseImprovTag";
-  return "courseOtherTag";
-}
-
-export function bodyKeyForDbKind(kind: string): BodyKeyAll {
-  if (kind === "acting") return "courseActingBody";
-  if (kind === "playback") return "coursePlaybackBody";
-  if (kind === "masterclass") return "courseMasterclassBody";
-  if (kind === "improvisation") return "courseImprovBody";
-  return "courseOtherBody";
 }

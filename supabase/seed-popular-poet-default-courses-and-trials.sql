@@ -4,7 +4,8 @@
 -- Условия: уже выполнены schema.sql, courses-poet.sql, add-events-listing-kind.sql,
 --         add-content-visibility.sql (колонка visibility вместо is_published),
 --         и миграция с колонкой events.poet_course_id (add-events-poet-course-id-column.sql
---         или add-poet-course-masterclass-and-event-fk.sql).
+--         или add-poet-course-masterclass-and-event-fk.sql),
+--         и add-poet-course-media-drop-kind.sql (картинки курса без kind).
 --
 -- Выполните в Supabase → SQL Editor. Повторный запуск безопасен (ON CONFLICT по slug).
 --
@@ -12,47 +13,72 @@
 -- чтобы страница /{locale}/events/{slug} открывала картинку на том же домене.
 
 -- ─── Курсы (slug совпадают с popularpoet.pl /kursy/{slug}) ─────────────────
-insert into public.poet_course (slug, title, kind, body, visibility, sort_order)
+insert into public.poet_course (
+  slug,
+  title,
+  body,
+  card_image_url,
+  hero_image_url,
+  card_variant,
+  card_tag,
+  visibility,
+  sort_order
+)
 values
   (
     'improv',
     'Актёрская импровизация',
-    'improvisation',
     'Сцена «здесь и сейчас», форматы и зритель — без заученного текста. Пробное: оплата на PopularTickets.',
+    '/courses/impro.jpg',
+    '/courses/impro.jpg',
+    'improv',
+    'Импро',
     'published',
     10
   ),
   (
     'acting',
     'Актёрское мастерство',
-    'acting',
     'Голос, текст и присутствие на сцене. Пробное: оплата на PopularTickets.',
+    '/courses/akterka.jpg',
+    '/courses/akterka.jpg',
+    'acting',
+    'Актёрское',
     'published',
     20
   ),
   (
     'masterclass',
     'Мастер-классы',
-    'masterclass',
     'Сжатый интенсив по теме. Пробное: оплата на PopularTickets.',
+    '/courses/theatre.jpg',
+    '/courses/theatre.jpg',
+    'masterclass',
+    'Мастер-класс',
     'published',
     30
   ),
   (
     'playback',
     'Группы PLAY-BACK',
-    'playback',
     'Музыка, движение и истории зрителей на сцене. Пробное: оплата на PopularTickets.',
+    '/courses/play-back.jpg',
+    '/courses/play-back.jpg',
+    'playback',
+    'PLAY-BACK',
     'published',
     40
   )
 on conflict (slug) do update set
-  title = excluded.title,
-  kind = excluded.kind,
-  body = excluded.body,
-  visibility = excluded.visibility,
-  sort_order = excluded.sort_order,
-  updated_at = now();
+    title = excluded.title,
+    body = excluded.body,
+    card_image_url = excluded.card_image_url,
+    hero_image_url = excluded.hero_image_url,
+    card_variant = excluded.card_variant,
+    card_tag = excluded.card_tag,
+    visibility = excluded.visibility,
+    sort_order = excluded.sort_order,
+    updated_at = now();
 
 -- ─── Пробные (listing_kind = trial, привязка к курсу) ──────────────────────
 -- Slug события — стабильный, не пересекается с seed-improv-event.sql.
