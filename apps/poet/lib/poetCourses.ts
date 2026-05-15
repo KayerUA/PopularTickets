@@ -1,4 +1,5 @@
 import { getPoetSupabase } from "@/lib/supabasePoet";
+import { POET_KURSY_LEGACY_SLUG_REDIRECTS } from "@/lib/poetKursyLegacySlugRedirects";
 
 export type PoetCourseRow = {
   id: string;
@@ -33,10 +34,10 @@ export async function fetchPublishedPoetCourses(): Promise<PoetCourseRow[]> {
   return (data ?? []) as PoetCourseRow[];
 }
 
-export async function fetchPublishedPoetCourseBySlug(slug: string): Promise<PoetCourseRow | null> {
-  const supabase = getPoetSupabase();
-  if (!supabase) return null;
-
+async function fetchPoetCourseRowBySlugOnce(
+  supabase: NonNullable<ReturnType<typeof getPoetSupabase>>,
+  slug: string,
+): Promise<PoetCourseRow | null> {
   const { data, error } = await supabase
     .from("poet_course")
     .select(POET_COURSE_SELECT)
@@ -50,4 +51,19 @@ export async function fetchPublishedPoetCourseBySlug(slug: string): Promise<Poet
   }
 
   return (data as PoetCourseRow | null) ?? null;
+}
+
+export async function fetchPublishedPoetCourseBySlug(slug: string): Promise<PoetCourseRow | null> {
+  const supabase = getPoetSupabase();
+  if (!supabase) return null;
+
+  const direct = await fetchPoetCourseRowBySlugOnce(supabase, slug);
+  if (direct) return direct;
+
+  const canonical = POET_KURSY_LEGACY_SLUG_REDIRECTS[slug];
+  if (canonical && canonical !== slug) {
+    return fetchPoetCourseRowBySlugOnce(supabase, canonical);
+  }
+
+  return null;
 }
