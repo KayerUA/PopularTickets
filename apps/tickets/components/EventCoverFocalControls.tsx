@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { clampEventImageFocal } from "@/lib/eventCoverFocal";
 
 type Props = {
@@ -11,7 +10,8 @@ type Props = {
 };
 
 /**
- * Превью 16/10 как на карточке афиши: клик задаёт точку для object-position при object-cover на сайте.
+ * Превью 16:9 как на витрине. Клик задаёт точку для object-position при object-cover.
+ * Здесь нативный img — blob: и произвольные URL не ломают Next/Image в проде.
  */
 export function EventCoverFocalControls({ previewUrl, initialX, initialY }: Props) {
   const [x, setX] = useState(() => clampEventImageFocal(initialX));
@@ -44,23 +44,22 @@ export function EventCoverFocalControls({ previewUrl, initialX, initialY }: Prop
       <input type="hidden" name="imageFocalY" value={String(y)} />
       <p className="text-sm text-zinc-300">Точка фокуса обложки</p>
       <p className="text-xs text-zinc-500">
-        Кликните по превью — эта область останется в кадре при обрезке под карточки (как на главной). «В центр» — сброс 50×50 %.
+        Кликните по превью — эта область останется в кадре при обрезке под карточки и страницу события (кадр 16:9). «В центр» — сброс 50×50 %.
       </p>
       {previewUrl ? (
         <div
           ref={boxRef}
           role="presentation"
           onClick={onClick}
-          className="relative aspect-[16/10] w-full max-w-xl cursor-crosshair overflow-hidden rounded-xl border border-poet-gold/25 bg-zinc-950"
+          className="relative aspect-video w-full max-w-xl cursor-crosshair overflow-hidden rounded-xl border border-poet-gold/25 bg-zinc-950"
         >
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element -- blob:/внешние URL превью в админке; Next/Image падает в проде */}
+          <img
             src={previewUrl}
             alt=""
-            fill
-            unoptimized
-            className="object-cover"
+            className="absolute inset-0 h-full w-full object-cover select-none"
             style={{ objectPosition: `${x}% ${y}%` }}
-            sizes="(max-width:768px) 100vw, 36rem"
+            draggable={false}
           />
           <span
             className="pointer-events-none absolute z-[1] h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-poet-gold/90 shadow-[0_0_0_2px_rgba(0,0,0,0.5)]"

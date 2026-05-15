@@ -48,7 +48,7 @@ export function EventCard(e: EventCardProps) {
       <article
         className={`flex h-full flex-col overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/55 shadow-gold-sm backdrop-blur-sm transition duration-500 ease-out group-hover:-translate-y-0.5 group-hover:border-poet-gold/45 group-hover:shadow-gold sm:group-hover:-translate-y-1 ${e.status === "past" ? "opacity-[0.88]" : ""} ${e.status === "sold_out" ? "opacity-95 saturate-[0.85]" : ""}`}
       >
-        <div className="relative aspect-[16/10] w-full bg-zinc-950 sm:aspect-[16/9]">
+        <div className="relative aspect-video w-full bg-zinc-950">
           {e.imageUrl ? (
             <Image
               src={e.imageUrl}

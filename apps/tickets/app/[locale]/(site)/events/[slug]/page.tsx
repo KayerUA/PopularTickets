@@ -141,7 +141,7 @@ export default async function EventPage({
         )}
       />
       <div className="animate-fade-up overflow-hidden rounded-2xl border border-poet-gold/25 bg-poet-surface/50 shadow-gold backdrop-blur-md sm:rounded-3xl">
-        <div className="relative aspect-[16/10] w-full bg-zinc-950 sm:aspect-[2/1]">
+        <div className="relative aspect-video w-full bg-zinc-950">
           {event.image_url ? (
             <Image
               src={event.image_url}
