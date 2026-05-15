@@ -138,8 +138,8 @@ export default async function PoetCoursePage({ params }: PageProps) {
       </nav>
 
       <article className="mt-8 overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/25 shadow-gold-sm backdrop-blur-sm">
-        <div className="relative aspect-[21/9] max-h-56 w-full sm:aspect-[24/9] sm:max-h-64">
-          <Image src={display.image} alt="" fill className="object-cover" sizes="(max-width:1024px) 100vw, 896px" priority />
+        <div className="relative aspect-[16/10] max-h-56 w-full bg-zinc-950 sm:aspect-[2/1] sm:max-h-64">
+          <Image src={display.image} alt="" fill className="object-contain object-center" sizes="(max-width:1024px) 100vw, 896px" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-poet-bg via-poet-bg/40 to-transparent" aria-hidden />
         </div>
         <div className="space-y-4 px-5 py-7 sm:px-8 sm:py-9">

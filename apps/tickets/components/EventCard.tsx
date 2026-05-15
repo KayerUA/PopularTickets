@@ -50,7 +50,7 @@ export function EventCard(e: EventCardProps) {
               src={e.imageUrl}
               alt=""
               fill
-              className="object-cover opacity-90 transition duration-700 group-hover:scale-[1.02] group-hover:opacity-100 sm:group-hover:scale-[1.03]"
+              className="object-contain object-center opacity-90 transition duration-700 group-hover:scale-[1.01] group-hover:opacity-100 sm:group-hover:scale-[1.02]"
               sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
               unoptimized
             />
