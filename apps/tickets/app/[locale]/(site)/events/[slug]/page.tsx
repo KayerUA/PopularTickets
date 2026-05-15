@@ -4,7 +4,7 @@ import { getServiceSupabase } from "@/lib/supabase/admin";
 import { fetchPublishedEventBySlug } from "@/lib/supabase/fetchPublishedEventBySlug";
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { SupabaseQueryErrorPanel } from "@/components/SupabaseQueryErrorPanel";
-import { formatPlnFromGrosze, formatEventDateTime } from "@/lib/format";
+import { formatPlnFromGrosze, formatEventDateTime, formatEventDateShortForTitle } from "@/lib/format";
 import { splitTheatreTicketGrossGrosze } from "@/lib/plVatTheatreTicket";
 import { EventCheckoutForm } from "@/components/EventCheckoutForm";
 import { getTranslations } from "next-intl/server";
@@ -13,13 +13,14 @@ import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
 import { resolveEventMapsUrl } from "@/lib/mapsUrl";
 import { resolveEventMarketingStatus, normalizeEventListingKind } from "@/lib/eventMarketingStatus";
 import { EventStatusBadge } from "@/components/EventStatusBadge";
-import { buildPublicPageMetadata, truncateMetaDescription } from "@/lib/seo";
+import { buildPublicPageMetadata, truncateMetaDescription, canonicalPath } from "@/lib/seo";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { JsonLd } from "@/components/JsonLd";
-import { buildEventJsonLd } from "@/lib/seo/eventJsonLd";
+import { buildEventJsonLd, buildBreadcrumbListJsonLd } from "@/lib/seo/eventJsonLd";
 import { COMPANY } from "@/lib/company";
 import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
+import { Link } from "@/i18n/navigation";
 
 export const revalidate = 30;
 
@@ -48,8 +49,9 @@ export async function generateMetadata({
       description: tMeta("homeDescription"),
     });
   }
-  const title = `${event.title}${tMeta("eventTitleSuffix")}`;
-  const desc = `${formatEventDateTime(event.starts_at, locale)} · ${event.venue} — ${truncateMetaDescription(event.description)}`;
+  const short = formatEventDateShortForTitle(event.starts_at);
+  const title = `${event.title} — ${tMeta("eventListingLine")}, ${short}`;
+  const desc = `${tMeta("eventDescriptionBuy")} ${formatEventDateTime(event.starts_at, locale)}. ${event.venue}. ${truncateMetaDescription(event.description)}`;
   const base = getPublicAppUrl()?.replace(/\/$/, "");
   let ogImages: { url: string; width: number; height: number; alt: string }[] | undefined;
   if (event.image_url && base) {
@@ -87,6 +89,7 @@ export default async function EventPage({
 }) {
   const { slug, locale } = await params;
   const t = await getTranslations({ locale, namespace: "EventPage" });
+  const tSeo = await getTranslations({ locale, namespace: "EventSeo" });
   const supabase = getServiceSupabase();
   if (!supabase) {
     return <SupabaseSetupHint variant="disconnected" locale={locale} />;
@@ -119,12 +122,53 @@ export default async function EventPage({
     maps_url: event.maps_url,
     description: event.description,
   });
+  const whenStr = formatEventDateTime(event.starts_at, locale);
+  const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "";
+  const homePath = canonicalPath(locale, "/");
+  const homeUrl = base ? `${base}${homePath}` : "";
+  const afishaUrl = base ? `${base}${homePath}#afisha` : "";
+  const eventUrlAbs = base ? `${base}${canonicalPath(locale, `/events/${slug}`)}` : "";
+  const breadcrumbLd =
+    homeUrl && afishaUrl && eventUrlAbs
+      ? buildBreadcrumbListJsonLd([
+          { name: t("breadcrumbHome"), item: homeUrl },
+          { name: t("breadcrumbAfisha"), item: afishaUrl },
+          { name: event.title, item: eventUrlAbs },
+        ])
+      : null;
 
   const soldOut = remaining <= 0 || marketingStatus === "sold_out";
   const ticketVat = splitTheatreTicketGrossGrosze(event.price_grosze);
 
   return (
     <div className="poet-safe-x mx-auto max-w-3xl py-8 sm:py-14">
+      {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
+      <nav className="mb-6 text-sm text-zinc-500" aria-label={t("breadcrumbAria")}>
+        <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <li>
+            <Link href="/" className="text-zinc-400 underline decoration-zinc-600 underline-offset-2 transition hover:text-zinc-200">
+              {t("breadcrumbHome")}
+            </Link>
+          </li>
+          <li aria-hidden className="text-zinc-600">
+            /
+          </li>
+          <li>
+            <Link
+              href="/#afisha"
+              className="text-zinc-400 underline decoration-zinc-600 underline-offset-2 transition hover:text-zinc-200"
+            >
+              {t("breadcrumbAfisha")}
+            </Link>
+          </li>
+          <li aria-hidden className="text-zinc-600">
+            /
+          </li>
+          <li className="max-w-[min(100%,28rem)] truncate text-zinc-300" title={event.title}>
+            {event.title}
+          </li>
+        </ol>
+      </nav>
       <JsonLd
         data={buildEventJsonLd(
           {
@@ -167,9 +211,7 @@ export default async function EventPage({
                 <EventStatusBadge status={marketingStatus} listingKind={listingKind} />
               </div>
             ) : null}
-            <p className="mt-2 break-words text-sm text-zinc-400 sm:text-base">
-              {formatEventDateTime(event.starts_at, locale)}
-            </p>
+            <p className="mt-2 break-words text-sm text-zinc-400 sm:text-base">{whenStr}</p>
             <p className="break-words text-sm text-zinc-400 sm:text-base">{event.venue}</p>
             {mapsHref ? (
               <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-zinc-500">
@@ -208,6 +250,24 @@ export default async function EventPage({
           <p className="whitespace-pre-wrap break-words text-[0.9375rem] leading-relaxed text-zinc-300 sm:text-base">
             {event.description}
           </p>
+          <section className="space-y-5 border-t border-poet-gold/15 pt-6 text-sm" aria-labelledby="event-seo-audience">
+            <div>
+              <h2 id="event-seo-audience" className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
+                {tSeo("audienceTitle")}
+              </h2>
+              <p className="mt-2 leading-relaxed text-zinc-300">
+                {tSeo("audienceBody", { title: event.title, when: whenStr, venue: event.venue })}
+              </p>
+            </div>
+            <div>
+              <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">{tSeo("notForTitle")}</h2>
+              <p className="mt-2 leading-relaxed text-zinc-300">{tSeo("notForBody")}</p>
+            </div>
+            <div>
+              <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">{tSeo("intentTitle")}</h2>
+              <p className="mt-2 leading-relaxed text-zinc-300">{tSeo("intentBody")}</p>
+            </div>
+          </section>
           <div className="flex flex-col gap-4 border-t border-poet-gold/15 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 sm:pt-6">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{t("priceLabel")}</p>
@@ -241,7 +301,10 @@ export default async function EventPage({
           ) : remaining > 0 ? (
             <section id="event-checkout" className="scroll-mt-28 sm:scroll-mt-32">
               <aside className="mt-5 rounded-xl border border-poet-gold/15 bg-black/20 px-3 py-2.5 text-[11px] leading-relaxed text-zinc-400 sm:px-4 sm:text-xs">
-                {t("prePurchaseNote", { seller: COMPANY.legalNameShort, nip: COMPANY.nip })}
+                {t(
+                  isCheckoutBypassPayment() ? "prePurchaseNoteBypass" : "prePurchaseNote",
+                  { seller: COMPANY.legalNameShort, nip: COMPANY.nip }
+                )}
               </aside>
               <EventCheckoutForm
                 eventSlug={event.slug}

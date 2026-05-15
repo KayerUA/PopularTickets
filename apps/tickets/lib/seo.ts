@@ -69,6 +69,10 @@ export type PublicPageMetaInput = {
   /** Абсолютные URL изображений для OG/Twitter */
   ogImages?: { url: string; width?: number; height?: number; alt?: string }[];
   robots?: Metadata["robots"];
+  /**
+   * Явные hreflang URL (полные), если путь отличается по локалям (напр. /uk/pro-* vs /pl/o-*).
+   */
+  hreflangAlternateUrls?: Record<string, string>;
 };
 
 /**
@@ -76,7 +80,7 @@ export type PublicPageMetaInput = {
  */
 export function buildPublicPageMetadata(input: PublicPageMetaInput): Metadata {
   const url = absoluteUrl(input.locale, input.path);
-  const languages = hreflangLanguages(input.path);
+  const languages = input.hreflangAlternateUrls ?? hreflangLanguages(input.path);
   const ogLocale = OG_LOCALE[input.locale];
   const alternateLocale = routing.locales.filter((l) => l !== input.locale).map((l) => OG_LOCALE[l]);
 

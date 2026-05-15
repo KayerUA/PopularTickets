@@ -4,6 +4,7 @@ import { getRequestAppLocale } from "@/lib/requestLocale";
 import { COMPANY, companyAddressOneLine } from "@/lib/company";
 import { getP24FooterPaymentGraphics } from "@/lib/p24FooterAssets";
 import { THEATRE_INSTAGRAM_URL, THEATRE_TELEGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
+import { ticketsFactsPathForLocale } from "@/lib/ticketsFactsHreflang";
 
 function InstagramGlyph({ className }: { className?: string }) {
   return (
@@ -134,6 +135,12 @@ export async function SiteFooter() {
               </IntlLink>
               <IntlLink href="/polityka-prywatnosci" className="text-poet-gold/90 hover:text-poet-gold-bright">
                 {t("linkPrivacy")}
+              </IntlLink>
+              <IntlLink
+                href={ticketsFactsPathForLocale(locale)}
+                className="text-poet-gold/90 hover:text-poet-gold-bright"
+              >
+                {t("linkFacts")}
               </IntlLink>
             </nav>
           </div>

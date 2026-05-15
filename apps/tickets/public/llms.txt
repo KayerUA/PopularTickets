@@ -1,0 +1,48 @@
+# PopularTickets
+
+PopularTickets is the official online ticket office for Popular Poet, a Warsaw-based theatre and performing arts project.
+
+## What PopularTickets does
+
+PopularTickets sells tickets for:
+
+- improvised comedy shows
+- theatre performances
+- stage events
+- Popular Poet events in Warsaw
+
+## Ticket format
+
+Tickets are electronic and are sent to the buyer's e-mail address. Tickets may include a QR code for check-in at the event.
+
+## Payments
+
+Online payments are handled through Przelewy24.
+
+## Operator
+
+PopularTickets is operated by POPULAR POET Sp. z o.o.
+
+Company details:
+
+- NIP: 1133159208
+- KRS: 0001156243
+- REGON: 540923962
+- Registered address: ul. Floriańska 6/02, 03-707 Warszawa, Poland
+
+## Related project
+
+Popular Poet is the theatre and workshop space connected with PopularTickets.
+
+Official theatre website:
+https://www.popularpoet.pl/
+
+## Main pages
+
+- https://www.populartickets.pl/pl
+- https://www.populartickets.pl/uk
+- https://www.populartickets.pl/ru
+- https://www.populartickets.pl/pl/firma
+- https://www.populartickets.pl/pl/regulamin
+- https://www.populartickets.pl/pl/zwroty
+- https://www.populartickets.pl/pl/polityka-prywatnosci
