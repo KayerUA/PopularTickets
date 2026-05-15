@@ -7,13 +7,18 @@ type Props = {
   priority?: boolean;
   unoptimized?: boolean;
   frameClassName?: string;
-  /** Для обложек событий: object-position на переднем слое (contain). */
+  /** События: точка кадрирования для object-cover / contain. */
   coverObjectPosition?: string;
+  /**
+   * `cover` — заполняет кадр (витрина, читаемая афиша, допустим обрез).
+   * `contain` — целиком картинка в кадре (узкая полоска у вертикальных постеров).
+   */
+  fit?: "cover" | "contain";
 };
 
 /**
- * Кадр обложки: размытый fill подложка + чёткий слой object-contain.
- * Подложка сильнее заливает «полосы» у вертикальных постеров в 16:9.
+ * Обложка: размытый фон + чёткий слой. По умолчанию передний слой `object-cover`
+ * (крупно, как на нормальных афишах), не `contain`.
  */
 export function MediaCoverBlurred({
   src,
@@ -23,7 +28,11 @@ export function MediaCoverBlurred({
   unoptimized,
   frameClassName = "relative aspect-video w-full overflow-hidden bg-zinc-950",
   coverObjectPosition,
+  fit = "cover",
 }: Props) {
+  const pos = coverObjectPosition ? { objectPosition: coverObjectPosition } : undefined;
+  const blurPos = fit === "cover" ? pos : undefined;
+
   return (
     <div className={frameClassName}>
       <Image
@@ -34,6 +43,7 @@ export function MediaCoverBlurred({
         priority={priority}
         unoptimized={unoptimized}
         className="pointer-events-none absolute inset-0 z-0 scale-[1.38] object-cover object-center blur-3xl saturate-[1.18] opacity-[0.82] brightness-110 contrast-[1.05]"
+        style={blurPos}
         aria-hidden
       />
       <Image
@@ -43,8 +53,12 @@ export function MediaCoverBlurred({
         sizes={sizes}
         priority={priority}
         unoptimized={unoptimized}
-        className="pointer-events-none absolute inset-0 z-[1] object-contain object-center"
-        style={coverObjectPosition ? { objectPosition: coverObjectPosition } : undefined}
+        className={
+          fit === "cover"
+            ? "pointer-events-none absolute inset-0 z-[1] object-cover object-center"
+            : "pointer-events-none absolute inset-0 z-[1] object-contain object-center"
+        }
+        style={pos}
       />
     </div>
   );
