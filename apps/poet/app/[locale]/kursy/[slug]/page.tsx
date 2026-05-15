@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
@@ -14,6 +13,7 @@ import {
   staticCourseKeys,
 } from "@/lib/poetStaticCourses";
 import { formatPoetTrialWhen } from "@/lib/formatPoetTrialDate";
+import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 
 export const revalidate = 60;
 
@@ -139,17 +139,16 @@ export default async function PoetCoursePage({ params }: PageProps) {
       </nav>
 
       <article className="mt-8 overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/25 shadow-gold-sm backdrop-blur-sm">
-        <div className="relative aspect-[16/10] max-h-56 w-full bg-zinc-950 sm:aspect-[2/1] sm:max-h-64">
-          <Image
+        <div className="relative aspect-video w-full overflow-hidden bg-zinc-950">
+          <MediaCoverBlurred
             src={display.image}
-            alt=""
-            fill
-            className="object-contain object-center"
+            alt={display.title}
             sizes="(max-width:1024px) 100vw, 896px"
             priority
             unoptimized={display.image.startsWith("http://") || display.image.startsWith("https://")}
+            frameClassName="absolute inset-0"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-poet-bg via-poet-bg/40 to-transparent" aria-hidden />
+          <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-poet-bg via-poet-bg/40 to-transparent" aria-hidden />
         </div>
         <div className="space-y-4 px-5 py-7 sm:px-8 sm:py-9">
           {display.tag ? (

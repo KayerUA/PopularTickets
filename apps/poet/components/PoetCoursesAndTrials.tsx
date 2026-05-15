@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { AppLocale } from "@/i18n/routing";
@@ -6,6 +5,7 @@ import { THEATRE_DIRECTOR_TELEGRAM_HANDLE, THEATRE_DIRECTOR_TELEGRAM_URL } from 
 import { getTicketsSiteBase, ticketsFirma, ticketsHome } from "@/lib/ticketsSite";
 import type { PoetCourseRow } from "@/lib/poetCourses";
 import { normalizeCourseCardVariant, staticCourseKeys, type PoetStaticCourseSlug } from "@/lib/poetStaticCourses";
+import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 
 const STATIC_SLUGS: readonly PoetStaticCourseSlug[] = ["improv", "acting", "masterclass", "playback"];
 
@@ -28,14 +28,13 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
                   className={`poet-course-card poet-course-card--${variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 sm:p-6`}
                 >
                   <div className="poet-shine pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
-                  <div className="relative -mx-1 -mt-1 mb-3 aspect-[16/10] w-full overflow-hidden rounded-lg border border-poet-gold/15 bg-zinc-950">
-                    <Image
+                  <div className="relative -mx-1 -mt-1 mb-3 aspect-video w-full overflow-hidden rounded-lg border border-poet-gold/15 bg-zinc-950">
+                    <MediaCoverBlurred
                       src={img}
-                      alt=""
-                      fill
-                      className="object-contain object-center"
+                      alt={c.title}
                       sizes="(max-width:640px) 100vw, 25vw"
                       unoptimized={img.startsWith("http://") || img.startsWith("https://")}
+                      frameClassName="absolute inset-0"
                     />
                   </div>
                   {tagLine ? (
@@ -61,8 +60,13 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
                   className={`poet-course-card poet-course-card--${keys.variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 sm:p-6`}
                 >
                   <div className="poet-shine pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
-                  <div className="relative -mx-1 -mt-1 mb-3 aspect-[16/10] w-full overflow-hidden rounded-lg border border-poet-gold/15 bg-zinc-950">
-                    <Image src={keys.image} alt="" fill className="object-contain object-center" sizes="(max-width:640px) 100vw, 25vw" />
+                  <div className="relative -mx-1 -mt-1 mb-3 aspect-video w-full overflow-hidden rounded-lg border border-poet-gold/15 bg-zinc-950">
+                    <MediaCoverBlurred
+                      src={keys.image}
+                      alt={t(keys.titleKey)}
+                      sizes="(max-width:640px) 100vw, 25vw"
+                      frameClassName="absolute inset-0"
+                    />
                   </div>
                   <p className="relative text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500">{t(keys.tagKey)}</p>
                   <h3 className="relative mt-2 font-display text-xl font-semibold tracking-tight text-gradient-gold sm:text-[1.35rem]">

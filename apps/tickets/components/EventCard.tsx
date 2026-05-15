@@ -2,12 +2,12 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import Image from "next/image";
 import { formatPlnFromGrosze, formatEventDateTime } from "@/lib/format";
 import type { AppLocale } from "@/i18n/routing";
 import type { EventMarketingStatus, EventListingKind } from "@/lib/eventMarketingStatus";
 import { EventStatusBadge } from "@/components/EventStatusBadge";
 import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
+import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 
 export type EventCardProps = {
   slug: string;
@@ -48,22 +48,21 @@ export function EventCard(e: EventCardProps) {
       <article
         className={`flex h-full flex-col overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/55 shadow-gold-sm backdrop-blur-sm transition duration-500 ease-out group-hover:-translate-y-0.5 group-hover:border-poet-gold/45 group-hover:shadow-gold sm:group-hover:-translate-y-1 ${e.status === "past" ? "opacity-[0.88]" : ""} ${e.status === "sold_out" ? "opacity-95 saturate-[0.85]" : ""}`}
       >
-        <div className="relative aspect-video w-full bg-zinc-950">
+        <div className="relative aspect-video w-full overflow-hidden bg-zinc-950">
           {e.imageUrl ? (
-            <Image
+            <MediaCoverBlurred
               src={e.imageUrl}
               alt=""
-              fill
-              className="object-cover opacity-90 transition duration-700 group-hover:scale-[1.01] group-hover:opacity-100 sm:group-hover:scale-[1.02]"
-              style={{ objectPosition: eventCoverObjectPosition(e.imageFocalX, e.imageFocalY) }}
               sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
               unoptimized
+              coverObjectPosition={eventCoverObjectPosition(e.imageFocalX, e.imageFocalY)}
+              frameClassName="absolute inset-0"
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-poet-gold-dim/35 via-poet-bg to-zinc-950" />
           )}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-poet-bg/80 via-transparent to-transparent opacity-60" />
-          <div className="pointer-events-none absolute left-3 top-3 z-[1] flex flex-wrap gap-2 sm:left-4 sm:top-4">
+          <div className="pointer-events-none absolute inset-0 z-[3] bg-gradient-to-t from-poet-bg/80 via-transparent to-transparent opacity-60" />
+          <div className="pointer-events-none absolute left-3 top-3 z-[4] flex flex-wrap gap-2 sm:left-4 sm:top-4">
             <EventStatusBadge status={e.status} listingKind={listingKind} />
           </div>
         </div>

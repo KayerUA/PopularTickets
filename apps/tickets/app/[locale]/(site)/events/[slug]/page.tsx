@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import type { Metadata } from "next";
 import { getServiceSupabase } from "@/lib/supabase/admin";
 import { fetchPublishedEventBySlug } from "@/lib/supabase/fetchPublishedEventBySlug";
@@ -20,6 +19,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { buildEventJsonLd } from "@/lib/seo/eventJsonLd";
 import { COMPANY } from "@/lib/company";
 import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
+import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 
 export const revalidate = 30;
 
@@ -141,21 +141,21 @@ export default async function EventPage({
         )}
       />
       <div className="animate-fade-up overflow-hidden rounded-2xl border border-poet-gold/25 bg-poet-surface/50 shadow-gold backdrop-blur-md sm:rounded-3xl">
-        <div className="relative aspect-video w-full bg-zinc-950">
+        <div className="relative aspect-video w-full overflow-hidden bg-zinc-950">
           {event.image_url ? (
-            <Image
+            <MediaCoverBlurred
               src={event.image_url}
               alt=""
-              fill
-              className="object-cover"
-              style={{ objectPosition: eventCoverObjectPosition(event.image_focal_x, event.image_focal_y) }}
+              sizes="(max-width:768px) 100vw, 896px"
               priority
               unoptimized
+              coverObjectPosition={eventCoverObjectPosition(event.image_focal_x, event.image_focal_y)}
+              frameClassName="absolute inset-0"
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-poet-gold-dim/35 via-poet-bg to-zinc-950" />
           )}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-poet-bg via-poet-bg/20 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-poet-bg via-poet-bg/20 to-transparent" />
         </div>
         <div className="space-y-4 p-4 sm:p-8">
           <div>
