@@ -5,7 +5,7 @@ import { routing, type AppLocale } from "@/i18n/routing";
 import { fetchPublishedPoetCourseBySlug } from "@/lib/poetCourses";
 import { fetchPublishedTrials, fetchTrialsForCourse, filterTrialsByCourseSlug, type PoetTrialDisplay } from "@/lib/poetTrials";
 import { getTicketsSiteBase, ticketsEventPage, ticketsHome } from "@/lib/ticketsSite";
-import { buildPoetPageMetadata } from "@/lib/seoPoet";
+import { buildPoetPageMetadata, poetCanonicalPath } from "@/lib/seoPoet";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
 import {
   isPoetStaticCourseSlug,
@@ -14,6 +14,8 @@ import {
 } from "@/lib/poetStaticCourses";
 import { formatPoetTrialWhen } from "@/lib/formatPoetTrialDate";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
+import { PoetJsonLd } from "@/components/PoetJsonLd";
+import { buildBreadcrumbListJsonLd, buildCourseJsonLd } from "@/lib/poetJsonLd";
 
 export const revalidate = 60;
 
@@ -126,8 +128,37 @@ export default async function PoetCoursePage({ params }: PageProps) {
     trials = filterTrialsByCourseSlug(all, slug);
   }
 
+  const base = getPoetSiteUrl()?.replace(/\/$/, "");
+  const loc = locale as AppLocale;
+  const courseAbs = base ? `${base}${poetCanonicalPath(loc, `/kursy/${slug}`)}` : "";
+  const homeAbs = base ? `${base}${poetCanonicalPath(loc, "/")}` : "";
+  const coursesSectionAbs = base ? `${homeAbs}#kursy` : "";
+  const plainDesc = display.body.replace(/\s+/g, " ").trim().slice(0, 320);
+  const inLang: Record<AppLocale, string> = { pl: "pl-PL", ru: "ru-RU", uk: "uk-UA" };
+  const courseLd =
+    courseAbs && homeAbs
+      ? buildCourseJsonLd({
+          name: display.title,
+          description: plainDesc.length > 0 ? plainDesc : display.title,
+          url: courseAbs,
+          providerUrl: homeAbs,
+          inLanguage: inLang[loc],
+        })
+      : null;
+  const breadcrumbLd =
+    courseAbs && homeAbs
+      ? buildBreadcrumbListJsonLd([
+          { name: tPage("breadcrumbHome"), item: homeAbs },
+          { name: tPage("breadcrumbCourses"), item: coursesSectionAbs },
+          { name: display.title, item: courseAbs },
+        ])
+      : null;
+
   return (
-    <div className="poet-safe-x mx-auto max-w-5xl pb-12 pt-6 sm:pb-16 sm:pt-8">
+    <>
+      {courseLd ? <PoetJsonLd data={courseLd} /> : null}
+      {breadcrumbLd ? <PoetJsonLd data={breadcrumbLd} /> : null}
+      <div className="poet-safe-x mx-auto max-w-5xl pb-12 pt-6 sm:pb-16 sm:pt-8">
       <nav className="text-sm text-zinc-500">
         <Link href="/" className="text-poet-gold/90 hover:text-poet-gold-bright">
           {tPage("breadcrumbHome")}
@@ -209,5 +240,6 @@ export default async function PoetCoursePage({ params }: PageProps) {
         )}
       </section>
     </div>
+    </>
   );
 }

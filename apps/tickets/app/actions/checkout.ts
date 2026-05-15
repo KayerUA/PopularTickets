@@ -154,29 +154,37 @@ export async function createPendingOrder(formData: FormData) {
 
   const p24Lang = p24UiLanguage(locale);
 
-  const merchantId = getMerchantId();
-  const posId = getPosId();
-  const sign = signRegister({
-    sessionId: orderId,
-    merchantId,
-    amount: amountGrosze,
-    currency: "PLN",
-  });
+  let token: string;
+  try {
+    const merchantId = getMerchantId();
+    const posId = getPosId();
+    const sign = signRegister({
+      sessionId: orderId,
+      merchantId,
+      amount: amountGrosze,
+      currency: "PLN",
+    });
 
-  const { token } = await p24Register({
-    merchantId,
-    posId,
-    sessionId: orderId,
-    amount: amountGrosze,
-    currency: "PLN",
-    description: `${event.title} ×${quantity}`,
-    email,
-    country: "PL",
-    language: p24Lang,
-    urlReturn: `${baseUrl}${await buildCheckoutReturnPath(locale, orderId)}`,
-    urlStatus: `${baseUrl}/api/p24/notify`,
-    sign,
-  });
+    token = (
+      await p24Register({
+        merchantId,
+        posId,
+        sessionId: orderId,
+        amount: amountGrosze,
+        currency: "PLN",
+        description: `${event.title} ×${quantity}`,
+        email,
+        country: "PL",
+        language: p24Lang,
+        urlReturn: `${baseUrl}${await buildCheckoutReturnPath(locale, orderId)}`,
+        urlStatus: `${baseUrl}/api/p24/notify`,
+        sign,
+      })
+    ).token;
+  } catch (e) {
+    console.error("[PopularTickets][checkout] P24 unavailable", e);
+    throw new Error(t("appUrlMissing"));
+  }
 
   redirectNext(getP24TrnUrl(token));
 }

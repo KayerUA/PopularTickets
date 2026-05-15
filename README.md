@@ -41,7 +41,7 @@ Szczegóły deployu dwóch domen: **[docs/MONOREPO.md](docs/MONOREPO.md)**.
 
 - **Данные в Supabase** — только с сервера через **service role**; RLS включён, политик для `anon` нет (см. `supabase/schema.sql`).
 - **Страница чека после оплаты** (`/…/checkout/return`): по умолчанию доступ по query-параметру `order=<uuid>` (capability URL: кто знает ссылку — видит билеты и email). В production рекомендуется задать **`ORDER_RECEIPT_SECRET`** (≥16 символов): тогда редиректы после оплаты используют подписанный параметр **`rt`**, а голый `order` в URL без подписи не открывает чек.
-- **Check-in**: если задан **`CHECKIN_OPERATOR_TOKEN`**, тот же секрет нужен и для поиска билета, и для отметки входа.
+- **Check-in**: в production задайте **`CHECKIN_OPERATOR_TOKEN`**; тот же секрет нужен и для поиска билета, и для отметки входа. Без него production-действия check-in закрыты.
 - **Rate limit**: встроенный счётчик в памяти процесса; на serverless с несколькими инстансами лучше задать **`UPSTASH_REDIS_REST_URL`** и **`UPSTASH_REDIS_REST_TOKEN`** — тогда лимиты общие (см. `lib/security.ts`).
 - **Админка**: пароль из env, JWT в `httpOnly` cookie, проверка в middleware.
 - **SEO / GEO**: `metadataBase` из `NEXT_PUBLIC_APP_URL` (или `VERCEL_URL`), на публичных страницах — canonical, hreflang (`pl` / `uk` / `ru` + `x-default`), Open Graph, Twitter, meta `geo.region` / `geo.placename` (Польша / Варшава). Главная и события — JSON-LD (`WebSite` + `Organization`, `Event` с `Offer`, `validThrough` = дата начала, `inLanguage`). Файлы **`/sitemap.xml`** и **`/robots.txt`** (`app/sitemap.ts`, `app/robots.ts`). Страницы `/admin`, `/check-in`, `/api/*` и `/…/checkout/return` с **noindex**.
@@ -81,7 +81,7 @@ Szczegóły deployu dwóch domen: **[docs/MONOREPO.md](docs/MONOREPO.md)**.
 - `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` — только на сервере, не светите service role в браузер.
 - Ключи **Przelewy24** и **Resend**.
 - `ADMIN_PASSWORD`, `ADMIN_JWT_SECRET` (≥16 символов).
-- Опционально `CHECKIN_OPERATOR_TOKEN` — если задан, на `/check-in` для отметки входа нужен тот же секрет в поле кода оператора.
+- `CHECKIN_OPERATOR_TOKEN` — код контролёра для `/check-in`; в production обязателен.
 
 ### MVP без Przelewy24
 
@@ -107,7 +107,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 - **Когда появляются билеты**: после перевода заказа в статус **оплачен** (`paid`) — в обход P24 (`CHECKOUT_BYPASS_PAYMENT=true`) это сразу после отправки формы на сайте, с Przelewy24 — после успешного уведомления на `/api/p24/notify`. Логика в [`lib/fulfillment.ts`](lib/fulfillment.ts): для каждой единицы `quantity` создаётся строка в таблице `tickets` (связь с заказом и событием).
 - **Номер и QR**: у билета есть UUID **`id`** (закодирован в QR и в PDF; на входе обычно сканируют QR) и короткий **`ticket_number`** для зрителя и персонала — генерируется в [`lib/tickets.ts`](lib/tickets.ts) (`randomTicketNumber` + проверка коллизий). В письме в таблице показываем короткий номер; длинный UUID не дублируем — он внутри PDF/QR.
-- **Кто и как отмечает вход**: страница **`/check-in`** (не раздел админки). Ввод UUID билета → поиск → кнопка «Отметить вход». Если в окружении задан **`CHECKIN_OPERATOR_TOKEN`**, перед отметкой нужно ввести этот же секрет в поле кода оператора. В админке **`/admin/orders`** можно только **смотреть** номера билетов и статус (вошёл / нет), отметка делается только на `/check-in`.
+- **Кто и как отмечает вход**: страница **`/check-in`** (не раздел админки). Ввод UUID билета → поиск → кнопка «Отметить вход». В production нужен **`CHECKIN_OPERATOR_TOKEN`**; этот код вводится и для проверки билета, и для отметки входа. В админке **`/admin/orders`** можно только **смотреть** номера билетов и статус (вошёл / нет), отметка делается только на `/check-in`.
 
 ## Что делать дальше (чеклист)
 

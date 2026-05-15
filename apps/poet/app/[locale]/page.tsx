@@ -1,10 +1,13 @@
 import { PoetMarquee } from "@/components/PoetMarquee";
 import { PoetCourseShowcase, PoetTrialsAndFlow } from "@/components/PoetCoursesAndTrials";
 import { PoetTrialCalendar } from "@/components/PoetTrialCalendar";
+import { PoetJsonLd } from "@/components/PoetJsonLd";
 import { getLocale, getTranslations } from "next-intl/server";
 import { fetchPublishedTrials } from "@/lib/poetTrials";
 import { fetchPublishedPoetCourses } from "@/lib/poetCourses";
 import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
+import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
+import { buildFaqPageJsonLd, buildPoetOrganizationLocalGraph } from "@/lib/poetJsonLd";
 import type { AppLocale } from "@/i18n/routing";
 
 export const revalidate = 60;
@@ -13,11 +16,29 @@ export default async function HomePage() {
   const tickets = getTicketsSiteBase();
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("Poet");
+  const tMeta = await getTranslations("metadata");
   const [trials, dbCourses] = await Promise.all([fetchPublishedTrials(), fetchPublishedPoetCourses()]);
   const heroProofs = [t("heroProofPractice"), t("heroProofGroups"), t("heroProofTrial")];
 
+  const base = getPoetSiteUrl()?.replace(/\/$/, "");
+  const logoUrl = base && tMeta("ogImagePath") ? `${base}${tMeta("ogImagePath")}` : undefined;
+  const orgLd =
+    base ? buildPoetOrganizationLocalGraph({ baseUrl: base, locale, logoUrl, ticketsSiteUrl: tickets || null }) : null;
+
+  const faqMainEntity = (
+    [
+      ["seoFaqQ1", "seoFaqA1"],
+      ["seoFaqQ2", "seoFaqA2"],
+      ["seoFaqQ3", "seoFaqA3"],
+      ["seoFaqQ4", "seoFaqA4"],
+    ] as const
+  ).map(([qk, ak]) => ({ name: t(qk), acceptedAnswer: { text: t(ak) } }));
+  const faqLd = buildFaqPageJsonLd(faqMainEntity);
+
   return (
     <div className="poet-safe-x mx-auto max-w-5xl pb-12 pt-6 sm:pb-16 sm:pt-8">
+      {orgLd ? <PoetJsonLd data={orgLd} /> : null}
+      <PoetJsonLd data={faqLd} />
       <div className="relative overflow-hidden rounded-2xl border border-poet-gold/15">
         <div
           className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-[0.14]"
@@ -95,6 +116,35 @@ export default async function HomePage() {
         <div className="mt-8">
           <PoetTrialsAndFlow locale={locale} />
         </div>
+      </section>
+
+      <section className="mt-14 scroll-mt-28 rounded-2xl border border-poet-gold/12 bg-poet-surface/15 px-4 py-7 sm:mt-20 sm:px-8 sm:py-8" aria-labelledby="seo-snippet-heading">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-poet-gold/75">{t("seoSnippetEyebrow")}</p>
+        <h2 id="seo-snippet-heading" className="font-display mt-2 text-lg font-medium text-zinc-100 sm:text-xl">
+          {t("seoSnippetTitle")}
+        </h2>
+        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-400 sm:text-base">{t("seoSnippetBody")}</p>
+      </section>
+
+      <section id="faq" className="mt-10 scroll-mt-28 sm:mt-12" aria-labelledby="seo-faq-heading">
+        <h2 id="seo-faq-heading" className="font-display text-lg font-medium text-zinc-100 sm:text-xl">
+          {t("seoFaqTitle")}
+        </h2>
+        <dl className="mt-6 max-w-3xl space-y-6 border-t border-poet-gold/10 pt-6">
+          {(
+            [
+              ["seoFaqQ1", "seoFaqA1"],
+              ["seoFaqQ2", "seoFaqA2"],
+              ["seoFaqQ3", "seoFaqA3"],
+              ["seoFaqQ4", "seoFaqA4"],
+            ] as const
+          ).map(([qk, ak]) => (
+            <div key={qk}>
+              <dt className="text-sm font-semibold text-zinc-200">{t(qk)}</dt>
+              <dd className="mt-2 text-sm leading-relaxed text-zinc-400">{t(ak)}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
     </div>
   );

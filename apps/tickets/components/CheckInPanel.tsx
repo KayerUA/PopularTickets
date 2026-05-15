@@ -24,24 +24,12 @@ export function CheckInPanel({ checkinTokenRequired }: Props) {
         <h1 className="font-display text-2xl font-semibold text-zinc-50 sm:text-3xl">Check-in</h1>
         <p className="mt-2 break-words text-sm leading-relaxed text-zinc-400">
           Вставьте UUID билета из QR или из письма, либо отсканируйте QR камерой.
-          {checkinTokenRequired ? (
-            <>
-              {" "}
-              Код контролёра (<code className="text-zinc-300">CHECKIN_OPERATOR_TOKEN</code>) нужен и для проверки билета, и для отметки входа.
-            </>
-          ) : (
-            <>
-              {" "}
-              Для отметки входа в продакшене задайте <code className="text-zinc-300">CHECKIN_OPERATOR_TOKEN</code> на сервере.
-            </>
-          )}
+          {checkinTokenRequired ? " Код контролёра нужен и для проверки билета, и для отметки входа." : " Локальный режим: код контролёра не требуется."}
         </p>
         {checkinTokenRequired ? (
           <p className="mt-2 text-xs text-amber-300">Код контролёра обязателен для проверки и отметки.</p>
         ) : (
-          <p className="mt-2 text-xs text-zinc-500">
-            Код контролёра не задан — отметка входа открыта (только для разработки).
-          </p>
+          <p className="mt-2 text-xs text-zinc-500">Отметка входа открыта только в локальной разработке.</p>
         )}
       </div>
 
@@ -82,8 +70,7 @@ export function CheckInPanel({ checkinTokenRequired }: Props) {
 
       {state.status === "unconfigured" ? (
         <p className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-          База не подключена. Добавьте <code className="font-mono text-xs">NEXT_PUBLIC_SUPABASE_URL</code> и{" "}
-          <code className="font-mono text-xs">SUPABASE_SERVICE_ROLE_KEY</code> в <code className="font-mono text-xs">.env.local</code> и перезапустите dev-сервер.
+          Сервис проверки билетов временно недоступен. Проверьте настройки сервера или попробуйте позже.
         </p>
       ) : null}
       {state.status === "invalid" ? (

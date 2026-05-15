@@ -5,12 +5,13 @@ import { getServiceSupabase } from "@/lib/supabase/admin";
 import { rateLimit, clientIp, timingSafeEqualString } from "@/lib/security";
 
 function checkinToken(): string | undefined {
-  return process.env.CHECKIN_OPERATOR_TOKEN;
+  const token = process.env.CHECKIN_OPERATOR_TOKEN?.trim();
+  return token || undefined;
 }
 
 function verifyCheckinToken(token: string | undefined): boolean {
   const expected = checkinToken();
-  if (!expected) return true;
+  if (!expected) return process.env.NODE_ENV !== "production";
   if (!token) return false;
   if (token.length !== expected.length) return false;
   return timingSafeEqualString(token, expected);
@@ -33,11 +34,9 @@ export async function lookupTicketAction(
     return { status: "rate_limited" };
   }
 
-  if (checkinToken()) {
-    const token = String(formData.get("operatorToken") || "");
-    if (!verifyCheckinToken(token)) {
-      return { status: "invalid" };
-    }
+  const token = String(formData.get("operatorToken") || "");
+  if (!verifyCheckinToken(token)) {
+    return { status: "invalid" };
   }
 
   const raw = String(formData.get("code") || "").trim();

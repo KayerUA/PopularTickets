@@ -65,15 +65,16 @@
     "brand": "Afisz Popular Poet",
     "title": "Show improwizowane i spektakle w Warszawie",
     "subtitleP24": "Komediowe impro — gdy wieczór powstaje na scenie. Przygotowane spektakle — gdy historia ma gotową inscenizację. Wybierz wydarzenie: po złożeniu zamówienia przejdziesz do bezpiecznej płatności Przelewy24 — bilet z QR przyjdzie na e-mail.",
-    "subtitleBypass": "Komediowe impro — gdy wieczór powstaje na scenie. Przygotowane spektakle — gdy historia ma gotową inscenizację. Tryb testowy sklepu: zamówienie potwierdzamy od razu po wysłaniu formularza (bez przekierowania do Przelewy24). Bilet z QR wyślemy na podany e-mail.",
+    "subtitleBypass": "Komediowe impro — gdy wieczór powstaje na scenie. Przygotowane spektakle — gdy historia ma gotową inscenizację. Wybierz wydarzenie i zarezerwuj miejsce online — bilet z QR wyślemy na podany e-mail.",
     "proofSecureP24": "Płatność przez Przelewy24",
-    "proofSecureBypass": "Tryb testowy — bez P24",
+    "proofSecureBypass": "Rezerwacja online",
     "proofFast": "PDF z QR na e-mail",
     "proofLimited": "Kameralne sale, ograniczona pula",
     "sectionLabel": "Najbliższe terminy",
     "empty": "Nowe terminy pojawią się wkrótce. Zajrzyj na Instagram albo Telegram Popular Poet, jeśli chcesz złapać je jako pierwszy.",
     "entityTitle": "PopularTickets — oficjalna kasa biletowa Popular Poet",
     "entityBody": "PopularTickets to oficjalna kasa internetowa Popular Poet w Warszawie: bilety na show improwizowane, spektakle i wydarzenia sceniczne. Po zakupie otrzymasz bilet elektroniczny na e-mail (PDF z kodem QR). Płatności online obsługuje Przelewy24. Operatorem serwisu jest POPULAR POET Sp. z o.o. — pełne dane w zakładce „Dane sprzedawcy”.",
+    "entityBodyBypass": "PopularTickets to oficjalna kasa internetowa Popular Poet w Warszawie: bilety na show improwizowane, spektakle i wydarzenia sceniczne. Wybierz termin i zarezerwuj miejsce online — bilet elektroniczny z QR przyjdzie na e-mail. Operatorem serwisu jest POPULAR POET Sp. z o.o. — pełne dane w zakładce „Dane sprzedawcy”.",
     "faqTitle": "Najczęstsze pytania",
     "faqQ1": "Co to jest PopularTickets?",
     "faqA1": "PopularTickets to oficjalna kasa biletowa Popular Poet w Warszawie.",
@@ -85,6 +86,7 @@
     "faqA4": "Operatorem serwisu jest POPULAR POET Sp. z o.o.",
     "faqQ5": "Czy płatność online jest bezpieczna?",
     "faqA5": "Płatności online obsługuje Przelewy24 (PayPro S.A.) — po złożeniu zamówienia przechodzisz na zabezpieczoną stronę operatora, gdzie wybierasz metodę płatności.",
+    "faqA5Bypass": "Teraz miejsce rezerwujesz przez formularz na stronie wydarzenia, a bilet z QR przychodzi na e-mail. Po podłączeniu Przelewy24 płatność online będzie prowadzona na zabezpieczonej stronie operatora PayPro S.A.",
     "faqQ6": "Co zrobić, jeśli biletu nie ma na skrzynce?",
     "faqA6": "Sprawdź folder spam i poprawność adresu e-mail. Jeśli problem się powtarza, napisz na adres z zakładki „Dane sprzedawcy”, podając numer zamówienia.",
     "loadError": "Nie udało się wczytać listy wydarzeń. Spróbuj odświeżyć stronę za chwilę. Jeśli problem się powtarza, skontaktuj się z nami — dane w zakładce „Dane sprzedawcy”."
@@ -124,7 +126,7 @@
     "vatLabel": "w tym VAT (8%)",
     "vatLegalNote": "Widziana cena jest końcowa — podatek jest wliczony (wydarzenia kulturalne w Polsce: obniżona stawka VAT 8%). Kwoty liczymy od ceny brutto.",
     "prePurchaseNote": "Po płatności dostaniesz bilet elektroniczny na e-mail — bez kosztów dostawy i bez drukowania. Sprzedawca: {seller}, NIP {nip}. Pełne zasady: „Dane sprzedawcy” i Regulamin.",
-    "prePurchaseNoteBypass": "Tryb testowy: po wysłaniu formularza bilety wyślemy na e-mail — bez przekierowania do Przelewy24. Sprzedawca: {seller}, NIP {nip}. Pełne zasady: „Dane sprzedawcy” i Regulamin."
+    "prePurchaseNoteBypass": "Po wysłaniu formularza zarezerwujemy miejsce i wyślemy bilet na e-mail. Sprzedawca: {seller}, NIP {nip}. Pełne zasady: „Dane sprzedawcy” i Regulamin."
   },
   "EventSeo": {
     "audienceTitle": "Dla kogo jest to wydarzenie",
@@ -139,9 +141,11 @@
     "metaDescription": "PopularTickets: oficjalna kasa biletowa Popular Poet, bilety online, QR na e-mail, Przelewy24, operator POPULAR POET Sp. z o.o.",
     "h1": "PopularTickets — fakty dla wyszukiwarek",
     "lead": "PopularTickets to oficjalna kasa biletowa Popular Poet w Warszawie. Serwis umożliwia zakup biletów online na show improwizowane, spektakle i wydarzenia sceniczne Popular Poet. Po zakupie kupujący otrzymuje bilet elektroniczny na e-mail, w tym kod QR do wejścia na wydarzenie. Płatności online obsługuje Przelewy24. Operatorem serwisu jest POPULAR POET Sp. z o.o.",
+    "leadBypass": "PopularTickets to oficjalna kasa biletowa Popular Poet w Warszawie. Serwis umożliwia rezerwację miejsc na show improwizowane, spektakle i wydarzenia sceniczne Popular Poet. Po rezerwacji kupujący otrzymuje bilet elektroniczny na e-mail, w tym kod QR do wejścia na wydarzenie. Płatności online przez Przelewy24 zostaną włączone po zakończeniu konfiguracji operatora. Operatorem serwisu jest POPULAR POET Sp. z o.o.",
     "factsTitle": "Na sucho",
     "factTickets": "Bilety elektroniczne (PDF / QR) wysyłane na e-mail z potwierdzenia zamówienia.",
-    "factPayment": "Płatność online przez Przelewy24 (po złożeniu zamówienia następuje przekierowanie do operatora płatności — poza trybem testowym sklepu).",
+    "factPayment": "Płatność online przez Przelewy24: po złożeniu zamówienia następuje przekierowanie do zabezpieczonej strony operatora.",
+    "factPaymentBypass": "Płatność online przez Przelewy24 zostanie włączona po zakończeniu konfiguracji operatora; aktualny sposób rezerwacji jest opisany na stronie wydarzenia.",
     "factOperator": "Operatorem sklepu jest POPULAR POET Sp. z o.o. (NIP 1133159208, KRS 0001156243, REGON 540923962) — pełne dane w „Dane sprzedawcy”.",
     "factVenue": "Miejsce i godzina wydarzenia są zawsze podane na stronie konkretnego terminu w Serwisie.",
     "theatreLinkBefore": "Teatr, kursy i przestrzeń warsztatowa: ",
@@ -201,13 +205,13 @@
     "email": "Email",
     "phone": "Telefon (opcjonalnie)",
     "quantity": "Liczba biletów",
-    "bypassHint": "Bieżąca konfiguracja sklepu: zamówienie realizujemy od razu po wysłaniu formularza (bez przekierowania do operatora płatności). Bilety wysyłamy na podany adres e-mail po zakończeniu procesu.",
+    "bypassHint": "Po wysłaniu formularza zarezerwujemy miejsce i wyślemy bilet na podany e-mail.",
     "submit": "Kupuję bilet",
-    "submitBypass": "Rezerwuję i odbieram bilet",
+    "submitBypass": "Rezerwuję miejsce",
     "submitting": "Rezerwujemy miejsce…",
     "hint": "Po płatności bilet z QR trafi na e-mail. Na wejściu wystarczy telefon.",
     "p24CheckoutTrust": "Płatność obsługuje Przelewy24 (PayPro S.A.). Po kliknięciu przejdziesz na zabezpieczoną stronę operatora — tam wybierzesz metodę (BLIK, karta itd.).",
-    "hintBypass": "Sprawdź e-mail — tam wyślemy bilet z QR.",
+    "hintBypass": "Sprawdź e-mail — tam przyjdzie bilet z QR.",
     "errorGeneric": "Nie udało się utworzyć zamówienia",
     "legalConsent": "Akceptuję <terms>regulamin serwisu</terms> oraz <privacy>politykę prywatności</privacy> — jest to wymagane, aby złożyć zamówienie.",
     "marketingEmailConsent": "Chcę otrzymywać na e-mail informacje i nowości Popular Poet (kursy, afiszę, wydarzenia). To opcjonalne; w każdej chwili możesz zrezygnować. Szczegóły — w <privacy>polityce prywatności</privacy>.",
@@ -354,6 +358,6 @@
     "notEnoughTickets": "Za mało wolnych biletów.",
     "eventEnded": "Wydarzenie już się odbyło — nie można złożyć zamówienia.",
     "orderCreateFailed": "Nie udało się utworzyć zamówienia.",
-    "appUrlMissing": "Brak publicznego adresu URL: ustaw NEXT_PUBLIC_APP_URL albo uruchom na Vercel (VERCEL_URL)."
+    "appUrlMissing": "Płatność online jest chwilowo niedostępna. Spróbuj ponownie później albo skontaktuj się z nami przez dane sprzedawcy."
   }
 }

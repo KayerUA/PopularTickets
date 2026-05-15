@@ -160,12 +160,6 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
           })}
         </span>
       </label>
-      {bypassPayment ? (
-        <p className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-100/90">
-          {t("bypassHint")}
-        </p>
-      ) : null}
-
       <p className="text-xs leading-relaxed text-zinc-500 sm:mt-1">{bypassPayment ? t("hintBypass") : t("hint")}</p>
       {!bypassPayment ? (
         <div className="flex items-start gap-3 rounded-xl border border-poet-gold/15 bg-black/25 px-3 py-2.5">

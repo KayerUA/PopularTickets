@@ -1,4 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { THEATRE_INSTAGRAM_URL, THEATRE_TELEGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
 import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
 import type { AppLocale } from "@/i18n/routing";
@@ -123,9 +124,19 @@ export async function PoetFooter() {
                 <a href={`${tickets}/${locale}/firma`} className="text-poet-gold/90 hover:text-poet-gold-bright">
                   {t("footerCompanyLink")}
                 </a>
+                {" · "}
+                <Link href="/o-popular-poet" className="text-poet-gold/90 hover:text-poet-gold-bright">
+                  {t("footerFactsLink")}
+                </Link>
               </p>
             ) : (
-              <p className="text-zinc-500">{t("footerEnvMissing")}</p>
+              <p>
+                <Link href="/o-popular-poet" className="text-poet-gold/90 hover:text-poet-gold-bright">
+                  {t("footerFactsLink")}
+                </Link>
+                <span className="text-zinc-600"> — </span>
+                <span className="text-zinc-500">{t("footerEnvMissing")}</span>
+              </p>
             )}
           </div>
           <p className="text-[11px] text-zinc-600 sm:text-right sm:shrink-0">{t("footerTagline")}</p>

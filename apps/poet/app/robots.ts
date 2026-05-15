@@ -9,6 +9,11 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
       },
+      /** Обучение foundation models; не путать с OAI-SearchBot (ChatGPT Search). */
+      {
+        userAgent: "GPTBot",
+        disallow: "/",
+      },
     ],
     sitemap: base ? `${base}/sitemap.xml` : undefined,
   };

@@ -39,6 +39,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Home" });
   const bypass = isCheckoutBypassPayment();
+  const homeText = (key: string) => {
+    if (bypass && key === "entityBody") return t("entityBodyBypass");
+    if (bypass && key === "faqA5") return t("faqA5Bypass");
+    return t(key);
+  };
   const subtitle = bypass ? t("subtitleBypass") : t("subtitleP24");
   const proofItems = [t("proofFast"), bypass ? t("proofSecureBypass") : t("proofSecureP24"), t("proofLimited")];
 
@@ -53,13 +58,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
   const faqLd = buildFaqPageJsonLd(
     faqPairs.map(([qk, ak]) => ({
       name: t(qk),
-      acceptedAnswer: { text: t(ak) },
+      acceptedAnswer: { text: homeText(ak) },
     }))
   );
 
   const supabase = getServiceSupabase();
   if (!supabase) {
-    return <SupabaseSetupHint variant="setup" locale={locale} />;
+    return <SupabaseSetupHint variant={process.env.NODE_ENV === "production" ? "disconnected" : "setup"} locale={locale} />;
   }
   const { data: events, error } = await supabase
     .from("events")
@@ -133,28 +138,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
         </ul>
       </div>
 
-      <section className="mb-10 scroll-mt-24 rounded-2xl border border-poet-gold/12 bg-poet-surface/20 px-4 py-6 sm:mb-12 sm:px-8 sm:py-8" aria-labelledby="home-entity-heading">
-        <h2 id="home-entity-heading" className="font-display text-lg font-medium text-zinc-100 sm:text-xl">
-          {t("entityTitle")}
-        </h2>
-        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-400 sm:text-base">{t("entityBody")}</p>
-      </section>
-
       <MarqueeStrip />
-
-      <section id="faq" className="mt-10 scroll-mt-24 sm:mt-12" aria-labelledby="home-faq-heading">
-        <h2 id="home-faq-heading" className="font-display text-lg font-medium text-zinc-100 sm:text-xl">
-          {t("faqTitle")}
-        </h2>
-        <dl className="mt-6 max-w-3xl space-y-6 border-t border-poet-gold/10 pt-6">
-          {faqPairs.map(([qk, ak]) => (
-            <div key={qk}>
-              <dt className="text-sm font-semibold text-zinc-200">{t(qk)}</dt>
-              <dd className="mt-2 text-sm leading-relaxed text-zinc-400">{t(ak)}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
 
       <section id="afisha" className="mt-12 scroll-mt-24 space-y-6 sm:scroll-mt-28">
         {list.length ? (
@@ -165,6 +149,27 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
         ) : (
           <p className="text-zinc-500">{t("empty")}</p>
         )}
+      </section>
+
+      <section className="mt-14 scroll-mt-24 rounded-2xl border border-poet-gold/12 bg-poet-surface/20 px-4 py-6 sm:mt-16 sm:px-8 sm:py-8" aria-labelledby="home-entity-heading">
+        <h2 id="home-entity-heading" className="font-display text-lg font-medium text-zinc-100 sm:text-xl">
+          {t("entityTitle")}
+        </h2>
+        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-400 sm:text-base">{homeText("entityBody")}</p>
+      </section>
+
+      <section id="faq" className="mt-10 scroll-mt-24 sm:mt-12" aria-labelledby="home-faq-heading">
+        <h2 id="home-faq-heading" className="font-display text-lg font-medium text-zinc-100 sm:text-xl">
+          {t("faqTitle")}
+        </h2>
+        <dl className="mt-6 max-w-3xl space-y-6 border-t border-poet-gold/10 pt-6">
+          {faqPairs.map(([qk, ak]) => (
+            <div key={qk}>
+              <dt className="text-sm font-semibold text-zinc-200">{t(qk)}</dt>
+              <dd className="mt-2 text-sm leading-relaxed text-zinc-400">{homeText(ak)}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
     </div>
   );
