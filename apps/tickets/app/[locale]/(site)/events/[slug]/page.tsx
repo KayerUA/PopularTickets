@@ -89,7 +89,6 @@ export default async function EventPage({
 }) {
   const { slug, locale } = await params;
   const t = await getTranslations({ locale, namespace: "EventPage" });
-  const tSeo = await getTranslations({ locale, namespace: "EventSeo" });
   const supabase = getServiceSupabase();
   if (!supabase) {
     return <SupabaseSetupHint variant="disconnected" locale={locale} />;
@@ -179,6 +178,7 @@ export default async function EventPage({
             image_url: event.image_url,
             price_grosze: event.price_grosze,
             slug: event.slug,
+            listing_kind: event.listing_kind,
           },
           locale,
           { remaining, soldOut }
@@ -250,24 +250,6 @@ export default async function EventPage({
           <p className="whitespace-pre-wrap break-words text-[0.9375rem] leading-relaxed text-zinc-300 sm:text-base">
             {event.description}
           </p>
-          <section className="space-y-5 border-t border-poet-gold/15 pt-6 text-sm" aria-labelledby="event-seo-audience">
-            <div>
-              <h2 id="event-seo-audience" className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
-                {tSeo("audienceTitle")}
-              </h2>
-              <p className="mt-2 leading-relaxed text-zinc-300">
-                {tSeo("audienceBody", { title: event.title, when: whenStr, venue: event.venue })}
-              </p>
-            </div>
-            <div>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">{tSeo("notForTitle")}</h2>
-              <p className="mt-2 leading-relaxed text-zinc-300">{tSeo("notForBody")}</p>
-            </div>
-            <div>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">{tSeo("intentTitle")}</h2>
-              <p className="mt-2 leading-relaxed text-zinc-300">{tSeo("intentBody")}</p>
-            </div>
-          </section>
           <div className="flex flex-col gap-4 border-t border-poet-gold/15 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 sm:pt-6">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{t("priceLabel")}</p>

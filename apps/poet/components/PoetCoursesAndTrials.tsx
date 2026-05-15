@@ -22,7 +22,7 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
             const displayBody = c.body?.trim() ?? "";
             const tagLine = (c.card_tag ?? "").trim();
             return (
-              <li key={c.id} className="list-none">
+              <li key={c.id} className="h-full list-none">
                 <Link
                   href={`/kursy/${c.slug}`}
                   className={`poet-course-card poet-course-card--${variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 sm:p-6`}
@@ -54,7 +54,7 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
         : STATIC_SLUGS.map((slug) => {
             const keys = staticCourseKeys(slug);
             return (
-              <li key={slug} className="list-none">
+              <li key={slug} className="h-full list-none">
                 <Link
                   href={`/kursy/${slug}`}
                   className={`poet-course-card poet-course-card--${keys.variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 sm:p-6`}

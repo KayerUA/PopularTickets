@@ -14,7 +14,6 @@ import {
 import { bypassPaymentAndFulfillOrder } from "@/lib/fulfillment";
 import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
 import { redirect as redirectNext } from "next/navigation";
-import { redirect as redirectIntl } from "@/i18n/navigation";
 import { headers } from "next/headers";
 import { rateLimit, clientIp } from "@/lib/security";
 import { routing, type AppLocale } from "@/i18n/routing";
@@ -139,10 +138,7 @@ export async function createPendingOrder(formData: FormData) {
     }
     revalidatePath(`/${locale}`);
     revalidatePath(`/${locale}/events/${eventSlug}`);
-    redirectIntl({
-      href: `/checkout/return?order=${encodeURIComponent(orderId)}`,
-      locale,
-    });
+    redirectNext(await buildCheckoutReturnPath(locale, orderId));
   }
 
   let baseUrl: string;

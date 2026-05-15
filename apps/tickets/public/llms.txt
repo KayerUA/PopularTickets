@@ -8,12 +8,13 @@ PopularTickets sells tickets for:
 
 - improvised comedy shows
 - theatre performances
-- stage events
+- prepared theatre performances
+- chamber stage events
 - Popular Poet events in Warsaw
 
 ## Ticket format
 
-Tickets are electronic and are sent to the buyer's e-mail address. Tickets may include a QR code for check-in at the event.
+Tickets are electronic and are sent to the buyer's e-mail address as a PDF with a QR code for check-in at the event.
 
 ## Payments
 

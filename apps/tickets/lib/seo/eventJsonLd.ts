@@ -13,6 +13,7 @@ type EventRow = {
   image_url: string | null;
   price_grosze: number;
   slug: string;
+  listing_kind?: string | null;
 };
 
 const EVENT_LANG: Record<AppLocale, string> = {
@@ -20,6 +21,56 @@ const EVENT_LANG: Record<AppLocale, string> = {
   ru: "ru-RU",
   uk: "uk-UA",
 };
+
+function stripJsonLdEmptyValues(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(stripJsonLdEmptyValues).filter((item) => item !== undefined && item !== null);
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value)
+        .map(([key, entry]) => [key, stripJsonLdEmptyValues(entry)] as const)
+        .filter(([, entry]) => entry !== undefined && entry !== null && entry !== "")
+    );
+  }
+  return value;
+}
+
+function normalizeEventFormat(event: EventRow, locale: AppLocale): string {
+  if (event.listing_kind === "trial") {
+    return locale === "pl" ? "zajecia wprowadzajace" : locale === "uk" ? "вступне заняття" : "вводное занятие";
+  }
+  const text = `${event.title} ${event.description}`.toLowerCase();
+  if (text.includes("impro") || text.includes("импров") || text.includes("імпров")) {
+    return locale === "pl" ? "show improwizowane" : locale === "uk" ? "імпровізаційне шоу" : "шоу импровизации";
+  }
+  if (text.includes("masterclass") || text.includes("мастер") || text.includes("warsztat")) {
+    return locale === "pl" ? "warsztat sceniczny" : locale === "uk" ? "сценічний майстер-клас" : "сценический мастер-класс";
+  }
+  return locale === "pl" ? "wydarzenie sceniczne" : locale === "uk" ? "сценічна подія" : "сценическое событие";
+}
+
+function normalizeVenueAddress(venue: string): {
+  name: string;
+  streetAddress: string;
+  addressLocality: string;
+  postalCode?: string;
+} {
+  const compact = venue.replace(/\s+/g, " ").trim();
+  const postalCodeMatch = compact.match(/\b\d{2}-\d{3}\b/);
+  const streetMatch = compact.match(/\b(?:ul\.|Ul\.|ulica|al\.|Aleje?)\s+[^,]+/i);
+  const cityMatch = compact.match(/\b(Warszawa|Warsaw)\b/i);
+  const streetAddress = streetMatch?.[0].trim() ?? compact;
+  const addressLocality = cityMatch?.[1] ? "Warszawa" : "Warszawa";
+  const name = streetMatch ? compact.slice(0, streetMatch.index).replace(/[,\s]+$/, "") : compact;
+
+  return {
+    name: name || "Popular Poet",
+    streetAddress,
+    addressLocality,
+    postalCode: postalCodeMatch?.[0],
+  };
+}
 
 /**
  * Schema.org Event для страницы события (Google Rich Results / GEO).
@@ -45,8 +96,10 @@ export function buildEventJsonLd(
 
   const rawDesc = typeof event.description === "string" ? event.description : "";
   const desc = rawDesc.replace(/\s+/g, " ").trim().slice(0, 2000);
+  const venueAddress = normalizeVenueAddress(event.venue);
+  const eventFormat = normalizeEventFormat(event, locale);
 
-  return {
+  return stripJsonLdEmptyValues({
     "@context": "https://schema.org",
     "@type": "Event",
     name: event.title,
@@ -56,13 +109,16 @@ export function buildEventJsonLd(
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
     ...(images.length ? { image: images } : {}),
+    additionalType: eventFormat,
     location: {
       "@type": "Place",
-      name: event.venue,
+      name: venueAddress.name,
       address: {
         "@type": "PostalAddress",
         addressCountry: "PL",
-        streetAddress: event.venue,
+        addressLocality: venueAddress.addressLocality,
+        postalCode: venueAddress.postalCode,
+        streetAddress: venueAddress.streetAddress,
       },
     },
     ...(eventUrl
@@ -84,11 +140,11 @@ export function buildEventJsonLd(
           },
         }
       : {}),
-  };
+  }) as object;
 }
 
 export function buildBreadcrumbListJsonLd(items: { name: string; item: string }[]): object {
-  return {
+  return stripJsonLdEmptyValues({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: items.map((it, i) => ({
@@ -97,11 +153,11 @@ export function buildBreadcrumbListJsonLd(items: { name: string; item: string }[
       name: it.name,
       item: it.item,
     })),
-  };
+  }) as object;
 }
 
 export function buildFaqPageJsonLd(mainEntity: { name: string; acceptedAnswer: { text: string } }[]): object {
-  return {
+  return stripJsonLdEmptyValues({
     "@context": "https://schema.org",
     "@type": "FAQPage",
     mainEntity: mainEntity.map((item) => ({
@@ -112,7 +168,7 @@ export function buildFaqPageJsonLd(mainEntity: { name: string; acceptedAnswer: {
         text: item.acceptedAnswer.text,
       },
     })),
-  };
+  }) as object;
 }
 
 /** JSON-LD @graph: WebSite + PopularTickets + оператор (KRS/NIP). */
@@ -126,7 +182,7 @@ export function buildHomeJsonLd(locale: AppLocale): object {
   const sellerId = orgUrl ? `${orgUrl}#operator` : undefined;
   const brandId = siteUrl ? `${siteUrl}#brand` : undefined;
 
-  return {
+  return stripJsonLdEmptyValues({
     "@context": "https://schema.org",
     "@graph": [
       {
@@ -185,5 +241,5 @@ export function buildHomeJsonLd(locale: AppLocale): object {
         },
       },
     ],
-  };
+  }) as object;
 }

@@ -162,14 +162,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
         <h2 id="home-faq-heading" className="font-display text-lg font-medium text-zinc-100 sm:text-xl">
           {t("faqTitle")}
         </h2>
-        <dl className="mt-6 max-w-3xl space-y-6 border-t border-poet-gold/10 pt-6">
+        <div className="mt-5 max-w-3xl divide-y divide-poet-gold/10 rounded-2xl border border-poet-gold/12 bg-poet-surface/15">
           {faqPairs.map(([qk, ak]) => (
-            <div key={qk}>
-              <dt className="text-sm font-semibold text-zinc-200">{t(qk)}</dt>
-              <dd className="mt-2 text-sm leading-relaxed text-zinc-400">{homeText(ak)}</dd>
-            </div>
+            <details key={qk} className="group px-4 py-3 sm:px-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-zinc-200 marker:hidden">
+                <span>{t(qk)}</span>
+                <span className="shrink-0 text-poet-gold/80 transition group-open:rotate-45" aria-hidden>
+                  +
+                </span>
+              </summary>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400">{homeText(ak)}</p>
+            </details>
           ))}
-        </dl>
+        </div>
       </section>
     </div>
   );

@@ -20,7 +20,7 @@
   "Nav": {
     "theatre": "Teatr Popular Poet",
     "theatreAria": "Wróć na stronę teatru — kursy, zajęcia próbne, kontakt",
-    "events": "Afisha",
+    "events": "Afisz",
     "company": "Zasady"
   },
   "LocaleSwitcher": {
@@ -62,7 +62,7 @@
     "storageNote": "Twój wybór zapisujemy w tej przeglądarce. Możesz go zmienić, czyszcząc dane witryny PopularTickets w ustawieniach przeglądarki."
   },
   "Home": {
-    "brand": "Afisz Popular Poet",
+    "brand": "Popular Poet na żywo",
     "title": "Show improwizowane i spektakle w Warszawie",
     "subtitleP24": "Komediowe impro — gdy wieczór powstaje na scenie. Przygotowane spektakle — gdy historia ma gotową inscenizację. Wybierz wydarzenie: po złożeniu zamówienia przejdziesz do bezpiecznej płatności Przelewy24 — bilet z QR przyjdzie na e-mail.",
     "subtitleBypass": "Komediowe impro — gdy wieczór powstaje na scenie. Przygotowane spektakle — gdy historia ma gotową inscenizację. Wybierz wydarzenie i zarezerwuj miejsce online — bilet z QR wyślemy na podany e-mail.",
@@ -72,16 +72,16 @@
     "proofLimited": "Kameralne sale, ograniczona pula",
     "sectionLabel": "Najbliższe terminy",
     "empty": "Nowe terminy pojawią się wkrótce. Zajrzyj na Instagram albo Telegram Popular Poet, jeśli chcesz złapać je jako pierwszy.",
-    "entityTitle": "PopularTickets — oficjalna kasa biletowa Popular Poet",
-    "entityBody": "PopularTickets to oficjalna kasa internetowa Popular Poet w Warszawie: bilety na show improwizowane, spektakle i wydarzenia sceniczne. Po zakupie otrzymasz bilet elektroniczny na e-mail (PDF z kodem QR). Płatności online obsługuje Przelewy24. Operatorem serwisu jest POPULAR POET Sp. z o.o. — pełne dane w zakładce „Dane sprzedawcy”.",
-    "entityBodyBypass": "PopularTickets to oficjalna kasa internetowa Popular Poet w Warszawie: bilety na show improwizowane, spektakle i wydarzenia sceniczne. Wybierz termin i zarezerwuj miejsce online — bilet elektroniczny z QR przyjdzie na e-mail. Operatorem serwisu jest POPULAR POET Sp. z o.o. — pełne dane w zakładce „Dane sprzedawcy”.",
+    "entityTitle": "Oficjalna kasa Popular Poet",
+    "entityBody": "PopularTickets to miejsce, w którym kupisz bilety na publiczne wydarzenia Popular Poet: show improwizowane, przygotowane spektakle i kameralne wieczory sceniczne. Bilet jest elektroniczny — PDF z kodem QR przychodzi na e-mail po płatności Przelewy24. Operatorem serwisu jest POPULAR POET Sp. z o.o.; pełne dane są w zakładce „Dane sprzedawcy”.",
+    "entityBodyBypass": "PopularTickets to miejsce, w którym rezerwujesz bilety na publiczne wydarzenia Popular Poet: show improwizowane, przygotowane spektakle i kameralne wieczory sceniczne. Bilet jest elektroniczny — PDF z kodem QR przychodzi na e-mail po złożeniu zamówienia. Operatorem serwisu jest POPULAR POET Sp. z o.o.; pełne dane są w zakładce „Dane sprzedawcy”.",
     "faqTitle": "Najczęstsze pytania",
     "faqQ1": "Co to jest PopularTickets?",
     "faqA1": "PopularTickets to oficjalna kasa biletowa Popular Poet w Warszawie.",
     "faqQ2": "Jakie bilety można kupić na PopularTickets?",
     "faqA2": "Na PopularTickets można kupić bilety na show improwizowane, spektakle i wydarzenia sceniczne Popular Poet.",
     "faqQ3": "Jak otrzymam bilet?",
-    "faqA3": "Po zakupie bilet elektroniczny zostanie wysłany na adres e-mail podany w zamówieniu. Bilet może zawierać kod QR do wejścia na wydarzenie.",
+    "faqA3": "Po zakupie bilet elektroniczny zostanie wysłany na adres e-mail podany w zamówieniu. W bilecie jest kod QR do wejścia na wydarzenie.",
     "faqQ4": "Kto jest operatorem PopularTickets?",
     "faqA4": "Operatorem serwisu jest POPULAR POET Sp. z o.o.",
     "faqQ5": "Czy płatność online jest bezpieczna?",
@@ -116,7 +116,7 @@
     "loadRemainingError": "Błąd wczytywania dostępności",
     "loadQueryError": "Nie udało się wczytać wydarzenia. Spróbuj ponownie za chwilę lub wróć do listy wydarzeń.",
     "breadcrumbHome": "Strona główna",
-    "breadcrumbAfisha": "Afisha",
+    "breadcrumbAfisha": "Afisz",
     "breadcrumbAria": "Nawigacja okruszkowa",
     "openInMaps": "Otwórz w Google Maps",
     "openInMapsShort": "Mapa",
@@ -128,21 +128,13 @@
     "prePurchaseNote": "Po płatności dostaniesz bilet elektroniczny na e-mail — bez kosztów dostawy i bez drukowania. Sprzedawca: {seller}, NIP {nip}. Pełne zasady: „Dane sprzedawcy” i Regulamin.",
     "prePurchaseNoteBypass": "Po wysłaniu formularza zarezerwujemy miejsce i wyślemy bilet na e-mail. Sprzedawca: {seller}, NIP {nip}. Pełne zasady: „Dane sprzedawcy” i Regulamin."
   },
-  "EventSeo": {
-    "audienceTitle": "Dla kogo jest to wydarzenie",
-    "audienceBody": "„{title}” to żywe wydarzenie sceniczne Popular Poet w Warszawie ({when}, {venue}). Może być dobrym wyborem, jeśli szukasz improwizacji, kameralnej atmosfery i biletu online z QR na e-mail.",
-    "notForTitle": "Kiedy to może nie pasować",
-    "notForBody": "Jeśli wolisz dużą salę koncertową, klasyczny dramat bez improwizacji albo wydarzenie dla dzieci — sprawdź opis spektaklu i regulamin. W razie wątpliwości zajrzyj też na popularpoet.pl (kursy i inne formaty).",
-    "intentTitle": "Podobne intencje wyszukiwania",
-    "intentBody": "Ludzie wybierają takie wydarzenia, gdy szukają: wieczoru teatralnego w Warszawie, improwizacji, spektaklu po polsku/ukraińsku/rosyjsku (wg opisu wydarzenia), biletu online i konkretnej daty w kalendarzu."
-  },
   "TicketsFacts": {
     "metaTitle": "O PopularTickets — oficjalna kasa Popular Poet",
     "metaDescription": "PopularTickets: oficjalna kasa biletowa Popular Poet, bilety online, QR na e-mail, Przelewy24, operator POPULAR POET Sp. z o.o.",
     "h1": "PopularTickets — fakty dla wyszukiwarek",
-    "lead": "PopularTickets to oficjalna kasa biletowa Popular Poet w Warszawie. Serwis umożliwia zakup biletów online na show improwizowane, spektakle i wydarzenia sceniczne Popular Poet. Po zakupie kupujący otrzymuje bilet elektroniczny na e-mail, w tym kod QR do wejścia na wydarzenie. Płatności online obsługuje Przelewy24. Operatorem serwisu jest POPULAR POET Sp. z o.o.",
-    "leadBypass": "PopularTickets to oficjalna kasa biletowa Popular Poet w Warszawie. Serwis umożliwia rezerwację miejsc na show improwizowane, spektakle i wydarzenia sceniczne Popular Poet. Po rezerwacji kupujący otrzymuje bilet elektroniczny na e-mail, w tym kod QR do wejścia na wydarzenie. Płatności online przez Przelewy24 zostaną włączone po zakończeniu konfiguracji operatora. Operatorem serwisu jest POPULAR POET Sp. z o.o.",
-    "factsTitle": "Na sucho",
+    "lead": "PopularTickets to oficjalna kasa online Popular Poet w Warszawie. Kupisz tu bilety na show improwizowane, przygotowane spektakle i wydarzenia sceniczne Popular Poet. Po płatności bilet elektroniczny z QR trafia na e-mail. Płatności online obsługuje Przelewy24. Operatorem serwisu jest POPULAR POET Sp. z o.o.",
+    "leadBypass": "PopularTickets to oficjalna kasa online Popular Poet w Warszawie. Zarezerwujesz tu miejsca na show improwizowane, przygotowane spektakle i wydarzenia sceniczne Popular Poet. Po złożeniu zamówienia bilet elektroniczny z QR trafia na e-mail. Płatności Przelewy24 zostaną włączone po zakończeniu konfiguracji operatora. Operatorem serwisu jest POPULAR POET Sp. z o.o.",
+    "factsTitle": "Najważniejsze fakty",
     "factTickets": "Bilety elektroniczne (PDF / QR) wysyłane na e-mail z potwierdzenia zamówienia.",
     "factPayment": "Płatność online przez Przelewy24: po złożeniu zamówienia następuje przekierowanie do zabezpieczonej strony operatora.",
     "factPaymentBypass": "Płatność online przez Przelewy24 zostanie włączona po zakończeniu konfiguracji operatora; aktualny sposób rezerwacji jest opisany na stronie wydarzenia.",
@@ -181,9 +173,9 @@
     "russianMetaDescription": "Rosyjskojęzyczna publiczność w Warszawie: spektakle i show Popular Poet. Bilety online.",
     "russianH1": "Wydarzenia z językiem rosyjskim",
     "russianIntro": "Język wieczoru zależy od castingu i formatu — zawsze jest w opisie wydarzenia. Poniżej aktualne terminy z biletem.",
-    "afishaMetaTitle": "Afisha Warszawa — Popular Poet",
-    "afishaMetaDescription": "Afisha Popular Poet: najbliższe spektakle i show. Bilety na PopularTickets.",
-    "afishaH1": "Afisha w Warszawie",
+    "afishaMetaTitle": "Afisz Warszawa — Popular Poet",
+    "afishaMetaDescription": "Afisz Popular Poet: najbliższe spektakle i show. Bilety na PopularTickets.",
+    "afishaH1": "Afisz w Warszawie",
     "afishaIntro": "Jedna lista — najbliższe publiczne wydarzenia z możliwością zakupu biletu online."
   },
   "EventCard": {

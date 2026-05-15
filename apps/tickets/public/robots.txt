@@ -1,0 +1,46 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /check-in
+Disallow: /api/
+
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /check-in
+Disallow: /api/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+Disallow: /check-in
+Disallow: /api/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /check-in
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /check-in
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /check-in
+Disallow: /api/
+
+User-agent: Perplexity-User
+Allow: /
+Disallow: /admin
+Disallow: /check-in
+Disallow: /api/
+
+User-agent: GPTBot
+Disallow: /
+
+Sitemap: https://www.populartickets.pl/sitemap.xml

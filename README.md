@@ -105,8 +105,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ### Билеты и check-in
 
-- **Когда появляются билеты**: после перевода заказа в статус **оплачен** (`paid`) — в обход P24 (`CHECKOUT_BYPASS_PAYMENT=true`) это сразу после отправки формы на сайте, с Przelewy24 — после успешного уведомления на `/api/p24/notify`. Логика в [`lib/fulfillment.ts`](lib/fulfillment.ts): для каждой единицы `quantity` создаётся строка в таблице `tickets` (связь с заказом и событием).
-- **Номер и QR**: у билета есть UUID **`id`** (закодирован в QR и в PDF; на входе обычно сканируют QR) и короткий **`ticket_number`** для зрителя и персонала — генерируется в [`lib/tickets.ts`](lib/tickets.ts) (`randomTicketNumber` + проверка коллизий). В письме в таблице показываем короткий номер; длинный UUID не дублируем — он внутри PDF/QR.
+- **Когда появляются билеты**: после перевода заказа в статус **оплачен** (`paid`) — в обход P24 (`CHECKOUT_BYPASS_PAYMENT=true`) это сразу после отправки формы на сайте, с Przelewy24 — после успешного уведомления на `/api/p24/notify`. Логика в [`lib/fulfillment.ts`](apps/tickets/lib/fulfillment.ts) вызывает RPC `pt_fulfill_paid_order`: проверка остатка мест, перевод заказа в `paid` и выпуск билетов выполняются атомарно в PostgreSQL.
+- **Номер и QR**: у билета есть UUID **`id`** (закодирован в QR и в PDF; на входе обычно сканируют QR) и короткий **`ticket_number`** для зрителя и персонала — генерируется в SQL внутри `pt_fulfill_paid_order` с проверкой уникальности. В письме в таблице показываем короткий номер; длинный UUID не дублируем — он внутри PDF/QR.
 - **Кто и как отмечает вход**: страница **`/check-in`** (не раздел админки). Ввод UUID билета → поиск → кнопка «Отметить вход». В production нужен **`CHECKIN_OPERATOR_TOKEN`**; этот код вводится и для проверки билета, и для отметки входа. В админке **`/admin/orders`** можно только **смотреть** номера билетов и статус (вошёл / нет), отметка делается только на `/check-in`.
 
 ## Что делать дальше (чеклист)
@@ -178,6 +178,7 @@ npm run build        # oba workspace (jeśli mają skrypt build)
 npm run start -w popular-tickets   # po build:tickets, z katalogu głównego
 npm run lint         # wszystkie workspace
 npm run check:env
+npm run check:jsonld
 ```
 
 После деплоя: `/admin/login` → создайте и опубликуйте событие. Реквизиты и блок Przelewy24: **`/pl/firma`**, **`/uk/firma`** или **`/ru/firma`**.
