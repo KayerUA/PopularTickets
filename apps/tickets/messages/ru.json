@@ -93,6 +93,8 @@
     "loadRemainingError": "Ошибка загрузки доступности",
     "loadQueryError": "Не удалось загрузить событие. Попробуйте снова через минуту или вернитесь к списку событий.",
     "openInMaps": "Открыть в Google Maps",
+    "openInMapsShort": "Карта",
+    "skipToCheckout": "К оплате",
     "bruttoLabel": "Брутто",
     "nettoLabel": "Нетто",
     "vatLabel": "в т.ч. НДС (8%)",

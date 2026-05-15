@@ -172,20 +172,38 @@ export default async function EventPage({
             </p>
             <p className="break-words text-sm text-zinc-400 sm:text-base">{event.venue}</p>
             {mapsHref ? (
-              <p className="mt-2">
+              <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-zinc-500">
                 <a
                   href={mapsHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-10 items-center gap-2 rounded-full border border-poet-gold/30 bg-poet-gold/10 px-4 py-2 text-sm font-medium text-poet-gold-bright transition hover:border-poet-gold/50 hover:bg-poet-gold/15"
+                  className="inline-flex items-center gap-1.5 font-medium text-poet-gold-bright underline decoration-poet-gold/35 underline-offset-2 transition hover:text-poet-gold hover:decoration-poet-gold/60"
                 >
                   {t("openInMaps")}
                   <span aria-hidden className="text-xs opacity-80">
                     ↗
                   </span>
                 </a>
+                <span className="text-zinc-600" aria-hidden>
+                  ·
+                </span>
+                <a
+                  href="#event-checkout"
+                  className="text-zinc-400 underline decoration-zinc-600 underline-offset-2 transition hover:text-zinc-200"
+                >
+                  {t("skipToCheckout")}
+                </a>
               </p>
-            ) : null}
+            ) : (
+              <p className="mt-2">
+                <a
+                  href="#event-checkout"
+                  className="text-sm text-zinc-400 underline decoration-zinc-600 underline-offset-2 transition hover:text-zinc-200"
+                >
+                  {t("skipToCheckout")}
+                </a>
+              </p>
+            )}
           </div>
           <p className="whitespace-pre-wrap break-words text-[0.9375rem] leading-relaxed text-zinc-300 sm:text-base">
             {event.description}
@@ -221,7 +239,7 @@ export default async function EventPage({
               {remaining > 0 ? t("purchaseClosedPast") : t("soldOut")}
             </p>
           ) : remaining > 0 ? (
-            <>
+            <section id="event-checkout" className="scroll-mt-28 sm:scroll-mt-32">
               <aside className="mt-5 rounded-xl border border-poet-gold/15 bg-black/20 px-3 py-2.5 text-[11px] leading-relaxed text-zinc-400 sm:px-4 sm:text-xs">
                 {t("prePurchaseNote", { seller: COMPANY.legalNameShort, nip: COMPANY.nip })}
               </aside>
@@ -231,8 +249,9 @@ export default async function EventPage({
                 locale={locale}
                 unitPriceGrosze={event.price_grosze}
                 bypassPayment={isCheckoutBypassPayment()}
+                mapsHref={mapsHref ?? undefined}
               />
-            </>
+            </section>
           ) : (
             <p className="mt-4 text-poet-gold-bright/90">{t("soldOut")}</p>
           )}

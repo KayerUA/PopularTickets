@@ -93,6 +93,8 @@
     "loadRemainingError": "Błąd wczytywania dostępności",
     "loadQueryError": "Nie udało się wczytać wydarzenia. Spróbuj ponownie za chwilę lub wróć do listy wydarzeń.",
     "openInMaps": "Otwórz w Google Maps",
+    "openInMapsShort": "Mapa",
+    "skipToCheckout": "Przejdź do płatności",
     "bruttoLabel": "Brutto",
     "nettoLabel": "Netto",
     "vatLabel": "w tym VAT (8%)",

@@ -93,6 +93,8 @@
     "loadRemainingError": "Помилка завантаження наявності",
     "loadQueryError": "Не вдалося завантажити подію. Спробуйте ще раз за хвилину або поверніться до списку подій.",
     "openInMaps": "Відкрити в Google Maps",
+    "openInMapsShort": "Карта",
+    "skipToCheckout": "До оплати",
     "bruttoLabel": "Брутто",
     "nettoLabel": "Нетто",
     "vatLabel": "у т.ч. ПДВ (8%)",
