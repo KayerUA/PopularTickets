@@ -23,7 +23,7 @@ export async function PoetTrialCalendar({ locale, trials }: { locale: AppLocale;
       <div className="rounded-2xl border border-dashed border-poet-gold/25 bg-zinc-950/25 px-5 py-8 text-center sm:px-8">
         <p className="text-sm leading-relaxed text-zinc-400">{t("calendarEmpty")}</p>
         {tickets ? (
-          <a href={ticketsHome(locale)} className="btn-poet-theatre btn-poet mt-6 inline-flex no-underline">
+          <a href={ticketsHome(locale)} className="btn-poet-theatre btn-poet mt-6 flex items-center justify-center no-underline">
             {t("trialsCta")}
           </a>
         ) : null}
@@ -44,7 +44,7 @@ export async function PoetTrialCalendar({ locale, trials }: { locale: AppLocale;
               className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-poet-gold/55 to-transparent opacity-70"
               aria-hidden
             />
-            <div className="mb-4 shrink-0 flex flex-wrap items-center gap-2">
+            <div className="mb-4 flex min-h-[2.75rem] shrink-0 flex-wrap content-center items-center gap-2">
               <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200">
                 {when}
               </span>
@@ -59,7 +59,14 @@ export async function PoetTrialCalendar({ locale, trials }: { locale: AppLocale;
                     slot.courseLine
                   )}
                 </span>
-              ) : null}
+              ) : (
+                <span
+                  className="pointer-events-none invisible rounded-full border border-transparent px-3 py-1 text-[11px] font-semibold uppercase tracking-wider"
+                  aria-hidden
+                >
+                  {t("trialCourseLabel")}: —
+                </span>
+              )}
             </div>
             <div className="flex min-h-0 flex-1 flex-col">
               <h4 className="font-display text-xl font-medium leading-snug text-zinc-100 transition group-hover:text-poet-gold-bright sm:text-2xl">
@@ -72,7 +79,7 @@ export async function PoetTrialCalendar({ locale, trials }: { locale: AppLocale;
             {tickets ? (
               <a
                 href={ticketsEventPage(locale, slot.slug)}
-                className="btn-poet-theatre btn-poet mt-auto inline-flex w-full justify-center pt-6 no-underline"
+                className="btn-poet-theatre btn-poet mt-auto flex w-full shrink-0 items-center justify-center pt-6 text-center no-underline"
               >
                 {t("trialBuyCta")}
               </a>
