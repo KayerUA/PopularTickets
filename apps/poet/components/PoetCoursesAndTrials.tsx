@@ -28,7 +28,7 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
                   className={`poet-course-card poet-course-card--${variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 sm:p-6`}
                 >
                   <div className="poet-shine pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
-                  <div className="relative -mx-1 -mt-1 mb-3 aspect-video w-full overflow-hidden rounded-lg border border-poet-gold/15 bg-zinc-950">
+                  <div className="relative -mx-1 -mt-1 mb-3 aspect-[3/4] w-full overflow-hidden rounded-lg border border-poet-gold/15 bg-zinc-950 sm:aspect-video">
                     <MediaCoverBlurred
                       src={img}
                       alt={c.title}
@@ -60,7 +60,7 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
                   className={`poet-course-card poet-course-card--${keys.variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 sm:p-6`}
                 >
                   <div className="poet-shine pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
-                  <div className="relative -mx-1 -mt-1 mb-3 aspect-video w-full overflow-hidden rounded-lg border border-poet-gold/15 bg-zinc-950">
+                  <div className="relative -mx-1 -mt-1 mb-3 aspect-[3/4] w-full overflow-hidden rounded-lg border border-poet-gold/15 bg-zinc-950 sm:aspect-video">
                     <MediaCoverBlurred
                       src={keys.image}
                       alt={t(keys.titleKey)}

@@ -13,7 +13,7 @@ type Props = {
 
 /**
  * Кадр обложки: размытый fill подложка + чёткий слой object-contain.
- * При фиксированном 16:9 вертикальная афиша не даёт пустых «столбов», горизонтальное фото — без грубого кропа.
+ * Подложка сильнее заливает «полосы» у вертикальных постеров в 16:9.
  */
 export function MediaCoverBlurred({
   src,
@@ -33,7 +33,7 @@ export function MediaCoverBlurred({
         sizes={sizes}
         priority={priority}
         unoptimized={unoptimized}
-        className="pointer-events-none absolute inset-0 z-0 scale-[1.18] object-cover object-center blur-2xl saturate-[1.08] opacity-[0.55]"
+        className="pointer-events-none absolute inset-0 z-0 scale-[1.38] object-cover object-center blur-3xl saturate-[1.18] opacity-[0.82] brightness-110 contrast-[1.05]"
         aria-hidden
       />
       <Image

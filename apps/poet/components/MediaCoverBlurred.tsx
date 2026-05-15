@@ -12,8 +12,8 @@ type Props = {
 };
 
 /**
- * Афишный кадр: фон — слегка увеличенный размытый crop (заполняет «полосы»),
- * поверх — целое изображение object-contain (без жёсткой обрезки постера).
+ * Афишный кадр: фон — увеличенный размытый cover (заполняет поля у contain),
+ * поверх — целое изображение object-contain.
  */
 export function MediaCoverBlurred({
   src,
@@ -32,7 +32,7 @@ export function MediaCoverBlurred({
         sizes={sizes}
         priority={priority}
         unoptimized={unoptimized}
-        className="pointer-events-none absolute inset-0 z-0 scale-[1.18] object-cover object-center blur-2xl saturate-[1.08] opacity-[0.55]"
+        className="pointer-events-none absolute inset-0 z-0 scale-[1.38] object-cover object-center blur-3xl saturate-[1.18] opacity-[0.82] brightness-110 contrast-[1.05]"
         aria-hidden
       />
       <Image
