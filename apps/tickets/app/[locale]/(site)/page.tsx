@@ -44,7 +44,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
   }
   const { data: events, error } = await supabase
     .from("events")
-    .select("id,slug,title,venue,starts_at,price_grosze,image_url,total_tickets,listing_kind")
+    .select("id,slug,title,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
     .eq("visibility", "published")
     .eq("listing_kind", "performance")
     .order("starts_at", { ascending: true });
@@ -81,6 +81,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
         startsAt: ev.starts_at as string,
         priceGrosze: ev.price_grosze as number,
         imageUrl: (ev.image_url as string | null) ?? null,
+        imageFocalX: typeof (ev as { image_focal_x?: unknown }).image_focal_x === "number" ? (ev as { image_focal_x: number }).image_focal_x : null,
+        imageFocalY: typeof (ev as { image_focal_y?: unknown }).image_focal_y === "number" ? (ev as { image_focal_y: number }).image_focal_y : null,
         locale,
         status,
         listingKind: normalizeEventListingKind((ev as { listing_kind?: string | null }).listing_kind),

@@ -1,11 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { upsertEvent, type UpsertEventState } from "@/app/actions/admin-events";
 import { toDatetimeLocalValue } from "@/lib/datetime";
 import type { PoetCourseSelectOption } from "@/lib/fetchPoetCourseSelectOptions";
 import { POPULAR_POET_THEATRE_MAPS_URL, POPULAR_POET_TRIAL_VENUE_PL } from "@/lib/theatreVenueDefaults";
 import type { ContentVisibility } from "@/lib/contentVisibility";
+import { EventCoverFocalControls } from "@/components/EventCoverFocalControls";
+import { clampEventImageFocal } from "@/lib/eventCoverFocal";
 
 export type AdminEventRow = {
   id: string;
@@ -13,6 +15,8 @@ export type AdminEventRow = {
   title: string;
   description: string | null;
   image_url: string | null;
+  image_focal_x?: number;
+  image_focal_y?: number;
   maps_url?: string | null;
   venue: string;
   starts_at: string;
@@ -36,6 +40,20 @@ export function EventForm({
   const [state, formAction, pending] = useActionState(upsertEvent, initialUpsertState);
   const [listingKind, setListingKind] = useState<"performance" | "trial">(event?.listing_kind ?? "performance");
   const defaultVisibility: ContentVisibility = event?.visibility ?? "inactive";
+
+  const [imageUrlDraft, setImageUrlDraft] = useState(event?.image_url ?? "");
+  const [blobPreview, setBlobPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (blobPreview) URL.revokeObjectURL(blobPreview);
+    };
+  }, [blobPreview]);
+
+  const trimmedDraft = imageUrlDraft.trim();
+  const trimmedEventUrl = event?.image_url?.trim();
+  const coverPreviewUrl: string | null =
+    blobPreview ?? (trimmedDraft ? trimmedDraft : null) ?? (trimmedEventUrl ? trimmedEventUrl : null);
 
   const venueFieldKey = event ? `venue-${event.id}` : `venue-${listingKind}`;
   const mapsFieldKey = event ? `maps-${event.id}` : `maps-${listingKind}`;
@@ -135,6 +153,13 @@ export function EventForm({
               name="imageFile"
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                setBlobPreview((prev) => {
+                  if (prev) URL.revokeObjectURL(prev);
+                  return f ? URL.createObjectURL(f) : null;
+                });
+              }}
               className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-sm text-white file:mr-3 file:rounded-lg file:border-0 file:bg-poet-gold/20 file:px-3 file:py-1.5 file:text-poet-gold"
             />
           </label>
@@ -149,11 +174,17 @@ export function EventForm({
             Или ссылка / путь (опционально)
             <input
               name="imageUrl"
-              defaultValue={event?.image_url ?? ""}
+              value={imageUrlDraft}
+              onChange={(e) => setImageUrlDraft(e.target.value)}
               className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
               placeholder="https://… или /events/файл.png с этого сайта"
             />
           </label>
+          <EventCoverFocalControls
+            previewUrl={coverPreviewUrl}
+            initialX={clampEventImageFocal(event?.image_focal_x ?? 50)}
+            initialY={clampEventImageFocal(event?.image_focal_y ?? 50)}
+          />
         </div>
         <label className="block text-sm text-zinc-300 sm:col-span-2">
           Ссылка на карту (Google Maps, опционально)

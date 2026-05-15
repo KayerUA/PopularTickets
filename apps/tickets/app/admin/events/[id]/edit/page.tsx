@@ -8,7 +8,7 @@ import { isEventsPoetCourseIdUnavailable } from "@/lib/supabase/eventsPoetCourse
 import { parseContentVisibilityFromForm } from "@/lib/contentVisibility";
 
 const ADMIN_EVENT_SELECT_BASE =
-  "id,slug,title,description,image_url,venue,starts_at,price_grosze,total_tickets,visibility,listing_kind" as const;
+  "id,slug,title,description,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,visibility,listing_kind" as const;
 const ADMIN_EVENT_SELECT_FULL = `${ADMIN_EVENT_SELECT_BASE},poet_course_id` as const;
 
 export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
@@ -43,6 +43,8 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
     title: event.title as string,
     description: event.description as string | null,
     image_url: event.image_url as string | null,
+    image_focal_x: typeof event.image_focal_x === "number" ? event.image_focal_x : 50,
+    image_focal_y: typeof event.image_focal_y === "number" ? event.image_focal_y : 50,
     maps_url: mapsUrl,
     venue: event.venue as string,
     starts_at: event.starts_at as string,

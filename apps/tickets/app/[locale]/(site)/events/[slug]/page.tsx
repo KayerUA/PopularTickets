@@ -19,6 +19,7 @@ import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { JsonLd } from "@/components/JsonLd";
 import { buildEventJsonLd } from "@/lib/seo/eventJsonLd";
 import { COMPANY } from "@/lib/company";
+import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
 
 export const revalidate = 30;
 
@@ -146,7 +147,8 @@ export default async function EventPage({
               src={event.image_url}
               alt=""
               fill
-              className="object-contain object-center"
+              className="object-cover"
+              style={{ objectPosition: eventCoverObjectPosition(event.image_focal_x, event.image_focal_y) }}
               priority
               unoptimized
             />

@@ -39,6 +39,11 @@ alter table public.events
 comment on column public.events.listing_kind is
   'performance = афіша виступів на PopularTickets; trial = пробний слот на popularpoet.pl (оплата на тій же події).';
 
+alter table public.events
+  add column if not exists image_focal_x double precision not null default 50;
+alter table public.events
+  add column if not exists image_focal_y double precision not null default 50;
+
 create index if not exists events_listing_visibility_starts_idx
   on public.events (listing_kind, visibility, starts_at);
 

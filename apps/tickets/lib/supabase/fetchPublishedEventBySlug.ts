@@ -1,9 +1,10 @@
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import { fetchOptionalMapsUrl } from "@/lib/supabase/fetchOptionalMapsUrl";
+import { clampEventImageFocal } from "@/lib/eventCoverFocal";
 
 /** Без maps_url — иначе при «schema cache» без колонки падает весь запрос. */
 const EVENT_SELECT_PUBLIC =
-  "id,slug,title,description,image_url,venue,starts_at,price_grosze,total_tickets,listing_kind,visibility" as const;
+  "id,slug,title,description,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,listing_kind,visibility" as const;
 
 export type PublishedEventRow = {
   id: string;
@@ -11,6 +12,8 @@ export type PublishedEventRow = {
   title: string;
   description: string;
   image_url: string | null;
+  image_focal_x: number;
+  image_focal_y: number;
   maps_url: string | null;
   venue: string;
   starts_at: string;
@@ -55,5 +58,10 @@ export async function fetchPublishedEventBySlug(
     typeof (row as { visibility?: unknown }).visibility === "string"
       ? String((row as { visibility: string }).visibility)
       : "inactive";
-  return { data: { ...row, description, maps_url: mapsUrl, listing_kind, visibility }, error: null };
+  const image_focal_x = clampEventImageFocal((row as { image_focal_x?: unknown }).image_focal_x);
+  const image_focal_y = clampEventImageFocal((row as { image_focal_y?: unknown }).image_focal_y);
+  return {
+    data: { ...row, description, maps_url: mapsUrl, listing_kind, visibility, image_focal_x, image_focal_y },
+    error: null,
+  };
 }

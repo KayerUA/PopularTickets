@@ -8,7 +8,7 @@ import { setMapsUrlRpc } from "@/lib/supabase/mapsUrlRpc";
 import { uploadEventCoverImage } from "@/lib/supabase/eventImageUpload";
 import { requireAdmin } from "@/lib/adminGuard";
 import { routing } from "@/i18n/routing";
-import { isEventsPoetCourseIdUnavailable } from "@/lib/supabase/eventsPoetCourseColumn";
+import { isEventsPoetCourseIdUnavailable, isEventsImageFocalUnavailable } from "@/lib/supabase/eventsPoetCourseColumn";
 import { contentVisibilitySchema } from "@/lib/contentVisibility";
 
 export type UpsertEventState = { error: string } | null;
@@ -49,6 +49,14 @@ const EventSchema = z.object({
     (v) => (typeof v === "string" && v.trim() !== "" ? v.trim() : undefined),
     z.string().uuid().optional(),
   ),
+  imageFocalX: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null ? 50 : Number(v)),
+    z.number().min(0).max(100)
+  ),
+  imageFocalY: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null ? 50 : Number(v)),
+    z.number().min(0).max(100)
+  ),
 });
 
 function groszeFromPln(pln: number): number {
@@ -82,6 +90,8 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       visibility: formData.get("visibility") || "inactive",
       listingKind: formData.get("listingKind") || "performance",
       poetCourseId: formData.get("poetCourseId"),
+      imageFocalX: formData.get("imageFocalX"),
+      imageFocalY: formData.get("imageFocalY"),
     });
 
     if (!parsed.success) {
@@ -111,6 +121,8 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       visibility: v.visibility,
       listing_kind: v.listingKind,
       poet_course_id: v.listingKind === "trial" && v.poetCourseId ? v.poetCourseId : null,
+      image_focal_x: v.imageFocalX,
+      image_focal_y: v.imageFocalY,
     };
 
     let eventIdForMaps: string;
@@ -127,6 +139,16 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
           );
         }
       }
+      if (error && isEventsImageFocalUnavailable(error.message)) {
+        const { image_focal_x: _fx, image_focal_y: _fy, ...withoutFocal } = payload;
+        const r3 = await supabase.from("events").update(withoutFocal).eq("id", v.id);
+        error = r3.error;
+        if (!error) {
+          console.warn(
+            "[upsertEvent] колонки events.image_focal_* недоступны — сохранено без точки фокуса. Выполните supabase/add-events-image-focal.sql в SQL Editor.",
+          );
+        }
+      }
       if (error) return { error: error.message };
       eventIdForMaps = v.id;
     } else {
@@ -137,6 +159,15 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
         if (!ins.error) {
           console.warn(
             "[upsertEvent] колонка events.poet_course_id недоступна в API — событие создано без привязки к курсу. Выполните supabase/add-events-poet-course-id-column.sql в SQL Editor.",
+          );
+        }
+      }
+      if (ins.error && isEventsImageFocalUnavailable(ins.error.message)) {
+        const { image_focal_x: _fx, image_focal_y: _fy, ...withoutFocal } = payload;
+        ins = await supabase.from("events").insert(withoutFocal).select("id").single();
+        if (!ins.error) {
+          console.warn(
+            "[upsertEvent] колонки events.image_focal_* недоступны — событие без точки фокуса. Выполните supabase/add-events-image-focal.sql в SQL Editor.",
           );
         }
       }

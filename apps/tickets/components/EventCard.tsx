@@ -7,6 +7,7 @@ import { formatPlnFromGrosze, formatEventDateTime } from "@/lib/format";
 import type { AppLocale } from "@/i18n/routing";
 import type { EventMarketingStatus, EventListingKind } from "@/lib/eventMarketingStatus";
 import { EventStatusBadge } from "@/components/EventStatusBadge";
+import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
 
 export type EventCardProps = {
   slug: string;
@@ -15,6 +16,9 @@ export type EventCardProps = {
   startsAt: string;
   priceGrosze: number;
   imageUrl: string | null;
+  /** 0–100 для object-position (центр 50). */
+  imageFocalX?: number | null;
+  imageFocalY?: number | null;
   locale: AppLocale;
   status: EventMarketingStatus;
   /** Афиша (билет) или пробное/вводное — влияет на CTA и бейдж «скоро». */
@@ -50,7 +54,8 @@ export function EventCard(e: EventCardProps) {
               src={e.imageUrl}
               alt=""
               fill
-              className="object-contain object-center opacity-90 transition duration-700 group-hover:scale-[1.01] group-hover:opacity-100 sm:group-hover:scale-[1.02]"
+              className="object-cover opacity-90 transition duration-700 group-hover:scale-[1.01] group-hover:opacity-100 sm:group-hover:scale-[1.02]"
+              style={{ objectPosition: eventCoverObjectPosition(e.imageFocalX, e.imageFocalY) }}
               sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
               unoptimized
             />
