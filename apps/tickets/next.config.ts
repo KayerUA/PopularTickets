@@ -53,6 +53,12 @@ const storageHost = supabaseStorageImageHost();
 const nextConfig: NextConfig = {
   ...(useMonorepoTracingRoot ? { outputFileTracingRoot: monorepoRoot } : {}),
   outputFileTracingIncludes: ticketPdfTracingIncludes,
+  /** Обложка события через Server Action (FormData); дефолт Next — 1 MB → 413 при файлах > ~1 MB. */
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "8mb",
+    },
+  },
   images: {
     remotePatterns: storageHost
       ? [
