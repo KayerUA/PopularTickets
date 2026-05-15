@@ -33,18 +33,18 @@ export function SiteHeader() {
             className="group flex min-w-0 flex-1 items-center gap-2 no-underline text-inherit sm:flex-initial sm:gap-2.5"
           >
             <motion.div
-              className="relative h-8 w-8 shrink-0 sm:h-10 sm:w-10 md:h-11 md:w-11"
+              className="relative h-10 w-10 shrink-0 sm:h-12 sm:w-12 md:h-14 md:w-14"
               whileHover={{ scale: 1.06, rotate: -3 }}
               whileTap={{ scale: 0.96 }}
               transition={{ type: "spring", stiffness: 400, damping: 18 }}
             >
-              <div className="animate-float-slow absolute inset-0">
+              <div className="animate-float-slow absolute inset-0 overflow-hidden rounded-full border border-poet-gold/35 bg-gradient-to-b from-poet-gold/[0.14] to-poet-gold/[0.04] shadow-[0_0_22px_rgba(197,160,89,0.38),inset_0_1px_0_rgba(255,248,220,0.14)]">
                 <Image
                   src="/brand/popular-poet-logo.png"
                   alt="Popular Poet"
                   fill
-                  className="object-contain drop-shadow-[0_0_14px_rgba(197,160,89,0.45)]"
-                  sizes="(max-width:640px) 32px, 40px"
+                  className="object-contain object-center p-[10%] drop-shadow-[0_0_10px_rgba(197,160,89,0.55)]"
+                  sizes="(max-width:640px) 40px, 56px"
                   priority
                 />
               </div>
