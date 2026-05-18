@@ -23,7 +23,8 @@ import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { Link } from "@/i18n/navigation";
 import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
 
-export const revalidate = 30;
+/** Server Actions + ISR: закэшированная страница после деплоя даёт «Server Action … was not found». */
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
