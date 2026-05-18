@@ -355,6 +355,7 @@
     "notEnoughTickets": "Za mało wolnych biletów.",
     "eventEnded": "Wydarzenie już się odbyło — nie można złożyć zamówienia.",
     "orderCreateFailed": "Nie udało się utworzyć zamówienia.",
-    "appUrlMissing": "Płatność online jest chwilowo niedostępna. Spróbuj ponownie później albo skontaktuj się z nami przez dane sprzedawcy."
+    "appUrlMissing": "Płatność online jest chwilowo niedostępna. Spróbuj ponownie później albo skontaktuj się z nami przez dane sprzedawcy.",
+    "p24AuthFailed": "Błąd logowania do Przelewy24 (401). Sprawdź w Vercel: P24_SANDBOX zgodny z panelem (sandbox vs produkcja), SANDBOX_P24_POS_ID (często = ID sklepu z panelu) oraz SANDBOX_P24_SECRET_ID — to musi być klucz „do zamówień” (REST), nie CRC i nie klucz „do raportów”."
   }
 }

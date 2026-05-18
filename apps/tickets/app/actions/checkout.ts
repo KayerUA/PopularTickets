@@ -10,6 +10,7 @@ import {
   getP24TrnUrl,
   p24Register,
   signRegister,
+  P24RegisterAuthError,
 } from "@/lib/p24";
 import { bypassPaymentAndFulfillOrder } from "@/lib/fulfillment";
 import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
@@ -181,6 +182,9 @@ export async function createPendingOrder(
     ).token;
   } catch (e) {
     console.error("[PopularTickets][checkout] P24 unavailable", e);
+    if (e instanceof P24RegisterAuthError) {
+      throw new Error(t("p24AuthFailed"));
+    }
     throw new Error(t("appUrlMissing"));
   }
 

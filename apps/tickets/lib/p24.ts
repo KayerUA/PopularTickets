@@ -188,6 +188,13 @@ export function getPosId(): number {
   return Number(v);
 }
 
+export class P24RegisterAuthError extends Error {
+  constructor() {
+    super("P24_REGISTER_AUTH");
+    this.name = "P24RegisterAuthError";
+  }
+}
+
 export type P24RegisterResult = { token: string };
 
 export async function p24Register(body: Record<string, unknown>): Promise<P24RegisterResult> {
@@ -204,7 +211,11 @@ export async function p24Register(body: Record<string, unknown>): Promise<P24Reg
     data?: { token?: string };
     responseCode?: number;
     error?: string;
+    code?: number;
   };
+  if (res.status === 401 || json.code === 401 || /incorrect authentication/i.test(String(json.error ?? ""))) {
+    throw new P24RegisterAuthError();
+  }
   if (!res.ok || json.responseCode !== 0 || !json.data?.token) {
     throw new Error(`P24 register failed: ${JSON.stringify(json)}`);
   }
