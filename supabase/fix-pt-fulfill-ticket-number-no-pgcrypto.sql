@@ -1,5 +1,5 @@
--- Atomic order fulfillment for PopularTickets.
--- Run in Supabase SQL Editor before enabling live sales.
+-- Исправление: gen_random_bytes недоступен без расширения pgcrypto.
+-- Выполни в Supabase SQL Editor, если функция public.pt_fulfill_paid_order уже создана из add-atomic-order-fulfillment.sql.
 
 create or replace function public.pt_fulfill_paid_order(
   p_order_id uuid,
@@ -86,7 +86,6 @@ begin
       loop
         v_attempt := v_attempt + 1;
         v_ticket_id := gen_random_uuid();
-        -- Без pgcrypto.gen_random_bytes (на Supabase расширение часто не включено).
         v_ticket_number := 'TKT-' || upper(
           substring(
             md5(random()::text || clock_timestamp()::text || v_attempt::text || v_order.id::text || i::text)
