@@ -64,10 +64,16 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm">
           <span className="text-zinc-400">{t("name")}</span>
+          <span className="ml-1 text-red-400/90" aria-hidden>
+            *
+          </span>
           <input name="buyerName" required disabled={pending} className={fieldClass} autoComplete="name" />
         </label>
         <label className="block text-sm">
           <span className="text-zinc-400">{t("email")}</span>
+          <span className="ml-1 text-red-400/90" aria-hidden>
+            *
+          </span>
           <input
             name="email"
             type="email"
@@ -80,7 +86,23 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
         </label>
         <label className="block text-sm">
           <span className="text-zinc-400">{t("phone")}</span>
-          <input name="phone" type="tel" disabled={pending} className={fieldClass} autoComplete="tel" inputMode="tel" />
+          <span className="ml-1 text-red-400/90" aria-hidden>
+            *
+          </span>
+          <input
+            name="phone"
+            type="tel"
+            required
+            disabled={pending}
+            className={fieldClass}
+            autoComplete="tel"
+            inputMode="tel"
+            placeholder="+48 …"
+            aria-describedby="checkout-phone-hint"
+          />
+          <span id="checkout-phone-hint" className="mt-1 block text-[11px] leading-snug text-zinc-500">
+            {t("phoneHint")}
+          </span>
         </label>
         <label className="block text-sm">
           <span className="text-zinc-400">{t("quantity")}</span>

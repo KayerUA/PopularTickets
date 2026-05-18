@@ -23,15 +23,6 @@ import { requirePublicAppUrlForP24 } from "@/lib/publicAppUrl";
 import { buildCheckoutReturnPath } from "@/lib/orderReceiptToken";
 import { allowsPublicEventByVisibility } from "@/lib/contentVisibility";
 
-const CheckoutSchema = z.object({
-  eventSlug: z.string().min(1),
-  buyerName: z.string().min(2).max(120),
-  email: z.string().email().max(254),
-  phone: z.string().max(40).optional().or(z.literal("")),
-  quantity: z.coerce.number().int().min(1).max(20),
-  locale: z.enum(["pl", "uk", "ru"]),
-});
-
 function p24UiLanguage(locale: AppLocale): string {
   if (locale === "pl") return "pl";
   // Przelewy24: для uk/ru используем английский UI (стабильно для песочницы)
@@ -47,6 +38,21 @@ export async function createPendingOrder(
   const localeParsed = z.enum(["pl", "uk", "ru"]).safeParse(localeRaw);
   const locale = (localeParsed.success ? localeParsed.data : routing.defaultLocale) as AppLocale;
   const t = await getTranslations({ locale, namespace: "Errors" });
+  const tc = await getTranslations({ locale, namespace: "CheckoutForm" });
+
+  const CheckoutSchema = z.object({
+    eventSlug: z.string().min(1),
+    buyerName: z.string().trim().min(2).max(120),
+    email: z.string().trim().email({ message: tc("emailInvalid") }).max(254),
+    phone: z
+      .string()
+      .trim()
+      .min(1, { message: tc("phoneRequired") })
+      .max(40)
+      .refine((s) => s.replace(/\D/g, "").length >= 7, { message: tc("phoneInvalid") }),
+    quantity: z.coerce.number().int().min(1).max(20),
+    locale: z.enum(["pl", "uk", "ru"]),
+  });
 
   if (!(await rateLimit(`order:${ip}`, 25, 60_000))) {
     throw new Error(t("rateLimit"));
@@ -60,12 +66,13 @@ export async function createPendingOrder(
     eventSlug: formData.get("eventSlug"),
     buyerName: formData.get("buyerName"),
     email: formData.get("email"),
-    phone: formData.get("phone") || "",
+    phone: String(formData.get("phone") ?? ""),
     quantity: formData.get("quantity"),
     locale,
   });
   if (!parsed.success) {
-    throw new Error(t("validation"));
+    const msg = parsed.error.issues.map((i) => i.message).filter(Boolean).join(" ");
+    throw new Error(msg || t("validation"));
   }
   const { eventSlug, buyerName, email, phone, quantity } = parsed.data;
 
@@ -107,7 +114,7 @@ export async function createPendingOrder(
     event_id: event.id,
     buyer_name: buyerName,
     email,
-    phone: phone || null,
+    phone: phone.trim(),
     quantity,
     amount_grosze: amountGrosze,
     currency: "PLN",
