@@ -1,4 +1,6 @@
 -- Исправление: gen_random_bytes недоступен без расширения pgcrypto.
+-- ОБЯЗАТЕЛЬНО: открой Supabase → SQL Editor → New query → вставь ВЕСЬ этот файл → Run.
+-- Пока не выполнишь, продакшен будет падать с "function gen_random_bytes(integer) does not exist".
 -- Выполни в Supabase SQL Editor, если функция public.pt_fulfill_paid_order уже создана из add-atomic-order-fulfillment.sql.
 
 create or replace function public.pt_fulfill_paid_order(

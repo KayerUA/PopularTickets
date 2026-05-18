@@ -257,7 +257,14 @@ begin
       loop
         v_attempt := v_attempt + 1;
         v_ticket_id := gen_random_uuid();
-        v_ticket_number := 'TKT-' || upper(encode(gen_random_bytes(3), 'hex'));
+        -- Без pgcrypto.gen_random_bytes (на Supabase расширение часто не включено).
+        v_ticket_number := 'TKT-' || upper(
+          substring(
+            md5(random()::text || clock_timestamp()::text || v_attempt::text || v_order.id::text || i::text)
+            from 1
+            for 6
+          )
+        );
 
         begin
           insert into public.tickets (id, order_id, event_id, ticket_number)
