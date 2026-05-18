@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { upsertEvent, type UpsertEventRetryFields, type UpsertEventState } from "@/app/actions/admin-events";
-import { toDatetimeLocalValue } from "@/lib/datetime";
+import { toDatetimeLocalValueWarsaw } from "@/lib/warsawEventDatetime";
 import type { PoetCourseSelectOption } from "@/lib/fetchPoetCourseSelectOptions";
 import { POPULAR_POET_THEATRE_MAPS_URL, POPULAR_POET_TRIAL_VENUE_PL } from "@/lib/theatreVenueDefaults";
 import type { ContentVisibility } from "@/lib/contentVisibility";
@@ -63,7 +63,7 @@ function mergeRetryDefaults(
       fields?.venue ??
       event?.venue ??
       (lk === "trial" && !event ? POPULAR_POET_TRIAL_VENUE_PL : ""),
-    startsAt: fields?.startsAt ?? (event ? toDatetimeLocalValue(event.starts_at) : ""),
+    startsAt: fields?.startsAt ?? (event ? toDatetimeLocalValueWarsaw(event.starts_at) : ""),
     pricePln: fields?.pricePln ?? (event ? (event.price_grosze / 100).toFixed(2) : "50.00"),
     totalTickets: fields?.totalTickets ?? String(event?.total_tickets ?? 100),
     visibility: (fields?.visibility ?? event?.visibility ?? "inactive") as ContentVisibility,
@@ -289,6 +289,7 @@ export function EventForm({
               defaultValue={d.startsAt || undefined}
               className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
             />
+            <span className="mt-1 block text-xs text-zinc-500">Час в Europe/Warsaw (Варшава), сохраняется в UTC.</span>
           </label>
           <label className="block text-sm text-zinc-300">
             Цена, PLN

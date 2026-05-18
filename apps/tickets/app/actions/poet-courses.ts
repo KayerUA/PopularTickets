@@ -57,7 +57,7 @@ export async function upsertPoetCourse(_prev: UpsertPoetCourseState, formData: F
     });
 
     if (!parsed.success) {
-      return { error: parsed.error.errors.map((e) => e.message).join(", ") };
+      return { error: parsed.error.issues.map((e) => e.message).join(", ") };
     }
 
     const v = parsed.data;

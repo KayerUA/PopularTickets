@@ -142,6 +142,7 @@ export default async function EventPage({
   const ticketVat = splitTheatreTicketGrossGrosze(event.price_grosze);
   const isTrialEvent = listingKind === "trial";
   const poetLessonsUrl = `${POPULAR_POET_SITE_URL.replace(/\/+$/, "")}/${locale}#schedule`;
+  const isPast = marketingStatus === "past";
 
   return (
     <div className="poet-safe-x mx-auto max-w-3xl py-8 sm:py-14">
@@ -233,12 +234,30 @@ export default async function EventPage({
                 <span className="text-zinc-600" aria-hidden>
                   ·
                 </span>
-                <a
-                  href="#event-checkout"
-                  className="text-zinc-400 underline decoration-zinc-600 underline-offset-2 transition hover:text-zinc-200"
+                {isPast ? (
+                  <Link
+                    href="/#afisha"
+                    className="text-zinc-400 underline decoration-zinc-600 underline-offset-2 transition hover:text-zinc-200"
+                  >
+                    {t("skipToAfisha")}
+                  </Link>
+                ) : (
+                  <a
+                    href="#event-checkout"
+                    className="text-zinc-400 underline decoration-zinc-600 underline-offset-2 transition hover:text-zinc-200"
+                  >
+                    {t("skipToCheckout")}
+                  </a>
+                )}
+              </p>
+            ) : isPast ? (
+              <p className="mt-2">
+                <Link
+                  href="/#afisha"
+                  className="text-sm text-zinc-400 underline decoration-zinc-600 underline-offset-2 transition hover:text-zinc-200"
                 >
-                  {t("skipToCheckout")}
-                </a>
+                  {t("skipToAfisha")}
+                </Link>
               </p>
             ) : (
               <p className="mt-2">
@@ -266,36 +285,52 @@ export default async function EventPage({
               </a>
             </aside>
           ) : null}
-          <div className="flex flex-col gap-4 border-t border-poet-gold/15 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 sm:pt-6">
-            <div>
+          <div className="flex flex-col gap-4 border-t border-poet-gold/15 pt-5 sm:flex-row sm:flex-wrap sm:items-start sm:gap-6 sm:pt-6">
+            <div className="min-w-0 sm:max-w-md">
               <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{t("priceLabel")}</p>
               <p className="text-xl font-semibold text-poet-gold-bright">{formatPlnFromGrosze(event.price_grosze)}</p>
-              <dl className="mt-2 space-y-0.5 text-xs text-zinc-400">
-                <div className="flex gap-4">
-                  <dt>{t("bruttoLabel")}</dt>
-                  <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.grossGrosze)}</dd>
-                </div>
-                <div className="flex gap-4">
-                  <dt>{t("nettoLabel")}</dt>
-                  <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.netGrosze)}</dd>
-                </div>
-                <div className="flex gap-4">
-                  <dt>{t("vatLabel")}</dt>
-                  <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.vatGrosze)}</dd>
-                </div>
-              </dl>
-              <p className="mt-2 max-w-md text-[11px] leading-relaxed text-zinc-500">{t("vatLegalNote")}</p>
+              <details className="mt-2 group">
+                <summary className="cursor-pointer list-none text-xs font-medium text-poet-gold/85 marker:hidden [&::-webkit-details-marker]:hidden">
+                  <span className="underline decoration-poet-gold/30 underline-offset-2 group-open:text-poet-gold-bright">
+                    {t("priceDetailsSummary")}
+                  </span>
+                </summary>
+                <dl className="mt-2 space-y-0.5 border-t border-poet-gold/10 pt-2 text-xs text-zinc-400">
+                  <div className="flex gap-4">
+                    <dt>{t("bruttoLabel")}</dt>
+                    <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.grossGrosze)}</dd>
+                  </div>
+                  <div className="flex gap-4">
+                    <dt>{t("nettoLabel")}</dt>
+                    <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.netGrosze)}</dd>
+                  </div>
+                  <div className="flex gap-4">
+                    <dt>{t("vatLabel")}</dt>
+                    <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.vatGrosze)}</dd>
+                  </div>
+                </dl>
+                <p className="mt-2 max-w-md text-[11px] leading-relaxed text-zinc-500">{t("vatLegalNote")}</p>
+              </details>
             </div>
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{t("remainingLabel")}</p>
-              <p className="text-xl font-semibold text-zinc-100">{remaining}</p>
-            </div>
+            {!isPast ? (
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{t("remainingLabel")}</p>
+                <p className="text-xl font-semibold text-zinc-100">{remaining}</p>
+              </div>
+            ) : null}
           </div>
 
-          {marketingStatus === "past" ? (
-            <p className="mt-4 text-poet-gold-bright/90">
-              {remaining > 0 ? t("purchaseClosedPast") : t("soldOut")}
-            </p>
+          {isPast ? (
+            <div className="mt-4 space-y-3 rounded-xl border border-poet-gold/15 bg-black/20 px-4 py-4">
+              <p className="font-medium text-poet-gold-bright/95">{t("eventEndedTitle")}</p>
+              <p className="text-sm leading-relaxed text-zinc-400">{t("archiveCheckoutHint")}</p>
+              <Link
+                href="/#afisha"
+                className="inline-flex min-h-10 items-center justify-center rounded-full border border-poet-gold/35 px-4 py-2 text-sm font-medium text-poet-gold-bright transition hover:border-poet-gold/55 hover:bg-poet-gold/10"
+              >
+                {t("eventEndedCta")}
+              </Link>
+            </div>
           ) : remaining > 0 ? (
             <section id="event-checkout" className="scroll-mt-28 sm:scroll-mt-32">
               <aside className="mt-5 rounded-xl border border-poet-gold/15 bg-black/20 px-3 py-2.5 text-[11px] leading-relaxed text-zinc-400 sm:px-4 sm:text-xs">

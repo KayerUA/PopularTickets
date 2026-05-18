@@ -1,8 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { Link as IntlLink } from "@/i18n/navigation";
 import { getRequestAppLocale } from "@/lib/requestLocale";
-import { COMPANY, companyAddressOneLine } from "@/lib/company";
+import { COMPANY, companyAddressOneLine, publicContactEmail, publicReturnsEmail } from "@/lib/company";
 import { getP24FooterPaymentGraphics } from "@/lib/p24FooterAssets";
+import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
 import { THEATRE_INSTAGRAM_URL, THEATRE_TELEGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
 import { ticketsFactsPathForLocale } from "@/lib/ticketsFactsHreflang";
 
@@ -47,6 +48,9 @@ export async function SiteFooter() {
   const t = await getTranslations({ locale, namespace: "Footer" });
   const p24Gfx = getP24FooterPaymentGraphics();
   const hasLogo = Boolean(p24Gfx.logoUrl);
+  const bypass = isCheckoutBypassPayment();
+  const contactEmail = publicContactEmail();
+  const returnsEmail = publicReturnsEmail();
 
   return (
     <footer className="relative z-0 border-t border-poet-gold/15 bg-poet-bg/90">
@@ -126,6 +130,21 @@ export async function SiteFooter() {
               NIP {COMPANY.nip} · KRS {COMPANY.krs} · REGON {COMPANY.regon}
             </p>
             <p className="break-words text-zinc-500">{companyAddressOneLine()}</p>
+            <p className="break-words text-[13px] leading-relaxed text-zinc-400">
+              <span className="text-zinc-500">{t("contactEmailCaption")} </span>
+              <a href={`mailto:${contactEmail}`} className="text-poet-gold/90 hover:text-poet-gold-bright">
+                {contactEmail}
+              </a>
+              {returnsEmail !== contactEmail ? (
+                <>
+                  <br />
+                  <span className="text-zinc-500">{t("returnsEmailCaption")} </span>
+                  <a href={`mailto:${returnsEmail}`} className="text-poet-gold/90 hover:text-poet-gold-bright">
+                    {returnsEmail}
+                  </a>
+                </>
+              ) : null}
+            </p>
             <nav aria-label="Legal" className="flex flex-wrap gap-x-4 gap-y-2 pt-1 text-[13px] text-zinc-400">
               <IntlLink href="/regulamin" className="text-poet-gold/90 hover:text-poet-gold-bright">
                 {t("linkTerms")}
@@ -162,11 +181,13 @@ export async function SiteFooter() {
                 id="footer-p24-trust-heading"
                 className="text-[9px] font-semibold uppercase tracking-[0.22em] text-poet-gold/75 sm:text-[10px]"
               >
-                {t("p24TrustHeading")}
+                {bypass ? t("p24TrustHeadingBypass") : t("p24TrustHeading")}
               </h2>
-              <p className="max-w-xl text-[11px] leading-relaxed text-zinc-500 sm:text-xs">{t("p24MethodsCaption")}</p>
+              <p className="max-w-xl text-[11px] leading-relaxed text-zinc-500 sm:text-xs">
+                {bypass ? t("p24MethodsCaptionBypass") : t("p24MethodsCaption")}
+              </p>
             </div>
-            {hasLogo ? (
+            {!bypass && hasLogo ? (
               <div className="flex flex-wrap items-center gap-3 text-[11px] text-zinc-400 sm:shrink-0 sm:justify-end sm:text-sm">
                 <span className="shrink-0">{t("p24TrustByline")}</span>
                 {/* eslint-disable-next-line @next/next/no-img-element -- lokalne SVG z public/ */}
@@ -176,12 +197,12 @@ export async function SiteFooter() {
                   className="h-7 w-auto max-w-[10rem] object-contain object-left opacity-95 sm:h-8 sm:max-w-[12rem]"
                 />
               </div>
-            ) : (
+            ) : !bypass ? (
               <div className="space-y-2 rounded-lg border border-amber-500/20 bg-amber-950/15 px-4 py-3">
                 <p className="text-[11px] leading-relaxed text-zinc-400">{t("p24MethodsCaption")}</p>
                 <p className="text-[10px] leading-snug text-zinc-500">{t("p24MethodsVerifierHint")}</p>
               </div>
-            )}
+            ) : null}
           </div>
         </section>
       </div>

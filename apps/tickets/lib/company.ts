@@ -39,8 +39,19 @@ export function companyAddressOneLine(): string {
   return `${a.street}, ${a.postalCode} ${a.city}`;
 }
 
+/** Fallback, если в окружении не задан NEXT_PUBLIC_CONTACT_EMAIL (страница /firma, футер, zwroty). */
+const FALLBACK_PUBLIC_CONTACT_EMAIL = "severkelli@gmail.com";
+
+/** Публичный контакт для покупателей (заказы, общие вопросы). */
 export function publicContactEmail(): string {
-  return (process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "").trim();
+  const fromEnv = (process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "").trim();
+  return fromEnv || FALLBACK_PUBLIC_CONTACT_EMAIL;
+}
+
+/** Отдельный ящик для zwroty/reklamacje; иначе тот же, что и основной контакт. */
+export function publicReturnsEmail(): string {
+  const fromEnv = (process.env.NEXT_PUBLIC_RETURNS_EMAIL ?? "").trim();
+  return fromEnv || publicContactEmail();
 }
 
 export function companyFooterShort(): string {

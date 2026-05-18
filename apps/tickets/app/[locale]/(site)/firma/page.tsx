@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { COMPANY, companyAddressOneLine, publicContactEmail, PRZELEWY24_LINKS, krsPublicSearchUrl } from "@/lib/company";
+import { COMPANY, companyAddressOneLine, publicContactEmail, publicReturnsEmail, PRZELEWY24_LINKS, krsPublicSearchUrl } from "@/lib/company";
 import {
   POPULAR_POET_SITE_URL,
   THEATRE_DIRECTOR_PHONE_DISPLAY,
@@ -32,6 +32,7 @@ export default async function FirmaPage({ params }: { params: Promise<{ locale: 
   const t = await getTranslations({ locale, namespace: "Legal" });
   const addr = companyAddressOneLine();
   const email = publicContactEmail();
+  const returnsEmail = publicReturnsEmail();
 
   return (
     <div className="poet-safe-x mx-auto max-w-3xl py-8 sm:py-12">
@@ -155,17 +156,26 @@ export default async function FirmaPage({ params }: { params: Promise<{ locale: 
 
       <section className="mt-8 space-y-3 rounded-2xl border border-poet-gold/20 bg-poet-surface/40 p-4 shadow-gold-sm backdrop-blur-sm sm:p-8">
         <h2 className="font-display text-xl font-medium text-zinc-100">{t("contactTitle")}</h2>
-        {email ? (
-          <p className="text-sm text-zinc-300">
-            <a href={`mailto:${email}`} className="text-poet-gold hover:text-poet-gold-bright">
-              {email}
-            </a>
-          </p>
-        ) : (
-          <p className="text-sm text-amber-300/90">
-            {t("contactEnvHint")}
-          </p>
-        )}
+        <dl className="space-y-3 text-sm text-zinc-300">
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("contactEmailLabel")}</dt>
+            <dd className="mt-1">
+              <a href={`mailto:${email}`} className="text-poet-gold hover:text-poet-gold-bright">
+                {email}
+              </a>
+            </dd>
+          </div>
+          {returnsEmail !== email ? (
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("returnsEmailLabel")}</dt>
+              <dd className="mt-1">
+                <a href={`mailto:${returnsEmail}`} className="text-poet-gold hover:text-poet-gold-bright">
+                  {returnsEmail}
+                </a>
+              </dd>
+            </div>
+          ) : null}
+        </dl>
         <p className="text-xs text-zinc-500">{t("contactHint")}</p>
         <p className="pt-2 text-sm">
           <a

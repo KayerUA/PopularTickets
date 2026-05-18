@@ -11,6 +11,9 @@ import { routing } from "@/i18n/routing";
 import { isEventsPoetCourseIdUnavailable, isEventsImageFocalUnavailable } from "@/lib/supabase/eventsPoetCourseColumn";
 import { contentVisibilitySchema } from "@/lib/contentVisibility";
 import { fallbackEventSlug, slugifyEventTitle } from "@/lib/eventSlugFromTitle";
+import { parseStartsAtFromAdminForm } from "@/lib/warsawEventDatetime";
+
+const MIN_EVENT_DESCRIPTION_PUBLISH_CHARS = 300;
 
 export type UpsertEventRetryFields = {
   slug: string;
@@ -132,7 +135,19 @@ const EventSchema = z.object({
     (v) => (v === "" || v === undefined || v === null ? 50 : Number(v)),
     z.number().min(0).max(100)
   ),
-});
+})
+  .superRefine((data, ctx) => {
+    if (data.visibility === "published" || data.visibility === "unlisted") {
+      const len = data.description.trim().length;
+      if (len < MIN_EVENT_DESCRIPTION_PUBLISH_CHARS) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Для публикации (published / unlisted) описание не короче ${MIN_EVENT_DESCRIPTION_PUBLISH_CHARS} символов (сейчас ${len}).`,
+          path: ["description"],
+        });
+      }
+    }
+  });
 
 function groszeFromPln(pln: number): number {
   return Math.round(pln * 100);
@@ -197,7 +212,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
 
     if (!parsed.success) {
       return {
-        error: parsed.error.errors.map((e) => e.message).join(", "),
+        error: parsed.error.issues.map((e) => e.message).join(", "),
         ...newRetryEnvelope(formRetryFromFormData(formData)),
       };
     }
@@ -212,6 +227,16 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
 
     const priceGrosze = groszeFromPln(v.pricePln);
 
+    let startsAtIso: string;
+    try {
+      startsAtIso = parseStartsAtFromAdminForm(v.startsAt);
+    } catch {
+      return {
+        error: "Дата и время: укажите корректно (Europe/Warsaw).",
+        ...newRetryEnvelope(formRetryFromFormData(formData)),
+      };
+    }
+
     const imageFile = formData.get("imageFile");
     let imageUrlFinal: string | null = v.imageUrl || null;
     if (imageFile instanceof File && imageFile.size > 0) {
@@ -224,7 +249,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       description: v.description,
       image_url: imageUrlFinal,
       venue: v.venue,
-      starts_at: new Date(v.startsAt).toISOString(),
+      starts_at: startsAtIso,
       price_grosze: priceGrosze,
       total_tickets: v.totalTickets,
       visibility: v.visibility,
