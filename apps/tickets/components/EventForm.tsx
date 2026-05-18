@@ -8,6 +8,7 @@ import { POPULAR_POET_THEATRE_MAPS_URL, POPULAR_POET_TRIAL_VENUE_PL } from "@/li
 import type { ContentVisibility } from "@/lib/contentVisibility";
 import { EventCoverFocalControls } from "@/components/EventCoverFocalControls";
 import { clampEventImageFocal } from "@/lib/eventCoverFocal";
+import { slugifyEventTitle } from "@/lib/eventSlugFromTitle";
 
 export type AdminEventRow = {
   id: string;
@@ -140,19 +141,34 @@ export function EventForm({
           <label className="block text-sm text-zinc-300 sm:col-span-2">
             Slug (URL)
             <input
+              id="admin-event-slug"
               name="slug"
-              required
+              required={Boolean(event)}
               defaultValue={d.slug}
               className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 font-mono text-sm text-white"
-              placeholder="vecher-na-warsaw"
+              placeholder={event ? "vecher-na-warsaw" : "пусто — из названия"}
             />
+            {!event ? (
+              <p className="mt-1 text-xs text-zinc-500">
+                Если оставить пустым, slug соберётся из названия (латиница). При занятом адресе добавим суффикс -2, -3…
+              </p>
+            ) : null}
           </label>
           <label className="block text-sm text-zinc-300 sm:col-span-2">
             Название
             <input
+              id="admin-event-title"
               name="title"
               required
               defaultValue={d.title}
+              onBlur={() => {
+                if (event) return;
+                const slugEl = document.getElementById("admin-event-slug") as HTMLInputElement | null;
+                const titleEl = document.getElementById("admin-event-title") as HTMLInputElement | null;
+                if (!slugEl || !titleEl) return;
+                if (slugEl.value.trim() !== "") return;
+                slugEl.value = slugifyEventTitle(titleEl.value);
+              }}
               className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
             />
           </label>

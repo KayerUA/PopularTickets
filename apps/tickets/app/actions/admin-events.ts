@@ -10,6 +10,7 @@ import { requireAdmin } from "@/lib/adminGuard";
 import { routing } from "@/i18n/routing";
 import { isEventsPoetCourseIdUnavailable, isEventsImageFocalUnavailable } from "@/lib/supabase/eventsPoetCourseColumn";
 import { contentVisibilitySchema } from "@/lib/contentVisibility";
+import { fallbackEventSlug, slugifyEventTitle } from "@/lib/eventSlugFromTitle";
 
 export type UpsertEventRetryFields = {
   slug: string;
@@ -146,13 +147,39 @@ function isNextRedirectError(e: unknown): boolean {
   );
 }
 
+/** Slug из формы или автогенерация из названия (если поле slug пустое). */
+function effectiveSlugFromFormData(formData: FormData): string {
+  const raw = String(formData.get("slug") ?? "").trim();
+  if (raw !== "") return raw;
+  const fromTitle = slugifyEventTitle(String(formData.get("title") ?? ""));
+  if (fromTitle.length >= 2) return fromTitle;
+  return fallbackEventSlug();
+}
+
+async function allocateUniqueEventSlugForInsert(
+  supabase: ReturnType<typeof requireServiceSupabase>,
+  baseSlug: string,
+): Promise<string> {
+  const base = (baseSlug.trim().slice(0, 72) || "event").replace(/-+$/g, "") || "event";
+  let candidate = base;
+  let n = 2;
+  for (;;) {
+    const { data, error } = await supabase.from("events").select("id").eq("slug", candidate).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return candidate;
+    candidate = `${base}-${n}`;
+    n += 1;
+    if (n > 500) throw new Error("Не удалось подобрать свободный slug");
+  }
+}
+
 export async function upsertEvent(_prev: UpsertEventState, formData: FormData): Promise<UpsertEventState> {
   try {
     await requireAdmin();
 
     const parsed = EventSchema.safeParse({
       id: formData.get("id") || undefined,
-      slug: formData.get("slug"),
+      slug: effectiveSlugFromFormData(formData),
       title: formData.get("title"),
       description: formData.get("description") || "",
       imageUrl: formData.get("imageUrl") || "",
@@ -175,10 +202,15 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       };
     }
 
-    const v = parsed.data;
-    const priceGrosze = groszeFromPln(v.pricePln);
-
+    const v0 = parsed.data;
     const supabase = requireServiceSupabase();
+    let slugFinal = v0.slug;
+    if (!v0.id) {
+      slugFinal = await allocateUniqueEventSlugForInsert(supabase, v0.slug);
+    }
+    const v = { ...v0, slug: slugFinal };
+
+    const priceGrosze = groszeFromPln(v.pricePln);
 
     const imageFile = formData.get("imageFile");
     let imageUrlFinal: string | null = v.imageUrl || null;
