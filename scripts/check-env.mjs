@@ -24,7 +24,7 @@ const optionalAlways = [
   "UPSTASH_REDIS_REST_TOKEN",
 ];
 
-const optionalP24 = ["P24_MERCHANT_ID", "P24_SECRET_ID", "P24_CRC_KEY"];
+const optionalP24 = ["P24_MERCHANT_ID", "P24_CRC_KEY"];
 
 function p24CheckoutEnvMissing() {
   const sandbox = process.env.P24_SANDBOX === "true";
@@ -34,8 +34,19 @@ function p24CheckoutEnvMissing() {
     if (!has("SANDBOX_P24_MERCHANT_ID", "P24_MERCHANT_ID")) {
       miss.push("SANDBOX_P24_MERCHANT_ID|P24_MERCHANT_ID");
     }
-    if (!has("SANDBOX_P24_TRANSACTION_SECRET_ID", "SANDBOX_P24_SECRET_ID", "P24_TRANSACTION_SECRET_ID", "P24_SECRET_ID")) {
-      miss.push("SANDBOX_P24_SECRET_ID|P24_SECRET_ID (klucz do zamówień)");
+    if (
+      !has(
+        "SANDBOX_P24_API_KEY",
+        "SANDBOX_P24_REPORTS_SECRET_ID",
+        "SANDBOX_P24_TRANSACTION_SECRET_ID",
+        "SANDBOX_P24_SECRET_ID",
+        "P24_API_KEY",
+        "P24_REPORTS_SECRET_ID",
+        "P24_TRANSACTION_SECRET_ID",
+        "P24_SECRET_ID"
+      )
+    ) {
+      miss.push("SANDBOX_P24_REPORTS_SECRET_ID|… (klucz do raportów = Basic Auth REST)");
     }
     if (!has("SANDBOX_P24_CRC_KEY", "P24_CRC_KEY")) {
       miss.push("SANDBOX_P24_CRC_KEY|P24_CRC_KEY");
@@ -46,6 +57,9 @@ function p24CheckoutEnvMissing() {
   } else {
     for (const k of optionalP24) {
       if (!has(k)) miss.push(k);
+    }
+    if (!has("P24_API_KEY", "P24_REPORTS_SECRET_ID", "P24_TRANSACTION_SECRET_ID", "P24_SECRET_ID")) {
+      miss.push("P24_REPORTS_SECRET_ID|P24_SECRET_ID (klucz API do Basic Auth)");
     }
     if (!has("P24_POS_ID", "P24_MERCHANT_ID")) {
       miss.push("P24_POS_ID (opcjonalnie, domyślnie = P24_MERCHANT_ID)");
@@ -131,7 +145,7 @@ if (!bypass) {
   if (p24Miss.length) {
     console.warn("[check-env] Przy CHECKOUT_BYPASS_PAYMENT=false brakuje konfiguracji Przelewy24:", p24Miss.join(", "));
     console.warn(
-      "[check-env] Sandbox: P24_SANDBOX=true + SANDBOX_P24_MERCHANT_ID, SANDBOX_P24_SECRET_ID (zamówienia), SANDBOX_P24_CRC_KEY; opcjonalnie SANDBOX_P24_POS_ID."
+      "[check-env] Sandbox: P24_SANDBOX=true + SANDBOX_P24_MERCHANT_ID, SANDBOX_P24_REPORTS_SECRET_ID (klucz do raportów = Basic Auth), SANDBOX_P24_CRC_KEY; opcjonalnie SANDBOX_P24_POS_ID."
     );
   }
 }

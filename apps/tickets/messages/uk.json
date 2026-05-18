@@ -356,6 +356,6 @@
     "eventEnded": "Подія вже відбулася — оформити замовлення неможливо.",
     "orderCreateFailed": "Не вдалося створити замовлення.",
     "appUrlMissing": "Онлайн-оплата тимчасово недоступна. Спробуйте пізніше або зв’яжіться з нами через розділ «Дані продавця».",
-    "p24AuthFailed": "Помилка входу в Przelewy24 (401). Перевірте у Vercel: P24_SANDBOX збігається з панеллю (sandbox чи прод), SANDBOX_P24_POS_ID (часто = ID точки з панелі) та SANDBOX_P24_SECRET_ID — це має бути ключ «do zamówień» (REST), не CRC і не ключ «do raportów»."
+    "p24AuthFailed": "Помилка входу в Przelewy24 (401). У Basic Auth потрібні POS + **klucz do raportów** (API з панелі), не «do zamówień» і не CRC. Вкажіть `SANDBOX_P24_REPORTS_SECRET_ID` (довгий ключ) та `SANDBOX_P24_CRC_KEY`; `P24_SANDBOX=true`. Див. https://developers.przelewy24.pl/index.php?pl"
   }
 }

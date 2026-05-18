@@ -356,6 +356,6 @@
     "eventEnded": "Wydarzenie już się odbyło — nie można złożyć zamówienia.",
     "orderCreateFailed": "Nie udało się utworzyć zamówienia.",
     "appUrlMissing": "Płatność online jest chwilowo niedostępna. Spróbuj ponownie później albo skontaktuj się z nami przez dane sprzedawcy.",
-    "p24AuthFailed": "Błąd logowania do Przelewy24 (401). Sprawdź w Vercel: P24_SANDBOX zgodny z panelem (sandbox vs produkcja), SANDBOX_P24_POS_ID (często = ID sklepu z panelu) oraz SANDBOX_P24_SECRET_ID — to musi być klucz „do zamówień” (REST), nie CRC i nie klucz „do raportów”."
+    "p24AuthFailed": "Błąd logowania do Przelewy24 (401). W nagłówku Authorization musi być para POS + **klucz do raportów** (klucz API z panelu), nie „klucz do zamówień” i nie CRC. Ustaw `SANDBOX_P24_REPORTS_SECRET_ID` (długi klucz) oraz `SANDBOX_P24_CRC_KEY`; `P24_SANDBOX=true`. Zob. https://developers.przelewy24.pl/index.php?pl"
   }
 }

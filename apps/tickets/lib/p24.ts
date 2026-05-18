@@ -3,12 +3,13 @@
  * Dokumentacja: https://developers.przelewy24.pl/index.php?pl#tag/Transaction-service-API
  * Sandbox / produkcja: `P24_SANDBOX`, hosty w `getP24BaseUrl` / `getP24TrnUrl`.
  *
- * Credentials:
- * - Produkcja: `P24_MERCHANT_ID`, `P24_POS_ID`, `P24_SECRET_ID`, `P24_CRC_KEY`.
- * - Sandbox (`P24_SANDBOX=true`): najpierw `SANDBOX_P24_*`, potem fallback na `P24_*`
- *   (żeby w jednym `.env` trzymać osobno klucze sandbox i produkcji).
- * - `SANDBOX_P24_REPORTS_SECRET_ID` — tylko dokumentacja w `.env`; REST checkout go nie używa
- *   (raporty to inny klucz w panelu P24).
+ * Credentials (REST v1, Basic Auth na register/verify):
+ * - W nagłówku `Authorization: Basic base64(posId:apiKey)` pole **apiKey** w oficjalnej dokumentacji / przykładach
+ *   to **„Klucz do raportów”** (czasem „klucz API”) — NIE „Klucz do zamówień” (ten bywa krótki i służy innym celom w panelu).
+ * - **CRC** — osobno, tylko do pola `sign` w JSON (SHA-384).
+ * - Produkcja: `P24_MERCHANT_ID`, `P24_POS_ID`, `P24_CRC_KEY` + klucz API jako `P24_REPORTS_SECRET_ID` lub `P24_SECRET_ID`
+ *   (jeśli trzymasz raportowy klucz w `P24_SECRET_ID` — zostaw; sensowniej nazwać `P24_REPORTS_SECRET_ID`).
+ * - Sandbox (`P24_SANDBOX=true`): `SANDBOX_P24_*` z fallbackiem na `P24_*`.
  *
  * Aplikacje mobilne (natywne biblioteki): przykład React Native archiwum
  * https://github.com/przelewy24/p24-mobile-lib-react-native-example — ten serwis używa przekierowania web (trnRequest).
@@ -48,17 +49,26 @@ function resolveP24PosIdRaw(): string | undefined {
   return firstEnvTrimmed("P24_POS_ID", "P24_MERCHANT_ID");
 }
 
-/** Secret do Basic Auth (klucz „do zamówień” / REST) — nie mylić z kluczem do raportów. */
-function resolveP24SecretIdRaw(): string | undefined {
+/** Hasło do Basic Auth (REST): w panelu P24 to zwykle „Klucz do raportów” / klucz API — nie „do zamówień”. */
+function resolveP24BasicAuthSecretRaw(): string | undefined {
   if (p24SandboxMode()) {
     return firstEnvTrimmed(
+      "SANDBOX_P24_API_KEY",
+      "SANDBOX_P24_REPORTS_SECRET_ID",
       "SANDBOX_P24_TRANSACTION_SECRET_ID",
       "SANDBOX_P24_SECRET_ID",
+      "P24_API_KEY",
+      "P24_REPORTS_SECRET_ID",
       "P24_TRANSACTION_SECRET_ID",
       "P24_SECRET_ID"
     );
   }
-  return firstEnvTrimmed("P24_TRANSACTION_SECRET_ID", "P24_SECRET_ID");
+  return firstEnvTrimmed(
+    "P24_API_KEY",
+    "P24_REPORTS_SECRET_ID",
+    "P24_TRANSACTION_SECRET_ID",
+    "P24_SECRET_ID"
+  );
 }
 
 function resolveP24CrcRaw(): string | undefined {
@@ -154,12 +164,12 @@ export function getP24TrnUrl(token: string): string {
 
 export function p24BasicAuthHeader(): string {
   const posId = resolveP24PosIdRaw();
-  const secretId = resolveP24SecretIdRaw();
+  const secretId = resolveP24BasicAuthSecretRaw();
   if (!posId || !secretId) {
     throw new Error(
       p24SandboxMode()
-        ? "Brak POS/secret: SANDBOX_P24_POS_ID (opcjonalnie) + SANDBOX_P24_SECRET_ID lub P24_*"
-        : "P24_POS_ID и P24_SECRET_ID обязательны"
+        ? "Brak POS/klucza API: ustaw SANDBOX_P24_REPORTS_SECRET_ID (klucz do raportów z panelu) lub SANDBOX_P24_API_KEY"
+        : "P24_POS_ID и ключ API (P24_REPORTS_SECRET_ID / P24_SECRET_ID) обязательны"
     );
   }
   const token = Buffer.from(`${posId}:${secretId}`, "utf8").toString("base64");
