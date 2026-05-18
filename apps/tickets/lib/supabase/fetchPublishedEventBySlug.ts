@@ -60,6 +60,14 @@ export async function fetchPublishedEventBySlug(
       : "inactive";
   const image_focal_x = clampEventImageFocal((row as { image_focal_x?: unknown }).image_focal_x);
   const image_focal_y = clampEventImageFocal((row as { image_focal_y?: unknown }).image_focal_y);
+
+  if (listing_kind === "trial") {
+    const startMs = new Date(String((row as { starts_at?: unknown }).starts_at ?? "")).getTime();
+    if (Number.isNaN(startMs) || startMs < Date.now()) {
+      return { data: null, error: null };
+    }
+  }
+
   return {
     data: { ...row, description, maps_url: mapsUrl, listing_kind, visibility, image_focal_x, image_focal_y },
     error: null,

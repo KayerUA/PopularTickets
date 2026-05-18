@@ -1,6 +1,6 @@
 # Backlog: доверие, контент, SEO, юридические страницы (PopularTickets / Popular Poet)
 
-Фаза 1 (код): см. реализацию в репозитории — контакты с fallback email, футер/firma, архив события без «wolnych miejsc», VAT в `<details>`, минимум длины описания при published/unlisted, дата/время админки в Europe/Warsaw + Vitest, футер P24 при `CHECKOUT_BYPASS_PAYMENT`.
+Фаза 1 (код): см. реализацию в репозитории — контакты с fallback email, футер/firma, архив события без «wolnych miejsc», VAT в `<details>`, минимум длины описания при published/unlisted, дата/время админки в Europe/Warsaw + Vitest, футер P24 при `CHECKOUT_BYPASS_PAYMENT`. Прошедшие пробные (`listing_kind = trial`) скрываются в списках на popularpoet.pl и на странице события PopularTickets.
 
 Легенда статусов:
 

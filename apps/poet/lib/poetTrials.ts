@@ -113,6 +113,11 @@ function mapSlotRow(raw: Record<string, unknown>, withCourse: boolean, implicitC
   };
 }
 
+/** Нижня межа `starts_at` для публічних списків пробних (UTC, як у timestamptz). */
+function trialListingStartsFromIso(): string {
+  return new Date().toISOString();
+}
+
 /** Якщо ще не застосовано SQL з poet_course_id / embed — повертаємо події без join, щоб пробні знову з'явились на popularpoet.pl. */
 async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
   rows: Record<string, unknown>[];
@@ -123,6 +128,7 @@ async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
     .select("id, slug, title, description, starts_at, poet_course_id, poet_course ( id, slug, title )")
     .eq("visibility", "published")
     .eq("listing_kind", "trial")
+    .gte("starts_at", trialListingStartsFromIso())
     .order("starts_at", { ascending: true });
 
   if (!full.error) {
@@ -136,6 +142,7 @@ async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
     .select("id, slug, title, description, starts_at")
     .eq("visibility", "published")
     .eq("listing_kind", "trial")
+    .gte("starts_at", trialListingStartsFromIso())
     .order("starts_at", { ascending: true });
 
   if (basic.error) {
@@ -154,6 +161,7 @@ async function loadPublishedTrialSlotRows(supabase: SupabaseClient): Promise<{
     .from("poet_trial_slot")
     .select("id, title, body, starts_at, tickets_checkout_event_slug, poet_course ( id, slug, title )")
     .eq("is_published", true)
+    .gte("starts_at", trialListingStartsFromIso())
     .order("sort_order", { ascending: true })
     .order("starts_at", { ascending: true, nullsFirst: false });
 
@@ -167,6 +175,7 @@ async function loadPublishedTrialSlotRows(supabase: SupabaseClient): Promise<{
     .from("poet_trial_slot")
     .select("id, title, body, starts_at, tickets_checkout_event_slug")
     .eq("is_published", true)
+    .gte("starts_at", trialListingStartsFromIso())
     .order("sort_order", { ascending: true })
     .order("starts_at", { ascending: true, nullsFirst: false });
 
@@ -213,6 +222,7 @@ async function loadTrialEventsForCourse(supabase: SupabaseClient, courseId: stri
     .in("visibility", ["published", "unlisted"])
     .eq("listing_kind", "trial")
     .eq("poet_course_id", courseId)
+    .gte("starts_at", trialListingStartsFromIso())
     .order("starts_at", { ascending: true });
 
   if (!full.error) {
@@ -227,6 +237,7 @@ async function loadTrialEventsForCourse(supabase: SupabaseClient, courseId: stri
     .in("visibility", ["published", "unlisted"])
     .eq("listing_kind", "trial")
     .eq("poet_course_id", courseId)
+    .gte("starts_at", trialListingStartsFromIso())
     .order("starts_at", { ascending: true });
 
   if (!idOnly.error) {
@@ -246,6 +257,7 @@ async function loadTrialSlotsForCourse(supabase: SupabaseClient, courseId: strin
     .select("id, title, body, starts_at, tickets_checkout_event_slug, poet_course ( id, slug, title )")
     .eq("is_published", true)
     .eq("course_id", courseId)
+    .gte("starts_at", trialListingStartsFromIso())
     .order("sort_order", { ascending: true })
     .order("starts_at", { ascending: true, nullsFirst: false });
 
@@ -260,6 +272,7 @@ async function loadTrialSlotsForCourse(supabase: SupabaseClient, courseId: strin
     .select("id, title, body, starts_at, tickets_checkout_event_slug")
     .eq("is_published", true)
     .eq("course_id", courseId)
+    .gte("starts_at", trialListingStartsFromIso())
     .order("sort_order", { ascending: true })
     .order("starts_at", { ascending: true, nullsFirst: false });
 
