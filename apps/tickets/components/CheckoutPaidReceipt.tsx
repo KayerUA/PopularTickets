@@ -5,6 +5,7 @@ import { CopyTextButton } from "@/components/CopyTextButton";
 import { TicketRipColumn } from "@/components/TicketRipColumn";
 import { formatEventDateTime } from "@/lib/format";
 import type { AppLocale } from "@/i18n/routing";
+import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
 
 export type CheckoutReceiptLabels = {
   ticketsHeading: string;
@@ -25,6 +26,8 @@ export type CheckoutReceiptLabels = {
   ticketPdfQrSecondary: string;
   ticketPdfDisclaimer: string;
   ticketPdfNumberCaption: string;
+  backToLessons: string;
+  backToLessonsBody: string;
 };
 
 export async function CheckoutPaidReceipt({
@@ -37,6 +40,8 @@ export async function CheckoutPaidReceipt({
   labels: CheckoutReceiptLabels;
 }) {
   const when = formatEventDateTime(receipt.startsAt, locale);
+  const lessonsUrl = `${POPULAR_POET_SITE_URL.replace(/\/+$/, "")}/${locale}#schedule`;
+  const isTrial = receipt.listingKind === "trial";
 
   const ticketRows = await Promise.all(
     receipt.tickets.map(async (t) => {
@@ -85,6 +90,17 @@ export async function CheckoutPaidReceipt({
         {labels.emailAlso}{" "}
         <span className="break-all text-zinc-300">{receipt.email}</span>
       </p>
+      {isTrial ? (
+        <div className="rounded-xl border border-poet-gold/20 bg-black/25 px-4 py-4">
+          <p className="text-sm leading-relaxed text-zinc-400">{labels.backToLessonsBody}</p>
+          <a
+            href={lessonsUrl}
+            className="mt-3 inline-flex min-h-10 items-center justify-center rounded-full border border-poet-gold/35 px-4 py-2 text-sm font-medium text-poet-gold-bright transition hover:border-poet-gold/55 hover:bg-poet-gold/10"
+          >
+            {labels.backToLessons}
+          </a>
+        </div>
+      ) : null}
       <p className="text-xs text-amber-200/90">{labels.shareWarning}</p>
       <ul className="space-y-8">
         {ticketRows.map((t) => (

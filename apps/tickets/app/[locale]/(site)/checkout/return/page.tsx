@@ -81,6 +81,8 @@ export default async function CheckoutReturnPage({
         ticketPdfDisclaimer: tPdf("translationDisclaimer"),
         ticketPdfNumberCaption: tPdf("ticketNumberCaption"),
         ticketRenderError: t("ticketRenderError"),
+        backToLessons: t("backToLessons"),
+        backToLessonsBody: t("backToLessonsBody"),
       };
 
       const refreshHref =

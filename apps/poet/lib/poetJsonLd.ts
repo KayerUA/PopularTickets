@@ -6,6 +6,7 @@ import {
   POET_ADDRESS_STREET,
   POET_GEO_LAT,
   POET_GEO_LNG,
+  POET_ORGANIZATION_ALTERNATE_NAMES,
   POET_ORGANIZATION_NAME,
   poetSameAsUrls,
 } from "@/lib/poetEntity";
@@ -45,6 +46,7 @@ export function buildPoetOrganizationLocalGraph(input: {
         "@type": "Organization",
         "@id": orgId,
         name: POET_ORGANIZATION_NAME,
+        alternateName: POET_ORGANIZATION_ALTERNATE_NAMES,
         url,
         ...(logoUrl ? { logo: { "@type": "ImageObject", url: logoUrl } } : {}),
         sameAs,
@@ -53,6 +55,7 @@ export function buildPoetOrganizationLocalGraph(input: {
         "@type": ["LocalBusiness", "PerformingArtsTheater"],
         "@id": placeId,
         name: POET_ORGANIZATION_NAME,
+        alternateName: POET_ORGANIZATION_ALTERNATE_NAMES,
         url,
         parentOrganization: { "@id": orgId },
         address: postal,
@@ -112,6 +115,7 @@ export function buildCourseJsonLd(input: {
     provider: {
       "@type": "Organization",
       name: POET_ORGANIZATION_NAME,
+      alternateName: POET_ORGANIZATION_ALTERNATE_NAMES,
       url: input.providerUrl,
     },
   };

@@ -2,6 +2,7 @@ import { THEATRE_INSTAGRAM_URL, THEATRE_TELEGRAM_URL, THEATRE_YOUTUBE_URL } from
 
 /** Одна каноническая сущность для фактов, schema.org и футера (без маркетинговых вариаций). */
 export const POET_ORGANIZATION_NAME = "Popular Poet";
+export const POET_ORGANIZATION_ALTERNATE_NAMES = ["Театр Популярный Поэт", "Популярный Поэт"];
 
 export const POET_ADDRESS_STREET = "ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42";
 export const POET_ADDRESS_LOCALITY = "Warszawa";

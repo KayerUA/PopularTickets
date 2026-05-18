@@ -5,6 +5,7 @@ export type PaidOrderReceipt = {
   eventTitle: string;
   venue: string;
   startsAt: string;
+  listingKind: string | null;
   tickets: { id: string; ticket_number: string }[];
 };
 
@@ -41,7 +42,7 @@ export async function loadOrderReceiptState(
 
   const { data: ev, error: eErr } = await supabase
     .from("events")
-    .select("title,venue,starts_at")
+    .select("title,venue,starts_at,listing_kind")
     .eq("id", order.event_id as string)
     .maybeSingle();
 
@@ -68,6 +69,7 @@ export async function loadOrderReceiptState(
       eventTitle: ev.title as string,
       venue: ev.venue as string,
       startsAt: ev.starts_at as string,
+      listingKind: typeof ev.listing_kind === "string" ? ev.listing_kind : null,
       tickets: list,
     },
   };

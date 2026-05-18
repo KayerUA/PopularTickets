@@ -127,6 +127,7 @@ export function buildEventJsonLd(
           organizer: {
             "@type": "Organization",
             name: "Popular Poet",
+            alternateName: ["Театр Популярный Поэт", "Популярный Поэт"],
             url: POPULAR_POET_SITE_URL.replace(/\/$/, ""),
           },
           offers: {
@@ -188,6 +189,7 @@ export function buildHomeJsonLd(locale: AppLocale): object {
       {
         "@type": "WebSite",
         name: "PopularTickets",
+        alternateName: "PopularTickets — касса театра «Популярный Поэт»",
         url: siteUrl,
         inLanguage: EVENT_LANG[locale],
         description:

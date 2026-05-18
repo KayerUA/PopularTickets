@@ -21,6 +21,7 @@ import { COMPANY } from "@/lib/company";
 import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { Link } from "@/i18n/navigation";
+import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
 
 export const revalidate = 30;
 
@@ -138,6 +139,8 @@ export default async function EventPage({
 
   const soldOut = remaining <= 0 || marketingStatus === "sold_out";
   const ticketVat = splitTheatreTicketGrossGrosze(event.price_grosze);
+  const isTrialEvent = listingKind === "trial";
+  const poetLessonsUrl = `${POPULAR_POET_SITE_URL.replace(/\/+$/, "")}/${locale}#schedule`;
 
   return (
     <div className="poet-safe-x mx-auto max-w-3xl py-8 sm:py-14">
@@ -250,6 +253,18 @@ export default async function EventPage({
           <p className="whitespace-pre-wrap break-words text-[0.9375rem] leading-relaxed text-zinc-300 sm:text-base">
             {event.description}
           </p>
+          {isTrialEvent ? (
+            <aside className="rounded-xl border border-poet-gold/20 bg-black/25 px-4 py-4">
+              <p className="text-sm font-medium text-zinc-100">{t("trialReturnTitle")}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">{t("trialReturnBody")}</p>
+              <a
+                href={poetLessonsUrl}
+                className="mt-3 inline-flex min-h-10 items-center justify-center rounded-full border border-poet-gold/35 px-4 py-2 text-sm font-medium text-poet-gold-bright transition hover:border-poet-gold/55 hover:bg-poet-gold/10"
+              >
+                {t("trialReturnCta")}
+              </a>
+            </aside>
+          ) : null}
           <div className="flex flex-col gap-4 border-t border-poet-gold/15 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 sm:pt-6">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{t("priceLabel")}</p>
