@@ -93,7 +93,7 @@ if (!supabaseServiceRoleKey()) {
   failed = true;
 }
 
-const bypass = process.env.CHECKOUT_BYPASS_PAYMENT === "true";
+const bypass = process.env.CHECKOUT_BYPASS_PAYMENT?.trim().toLowerCase() === "true";
 
 function publicAppUrlForCheck() {
   const explicit = String(process.env.NEXT_PUBLIC_APP_URL || "").trim().replace(/\/$/, "");

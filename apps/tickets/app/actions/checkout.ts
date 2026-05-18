@@ -36,7 +36,9 @@ function p24UiLanguage(locale: AppLocale): string {
   return "en";
 }
 
-export async function createPendingOrder(formData: FormData) {
+export async function createPendingOrder(
+  formData: FormData
+): Promise<void | { p24Url: string }> {
   const h = await headers();
   const ip = clientIp(h);
   const localeRaw = formData.get("locale");
@@ -182,5 +184,6 @@ export async function createPendingOrder(formData: FormData) {
     throw new Error(t("appUrlMissing"));
   }
 
-  redirectNext(getP24TrnUrl(token));
+  /** Внешний хост P24: полный переход через location надёжнее, чем redirect() из action внутри client transition. */
+  return { p24Url: getP24TrnUrl(token) };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { unstable_rethrow } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -26,7 +26,7 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
   const t = useTranslations("CheckoutForm");
   const tEvent = useTranslations("EventPage");
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const max = Math.min(20, remaining);
 
@@ -38,17 +38,22 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
   return (
     <form
       className="relative mt-6 space-y-4 rounded-2xl border border-poet-gold/25 bg-gradient-to-b from-[#1a0c12]/90 via-poet-bg/85 to-zinc-950/90 p-4 pb-28 shadow-[0_0_0_1px_rgba(197,160,89,0.12),inset_0_1px_0_rgba(255,230,200,0.06)] sm:p-5 sm:pb-5"
-      action={(formData) => {
+      action={async (formData) => {
         setError(null);
-        startTransition(async () => {
-          try {
-            await createPendingOrder(formData);
-          } catch (e: unknown) {
-            /* Next 15: redirect() из action приходит как ошибка; digest на клиенте может быть обёрнут — см. unstable_rethrow */
-            unstable_rethrow(e);
-            setError(e instanceof Error ? e.message : t("errorGeneric"));
+        setPending(true);
+        try {
+          const result = await createPendingOrder(formData);
+          if (result && typeof result === "object" && "p24Url" in result && typeof result.p24Url === "string") {
+            window.location.assign(result.p24Url);
+            return;
           }
-        });
+        } catch (e: unknown) {
+          /* Next 15: redirect() из server action — внутренний редирект на return; внешний P24 — через p24Url выше */
+          unstable_rethrow(e);
+          setError(e instanceof Error ? e.message : t("errorGeneric"));
+        } finally {
+          setPending(false);
+        }
       }}
     >
       <input type="hidden" name="eventSlug" value={eventSlug} />
