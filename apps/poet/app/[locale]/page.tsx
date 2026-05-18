@@ -118,15 +118,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mt-14 scroll-mt-28 rounded-2xl border border-poet-gold/12 bg-poet-surface/15 px-4 py-7 sm:mt-20 sm:px-8 sm:py-8" aria-labelledby="seo-snippet-heading">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-poet-gold/75">{t("seoSnippetEyebrow")}</p>
-        <h2 id="seo-snippet-heading" className="font-display mt-2 text-lg font-medium text-zinc-100 sm:text-xl">
-          {t("seoSnippetTitle")}
-        </h2>
-        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-400 sm:text-base">{t("seoSnippetBody")}</p>
-      </section>
-
-      <section id="faq" className="mt-10 scroll-mt-28 sm:mt-12" aria-labelledby="seo-faq-heading">
+      <section id="faq" className="mt-14 scroll-mt-28 sm:mt-20" aria-labelledby="seo-faq-heading">
         <h2 id="seo-faq-heading" className="font-display text-lg font-medium text-zinc-100 sm:text-xl">
           {t("seoFaqTitle")}
         </h2>

@@ -151,14 +151,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
         )}
       </section>
 
-      <section className="mt-14 scroll-mt-24 rounded-2xl border border-poet-gold/12 bg-poet-surface/20 px-4 py-6 sm:mt-16 sm:px-8 sm:py-8" aria-labelledby="home-entity-heading">
-        <h2 id="home-entity-heading" className="font-display text-lg font-medium text-zinc-100 sm:text-xl">
-          {t("entityTitle")}
-        </h2>
-        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-400 sm:text-base">{homeText("entityBody")}</p>
-      </section>
-
-      <section id="faq" className="mt-10 scroll-mt-24 sm:mt-12" aria-labelledby="home-faq-heading">
+      <section id="faq" className="mt-14 scroll-mt-24 sm:mt-16" aria-labelledby="home-faq-heading">
         <h2 id="home-faq-heading" className="font-display text-lg font-medium text-zinc-100 sm:text-xl">
           {t("faqTitle")}
         </h2>
