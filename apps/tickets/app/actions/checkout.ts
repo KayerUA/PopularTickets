@@ -9,6 +9,7 @@ import {
   getPosId,
   getP24TrnUrl,
   p24Register,
+  p24RegisterDescription,
   signRegister,
   P24RegisterAuthError,
 } from "@/lib/p24";
@@ -71,7 +72,7 @@ export async function createPendingOrder(
   const supabase = requireServiceSupabase();
   const { data: event, error: evErr } = await supabase
     .from("events")
-    .select("id,slug,title,price_grosze,total_tickets,visibility,starts_at")
+    .select("id,slug,price_grosze,total_tickets,visibility,starts_at")
     .eq("slug", eventSlug)
     .maybeSingle();
 
@@ -171,7 +172,7 @@ export async function createPendingOrder(
         sessionId: orderId,
         amount: amountGrosze,
         currency: "PLN",
-        description: `${event.title} ×${quantity}`,
+        description: p24RegisterDescription(eventSlug, quantity),
         email,
         country: "PL",
         language: p24Lang,

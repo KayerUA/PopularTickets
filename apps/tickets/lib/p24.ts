@@ -266,6 +266,28 @@ export function getPosId(): number {
   return Number(v);
 }
 
+const P24_REGISTER_DESCRIPTION_MAX_LEN = 252;
+
+/**
+ * Pole `description` w `transaction/register`.
+ * Panel Przelewy24 często pokazuje opis jak Latin-1 — cyrylica z bazy wygląda jak `???????`.
+ * Wysyłamy wyłącznie ASCII: slug wydarzenia + krótki opis po polsku (bez ogonków).
+ */
+export function p24RegisterDescription(eventSlug: string, quantity: number): string {
+  const slug = String(eventSlug)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 120);
+  const safeSlug = slug.length > 0 ? slug : "wydarzenie";
+  const tail = ` / szt.: ${quantity}`;
+  const head = "PopularTickets bilety: ";
+  const budget = Math.max(12, P24_REGISTER_DESCRIPTION_MAX_LEN - head.length - tail.length);
+  return `${head}${safeSlug.slice(0, budget)}${tail}`;
+}
+
 export class P24RegisterAuthError extends Error {
   constructor() {
     super("P24_REGISTER_AUTH");
