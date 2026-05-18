@@ -50,6 +50,15 @@ function normalizeEventFormat(event: EventRow, locale: AppLocale): string {
   return locale === "pl" ? "wydarzenie sceniczne" : locale === "uk" ? "сценічна подія" : "сценическое событие";
 }
 
+/** Google рекомендует endDate; в БД только starts_at — оценка длительности сеанса для Rich Results. */
+const DEFAULT_EVENT_DURATION_MS = 3 * 60 * 60 * 1000;
+
+function defaultEventEndIso(startsAt: string): string {
+  const d = new Date(startsAt);
+  if (Number.isNaN(d.getTime())) return startsAt;
+  return new Date(d.getTime() + DEFAULT_EVENT_DURATION_MS).toISOString();
+}
+
 function normalizeVenueAddress(venue: string): {
   name: string;
   streetAddress: string;
@@ -98,6 +107,7 @@ export function buildEventJsonLd(
   const desc = rawDesc.replace(/\s+/g, " ").trim().slice(0, 2000);
   const venueAddress = normalizeVenueAddress(event.venue);
   const eventFormat = normalizeEventFormat(event, locale);
+  const endDate = defaultEventEndIso(event.starts_at);
 
   return stripJsonLdEmptyValues({
     "@context": "https://schema.org",
@@ -105,11 +115,17 @@ export function buildEventJsonLd(
     name: event.title,
     description: desc || event.title,
     startDate: event.starts_at,
+    endDate,
     inLanguage: EVENT_LANG[locale],
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
     ...(images.length ? { image: images } : {}),
     additionalType: eventFormat,
+    performer: {
+      "@type": "TheaterGroup",
+      name: "Popular Poet",
+      url: POPULAR_POET_SITE_URL.replace(/\/$/, ""),
+    },
     location: {
       "@type": "Place",
       name: venueAddress.name,

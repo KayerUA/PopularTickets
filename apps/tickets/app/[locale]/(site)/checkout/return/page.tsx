@@ -25,7 +25,11 @@ export async function generateMetadata({
     path: "/checkout/return",
     title: t("checkoutReturnTitle"),
     description: t("checkoutReturnDescription"),
-    robots: { index: false, follow: false },
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: { index: false, follow: false, noimageindex: true, nosnippet: true },
+    },
   });
 }
 
