@@ -24,7 +24,35 @@ const optionalAlways = [
   "UPSTASH_REDIS_REST_TOKEN",
 ];
 
-const optionalP24 = ["P24_MERCHANT_ID", "P24_POS_ID", "P24_SECRET_ID", "P24_CRC_KEY"];
+const optionalP24 = ["P24_MERCHANT_ID", "P24_SECRET_ID", "P24_CRC_KEY"];
+
+function p24CheckoutEnvMissing() {
+  const sandbox = process.env.P24_SANDBOX === "true";
+  const has = (...keys) => keys.some((k) => String(process.env[k] ?? "").trim());
+  const miss = [];
+  if (sandbox) {
+    if (!has("SANDBOX_P24_MERCHANT_ID", "P24_MERCHANT_ID")) {
+      miss.push("SANDBOX_P24_MERCHANT_ID|P24_MERCHANT_ID");
+    }
+    if (!has("SANDBOX_P24_TRANSACTION_SECRET_ID", "SANDBOX_P24_SECRET_ID", "P24_TRANSACTION_SECRET_ID", "P24_SECRET_ID")) {
+      miss.push("SANDBOX_P24_SECRET_ID|P24_SECRET_ID (klucz do zamówień)");
+    }
+    if (!has("SANDBOX_P24_CRC_KEY", "P24_CRC_KEY")) {
+      miss.push("SANDBOX_P24_CRC_KEY|P24_CRC_KEY");
+    }
+    if (!has("SANDBOX_P24_POS_ID", "P24_POS_ID", "SANDBOX_P24_MERCHANT_ID", "P24_MERCHANT_ID")) {
+      miss.push("SANDBOX_P24_POS_ID|P24_POS_ID (opcjonalnie, domyślnie = merchant)");
+    }
+  } else {
+    for (const k of optionalP24) {
+      if (!has(k)) miss.push(k);
+    }
+    if (!has("P24_POS_ID", "P24_MERCHANT_ID")) {
+      miss.push("P24_POS_ID (opcjonalnie, domyślnie = P24_MERCHANT_ID)");
+    }
+  }
+  return miss;
+}
 
 function loadEnvFile(name) {
   const p = path.join(repoRoot, name);
@@ -90,10 +118,22 @@ if (!bypass && !publicUrl) {
   failed = true;
 }
 
-const optional = [...optionalAlways, ...(bypass ? [] : optionalP24)];
+const optional = [
+  ...optionalAlways,
+  ...(bypass ? [] : process.env.P24_SANDBOX === "true" ? [] : optionalP24),
+];
 const missingOptional = optional.filter((k) => !process.env[k] || String(process.env[k]).trim() === "");
 if (missingOptional.length) {
   console.warn("[check-env] Opcjonalnie (dla pełnej funkcjonalności) uzupełnij:", missingOptional.join(", "));
+}
+if (!bypass) {
+  const p24Miss = p24CheckoutEnvMissing();
+  if (p24Miss.length) {
+    console.warn("[check-env] Przy CHECKOUT_BYPASS_PAYMENT=false brakuje konfiguracji Przelewy24:", p24Miss.join(", "));
+    console.warn(
+      "[check-env] Sandbox: P24_SANDBOX=true + SANDBOX_P24_MERCHANT_ID, SANDBOX_P24_SECRET_ID (zamówienia), SANDBOX_P24_CRC_KEY; opcjonalnie SANDBOX_P24_POS_ID."
+    );
+  }
 }
 if (bypass) {
   console.warn("[check-env] CHECKOUT_BYPASS_PAYMENT=true — Przelewy24 pomijany (MVP).");
