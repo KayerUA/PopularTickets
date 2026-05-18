@@ -19,6 +19,14 @@ export function middleware(req: NextRequest) {
     }
   }
 
+  /** Канон как у sitemap/SEO: `/ru`, не `/ru/` (снимает дубли в GSC). */
+  const localeHomeTrailing = pathname.match(/^\/(pl|uk|ru)\/$/);
+  if (localeHomeTrailing) {
+    const url = req.nextUrl.clone();
+    url.pathname = `/${localeHomeTrailing[1]}`;
+    return NextResponse.redirect(url, 308);
+  }
+
   const kursyLegacy = pathname.match(/^\/(pl|uk|ru)\/kursy\/([^/]+)\/?$/);
   if (kursyLegacy) {
     const [, loc, rawSlug] = kursyLegacy;
