@@ -26,8 +26,33 @@ const optionalAlways = [
 
 const optionalP24 = ["P24_MERCHANT_ID", "P24_CRC_KEY"];
 
+function envNonEmpty(key) {
+  const raw = process.env[key];
+  if (raw === undefined || raw === null) return undefined;
+  const t = String(raw).trim();
+  return t === "" ? undefined : t;
+}
+
+function p24SandboxMode() {
+  const raw = envNonEmpty("P24_SANDBOX");
+  if (raw !== undefined) {
+    const v = raw.toLowerCase();
+    if (v === "false" || v === "0" || v === "no" || v === "off") return false;
+    if (v === "true" || v === "1" || v === "yes" || v === "on") return true;
+  }
+  const sandboxSecret =
+    envNonEmpty("SANDBOX_P24_REPORTS_SECRET_ID") ??
+    envNonEmpty("SANDBOX_P24_API_KEY") ??
+    envNonEmpty("SANDBOX_P24_TRANSACTION_SECRET_ID") ??
+    envNonEmpty("SANDBOX_P24_SECRET_ID");
+  const sandboxId = envNonEmpty("SANDBOX_P24_MERCHANT_ID") ?? envNonEmpty("SANDBOX_P24_POS_ID");
+  const prodMerchant = envNonEmpty("P24_MERCHANT_ID");
+  if (sandboxSecret && sandboxId && !prodMerchant) return true;
+  return false;
+}
+
 function p24CheckoutEnvMissing() {
-  const sandbox = process.env.P24_SANDBOX === "true";
+  const sandbox = p24SandboxMode();
   const has = (...keys) => keys.some((k) => String(process.env[k] ?? "").trim());
   const miss = [];
   if (sandbox) {
@@ -36,12 +61,12 @@ function p24CheckoutEnvMissing() {
     }
     if (
       !has(
-        "SANDBOX_P24_API_KEY",
         "SANDBOX_P24_REPORTS_SECRET_ID",
+        "SANDBOX_P24_API_KEY",
         "SANDBOX_P24_TRANSACTION_SECRET_ID",
         "SANDBOX_P24_SECRET_ID",
-        "P24_API_KEY",
         "P24_REPORTS_SECRET_ID",
+        "P24_API_KEY",
         "P24_TRANSACTION_SECRET_ID",
         "P24_SECRET_ID"
       )
@@ -58,7 +83,7 @@ function p24CheckoutEnvMissing() {
     for (const k of optionalP24) {
       if (!has(k)) miss.push(k);
     }
-    if (!has("P24_API_KEY", "P24_REPORTS_SECRET_ID", "P24_TRANSACTION_SECRET_ID", "P24_SECRET_ID")) {
+    if (!has("P24_REPORTS_SECRET_ID", "P24_API_KEY", "P24_TRANSACTION_SECRET_ID", "P24_SECRET_ID")) {
       miss.push("P24_REPORTS_SECRET_ID|P24_SECRET_ID (klucz API do Basic Auth)");
     }
     if (!has("P24_POS_ID", "P24_MERCHANT_ID")) {
@@ -77,6 +102,11 @@ function loadEnvFile(name) {
     if (!m) continue;
     const key = m[1];
     let val = m[2].trim();
+    const fullyQuoted =
+      (val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"));
+    if (!fullyQuoted) {
+      val = val.replace(/\s+#.*$/, "").trim();
+    }
     if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
       val = val.slice(1, -1);
     }
@@ -134,7 +164,7 @@ if (!bypass && !publicUrl) {
 
 const optional = [
   ...optionalAlways,
-  ...(bypass ? [] : process.env.P24_SANDBOX === "true" ? [] : optionalP24),
+  ...(bypass ? [] : p24SandboxMode() ? [] : optionalP24),
 ];
 const missingOptional = optional.filter((k) => !process.env[k] || String(process.env[k]).trim() === "");
 if (missingOptional.length) {

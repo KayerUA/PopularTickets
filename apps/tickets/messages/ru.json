@@ -356,6 +356,7 @@
     "eventEnded": "Событие уже прошло — оформить заказ нельзя.",
     "orderCreateFailed": "Не удалось создать заказ.",
     "appUrlMissing": "Онлайн-оплата временно недоступна. Попробуйте позже или свяжитесь с нами через раздел «Данные продавца».",
-    "p24AuthFailed": "Ошибка входа в Przelewy24 (401). В Basic Auth нужны POS + **klucz do raportów** (API из панели), не «do zamówień» и не CRC. Задайте `SANDBOX_P24_REPORTS_SECRET_ID` (длинный ключ) и `SANDBOX_P24_CRC_KEY`; `P24_SANDBOX=true`. См. https://developers.przelewy24.pl/index.php?pl"
+    "p24CheckoutFailed": "Не удалось запустить оплату Przelewy24. Попробуйте позже или свяжитесь с нами.",
+    "p24AuthFailed": "Przelewy24: ошибка 401 (авторизация API). По REST-клиенту P24 в Basic Auth передаётся **POS ID** (логин) и **klucz do raportów** (пароль), не ключ «do zamówień» и не CRC. Укажите `SANDBOX_P24_REPORTS_SECRET_ID`, `SANDBOX_P24_CRC_KEY`, `SANDBOX_P24_POS_ID` (или тот же номер как merchant), `P24_SANDBOX` = true, 1 или on. Документация: https://developers.przelewy24.pl/index.php?pl"
   }
 }

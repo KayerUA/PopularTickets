@@ -11,6 +11,7 @@
     "build:poet": "npm run build -w popular-poet",
     "lint": "npm run lint --workspaces --if-present",
     "check:env": "node scripts/check-env.mjs",
+    "p24:test": "node scripts/p24-test-access.mjs",
     "check:jsonld": "node scripts/check-jsonld-schema.mjs",
     "check:ticket-pdf-i18n": "node scripts/check-ticket-pdf-i18n-sync.mjs",
     "verify:supabase": "node scripts/verify-supabase.mjs",

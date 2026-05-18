@@ -356,6 +356,7 @@
     "eventEnded": "Wydarzenie już się odbyło — nie można złożyć zamówienia.",
     "orderCreateFailed": "Nie udało się utworzyć zamówienia.",
     "appUrlMissing": "Płatność online jest chwilowo niedostępna. Spróbuj ponownie później albo skontaktuj się z nami przez dane sprzedawcy.",
-    "p24AuthFailed": "Błąd logowania do Przelewy24 (401). W nagłówku Authorization musi być para POS + **klucz do raportów** (klucz API z panelu), nie „klucz do zamówień” i nie CRC. Ustaw `SANDBOX_P24_REPORTS_SECRET_ID` (długi klucz) oraz `SANDBOX_P24_CRC_KEY`; `P24_SANDBOX=true`. Zob. https://developers.przelewy24.pl/index.php?pl"
+    "p24CheckoutFailed": "Nie udało się uruchomić płatności Przelewy24. Spróbuj ponownie później albo skontaktuj się z nami.",
+    "p24AuthFailed": "Przelewy24: błąd 401 (uwierzytelnianie API). W `Authorization: Basic` — **POS ID** (login) i **klucz do raportów** (hasło), nie „klucz do zamówień” i nie CRC. Ustaw `SANDBOX_P24_REPORTS_SECRET_ID`, `SANDBOX_P24_CRC_KEY`, `SANDBOX_P24_POS_ID` (lub ten sam numer jako merchant), `P24_SANDBOX` = true, 1 lub on. Dokumentacja: https://developers.przelewy24.pl/index.php?pl"
   }
 }

@@ -175,6 +175,8 @@ export async function createPendingOrder(
         email,
         country: "PL",
         language: p24Lang,
+        encoding: "UTF-8",
+        regulationAccept: true,
         urlReturn: `${baseUrl}${await buildCheckoutReturnPath(locale, orderId)}`,
         urlStatus: `${baseUrl}/api/p24/notify`,
         sign,
@@ -185,7 +187,7 @@ export async function createPendingOrder(
     if (e instanceof P24RegisterAuthError) {
       throw new Error(t("p24AuthFailed"));
     }
-    throw new Error(t("appUrlMissing"));
+    throw new Error(t("p24CheckoutFailed"));
   }
 
   /** Внешний хост P24: полный переход через location надёжнее, чем redirect() из action внутри client transition. */
