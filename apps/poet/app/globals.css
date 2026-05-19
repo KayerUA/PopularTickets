@@ -229,6 +229,31 @@
   }
 }
 
+.seo-safe-marquee-track {
+  display: flex;
+  width: max-content;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(197, 160, 89, 0.75);
+}
+
+.seo-safe-marquee-track::before,
+.seo-safe-marquee-track::after {
+  content: attr(data-marquee);
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding-inline: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .seo-safe-marquee-track {
+    font-size: 11px;
+  }
+}
+
 @layer components {
   .btn-poet {
     @apply relative inline-flex min-h-11 min-w-[2.75rem] items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-poet-gold-dim via-poet-gold to-poet-gold-bright px-5 py-2.5 text-[0.9375rem] font-semibold leading-tight text-zinc-950 shadow-gold-sm transition duration-300 hover:shadow-gold disabled:pointer-events-none disabled:opacity-45 sm:px-6 sm:py-2 sm:text-sm;
