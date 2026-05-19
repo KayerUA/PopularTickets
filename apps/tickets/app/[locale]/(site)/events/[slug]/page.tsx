@@ -21,6 +21,7 @@ import { COMPANY } from "@/lib/company";
 import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { Link } from "@/i18n/navigation";
+import { resolveEventCopy } from "@/lib/contentI18n";
 import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
 
 /** Server Actions + ISR: закэшированная страница после деплоя даёт «Server Action … was not found». */
@@ -51,23 +52,32 @@ export async function generateMetadata({
       description: tMeta("homeDescription"),
     });
   }
+  const copy = resolveEventCopy(event, locale);
+  if (!copy) {
+    return buildPublicPageMetadata({
+      locale,
+      path: `/events/${slug}`,
+      title: tMeta("homeTitle"),
+      description: tMeta("homeDescription"),
+    });
+  }
   const short = formatEventDateShortForTitle(event.starts_at);
-  const title = `${event.title} — ${tMeta("eventListingLine")}, ${short}`;
-  const desc = `${tMeta("eventDescriptionBuy")} ${formatEventDateTime(event.starts_at, locale)}. ${event.venue}. ${truncateMetaDescription(event.description)}`;
+  const title = `${copy.title} — ${tMeta("eventListingLine")}, ${short}`;
+  const desc = `${tMeta("eventDescriptionBuy")} ${formatEventDateTime(event.starts_at, locale)}. ${event.venue}. ${truncateMetaDescription(copy.description)}`;
   const base = getPublicAppUrl()?.replace(/\/$/, "");
   let ogImages: { url: string; width: number; height: number; alt: string }[] | undefined;
   if (event.image_url && base) {
     const abs = event.image_url.startsWith("http://") || event.image_url.startsWith("https://")
       ? event.image_url
       : new URL(event.image_url, base).toString();
-    ogImages = [{ url: abs, width: 1200, height: 630, alt: event.title }];
+    ogImages = [{ url: abs, width: 1200, height: 630, alt: copy.title }];
   }
   const keywords = [
     ...tMeta("homeKeywords")
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean),
-    event.title,
+    copy.title,
     event.venue,
   ];
   const robots =
@@ -102,6 +112,8 @@ export default async function EventPage({
     return <SupabaseQueryErrorPanel locale={locale} error={error} titleNamespace="EventPage" titleKey="loadQueryError" />;
   }
   if (!event) notFound();
+  const copy = resolveEventCopy(event, locale);
+  if (!copy) notFound();
 
   const { count: sold, error: cErr } = await supabase
     .from("tickets")
@@ -121,7 +133,7 @@ export default async function EventPage({
   const listingKind = normalizeEventListingKind(event.listing_kind);
   const mapsHref = resolveEventMapsUrl({
     maps_url: event.maps_url,
-    description: event.description,
+    description: copy.description,
   });
   const whenStr = formatEventDateTime(event.starts_at, locale);
   const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "";
@@ -134,7 +146,7 @@ export default async function EventPage({
       ? buildBreadcrumbListJsonLd([
           { name: t("breadcrumbHome"), item: homeUrl },
           { name: t("breadcrumbAfisha"), item: afishaUrl },
-          { name: event.title, item: eventUrlAbs },
+          { name: copy.title, item: eventUrlAbs },
         ])
       : null;
 
@@ -168,16 +180,16 @@ export default async function EventPage({
           <li aria-hidden className="text-zinc-600">
             /
           </li>
-          <li className="max-w-[min(100%,28rem)] truncate text-zinc-300" title={event.title}>
-            {event.title}
+          <li className="max-w-[min(100%,28rem)] truncate text-zinc-300" title={copy.title}>
+            {copy.title}
           </li>
         </ol>
       </nav>
       <JsonLd
         data={buildEventJsonLd(
           {
-            title: event.title,
-            description: event.description,
+            title: copy.title,
+            description: copy.description,
             venue: event.venue,
             starts_at: event.starts_at,
             image_url: event.image_url,
@@ -209,7 +221,7 @@ export default async function EventPage({
         <div className="space-y-4 p-4 sm:p-8">
           <div>
             <h1 className="font-display text-2xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
-              <span className="text-gradient-gold [overflow-wrap:anywhere]">{event.title}</span>
+              <span className="text-gradient-gold [overflow-wrap:anywhere]">{copy.title}</span>
             </h1>
             {marketingStatus ? (
               <div className="mt-3">
@@ -271,7 +283,7 @@ export default async function EventPage({
             )}
           </div>
           <p className="whitespace-pre-wrap break-words text-[0.9375rem] leading-relaxed text-zinc-300 sm:text-base">
-            {event.description}
+            {copy.description}
           </p>
           {isTrialEvent ? (
             <aside className="rounded-xl border border-poet-gold/20 bg-black/25 px-4 py-4">

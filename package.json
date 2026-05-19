@@ -16,7 +16,10 @@
     "check:jsonld": "node scripts/check-jsonld-schema.mjs",
     "check:ticket-pdf-i18n": "node scripts/check-ticket-pdf-i18n-sync.mjs",
     "verify:supabase": "node scripts/verify-supabase.mjs",
-    "seed:improv": "node scripts/seed-improv-event.mjs",
+    "backfill:i18n": "node scripts/backfill-content-i18n.mjs",
+  "backfill:i18n:apply": "node scripts/backfill-content-i18n.mjs --apply",
+  "backfill:i18n:data": "node scripts/backfill-content-i18n-data.mjs --write-sql",
+  "backfill:i18n:data:apply": "node scripts/backfill-content-i18n-data.mjs --apply",
     "gen:ticket-fonts": "node scripts/gen-ticket-pdf-fonts-embedded.mjs"
   }
 }

@@ -17,7 +17,7 @@ export default async function HomePage() {
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("Poet");
   const tMeta = await getTranslations("metadata");
-  const [trials, dbCourses] = await Promise.all([fetchPublishedTrials(), fetchPublishedPoetCourses()]);
+  const [trials, dbCourses] = await Promise.all([fetchPublishedTrials(locale), fetchPublishedPoetCourses()]);
   const heroProofs = [t("heroProofPractice"), t("heroProofGroups"), t("heroProofTrial")];
 
   const base = getPoetSiteUrl()?.replace(/\/$/, "");
@@ -99,7 +99,7 @@ export default async function HomePage() {
       <section id="kursy" className="mt-12 scroll-mt-32 sm:mt-16 sm:scroll-mt-28">
         <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("coursesTitle")}</h2>
         <p className="mt-2 max-w-2xl text-sm text-zinc-500">{t("coursesIntro")}</p>
-        <PoetCourseShowcase dbCourses={dbCourses} />
+        <PoetCourseShowcase dbCourses={dbCourses} locale={locale} />
       </section>
 
       <section id="schedule" className="mt-14 scroll-mt-32 sm:mt-20 sm:scroll-mt-28">

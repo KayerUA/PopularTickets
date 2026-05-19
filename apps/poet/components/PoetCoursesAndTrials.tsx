@@ -4,24 +4,28 @@ import type { AppLocale } from "@/i18n/routing";
 import { THEATRE_DIRECTOR_TELEGRAM_HANDLE, THEATRE_DIRECTOR_TELEGRAM_URL } from "@/lib/theatre";
 import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
 import type { PoetCourseRow } from "@/lib/poetCourses";
+import { resolveCourseCopy, resolveCourseTag } from "@/lib/contentI18n";
+import type { AppLocale } from "@/i18n/routing";
 import { normalizeCourseCardVariant, staticCourseKeys, type PoetStaticCourseSlug } from "@/lib/poetStaticCourses";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 
 const STATIC_SLUGS: readonly PoetStaticCourseSlug[] = ["improv", "acting", "masterclass", "playback"];
 
-export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseRow[] }) {
+export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: PoetCourseRow[]; locale: AppLocale }) {
   const t = await getTranslations("Poet");
   const useDb = dbCourses.length > 0;
 
   return (
     <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {useDb
-        ? dbCourses.map((c) => {
-            const variant = normalizeCourseCardVariant(c.card_variant);
-            const img = c.card_image_url.trim() || "/courses/theatre.jpg";
-            const displayBody = c.body?.trim() ?? "";
-            const tagLine = (c.card_tag ?? "").trim();
-            return (
+        ? dbCourses
+            .map((c) => {
+              const copy = resolveCourseCopy(c, locale);
+              if (!copy) return null;
+              const variant = normalizeCourseCardVariant(c.card_variant);
+              const img = c.card_image_url.trim() || "/courses/theatre.jpg";
+              const tagLine = resolveCourseTag(c, locale);
+              return (
               <li key={c.id} className="h-full list-none">
                 <Link
                   href={`/kursy/${c.slug}`}
@@ -31,7 +35,7 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
                   <div className="relative -mx-1 -mt-1 mb-3 aspect-[3/4] w-full overflow-hidden rounded-lg border border-poet-gold/15 bg-zinc-950 sm:aspect-video">
                     <MediaCoverBlurred
                       src={img}
-                      alt={c.title}
+                      alt={copy.title}
                       sizes="(max-width:640px) 100vw, 25vw"
                       unoptimized={img.startsWith("http://") || img.startsWith("https://")}
                       frameClassName="absolute inset-0"
@@ -41,16 +45,17 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
                     <p className="relative text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500">{tagLine}</p>
                   ) : null}
                   <h3 className="relative mt-2 font-display text-xl font-semibold tracking-tight text-gradient-gold sm:text-[1.35rem]">
-                    {c.title}
+                    {copy.title}
                   </h3>
-                  <p className="relative mt-3 flex-1 text-sm leading-relaxed text-zinc-400">{displayBody}</p>
+                  <p className="relative mt-3 flex-1 text-sm leading-relaxed text-zinc-400">{copy.description}</p>
                   <span className="relative mt-5 inline-flex w-full items-center justify-center rounded-lg border border-poet-gold/25 bg-black/25 px-3 py-2 text-center text-xs font-semibold text-poet-gold-bright transition group-hover:border-poet-gold/45 group-hover:bg-poet-gold/10">
                     {t("courseCardCta")}
                   </span>
                 </Link>
               </li>
-            );
-          })
+              );
+            })
+            .filter((node) => node !== null)
         : STATIC_SLUGS.map((slug) => {
             const keys = staticCourseKeys(slug);
             return (

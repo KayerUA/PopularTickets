@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPoetSupabase } from "@/lib/supabasePoet";
+import type { AppLocale } from "@/i18n/routing";
+import { resolveCourseCopy, resolveEventCopy } from "@/lib/contentI18n";
 
 export type PoetTrialDisplay = {
   id: string;
@@ -14,7 +16,20 @@ export type PoetTrialDisplay = {
   courseLine: string | null;
 };
 
-type PoetCourseJoin = { id: string; slug: string; title: string };
+type PoetCourseJoin = { id: string; slug: string; title: string; title_pl?: string | null; title_uk?: string | null };
+
+function courseLineFromJoin(pc: PoetCourseJoin | null, locale: AppLocale): string | null {
+  if (!pc) return null;
+  const copy = resolveCourseCopy(
+    {
+      title: pc.title,
+      title_pl: pc.title_pl,
+      title_uk: pc.title_uk,
+    },
+    locale,
+  );
+  return copy?.title ?? null;
+}
 
 function tidyText(value: string): string {
   return value.replace(/\s+/g, " ").replace(/\s+([,.!?;:])/g, "$1").trim();
@@ -63,8 +78,24 @@ function nestedOne<T>(v: T | T[] | null | undefined): T | null {
   return Array.isArray(v) ? (v[0] ?? null) : v;
 }
 
-function mapEventRow(r: Record<string, unknown>, mode: "full" | "basic" | "idOnly"): PoetTrialDisplay {
-  const desc = (r.description as string | null)?.trim();
+function mapEventRow(
+  r: Record<string, unknown>,
+  mode: "full" | "basic" | "idOnly",
+  locale: AppLocale,
+): PoetTrialDisplay | null {
+  const copy = resolveEventCopy(
+    {
+      title: r.title as string,
+      description: r.description as string | undefined,
+      title_pl: r.title_pl as string | null | undefined,
+      description_pl: r.description_pl as string | null | undefined,
+      title_uk: r.title_uk as string | null | undefined,
+      description_uk: r.description_uk as string | null | undefined,
+    },
+    locale,
+  );
+  if (!copy) return null;
+
   let courseId: string | null = null;
   let courseSlug: string | null = null;
   let courseLine: string | null = null;
@@ -72,14 +103,16 @@ function mapEventRow(r: Record<string, unknown>, mode: "full" | "basic" | "idOnl
     const pc = nestedOne(r.poet_course as PoetCourseJoin | PoetCourseJoin[] | null);
     courseId = (r.poet_course_id as string | null) ?? pc?.id ?? null;
     courseSlug = pc?.slug ?? null;
-    courseLine = pc?.title ? String(pc.title) : null;
+    courseLine = courseLineFromJoin(pc, locale);
   } else if (mode === "idOnly") {
     courseId = (r.poet_course_id as string | null) ?? null;
   }
+  const title = locale === "pl" ? copy.title : normalizeTrialTitle(copy.title);
+  const body = locale === "pl" ? copy.description || null : normalizeTrialBody(copy.description || null);
   return {
     id: `event:${r.id as string}`,
-    title: normalizeTrialTitle(r.title as string),
-    body: normalizeTrialBody(desc && desc.length > 0 ? desc : null),
+    title,
+    body: body && body.length > 0 ? body : null,
     starts_at: r.starts_at as string,
     slug: r.slug as string,
     courseId,
@@ -88,7 +121,25 @@ function mapEventRow(r: Record<string, unknown>, mode: "full" | "basic" | "idOnl
   };
 }
 
-function mapSlotRow(raw: Record<string, unknown>, withCourse: boolean, implicitCourseId?: string | null): PoetTrialDisplay {
+function mapSlotRow(
+  raw: Record<string, unknown>,
+  withCourse: boolean,
+  locale: AppLocale,
+  implicitCourseId?: string | null,
+): PoetTrialDisplay | null {
+  const copy = resolveEventCopy(
+    {
+      title: raw.title as string,
+      description: raw.body as string | undefined,
+      title_pl: raw.title_pl as string | null | undefined,
+      description_pl: raw.body_pl as string | null | undefined,
+      title_uk: raw.title_uk as string | null | undefined,
+      description_uk: raw.body_uk as string | null | undefined,
+    },
+    locale,
+  );
+  if (!copy) return null;
+
   const slug = raw.tickets_checkout_event_slug as string;
   let courseId: string | null = null;
   let courseSlug: string | null = null;
@@ -97,14 +148,16 @@ function mapSlotRow(raw: Record<string, unknown>, withCourse: boolean, implicitC
     const pc = nestedOne(raw.poet_course as PoetCourseJoin | PoetCourseJoin[] | null);
     courseId = pc?.id ?? null;
     courseSlug = pc?.slug ?? null;
-    courseLine = pc?.title ? String(pc.title) : null;
+    courseLine = courseLineFromJoin(pc, locale);
   } else if (implicitCourseId) {
     courseId = implicitCourseId;
   }
+  const title = locale === "pl" ? copy.title : normalizeTrialTitle(copy.title);
+  const body = locale === "pl" ? copy.description || null : normalizeTrialBody(copy.description || null);
   return {
     id: `slot:${raw.id as string}`,
-    title: normalizeTrialTitle(raw.title as string),
-    body: normalizeTrialBody((raw.body as string | null) ?? null),
+    title,
+    body: body && body.length > 0 ? body : null,
     starts_at: (raw.starts_at as string | null) ?? null,
     slug,
     courseId,
@@ -125,7 +178,7 @@ async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
 }> {
   const full = await supabase
     .from("events")
-    .select("id, slug, title, description, starts_at, poet_course_id, poet_course ( id, slug, title )")
+    .select("id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, poet_course_id, poet_course ( id, slug, title, title_pl, title_uk )")
     .eq("visibility", "published")
     .eq("listing_kind", "trial")
     .gte("starts_at", trialListingStartsFromIso())
@@ -190,19 +243,21 @@ async function loadPublishedTrialSlotRows(supabase: SupabaseClient): Promise<{
 /**
  * Пробні слоти: події з `listing_kind = trial` + legacy `poet_trial_slot` (без дубля по slug).
  */
-export async function fetchPublishedTrials(): Promise<PoetTrialDisplay[]> {
+export async function fetchPublishedTrials(locale: AppLocale = "ru"): Promise<PoetTrialDisplay[]> {
   const supabase = getPoetSupabase();
   if (!supabase) return [];
 
   const { rows: evRows, mode: evMode } = await loadPublishedTrialEventRows(supabase);
-  const fromEvents: PoetTrialDisplay[] = evRows.map((r) => mapEventRow(r, evMode));
+  const fromEvents: PoetTrialDisplay[] = evRows
+    .map((r) => mapEventRow(r, evMode, locale))
+    .filter((t): t is PoetTrialDisplay => t !== null);
   const seenSlugs = new Set(fromEvents.map((e) => e.slug));
 
   const { rows: slotRows, mode: slotMode } = await loadPublishedTrialSlotRows(supabase);
   const fromSlots: PoetTrialDisplay[] = [];
   for (const raw of slotRows) {
-    const slot = mapSlotRow(raw, slotMode === "full");
-    if (seenSlugs.has(slot.slug)) continue;
+    const slot = mapSlotRow(raw, slotMode === "full", locale);
+    if (!slot || seenSlugs.has(slot.slug)) continue;
     seenSlugs.add(slot.slug);
     fromSlots.push(slot);
   }
@@ -215,7 +270,7 @@ async function loadTrialEventsForCourse(supabase: SupabaseClient, courseId: stri
   mode: "full" | "idOnly" | "none";
 }> {
   const fullSel =
-    "id, slug, title, description, starts_at, poet_course_id, poet_course ( id, slug, title )" as const;
+    "id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, poet_course_id, poet_course ( id, slug, title, title_pl, title_uk )" as const;
   const full = await supabase
     .from("events")
     .select(fullSel)
@@ -285,21 +340,21 @@ async function loadTrialSlotsForCourse(supabase: SupabaseClient, courseId: strin
 }
 
 /** Пробні лише для сторінки курсу (подія з `poet_course_id` + legacy slot з `course_id`). */
-export async function fetchTrialsForCourse(courseId: string): Promise<PoetTrialDisplay[]> {
+export async function fetchTrialsForCourse(courseId: string, locale: AppLocale = "ru"): Promise<PoetTrialDisplay[]> {
   const supabase = getPoetSupabase();
   if (!supabase) return [];
 
   const { rows: evRows, mode: evMode } = await loadTrialEventsForCourse(supabase, courseId);
-  const fromEvents: PoetTrialDisplay[] = evRows.map((r) =>
-    mapEventRow(r, evMode === "full" ? "full" : evMode === "idOnly" ? "idOnly" : "basic"),
-  );
+  const fromEvents: PoetTrialDisplay[] = evRows
+    .map((r) => mapEventRow(r, evMode === "full" ? "full" : evMode === "idOnly" ? "idOnly" : "basic", locale))
+    .filter((t): t is PoetTrialDisplay => t !== null);
   const seenSlugs = new Set(fromEvents.map((e) => e.slug));
 
   const { rows: slotRows, mode: slotMode } = await loadTrialSlotsForCourse(supabase, courseId);
   const fromSlots: PoetTrialDisplay[] = [];
   for (const raw of slotRows) {
-    const slot = mapSlotRow(raw, slotMode === "full", slotMode === "full" ? null : courseId);
-    if (seenSlugs.has(slot.slug)) continue;
+    const slot = mapSlotRow(raw, slotMode === "full", locale, slotMode === "full" ? undefined : courseId);
+    if (!slot || seenSlugs.has(slot.slug)) continue;
     seenSlugs.add(slot.slug);
     fromSlots.push(slot);
   }

@@ -4,13 +4,17 @@ import { clampEventImageFocal } from "@/lib/eventCoverFocal";
 
 /** Без maps_url — иначе при «schema cache» без колонки падает весь запрос. */
 const EVENT_SELECT_PUBLIC =
-  "id,slug,title,description,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,listing_kind,visibility" as const;
+  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,listing_kind,visibility" as const;
 
 export type PublishedEventRow = {
   id: string;
   slug: string;
   title: string;
   description: string;
+  title_pl: string | null;
+  description_pl: string | null;
+  title_uk: string | null;
+  description_uk: string | null;
   image_url: string | null;
   image_focal_x: number;
   image_focal_y: number;
@@ -32,12 +36,23 @@ export async function fetchPublishedEventBySlug(
   supabase: SupabaseClient,
   slug: string
 ): Promise<{ data: PublishedEventRow | null; error: PostgrestError | null }> {
-  const main = await supabase
+  let main = await supabase
     .from("events")
     .select(EVENT_SELECT_PUBLIC)
     .eq("slug", slug)
     .in("visibility", ["published", "unlisted"])
     .maybeSingle();
+
+  if (main.error?.code === "42703") {
+    main = await supabase
+      .from("events")
+      .select(
+        "id,slug,title,description,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,listing_kind,visibility"
+      )
+      .eq("slug", slug)
+      .in("visibility", ["published", "unlisted"])
+      .maybeSingle();
+  }
 
   if (main.error) {
     return { data: null, error: main.error };
@@ -46,7 +61,13 @@ export async function fetchPublishedEventBySlug(
     return { data: null, error: null };
   }
 
-  const row = main.data as Omit<PublishedEventRow, "maps_url" | "description"> & { description?: unknown };
+  const row = main.data as Omit<PublishedEventRow, "maps_url" | "description"> & {
+    description?: unknown;
+    title_pl?: unknown;
+    description_pl?: unknown;
+    title_uk?: unknown;
+    description_uk?: unknown;
+  };
   const mapsUrl = await fetchOptionalMapsUrl(supabase, row.id);
   const description = typeof row.description === "string" ? row.description : "";
 
@@ -68,8 +89,31 @@ export async function fetchPublishedEventBySlug(
     }
   }
 
+  const title_pl = typeof (row as { title_pl?: unknown }).title_pl === "string" ? (row as { title_pl: string }).title_pl : null;
+  const description_pl =
+    typeof (row as { description_pl?: unknown }).description_pl === "string"
+      ? (row as { description_pl: string }).description_pl
+      : null;
+  const title_uk = typeof (row as { title_uk?: unknown }).title_uk === "string" ? (row as { title_uk: string }).title_uk : null;
+  const description_uk =
+    typeof (row as { description_uk?: unknown }).description_uk === "string"
+      ? (row as { description_uk: string }).description_uk
+      : null;
+
   return {
-    data: { ...row, description, maps_url: mapsUrl, listing_kind, visibility, image_focal_x, image_focal_y },
+    data: {
+      ...row,
+      description,
+      title_pl,
+      description_pl,
+      title_uk,
+      description_uk,
+      maps_url: mapsUrl,
+      listing_kind,
+      visibility,
+      image_focal_x,
+      image_focal_y,
+    },
     error: null,
   };
 }

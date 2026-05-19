@@ -5,6 +5,7 @@ import { routing, type AppLocale } from "@/i18n/routing";
 import { fetchPublishedPoetCourseBySlug } from "@/lib/poetCourses";
 import { fetchPublishedTrials, fetchTrialsForCourse, filterTrialsByCourseSlug, type PoetTrialDisplay } from "@/lib/poetTrials";
 import { getTicketsSiteBase, ticketsEventPage, ticketsHome } from "@/lib/ticketsSite";
+import { resolveCourseCopy, resolveCourseTag } from "@/lib/contentI18n";
 import { buildPoetPageMetadata, poetCanonicalPath } from "@/lib/seoPoet";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
 import {
@@ -34,8 +35,11 @@ export async function generateMetadata({ params }: PageProps) {
   let description: string;
 
   if (course) {
-    title = course.title;
-    const body = course.body?.trim();
+    const loc = locale as AppLocale;
+    const copy = resolveCourseCopy(course, loc);
+    if (!copy) return {};
+    title = copy.title;
+    const body = copy.description.trim();
     description =
       body && body.length > 10
         ? body.slice(0, 155)
@@ -94,15 +98,16 @@ export default async function PoetCoursePage({ params }: PageProps) {
   };
 
   if (dbCourse) {
+    const loc = locale as AppLocale;
+    const copy = resolveCourseCopy(dbCourse, loc);
+    if (!copy) notFound();
     const variant = normalizeCourseCardVariant(dbCourse.card_variant);
     const cardUrl = dbCourse.card_image_url.trim() || "/courses/theatre.jpg";
     const heroUrl = (dbCourse.hero_image_url?.trim() || cardUrl).trim();
-    const tagLine = (dbCourse.card_tag ?? "").trim();
-    const bodyText = dbCourse.body?.trim() ?? "";
     display = {
-      title: dbCourse.title,
-      body: bodyText,
-      tag: tagLine,
+      title: copy.title,
+      body: copy.description,
+      tag: resolveCourseTag(dbCourse, loc),
       variant,
       image: heroUrl,
     };
@@ -121,15 +126,15 @@ export default async function PoetCoursePage({ params }: PageProps) {
   }
 
   let trials: PoetTrialDisplay[];
+  const loc = locale as AppLocale;
   if (dbCourse) {
-    trials = await fetchTrialsForCourse(dbCourse.id);
+    trials = await fetchTrialsForCourse(dbCourse.id, loc);
   } else {
-    const all = await fetchPublishedTrials();
+    const all = await fetchPublishedTrials(loc);
     trials = filterTrialsByCourseSlug(all, slug);
   }
 
   const base = getPoetSiteUrl()?.replace(/\/$/, "");
-  const loc = locale as AppLocale;
   const courseAbs = base ? `${base}${poetCanonicalPath(loc, `/kursy/${slug}`)}` : "";
   const homeAbs = base ? `${base}${poetCanonicalPath(loc, "/")}` : "";
   const coursesSectionAbs = base ? `${homeAbs}#kursy` : "";

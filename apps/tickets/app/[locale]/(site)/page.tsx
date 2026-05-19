@@ -5,6 +5,7 @@ import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { SupabaseQueryErrorPanel } from "@/components/SupabaseQueryErrorPanel";
 import type { EventCardProps } from "@/components/EventCard";
 import { resolveEventMarketingStatus, sortEventsForMarketing, normalizeEventListingKind } from "@/lib/eventMarketingStatus";
+import { resolveEventCopy } from "@/lib/contentI18n";
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import type { AppLocale } from "@/i18n/routing";
@@ -68,17 +69,35 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
   }
   const { data: events, error } = await supabase
     .from("events")
-    .select("id,slug,title,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
+    .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
     .eq("visibility", "published")
     .eq("listing_kind", "performance")
     .order("starts_at", { ascending: true });
 
-  if (error) {
+  let rows = events;
+  if (error?.code === "42703") {
+    const fallback = await supabase
+      .from("events")
+      .select("id,slug,title,description,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
+      .eq("visibility", "published")
+      .eq("listing_kind", "performance")
+      .order("starts_at", { ascending: true });
+    if (fallback.error) {
+      return <SupabaseQueryErrorPanel locale={locale} error={fallback.error} titleNamespace="Home" titleKey="loadError" />;
+    }
+    rows = (fallback.data ?? []).map((ev) => ({
+      ...ev,
+      title_pl: null,
+      description_pl: null,
+      title_uk: null,
+      description_uk: null,
+    }));
+  } else if (error) {
     return <SupabaseQueryErrorPanel locale={locale} error={error} titleNamespace="Home" titleKey="loadError" />;
   }
 
-  const rows = events ?? [];
-  const ids = rows.map((ev) => ev.id as string);
+  const eventRows = rows ?? [];
+  const ids = eventRows.map((ev) => ev.id as string);
   const soldMap = new Map<string, number>();
   if (ids.length) {
     const { data: ticketRows } = await supabase.from("tickets").select("event_id").in("event_id", ids);
@@ -89,29 +108,43 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
   }
 
   const list: EventCardProps[] = sortEventsForMarketing(
-    rows.map((ev) => {
-      const totalTickets = ev.total_tickets as number;
-      const sold = soldMap.get(ev.id as string) ?? 0;
-      const remaining = totalTickets - sold;
-      const status = resolveEventMarketingStatus({
-        startsAt: ev.starts_at as string,
-        remaining,
-        totalTickets,
-      });
-      return {
-        slug: ev.slug as string,
-        title: ev.title as string,
-        venue: ev.venue as string,
-        startsAt: ev.starts_at as string,
-        priceGrosze: ev.price_grosze as number,
-        imageUrl: (ev.image_url as string | null) ?? null,
-        imageFocalX: typeof (ev as { image_focal_x?: unknown }).image_focal_x === "number" ? (ev as { image_focal_x: number }).image_focal_x : null,
-        imageFocalY: typeof (ev as { image_focal_y?: unknown }).image_focal_y === "number" ? (ev as { image_focal_y: number }).image_focal_y : null,
-        locale,
-        status,
-        listingKind: normalizeEventListingKind((ev as { listing_kind?: string | null }).listing_kind),
-      };
-    })
+    eventRows
+      .map((ev) => {
+        const copy = resolveEventCopy(
+          {
+            title: ev.title as string,
+            description: ev.description as string | undefined,
+            title_pl: (ev as { title_pl?: string | null }).title_pl,
+            description_pl: (ev as { description_pl?: string | null }).description_pl,
+            title_uk: (ev as { title_uk?: string | null }).title_uk,
+            description_uk: (ev as { description_uk?: string | null }).description_uk,
+          },
+          locale,
+        );
+        if (!copy) return null;
+        const totalTickets = ev.total_tickets as number;
+        const sold = soldMap.get(ev.id as string) ?? 0;
+        const remaining = totalTickets - sold;
+        const status = resolveEventMarketingStatus({
+          startsAt: ev.starts_at as string,
+          remaining,
+          totalTickets,
+        });
+        return {
+          slug: ev.slug as string,
+          title: copy.title,
+          venue: ev.venue as string,
+          startsAt: ev.starts_at as string,
+          priceGrosze: ev.price_grosze as number,
+          imageUrl: (ev.image_url as string | null) ?? null,
+          imageFocalX: typeof (ev as { image_focal_x?: unknown }).image_focal_x === "number" ? (ev as { image_focal_x: number }).image_focal_x : null,
+          imageFocalY: typeof (ev as { image_focal_y?: unknown }).image_focal_y === "number" ? (ev as { image_focal_y: number }).image_focal_y : null,
+          locale,
+          status,
+          listingKind: normalizeEventListingKind((ev as { listing_kind?: string | null }).listing_kind),
+        };
+      })
+      .filter((item): item is EventCardProps => item !== null),
   );
 
   return (
