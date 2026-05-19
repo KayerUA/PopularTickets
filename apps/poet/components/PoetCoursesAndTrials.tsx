@@ -5,7 +5,6 @@ import { THEATRE_DIRECTOR_TELEGRAM_HANDLE, THEATRE_DIRECTOR_TELEGRAM_URL } from 
 import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
 import type { PoetCourseRow } from "@/lib/poetCourses";
 import { resolveCourseCopy, resolveCourseTag } from "@/lib/contentI18n";
-import type { AppLocale } from "@/i18n/routing";
 import { normalizeCourseCardVariant, staticCourseKeys, type PoetStaticCourseSlug } from "@/lib/poetStaticCourses";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 
