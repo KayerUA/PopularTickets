@@ -1,14 +1,21 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { upsertPoetCourse, type UpsertPoetCourseState } from "@/app/actions/poet-courses";
 import type { ContentVisibility } from "@/lib/contentVisibility";
+import { AdminTranslateLocalesButton, type LocaleFields } from "@/components/AdminTranslateLocalesButton";
 
 export type AdminPoetCourseRow = {
   id: string;
   slug: string;
   title: string;
   body: string | null;
+  title_pl?: string | null;
+  body_pl?: string | null;
+  title_uk?: string | null;
+  body_uk?: string | null;
+  card_tag_pl?: string | null;
+  card_tag_uk?: string | null;
   visibility: ContentVisibility;
   sort_order: number;
   card_image_url: string;
@@ -26,9 +33,36 @@ const CARD_VARIANT_OPTIONS = [
   { value: "playback", label: "PLAY-BACK (индиго)" },
 ] as const;
 
-export function PoetCourseForm({ course }: { course?: AdminPoetCourseRow }) {
+export function PoetCourseForm({
+  course,
+  translateProviderHint,
+}: {
+  course?: AdminPoetCourseRow;
+  translateProviderHint?: string;
+}) {
   const [state, formAction, pending] = useActionState(upsertPoetCourse, initialState);
   const defaultVisibility: ContentVisibility = course?.visibility ?? "inactive";
+
+  const [locales, setLocales] = useState<LocaleFields>({
+    title_pl: course?.title_pl ?? "",
+    body_pl: course?.body_pl ?? "",
+    title_uk: course?.title_uk ?? "",
+    body_uk: course?.body_uk ?? "",
+    card_tag_pl: course?.card_tag_pl ?? "",
+    card_tag_uk: course?.card_tag_uk ?? "",
+  });
+
+  useEffect(() => {
+    if (!course) return;
+    setLocales({
+      title_pl: course.title_pl ?? "",
+      body_pl: course.body_pl ?? "",
+      title_uk: course.title_uk ?? "",
+      body_uk: course.body_uk ?? "",
+      card_tag_pl: course.card_tag_pl ?? "",
+      card_tag_uk: course.card_tag_uk ?? "",
+    });
+  }, [course?.id]);
 
   return (
     <form action={formAction} className="max-w-2xl space-y-5">
@@ -49,7 +83,7 @@ export function PoetCourseForm({ course }: { course?: AdminPoetCourseRow }) {
         />
       </label>
       <label className="block text-sm text-zinc-300">
-        Название на сайте
+        Название (русский, основной)
         <input
           name="title"
           required
@@ -91,7 +125,7 @@ export function PoetCourseForm({ course }: { course?: AdminPoetCourseRow }) {
         </select>
       </label>
       <label className="block text-sm text-zinc-300">
-        Короткая метка над названием (например «Импро»; можно пусто)
+        Короткая метка над названием (русский, напр. «Импро»)
         <input
           name="cardTag"
           defaultValue={course?.card_tag ?? ""}
@@ -100,7 +134,7 @@ export function PoetCourseForm({ course }: { course?: AdminPoetCourseRow }) {
         />
       </label>
       <label className="block text-sm text-zinc-300">
-        Текст на карточке
+        Текст на карточке (русский)
         <textarea
           name="body"
           rows={6}
@@ -108,6 +142,81 @@ export function PoetCourseForm({ course }: { course?: AdminPoetCourseRow }) {
           className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
         />
       </label>
+
+      <AdminTranslateLocalesButton
+        readSource={() => {
+          const titleEl = document.querySelector<HTMLInputElement>('input[name="title"]');
+          const bodyEl = document.querySelector<HTMLTextAreaElement>('textarea[name="body"]');
+          const tagEl = document.querySelector<HTMLInputElement>('input[name="cardTag"]');
+          return {
+            title: titleEl?.value ?? course?.title ?? "",
+            body: bodyEl?.value ?? course?.body ?? "",
+            cardTag: tagEl?.value ?? course?.card_tag ?? "",
+          };
+        }}
+        localeFields={locales}
+        onLocalesChange={setLocales}
+        includeCardTag
+        providerHint={translateProviderHint}
+      />
+
+      <label className="block text-sm text-zinc-300">
+        Название (polski) — /pl/
+        <input
+          name="titlePl"
+          value={locales.title_pl}
+          onChange={(e) => setLocales((p) => ({ ...p, title_pl: e.target.value }))}
+          className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+        />
+      </label>
+      <label className="block text-sm text-zinc-300">
+        Etykieta kafelka (polski)
+        <input
+          name="cardTagPl"
+          value={locales.card_tag_pl ?? ""}
+          onChange={(e) => setLocales((p) => ({ ...p, card_tag_pl: e.target.value }))}
+          className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+        />
+      </label>
+      <label className="block text-sm text-zinc-300">
+        Tekst na kafelku (polski)
+        <textarea
+          name="bodyPl"
+          rows={5}
+          value={locales.body_pl}
+          onChange={(e) => setLocales((p) => ({ ...p, body_pl: e.target.value }))}
+          className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+        />
+      </label>
+      <label className="block text-sm text-zinc-300">
+        Название (українська) — /uk/
+        <input
+          name="titleUk"
+          value={locales.title_uk}
+          onChange={(e) => setLocales((p) => ({ ...p, title_uk: e.target.value }))}
+          className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+        />
+      </label>
+      <label className="block text-sm text-zinc-300">
+        Мітка (українська)
+        <input
+          name="cardTagUk"
+          value={locales.card_tag_uk ?? ""}
+          onChange={(e) => setLocales((p) => ({ ...p, card_tag_uk: e.target.value }))}
+          className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+        />
+      </label>
+      <label className="block text-sm text-zinc-300">
+        Текст (українська)
+        <textarea
+          name="bodyUk"
+          rows={4}
+          value={locales.body_uk}
+          onChange={(e) => setLocales((p) => ({ ...p, body_uk: e.target.value }))}
+          className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+        />
+      </label>
+
       <label className="block text-sm text-zinc-300">
         Порядок (меньше — выше в списке)
         <input

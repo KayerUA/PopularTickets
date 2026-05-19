@@ -5,6 +5,7 @@ import { getServiceSupabase } from "@/lib/supabase/admin";
 import { HomeEventsGrid } from "@/components/HomeEventsGrid";
 import type { EventCardProps } from "@/components/EventCard";
 import { resolveEventMarketingStatus, sortEventsForMarketing, normalizeEventListingKind } from "@/lib/eventMarketingStatus";
+import { resolveEventCopy } from "@/lib/contentI18n";
 import type { AppLocale } from "@/i18n/routing";
 import { routing } from "@/i18n/routing";
 import { buildPublicPageMetadata } from "@/lib/seo";
@@ -43,13 +44,32 @@ export default async function IntentDiscoverPage({
   const supabase = getServiceSupabase();
   let list: EventCardProps[] = [];
   if (supabase) {
-    const { data: events } = await supabase
+    const { data: events, error } = await supabase
       .from("events")
-      .select("id,slug,title,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
+      .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
       .eq("visibility", "published")
       .eq("listing_kind", "performance")
       .order("starts_at", { ascending: true });
-    const rows = events ?? [];
+
+    let rows = events;
+    if (error?.code === "42703") {
+      const fallback = await supabase
+        .from("events")
+        .select("id,slug,title,description,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
+        .eq("visibility", "published")
+        .eq("listing_kind", "performance")
+        .order("starts_at", { ascending: true });
+      rows = (fallback.data ?? []).map((ev) => ({
+        ...ev,
+        title_pl: null,
+        description_pl: null,
+        title_uk: null,
+        description_uk: null,
+      }));
+    } else {
+      rows = events ?? [];
+    }
+
     const ids = rows.map((ev) => ev.id as string);
     const soldMap = new Map<string, number>();
     if (ids.length) {
@@ -59,31 +79,50 @@ export default async function IntentDiscoverPage({
         soldMap.set(eid, (soldMap.get(eid) ?? 0) + 1);
       }
     }
-    list = sortEventsForMarketing(
-      rows.map((ev) => {
-        const totalTickets = ev.total_tickets as number;
-        const sold = soldMap.get(ev.id as string) ?? 0;
-        const remaining = totalTickets - sold;
-        const status = resolveEventMarketingStatus({
-          startsAt: ev.starts_at as string,
-          remaining,
-          totalTickets,
-        });
-        return {
-          slug: ev.slug as string,
+    const cards: EventCardProps[] = rows.flatMap((ev) => {
+      const copy = resolveEventCopy(
+        {
           title: ev.title as string,
+          description: ev.description as string | undefined,
+          title_pl: (ev as { title_pl?: string | null }).title_pl,
+          description_pl: (ev as { description_pl?: string | null }).description_pl,
+          title_uk: (ev as { title_uk?: string | null }).title_uk,
+          description_uk: (ev as { description_uk?: string | null }).description_uk,
+        },
+        locale,
+      );
+      if (!copy) return [];
+      const totalTickets = ev.total_tickets as number;
+      const sold = soldMap.get(ev.id as string) ?? 0;
+      const remaining = totalTickets - sold;
+      const status = resolveEventMarketingStatus({
+        startsAt: ev.starts_at as string,
+        remaining,
+        totalTickets,
+      });
+      return [
+        {
+          slug: ev.slug as string,
+          title: copy.title,
           venue: ev.venue as string,
           startsAt: ev.starts_at as string,
           priceGrosze: ev.price_grosze as number,
           imageUrl: (ev.image_url as string | null) ?? null,
-          imageFocalX: typeof (ev as { image_focal_x?: unknown }).image_focal_x === "number" ? (ev as { image_focal_x: number }).image_focal_x : null,
-          imageFocalY: typeof (ev as { image_focal_y?: unknown }).image_focal_y === "number" ? (ev as { image_focal_y: number }).image_focal_y : null,
+          imageFocalX:
+            typeof (ev as { image_focal_x?: unknown }).image_focal_x === "number"
+              ? (ev as { image_focal_x: number }).image_focal_x
+              : null,
+          imageFocalY:
+            typeof (ev as { image_focal_y?: unknown }).image_focal_y === "number"
+              ? (ev as { image_focal_y: number }).image_focal_y
+              : null,
           locale,
           status,
           listingKind: normalizeEventListingKind((ev as { listing_kind?: string | null }).listing_kind),
-        };
-      })
-    );
+        },
+      ];
+    });
+    list = sortEventsForMarketing(cards);
   }
 
   return (

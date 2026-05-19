@@ -19,6 +19,12 @@ const PoetCourseSchema = z.object({
     .max(80)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug: только латиница, цифры и дефис"),
   title: z.string().min(2).max(200),
+  titlePl: z.string().max(200).optional().default(""),
+  bodyPl: z.string().max(20000).optional().default(""),
+  titleUk: z.string().max(200).optional().default(""),
+  bodyUk: z.string().max(20000).optional().default(""),
+  cardTagPl: z.string().max(120).optional().default(""),
+  cardTagUk: z.string().max(120).optional().default(""),
   cardImageUrl: z.string().min(1).max(800),
   heroImageUrl: z.string().max(800).optional().default(""),
   cardVariant: cardVariantSchema,
@@ -26,7 +32,18 @@ const PoetCourseSchema = z.object({
   body: z.string().max(20000).optional().default(""),
   visibility: contentVisibilitySchema.default("inactive"),
   sortOrder: z.coerce.number().int().min(0).max(9999).default(0),
-});
+})
+  .superRefine((data, ctx) => {
+    if (data.visibility === "published" || data.visibility === "unlisted") {
+      if (data.titlePl.trim().length < 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Для публикации нужен польский заголовок — переведите или заполните вручную.",
+          path: ["titlePl"],
+        });
+      }
+    }
+  });
 
 function isNextRedirectError(e: unknown): boolean {
   return (
@@ -47,6 +64,12 @@ export async function upsertPoetCourse(_prev: UpsertPoetCourseState, formData: F
       id: formData.get("id") || undefined,
       slug: formData.get("slug"),
       title: formData.get("title"),
+      titlePl: formData.get("titlePl") || "",
+      bodyPl: formData.get("bodyPl") || "",
+      titleUk: formData.get("titleUk") || "",
+      bodyUk: formData.get("bodyUk") || "",
+      cardTagPl: formData.get("cardTagPl") || "",
+      cardTagUk: formData.get("cardTagUk") || "",
       cardImageUrl: formData.get("cardImageUrl"),
       heroImageUrl: heroRaw,
       cardVariant: formData.get("cardVariant"),
@@ -66,6 +89,12 @@ export async function upsertPoetCourse(_prev: UpsertPoetCourseState, formData: F
     const payload = {
       slug: v.slug,
       title: v.title,
+      title_pl: v.titlePl.trim() || null,
+      body_pl: v.bodyPl.trim() || null,
+      title_uk: v.titleUk.trim() || null,
+      body_uk: v.bodyUk.trim() || null,
+      card_tag_pl: v.cardTagPl.trim() || null,
+      card_tag_uk: v.cardTagUk.trim() || null,
       card_image_url: v.cardImageUrl.trim(),
       hero_image_url: v.heroImageUrl.trim() ? v.heroImageUrl.trim() : null,
       card_variant: v.cardVariant,

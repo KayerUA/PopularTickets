@@ -10,11 +10,17 @@ import { EventCoverFocalControls } from "@/components/EventCoverFocalControls";
 import { clampEventImageFocal } from "@/lib/eventCoverFocal";
 import { slugifyEventTitle } from "@/lib/eventSlugFromTitle";
 
+import { AdminTranslateLocalesButton, type LocaleFields } from "@/components/AdminTranslateLocalesButton";
+
 export type AdminEventRow = {
   id: string;
   slug: string;
   title: string;
   description: string | null;
+  title_pl?: string | null;
+  description_pl?: string | null;
+  title_uk?: string | null;
+  description_uk?: string | null;
   image_url: string | null;
   image_focal_x?: number;
   image_focal_y?: number;
@@ -37,6 +43,10 @@ function mergeRetryDefaults(
   slug: string;
   title: string;
   description: string;
+  titlePl: string;
+  descriptionPl: string;
+  titleUk: string;
+  descriptionUk: string;
   imageUrl: string;
   mapsUrl: string;
   venue: string;
@@ -54,6 +64,10 @@ function mergeRetryDefaults(
     slug: fields?.slug ?? event?.slug ?? "",
     title: fields?.title ?? event?.title ?? "",
     description: fields?.description ?? event?.description ?? "",
+    titlePl: fields?.titlePl ?? event?.title_pl ?? "",
+    descriptionPl: fields?.descriptionPl ?? event?.description_pl ?? "",
+    titleUk: fields?.titleUk ?? event?.title_uk ?? "",
+    descriptionUk: fields?.descriptionUk ?? event?.description_uk ?? "",
     imageUrl: fields?.imageUrl ?? event?.image_url ?? "",
     mapsUrl:
       fields?.mapsUrl ??
@@ -86,13 +100,21 @@ function AdminFormSection({ title, children }: { title: string; children: React.
 export function EventForm({
   event,
   poetCourseOptions = [],
+  translateProviderHint,
 }: {
   event?: AdminEventRow;
   poetCourseOptions?: PoetCourseSelectOption[];
+  translateProviderHint?: string;
 }) {
   const [state, formAction, pending] = useActionState(upsertEvent, initialUpsertState);
   const d = mergeRetryDefaults(event, state?.fields);
   const [listingKind, setListingKind] = useState<"performance" | "trial">(d.listingKind);
+  const [locales, setLocales] = useState<LocaleFields>({
+    title_pl: d.titlePl,
+    body_pl: d.descriptionPl,
+    title_uk: d.titleUk,
+    body_uk: d.descriptionUk,
+  });
 
   const [imageUrlDraft, setImageUrlDraft] = useState(d.imageUrl);
   const [blobPreview, setBlobPreview] = useState<string | null>(null);
@@ -101,6 +123,12 @@ export function EventForm({
     if (state?.fields) {
       setListingKind(state.fields.listingKind);
       setImageUrlDraft(state.fields.imageUrl);
+      setLocales({
+        title_pl: state.fields.titlePl,
+        body_pl: state.fields.descriptionPl,
+        title_uk: state.fields.titleUk,
+        body_uk: state.fields.descriptionUk,
+      });
     }
   }, [state?.nonce, state?.fields]);
 
@@ -155,7 +183,7 @@ export function EventForm({
             ) : null}
           </label>
           <label className="block text-sm text-zinc-300 sm:col-span-2">
-            Название
+            Название (русский, основной)
             <input
               id="admin-event-title"
               name="title"
@@ -214,7 +242,7 @@ export function EventForm({
 
         <AdminFormSection title="Описание и обложка">
           <label className="block text-sm text-zinc-300 sm:col-span-2">
-            Описание
+            Описание (русский)
             <textarea
               name="description"
               rows={6}
@@ -222,6 +250,61 @@ export function EventForm({
               className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
             />
           </label>
+
+          <AdminTranslateLocalesButton
+            readSource={() => {
+              const titleEl = document.querySelector<HTMLInputElement>('input[name="title"]');
+              const descEl = document.querySelector<HTMLTextAreaElement>('textarea[name="description"]');
+              return {
+                title: titleEl?.value ?? d.title,
+                body: descEl?.value ?? d.description,
+              };
+            }}
+            localeFields={locales}
+            onLocalesChange={setLocales}
+            providerHint={translateProviderHint}
+          />
+
+          <label className="block text-sm text-zinc-300 sm:col-span-2">
+            Название (polski) — /pl/
+            <input
+              name="titlePl"
+              required={false}
+              value={locales.title_pl}
+              onChange={(e) => setLocales((prev) => ({ ...prev, title_pl: e.target.value }))}
+              className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+            />
+          </label>
+          <label className="block text-sm text-zinc-300 sm:col-span-2">
+            Opis (polski)
+            <textarea
+              name="descriptionPl"
+              rows={6}
+              value={locales.body_pl}
+              onChange={(e) => setLocales((prev) => ({ ...prev, body_pl: e.target.value }))}
+              className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+            />
+          </label>
+          <label className="block text-sm text-zinc-300 sm:col-span-2">
+            Название (українська) — /uk/
+            <input
+              name="titleUk"
+              value={locales.title_uk}
+              onChange={(e) => setLocales((prev) => ({ ...prev, title_uk: e.target.value }))}
+              className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+            />
+          </label>
+          <label className="block text-sm text-zinc-300 sm:col-span-2">
+            Опис (українська)
+            <textarea
+              name="descriptionUk"
+              rows={4}
+              value={locales.body_uk}
+              onChange={(e) => setLocales((prev) => ({ ...prev, body_uk: e.target.value }))}
+              className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+            />
+          </label>
+
           <div className="space-y-2 sm:col-span-2">
             <label className="block text-sm text-zinc-300">
               Обложка (файл)

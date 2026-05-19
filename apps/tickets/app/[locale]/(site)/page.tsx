@@ -107,45 +107,51 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
     }
   }
 
-  const list: EventCardProps[] = sortEventsForMarketing(
-    eventRows
-      .map((ev) => {
-        const copy = resolveEventCopy(
-          {
-            title: ev.title as string,
-            description: ev.description as string | undefined,
-            title_pl: (ev as { title_pl?: string | null }).title_pl,
-            description_pl: (ev as { description_pl?: string | null }).description_pl,
-            title_uk: (ev as { title_uk?: string | null }).title_uk,
-            description_uk: (ev as { description_uk?: string | null }).description_uk,
-          },
-          locale,
-        );
-        if (!copy) return null;
-        const totalTickets = ev.total_tickets as number;
-        const sold = soldMap.get(ev.id as string) ?? 0;
-        const remaining = totalTickets - sold;
-        const status = resolveEventMarketingStatus({
-          startsAt: ev.starts_at as string,
-          remaining,
-          totalTickets,
-        });
-        return {
-          slug: ev.slug as string,
-          title: copy.title,
-          venue: ev.venue as string,
-          startsAt: ev.starts_at as string,
-          priceGrosze: ev.price_grosze as number,
-          imageUrl: (ev.image_url as string | null) ?? null,
-          imageFocalX: typeof (ev as { image_focal_x?: unknown }).image_focal_x === "number" ? (ev as { image_focal_x: number }).image_focal_x : null,
-          imageFocalY: typeof (ev as { image_focal_y?: unknown }).image_focal_y === "number" ? (ev as { image_focal_y: number }).image_focal_y : null,
-          locale,
-          status,
-          listingKind: normalizeEventListingKind((ev as { listing_kind?: string | null }).listing_kind),
-        };
-      })
-      .filter((item): item is EventCardProps => item !== null),
-  );
+  const cards: EventCardProps[] = eventRows.flatMap((ev) => {
+    const copy = resolveEventCopy(
+      {
+        title: ev.title as string,
+        description: ev.description as string | undefined,
+        title_pl: (ev as { title_pl?: string | null }).title_pl,
+        description_pl: (ev as { description_pl?: string | null }).description_pl,
+        title_uk: (ev as { title_uk?: string | null }).title_uk,
+        description_uk: (ev as { description_uk?: string | null }).description_uk,
+      },
+      locale,
+    );
+    if (!copy) return [];
+    const totalTickets = ev.total_tickets as number;
+    const sold = soldMap.get(ev.id as string) ?? 0;
+    const remaining = totalTickets - sold;
+    const status = resolveEventMarketingStatus({
+      startsAt: ev.starts_at as string,
+      remaining,
+      totalTickets,
+    });
+    return [
+      {
+        slug: ev.slug as string,
+        title: copy.title,
+        venue: ev.venue as string,
+        startsAt: ev.starts_at as string,
+        priceGrosze: ev.price_grosze as number,
+        imageUrl: (ev.image_url as string | null) ?? null,
+        imageFocalX:
+          typeof (ev as { image_focal_x?: unknown }).image_focal_x === "number"
+            ? (ev as { image_focal_x: number }).image_focal_x
+            : null,
+        imageFocalY:
+          typeof (ev as { image_focal_y?: unknown }).image_focal_y === "number"
+            ? (ev as { image_focal_y: number }).image_focal_y
+            : null,
+        locale,
+        status,
+        listingKind: normalizeEventListingKind((ev as { listing_kind?: string | null }).listing_kind),
+      },
+    ];
+  });
+
+  const list = sortEventsForMarketing(cards);
 
   return (
     <div className="poet-safe-x mx-auto max-w-5xl py-10 sm:py-16">

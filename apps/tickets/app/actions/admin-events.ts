@@ -19,6 +19,10 @@ export type UpsertEventRetryFields = {
   slug: string;
   title: string;
   description: string;
+  titlePl: string;
+  descriptionPl: string;
+  titleUk: string;
+  descriptionUk: string;
   imageUrl: string;
   mapsUrl: string;
   venue: string;
@@ -49,6 +53,10 @@ function formRetryFromFormData(formData: FormData): UpsertEventRetryFields {
     slug: String(formData.get("slug") ?? ""),
     title: String(formData.get("title") ?? ""),
     description: String(formData.get("description") ?? ""),
+    titlePl: String(formData.get("titlePl") ?? ""),
+    descriptionPl: String(formData.get("descriptionPl") ?? ""),
+    titleUk: String(formData.get("titleUk") ?? ""),
+    descriptionUk: String(formData.get("descriptionUk") ?? ""),
     imageUrl: String(formData.get("imageUrl") ?? ""),
     mapsUrl: String(formData.get("mapsUrl") ?? ""),
     venue: String(formData.get("venue") ?? ""),
@@ -77,6 +85,10 @@ function formRetryFromParsed(
     slug: v.slug,
     title: v.title,
     description: v.description,
+    titlePl: v.titlePl,
+    descriptionPl: v.descriptionPl,
+    titleUk: v.titleUk,
+    descriptionUk: v.descriptionUk,
     imageUrl,
     mapsUrl: v.mapsUrl || "",
     venue: v.venue,
@@ -115,6 +127,10 @@ const EventSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug: только латиница, цифры и дефис"),
   title: z.string().min(2).max(200),
   description: z.string().max(20000).optional().default(""),
+  titlePl: z.string().max(200).optional().default(""),
+  descriptionPl: z.string().max(20000).optional().default(""),
+  titleUk: z.string().max(200).optional().default(""),
+  descriptionUk: z.string().max(20000).optional().default(""),
   imageUrl: optionalImageRef,
   mapsUrl: z.string().url().optional().or(z.literal("")),
   venue: z.string().min(2).max(200),
@@ -142,8 +158,24 @@ const EventSchema = z.object({
       if (len < MIN_EVENT_DESCRIPTION_PUBLISH_CHARS) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Для публикации (published / unlisted) описание не короче ${MIN_EVENT_DESCRIPTION_PUBLISH_CHARS} символов (сейчас ${len}).`,
+          message: `Для публикации (published / unlisted) описание RU не короче ${MIN_EVENT_DESCRIPTION_PUBLISH_CHARS} символов (сейчас ${len}).`,
           path: ["description"],
+        });
+      }
+      const plTitle = data.titlePl.trim();
+      if (plTitle.length < 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Для публикации нужен польский заголовок (title_pl) — переведите или заполните вручную.",
+          path: ["titlePl"],
+        });
+      }
+      const plDescLen = data.descriptionPl.trim().length;
+      if (plDescLen < MIN_EVENT_DESCRIPTION_PUBLISH_CHARS) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Для публикации описание PL не короче ${MIN_EVENT_DESCRIPTION_PUBLISH_CHARS} символов (сейчас ${plDescLen}).`,
+          path: ["descriptionPl"],
         });
       }
     }
@@ -197,6 +229,10 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       slug: effectiveSlugFromFormData(formData),
       title: formData.get("title"),
       description: formData.get("description") || "",
+      titlePl: formData.get("titlePl") || "",
+      descriptionPl: formData.get("descriptionPl") || "",
+      titleUk: formData.get("titleUk") || "",
+      descriptionUk: formData.get("descriptionUk") || "",
       imageUrl: formData.get("imageUrl") || "",
       mapsUrl: formData.get("mapsUrl") || "",
       venue: formData.get("venue"),
@@ -247,6 +283,10 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       slug: v.slug,
       title: v.title,
       description: v.description,
+      title_pl: v.titlePl.trim() || null,
+      description_pl: v.descriptionPl.trim() || null,
+      title_uk: v.titleUk.trim() || null,
+      description_uk: v.descriptionUk.trim() || null,
       image_url: imageUrlFinal,
       venue: v.venue,
       starts_at: startsAtIso,
