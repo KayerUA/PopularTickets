@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { AppLocale } from "@/i18n/routing";
 import { THEATRE_DIRECTOR_TELEGRAM_HANDLE, THEATRE_DIRECTOR_TELEGRAM_URL } from "@/lib/theatre";
-import { getTicketsSiteBase, ticketsFirma, ticketsHome } from "@/lib/ticketsSite";
+import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
 import type { PoetCourseRow } from "@/lib/poetCourses";
 import { normalizeCourseCardVariant, staticCourseKeys, type PoetStaticCourseSlug } from "@/lib/poetStaticCourses";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
@@ -86,7 +86,6 @@ export async function PoetCourseShowcase({ dbCourses }: { dbCourses: PoetCourseR
 
 export async function PoetTrialsAndFlow({ locale }: { locale: AppLocale }) {
   const t = await getTranslations("Poet");
-  const tickets = getTicketsSiteBase();
 
   const flowSteps = [
     { n: 1, title: t("flowStep1Title"), body: t("flowStep1Body") },
@@ -106,14 +105,6 @@ export async function PoetTrialsAndFlow({ locale }: { locale: AppLocale }) {
               Telegram @{THEATRE_DIRECTOR_TELEGRAM_HANDLE}
             </a>
             {t("signupBodyMiddle")}
-            {tickets ? (
-              <a href={ticketsFirma(locale)} className="font-medium">
-                {t("signupFirmaLink")}
-              </a>
-            ) : (
-              t("signupFirmaLink")
-            )}
-            {t("signupBodyAfter")}
           </p>
         </div>
         <div className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/35 via-poet-surface/35 to-zinc-950/40 p-6 shadow-[0_0_0_1px_rgba(52,211,153,0.12)] backdrop-blur-md sm:p-8">
