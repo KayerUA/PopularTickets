@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { COMPANY, companyAddressOneLine, publicContactEmail, publicReturnsEmail, PRZELEWY24_LINKS, krsPublicSearchUrl } from "@/lib/company";
+import { COMPANY, companyAddressOneLine, publicContactEmail, publicReturnsEmail, publicContactPhoneDisplay, publicContactPhoneTel, PRZELEWY24_LINKS, krsPublicSearchUrl } from "@/lib/company";
 import {
   POPULAR_POET_SITE_URL,
-  THEATRE_DIRECTOR_PHONE_DISPLAY,
-  THEATRE_DIRECTOR_PHONE_TEL,
   THEATRE_DIRECTOR_TELEGRAM_HANDLE,
   THEATRE_DIRECTOR_TELEGRAM_URL,
 } from "@/lib/theatre";
@@ -130,8 +128,8 @@ export default async function FirmaPage({ params }: { params: Promise<{ locale: 
             <div>
               <dt className="text-zinc-500">{t("theatreDirectorPhoneLabel")}</dt>
               <dd className="mt-1">
-                <a href={`tel:${THEATRE_DIRECTOR_PHONE_TEL}`} className="text-poet-gold hover:text-poet-gold-bright">
-                  {THEATRE_DIRECTOR_PHONE_DISPLAY}
+                <a href={`tel:${publicContactPhoneTel()}`} className="text-poet-gold hover:text-poet-gold-bright">
+                  {publicContactPhoneDisplay()}
                 </a>
               </dd>
             </div>
@@ -157,6 +155,14 @@ export default async function FirmaPage({ params }: { params: Promise<{ locale: 
       <section className="mt-8 space-y-3 rounded-2xl border border-poet-gold/20 bg-poet-surface/40 p-4 shadow-gold-sm backdrop-blur-sm sm:p-8">
         <h2 className="font-display text-xl font-medium text-zinc-100">{t("contactTitle")}</h2>
         <dl className="space-y-3 text-sm text-zinc-300">
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("contactPhoneLabel")}</dt>
+            <dd className="mt-1">
+              <a href={`tel:${publicContactPhoneTel()}`} className="text-poet-gold hover:text-poet-gold-bright">
+                {publicContactPhoneDisplay()}
+              </a>
+            </dd>
+          </div>
           <div>
             <dt className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("contactEmailLabel")}</dt>
             <dd className="mt-1">

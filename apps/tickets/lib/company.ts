@@ -39,6 +39,20 @@ export function companyAddressOneLine(): string {
   return `${a.street}, ${a.postalCode} ${a.city}`;
 }
 
+/** Kontakt telefoniczny sklepu (widoczny m.in. na /firma — wymóg weryfikacji Przelewy24). */
+export const PUBLIC_CONTACT_PHONE = {
+  tel: "+48452203802",
+  display: "+48 452 203 802",
+} as const;
+
+export function publicContactPhoneTel(): string {
+  return PUBLIC_CONTACT_PHONE.tel;
+}
+
+export function publicContactPhoneDisplay(): string {
+  return PUBLIC_CONTACT_PHONE.display;
+}
+
 /** Fallback, если в окружении не задан NEXT_PUBLIC_CONTACT_EMAIL (страница /firma, футер, zwroty). */
 const FALLBACK_PUBLIC_CONTACT_EMAIL = "severkelli@gmail.com";
 

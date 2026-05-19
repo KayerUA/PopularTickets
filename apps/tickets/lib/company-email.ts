@@ -1,4 +1,4 @@
-import { COMPANY, companyAddressOneLine, PRZELEWY24_LINKS, publicContactEmail } from "@/lib/company";
+import { COMPANY, companyAddressOneLine, PRZELEWY24_LINKS, publicContactEmail, publicContactPhoneDisplay, publicContactPhoneTel } from "@/lib/company";
 import type { AppLocale } from "@/i18n/routing";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { canonicalPath } from "@/lib/seo";
@@ -38,8 +38,8 @@ export function companyEmailFooterHtml(locale: AppLocale = "pl"): string {
         ? `<span style="display:block;margin-top:16px;line-height:1.65;">Онлайн-оплата: <a href="${esc(PRZELEWY24_LINKS.site)}" style="color:#e8d48b;font-weight:600;text-decoration:none;">Przelewy24</a> — <a href="${esc(PRZELEWY24_LINKS.regulamin)}" style="color:#c5a059;text-decoration:underline;text-decoration-color:rgba(197,160,89,0.45);">регламент оператора</a>.</span>`
         : `<span style="display:block;margin-top:16px;line-height:1.65;">Онлайн-оплата: <a href="${esc(PRZELEWY24_LINKS.site)}" style="color:#e8d48b;font-weight:600;text-decoration:none;">Przelewy24</a> — <a href="${esc(PRZELEWY24_LINKS.regulamin)}" style="color:#c5a059;text-decoration:underline;text-decoration-color:rgba(197,160,89,0.45);">регламент оператора</a>.</span>`;
   const contactLine = mail
-    ? `<span style="display:block;margin-top:10px;">${contactLabel} <a href="mailto:${esc(mail)}" style="color:#e8d48b;text-decoration:none;">${esc(mail)}</a></span>`
-    : "";
+    ? `<span style="display:block;margin-top:10px;">${contactLabel} <a href="mailto:${esc(mail)}" style="color:#e8d48b;text-decoration:none;">${esc(mail)}</a> · <a href="tel:${esc(publicContactPhoneTel())}" style="color:#e8d48b;text-decoration:none;">${esc(publicContactPhoneDisplay())}</a></span>`
+    : `<span style="display:block;margin-top:10px;"><a href="tel:${esc(publicContactPhoneTel())}" style="color:#e8d48b;text-decoration:none;">${esc(publicContactPhoneDisplay())}</a></span>`;
 
   const base = getPublicAppUrl()?.replace(/\/$/, "");
   const labels = DOC_LINKS[locale];

@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link as IntlLink } from "@/i18n/navigation";
 import { getRequestAppLocale } from "@/lib/requestLocale";
-import { COMPANY, companyAddressOneLine, publicContactEmail, publicReturnsEmail } from "@/lib/company";
+import { COMPANY, companyAddressOneLine, publicContactEmail, publicReturnsEmail, publicContactPhoneDisplay, publicContactPhoneTel } from "@/lib/company";
 import { getP24FooterPaymentGraphics } from "@/lib/p24FooterAssets";
 import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
 import { THEATRE_INSTAGRAM_URL, THEATRE_TELEGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
@@ -131,6 +131,11 @@ export async function SiteFooter() {
             </p>
             <p className="break-words text-zinc-500">{companyAddressOneLine()}</p>
             <p className="break-words text-[13px] leading-relaxed text-zinc-400">
+              <span className="text-zinc-500">{t("contactPhoneCaption")} </span>
+              <a href={`tel:${publicContactPhoneTel()}`} className="text-poet-gold/90 hover:text-poet-gold-bright">
+                {publicContactPhoneDisplay()}
+              </a>
+              <br />
               <span className="text-zinc-500">{t("contactEmailCaption")} </span>
               <a href={`mailto:${contactEmail}`} className="text-poet-gold/90 hover:text-poet-gold-bright">
                 {contactEmail}
