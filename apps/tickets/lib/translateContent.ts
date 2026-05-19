@@ -24,18 +24,20 @@ function libreTargetLang(locale: TranslateLocale): string {
 
 function pickProvider(): TranslateProviderId | null {
   if ((process.env.DEEPL_AUTH_KEY ?? "").trim()) return "deepl";
-  return "libretranslate";
+  if ((process.env.LIBRETRANSLATE_URL ?? "").trim()) return "libretranslate";
+  return null;
 }
 
 export function translateProviderLabel(): string {
   const p = pickProvider();
   if (p === "deepl") return "DeepL";
-  return "LibreTranslate";
+  if (p === "libretranslate") return "LibreTranslate";
+  return "не настроен";
 }
 
 export function isTranslateConfigured(): boolean {
   if ((process.env.DEEPL_AUTH_KEY ?? "").trim()) return true;
-  const url = (process.env.LIBRETRANSLATE_URL ?? "https://libretranslate.com").trim();
+  const url = (process.env.LIBRETRANSLATE_URL ?? "").trim();
   return url.length > 0;
 }
 

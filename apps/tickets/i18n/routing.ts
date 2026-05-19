@@ -1,13 +1,12 @@
 import { defineRouting } from "next-intl/routing";
 
 /**
- * Локаль при первом заходе на `/` (без префикса): из cookie `NEXT_LOCALE`, иначе из
- * заголовка Accept-Language браузера, иначе `defaultLocale`. Выбор в LocaleSwitcher
- * записывает cookie — повторные визиты идут сразу на выбранный язык.
+ * Дефолт `ru` — основной вход для RU/UK-аудитории; `pl` остаётся отдельной польской
+ * версией для legal/P24/SEO. Cookie `NEXT_LOCALE` + Accept-Language при первом заходе на `/`.
  */
 export const routing = defineRouting({
   locales: ["pl", "uk", "ru"],
-  defaultLocale: "pl",
+  defaultLocale: "ru",
   localePrefix: "always",
   localeDetection: true,
 });

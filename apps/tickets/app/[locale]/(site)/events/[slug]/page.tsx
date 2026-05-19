@@ -23,6 +23,7 @@ import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { Link } from "@/i18n/navigation";
 import { resolveEventCopy } from "@/lib/contentI18n";
 import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
+import { eventLanguageLabel, normalizeEventLanguage } from "@/lib/eventLanguage";
 
 /** Server Actions + ISR: закэшированная страница после деплоя даёт «Server Action … was not found». */
 export const dynamic = "force-dynamic";
@@ -62,8 +63,9 @@ export async function generateMetadata({
     });
   }
   const short = formatEventDateShortForTitle(event.starts_at);
+  const eventLanguage = normalizeEventLanguage(event.event_language);
   const title = `${copy.title} — ${tMeta("eventListingLine")}, ${short}`;
-  const desc = `${tMeta("eventDescriptionBuy")} ${formatEventDateTime(event.starts_at, locale)}. ${event.venue}. ${truncateMetaDescription(copy.description)}`;
+  const desc = `${tMeta("eventDescriptionBuy")} ${formatEventDateTime(event.starts_at, locale)}. ${event.venue}. ${eventLanguageLabel(eventLanguage, locale)}. ${truncateMetaDescription(copy.description)}`;
   const base = getPublicAppUrl()?.replace(/\/$/, "");
   let ogImages: { url: string; width: number; height: number; alt: string }[] | undefined;
   if (event.image_url && base) {
@@ -153,6 +155,7 @@ export default async function EventPage({
   const soldOut = remaining <= 0 || marketingStatus === "sold_out";
   const ticketVat = splitTheatreTicketGrossGrosze(event.price_grosze);
   const isTrialEvent = listingKind === "trial";
+  const eventLanguage = normalizeEventLanguage(event.event_language);
   const poetLessonsUrl = `${POPULAR_POET_SITE_URL.replace(/\/+$/, "")}/${locale}#schedule`;
   const isPast = marketingStatus === "past";
 
@@ -196,6 +199,7 @@ export default async function EventPage({
             price_grosze: event.price_grosze,
             slug: event.slug,
             listing_kind: event.listing_kind,
+            event_language: eventLanguage,
           },
           locale,
           { remaining, soldOut }
@@ -229,6 +233,9 @@ export default async function EventPage({
               </div>
             ) : null}
             <p className="mt-2 break-words text-sm text-zinc-400 sm:text-base">{whenStr}</p>
+            <p className="mt-1 text-sm font-medium text-poet-gold-bright/90 sm:text-base">
+              {t("languageLabel")}: {eventLanguageLabel(eventLanguage, locale)}
+            </p>
             <p className="break-words text-sm text-zinc-400 sm:text-base">{event.venue}</p>
             {mapsHref ? (
               <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-zinc-500">

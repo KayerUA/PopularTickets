@@ -125,6 +125,7 @@
     "breadcrumbAria": "Навігаційний ланцюжок",
     "openInMaps": "Відкрити в Google Maps",
     "openInMapsShort": "Карта",
+    "languageLabel": "Мова події",
     "skipToCheckout": "До оплати",
     "skipToAfisha": "До афіші",
     "priceDetailsSummary": "Деталі ціни (нетто / ПДВ)",
@@ -194,6 +195,7 @@
   "EventCard": {
     "buyTicket": "Купити квиток",
     "buyTrial": "Бронюю місце",
+    "languageLabel": "Мова",
     "ctaPast": "Деталі",
     "ctaSoldOut": "Немає квитків"
   },

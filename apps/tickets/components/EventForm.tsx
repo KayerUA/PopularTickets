@@ -9,6 +9,7 @@ import type { ContentVisibility } from "@/lib/contentVisibility";
 import { EventCoverFocalControls } from "@/components/EventCoverFocalControls";
 import { clampEventImageFocal } from "@/lib/eventCoverFocal";
 import { slugifyEventTitle } from "@/lib/eventSlugFromTitle";
+import { DEFAULT_EVENT_LANGUAGE, normalizeEventLanguage, type EventLanguage } from "@/lib/eventLanguage";
 
 import { AdminTranslateLocalesButton, type LocaleFields } from "@/components/AdminTranslateLocalesButton";
 
@@ -31,6 +32,7 @@ export type AdminEventRow = {
   total_tickets: number;
   visibility: ContentVisibility;
   listing_kind: "performance" | "trial";
+  event_language?: EventLanguage | null;
   poet_course_id?: string | null;
 };
 
@@ -55,6 +57,7 @@ function mergeRetryDefaults(
   totalTickets: string;
   visibility: ContentVisibility;
   listingKind: "performance" | "trial";
+  eventLanguage: EventLanguage;
   poetCourseId: string;
   imageFocalX: string;
   imageFocalY: string;
@@ -82,6 +85,7 @@ function mergeRetryDefaults(
     totalTickets: fields?.totalTickets ?? String(event?.total_tickets ?? 100),
     visibility: (fields?.visibility ?? event?.visibility ?? "inactive") as ContentVisibility,
     listingKind: lk,
+    eventLanguage: normalizeEventLanguage(fields?.eventLanguage ?? event?.event_language ?? DEFAULT_EVENT_LANGUAGE),
     poetCourseId: fields?.poetCourseId ?? event?.poet_course_id ?? "",
     imageFocalX: fields?.imageFocalX ?? String(event?.image_focal_x ?? 50),
     imageFocalY: fields?.imageFocalY ?? String(event?.image_focal_y ?? 50),
@@ -213,6 +217,24 @@ export function EventForm({
             </select>
             <p className="mt-1 text-xs text-zinc-500">
               Пробные не на главной PopularTickets. Слот на popularpoet.pl — при типе «Пробный» и видимости «Опубликован».
+            </p>
+          </label>
+          <label className="block text-sm text-zinc-300 sm:col-span-2">
+            Язык события
+            <select
+              name="eventLanguage"
+              defaultValue={d.eventLanguage}
+              className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+            >
+              <option value="ru_uk">Русский / украинский</option>
+              <option value="ru">Русский</option>
+              <option value="uk">Украинский</option>
+              <option value="pl">Польский</option>
+              <option value="en">Английский</option>
+              <option value="mixed">Несколько языков</option>
+            </select>
+            <p className="mt-1 text-xs text-zinc-500">
+              Показывается покупателю на карточке и странице события, чтобы человек сразу понимал язык вечера.
             </p>
           </label>
           {listingKind === "trial" && !event ? (

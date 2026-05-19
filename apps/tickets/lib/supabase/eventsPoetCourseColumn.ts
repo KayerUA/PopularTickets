@@ -17,3 +17,12 @@ export function isEventsImageFocalUnavailable(message: string): boolean {
     (m.includes("schema cache") || m.includes("could not find") || m.includes("column"))
   );
 }
+
+/** Колонка `events.event_language` ещё не в БД или не в кэше PostgREST. */
+export function isEventsLanguageUnavailable(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("event_language") &&
+    (m.includes("schema cache") || m.includes("could not find") || m.includes("column"))
+  );
+}

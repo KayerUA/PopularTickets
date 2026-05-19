@@ -1,10 +1,11 @@
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import { fetchOptionalMapsUrl } from "@/lib/supabase/fetchOptionalMapsUrl";
 import { clampEventImageFocal } from "@/lib/eventCoverFocal";
+import { normalizeEventLanguage, type EventLanguage } from "@/lib/eventLanguage";
 
 /** Без maps_url — иначе при «schema cache» без колонки падает весь запрос. */
 const EVENT_SELECT_PUBLIC =
-  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,listing_kind,visibility" as const;
+  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,listing_kind,event_language,visibility" as const;
 
 export type PublishedEventRow = {
   id: string;
@@ -25,6 +26,7 @@ export type PublishedEventRow = {
   total_tickets: number;
   /** `performance` — спектакль/шоу; `trial` — пробное / вводное занятие. */
   listing_kind: string | null;
+  event_language: EventLanguage;
   /** `published` — в афіші; `unlisted` — лише за прямим посиланням; `inactive` — не повинен потрапляти сюди. */
   visibility: string;
 };
@@ -47,7 +49,7 @@ export async function fetchPublishedEventBySlug(
     main = await supabase
       .from("events")
       .select(
-        "id,slug,title,description,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,listing_kind,visibility"
+        "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,listing_kind,visibility"
       )
       .eq("slug", slug)
       .in("visibility", ["published", "unlisted"])
@@ -67,6 +69,7 @@ export async function fetchPublishedEventBySlug(
     description_pl?: unknown;
     title_uk?: unknown;
     description_uk?: unknown;
+    event_language?: unknown;
   };
   const mapsUrl = await fetchOptionalMapsUrl(supabase, row.id);
   const description = typeof row.description === "string" ? row.description : "";
@@ -81,6 +84,7 @@ export async function fetchPublishedEventBySlug(
       : "inactive";
   const image_focal_x = clampEventImageFocal((row as { image_focal_x?: unknown }).image_focal_x);
   const image_focal_y = clampEventImageFocal((row as { image_focal_y?: unknown }).image_focal_y);
+  const event_language = normalizeEventLanguage(row.event_language);
 
   if (listing_kind === "trial") {
     const startMs = new Date(String((row as { starts_at?: unknown }).starts_at ?? "")).getTime();
@@ -110,6 +114,7 @@ export async function fetchPublishedEventBySlug(
       description_uk,
       maps_url: mapsUrl,
       listing_kind,
+      event_language,
       visibility,
       image_focal_x,
       image_focal_y,

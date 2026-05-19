@@ -4,6 +4,7 @@ import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { COMPANY } from "@/lib/company";
 import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
 import { THEATRE_INSTAGRAM_URL, THEATRE_TELEGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
+import { eventLanguageIso, normalizeEventLanguage, type EventLanguage } from "@/lib/eventLanguage";
 
 type EventRow = {
   title: string;
@@ -14,6 +15,7 @@ type EventRow = {
   price_grosze: number;
   slug: string;
   listing_kind?: string | null;
+  event_language?: EventLanguage | null;
 };
 
 const EVENT_LANG: Record<AppLocale, string> = {
@@ -116,7 +118,7 @@ export function buildEventJsonLd(
     description: desc || event.title,
     startDate: event.starts_at,
     endDate,
-    inLanguage: EVENT_LANG[locale],
+    inLanguage: eventLanguageIso(normalizeEventLanguage(event.event_language)),
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
     ...(images.length ? { image: images } : {}),

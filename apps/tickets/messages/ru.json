@@ -125,6 +125,7 @@
     "breadcrumbAria": "Навигационная цепочка",
     "openInMaps": "Открыть в Google Maps",
     "openInMapsShort": "Карта",
+    "languageLabel": "Язык события",
     "skipToCheckout": "К оплате",
     "skipToAfisha": "К афише",
     "priceDetailsSummary": "Детали цены (нетто / НДС)",
@@ -194,6 +195,7 @@
   "EventCard": {
     "buyTicket": "Купить билет",
     "buyTrial": "Бронирую место",
+    "languageLabel": "Язык",
     "ctaPast": "Подробнее",
     "ctaSoldOut": "Билетов нет"
   },

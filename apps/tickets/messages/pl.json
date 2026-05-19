@@ -125,6 +125,7 @@
     "breadcrumbAria": "Nawigacja okruszkowa",
     "openInMaps": "Otwórz w Google Maps",
     "openInMapsShort": "Mapa",
+    "languageLabel": "Język wydarzenia",
     "skipToCheckout": "Przejdź do płatności",
     "skipToAfisha": "Przejdź do afisza",
     "priceDetailsSummary": "Szczegóły ceny (netto / VAT)",
@@ -194,6 +195,7 @@
   "EventCard": {
     "buyTicket": "Kup bilet",
     "buyTrial": "Rezerwuję miejsce",
+    "languageLabel": "Język",
     "ctaPast": "Szczegóły",
     "ctaSoldOut": "Brak biletów"
   },

@@ -46,7 +46,7 @@ export default async function IntentDiscoverPage({
   if (supabase) {
     const { data: events, error } = await supabase
       .from("events")
-      .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
+      .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language")
       .eq("visibility", "published")
       .eq("listing_kind", "performance")
       .order("starts_at", { ascending: true });
@@ -65,6 +65,7 @@ export default async function IntentDiscoverPage({
         description_pl: null,
         title_uk: null,
         description_uk: null,
+        event_language: null,
       }));
     } else {
       rows = events ?? [];
@@ -119,6 +120,7 @@ export default async function IntentDiscoverPage({
           locale,
           status,
           listingKind: normalizeEventListingKind((ev as { listing_kind?: string | null }).listing_kind),
+          eventLanguage: (ev as { event_language?: never }).event_language,
         },
       ];
     });

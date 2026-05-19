@@ -8,6 +8,7 @@ import type { EventMarketingStatus, EventListingKind } from "@/lib/eventMarketin
 import { EventStatusBadge } from "@/components/EventStatusBadge";
 import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
+import { eventLanguageLabel, normalizeEventLanguage, type EventLanguage } from "@/lib/eventLanguage";
 
 export type EventCardProps = {
   slug: string;
@@ -23,11 +24,13 @@ export type EventCardProps = {
   status: EventMarketingStatus;
   /** Афиша (билет) или пробное/вводное — влияет на CTA и бейдж «скоро». */
   listingKind?: EventListingKind;
+  eventLanguage?: EventLanguage | null;
 };
 
 export function EventCard(e: EventCardProps) {
   const t = useTranslations("EventCard");
   const listingKind = e.listingKind ?? "performance";
+  const language = normalizeEventLanguage(e.eventLanguage);
   const href = `/events/${e.slug}`;
   const cta =
     e.status === "past"
@@ -72,6 +75,9 @@ export function EventCard(e: EventCardProps) {
               {e.title}
             </h2>
             <p className="text-sm text-zinc-400">{formatEventDateTime(e.startsAt, e.locale)}</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-poet-gold/80">
+              {t("languageLabel")}: {eventLanguageLabel(language, e.locale)}
+            </p>
             <p className="line-clamp-2 text-sm text-zinc-400 [overflow-wrap:anywhere]">{e.venue}</p>
           </div>
           <div className="flex shrink-0 flex-col gap-3 border-t border-poet-gold/10 pt-4 sm:flex-row sm:items-center sm:justify-between">

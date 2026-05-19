@@ -8,10 +8,15 @@ import { setMapsUrlRpc } from "@/lib/supabase/mapsUrlRpc";
 import { uploadEventCoverImage } from "@/lib/supabase/eventImageUpload";
 import { requireAdmin } from "@/lib/adminGuard";
 import { routing } from "@/i18n/routing";
-import { isEventsPoetCourseIdUnavailable, isEventsImageFocalUnavailable } from "@/lib/supabase/eventsPoetCourseColumn";
+import {
+  isEventsPoetCourseIdUnavailable,
+  isEventsImageFocalUnavailable,
+  isEventsLanguageUnavailable,
+} from "@/lib/supabase/eventsPoetCourseColumn";
 import { contentVisibilitySchema } from "@/lib/contentVisibility";
 import { fallbackEventSlug, slugifyEventTitle } from "@/lib/eventSlugFromTitle";
 import { parseStartsAtFromAdminForm } from "@/lib/warsawEventDatetime";
+import { DEFAULT_EVENT_LANGUAGE, normalizeEventLanguage } from "@/lib/eventLanguage";
 
 const MIN_EVENT_DESCRIPTION_PUBLISH_CHARS = 300;
 
@@ -31,6 +36,7 @@ export type UpsertEventRetryFields = {
   totalTickets: string;
   visibility: string;
   listingKind: "performance" | "trial";
+  eventLanguage: string;
   poetCourseId: string;
   imageFocalX: string;
   imageFocalY: string;
@@ -65,6 +71,7 @@ function formRetryFromFormData(formData: FormData): UpsertEventRetryFields {
     totalTickets: String(formData.get("totalTickets") ?? ""),
     visibility: String(formData.get("visibility") ?? "inactive"),
     listingKind: lk === "trial" ? "trial" : "performance",
+    eventLanguage: String(formData.get("eventLanguage") ?? DEFAULT_EVENT_LANGUAGE),
     poetCourseId: String(formData.get("poetCourseId") ?? ""),
     imageFocalX: String(formData.get("imageFocalX") ?? "50"),
     imageFocalY: String(formData.get("imageFocalY") ?? "50"),
@@ -97,6 +104,7 @@ function formRetryFromParsed(
     totalTickets: String(v.totalTickets),
     visibility: v.visibility,
     listingKind: v.listingKind,
+    eventLanguage: v.eventLanguage,
     poetCourseId: v.poetCourseId ?? "",
     imageFocalX: String(v.imageFocalX),
     imageFocalY: String(v.imageFocalY),
@@ -139,6 +147,9 @@ const EventSchema = z.object({
   totalTickets: z.coerce.number().int().min(1).max(5000),
   visibility: contentVisibilitySchema.default("inactive"),
   listingKind: z.enum(["performance", "trial"]).default("performance"),
+  eventLanguage: z
+    .enum(["ru", "uk", "ru_uk", "pl", "en", "mixed"])
+    .default(DEFAULT_EVENT_LANGUAGE),
   poetCourseId: z.preprocess(
     (v) => (typeof v === "string" && v.trim() !== "" ? v.trim() : undefined),
     z.string().uuid().optional(),
@@ -241,6 +252,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       totalTickets: formData.get("totalTickets"),
       visibility: formData.get("visibility") || "inactive",
       listingKind: formData.get("listingKind") || "performance",
+      eventLanguage: normalizeEventLanguage(formData.get("eventLanguage")),
       poetCourseId: formData.get("poetCourseId"),
       imageFocalX: formData.get("imageFocalX"),
       imageFocalY: formData.get("imageFocalY"),
@@ -294,6 +306,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       total_tickets: v.totalTickets,
       visibility: v.visibility,
       listing_kind: v.listingKind,
+      event_language: v.eventLanguage,
       poet_course_id: v.listingKind === "trial" && v.poetCourseId ? v.poetCourseId : null,
       image_focal_x: v.imageFocalX,
       image_focal_y: v.imageFocalY,
@@ -323,6 +336,16 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
           );
         }
       }
+      if (error && isEventsLanguageUnavailable(error.message)) {
+        const { event_language: _lang, ...withoutLanguage } = payload;
+        const r4 = await supabase.from("events").update(withoutLanguage).eq("id", v.id);
+        error = r4.error;
+        if (!error) {
+          console.warn(
+            "[upsertEvent] колонка events.event_language недоступна — сохранено без языка события. Выполните supabase/add-events-event-language.sql в SQL Editor.",
+          );
+        }
+      }
       if (error) return { error: error.message, ...newRetryEnvelope(formRetryFromParsed(v, formData, imageUrlFinal)) };
       eventIdForMaps = v.id;
     } else {
@@ -342,6 +365,15 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
         if (!ins.error) {
           console.warn(
             "[upsertEvent] колонки events.image_focal_* недоступны — событие без точки фокуса. Выполните supabase/add-events-image-focal.sql в SQL Editor.",
+          );
+        }
+      }
+      if (ins.error && isEventsLanguageUnavailable(ins.error.message)) {
+        const { event_language: _lang, ...withoutLanguage } = payload;
+        ins = await supabase.from("events").insert(withoutLanguage).select("id").single();
+        if (!ins.error) {
+          console.warn(
+            "[upsertEvent] колонка events.event_language недоступна — событие создано без языка события. Выполните supabase/add-events-event-language.sql в SQL Editor.",
           );
         }
       }

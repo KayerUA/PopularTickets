@@ -4,12 +4,13 @@ import { fetchOptionalMapsUrl } from "@/lib/supabase/fetchOptionalMapsUrl";
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { EventForm, type AdminEventRow } from "@/components/EventForm";
 import { fetchPoetCourseSelectOptions } from "@/lib/fetchPoetCourseSelectOptions";
-import { isEventsPoetCourseIdUnavailable } from "@/lib/supabase/eventsPoetCourseColumn";
+import { isEventsPoetCourseIdUnavailable, isEventsLanguageUnavailable } from "@/lib/supabase/eventsPoetCourseColumn";
 import { parseContentVisibilityFromForm } from "@/lib/contentVisibility";
 import { isTranslateConfigured, translateProviderLabel } from "@/lib/translateContent";
+import { normalizeEventLanguage } from "@/lib/eventLanguage";
 
 const ADMIN_EVENT_SELECT_BASE =
-  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,visibility,listing_kind" as const;
+  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,visibility,listing_kind,event_language" as const;
 const ADMIN_EVENT_SELECT_FULL = `${ADMIN_EVENT_SELECT_BASE},poet_course_id` as const;
 
 export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
@@ -29,6 +30,13 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
       if (r2.error) notFound();
       const base = r2.data as Ev | null;
       event = base ? { ...base, poet_course_id: null } : null;
+    } else if (isEventsLanguageUnavailable(r1.error.message)) {
+      const legacySel =
+        "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,visibility,listing_kind,poet_course_id" as const;
+      const r2 = await supabase.from("events").select(legacySel).eq("id", id).maybeSingle();
+      if (r2.error) notFound();
+      const base = r2.data as Ev | null;
+      event = base ? { ...base, event_language: null } : null;
     } else if (r1.error.code === "42703") {
       const legacySel =
         "id,slug,title,description,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,visibility,listing_kind,poet_course_id" as const;
@@ -63,6 +71,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
     total_tickets: event.total_tickets as number,
     visibility: parseContentVisibilityFromForm(event.visibility),
     listing_kind: (event.listing_kind as "performance" | "trial") ?? "performance",
+    event_language: normalizeEventLanguage(event.event_language),
     poet_course_id: (event.poet_course_id as string | null | undefined) ?? null,
   };
 
