@@ -30,11 +30,9 @@ function pick(primary: string | null | undefined, fallback: string): string {
 
 export function resolveEventCopy(row: EventI18nRow, locale: AppLocale): ResolvedCopy | null {
   if (locale === "pl") {
-    const title = row.title_pl?.trim();
-    if (!title) return null;
     return {
-      title,
-      description: row.description_pl?.trim() ?? "",
+      title: pick(row.title_pl, row.title),
+      description: pick(row.description_pl, row.description ?? ""),
     };
   }
   if (locale === "uk") {
@@ -51,11 +49,9 @@ export function resolveEventCopy(row: EventI18nRow, locale: AppLocale): Resolved
 
 export function resolveCourseCopy(row: CourseI18nRow, locale: AppLocale): ResolvedCopy | null {
   if (locale === "pl") {
-    const title = row.title_pl?.trim();
-    if (!title) return null;
     return {
-      title,
-      description: row.body_pl?.trim() ?? "",
+      title: pick(row.title_pl, row.title),
+      description: pick(row.body_pl, row.body ?? ""),
     };
   }
   if (locale === "uk") {
