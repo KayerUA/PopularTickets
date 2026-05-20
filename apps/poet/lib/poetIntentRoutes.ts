@@ -16,17 +16,18 @@ export type PoetIntentPage = {
 const PL: PoetIntentPage[] = [
   {
     slug: "kurs-aktorski-warszawa",
-    title: "Kurs aktorski w Warszawie — Popular Poet",
+    title: "Kurs aktorski po rosyjsku i ukraińsku w Warszawie — Popular Poet",
     description:
-      "Kurs aktorski Popular Poet w Warszawie: głos, ciało, emocje, tekst i praktyka sceniczna w małej grupie. Zajęcia dla osób rosyjsko- i ukraińskojęzycznych.",
-    h1: "Kurs aktorski w Warszawie",
+      "Kurs aktorski Popular Poet w Warszawie dla osób rosyjsko- i ukraińskojęzycznych: głos, ciało, emocje, tekst i praktyka sceniczna w małej grupie.",
+    h1: "Kurs aktorski w Warszawie dla osób rosyjsko- i ukraińskojęzycznych",
     lead:
-      "Popular Poet prowadzi praktyczne zajęcia aktorskie w Warszawie: mniej teorii, więcej głosu, ciała, partnerstwa i sceny. To dobry start dla osób, które chcą poczuć się swobodniej przed ludźmi i spróbować pracy aktorskiej w małej grupie.",
+      "Popular Poet prowadzi w Warszawie praktyczne zajęcia aktorskie dla osób rosyjsko- i ukraińskojęzycznych. To nie jest polskojęzyczna szkoła aktorska: polska wersja strony pomaga znaleźć informacje, ale sama praca w grupach odbywa się w języku wskazanym przy danym terminie, najczęściej po rosyjsku lub ukraińsku.",
     bullets: [
+      "kurs dla rosyjsko- i ukraińskojęzycznej społeczności w Warszawie",
       "praktyka sceniczna od pierwszych zajęć",
       "głos, ciało, reakcja, tekst i emocje",
       "małe grupy przy ul. Domaniewska 37",
-      "formaty dla osób rosyjsko- i ukraińskojęzycznych",
+      "język konkretnej grupy jest podany przy terminie",
     ],
     courseHref: "/kursy/aktorskoe-masterstvo",
     courseCta: "Zobacz kurs aktorski",
@@ -35,6 +36,10 @@ const PL: PoetIntentPage[] = [
       {
         q: "Czy kurs aktorski jest dla początkujących?",
         a: "Tak. Na zajęcia można przyjść bez wcześniejszego doświadczenia scenicznego — ważniejsza jest gotowość do praktyki niż przygotowany warsztat.",
+      },
+      {
+        q: "Czy to kurs po polsku?",
+        a: "Nie. Popular Poet jest w Warszawie, ale zajęcia są kierowane głównie do osób rosyjsko- i ukraińskojęzycznych. Polski opis jest informacyjny, żeby jasno pokazać miejsce, format i zasady.",
       },
       {
         q: "W jakim języku odbywają się zajęcia?",
@@ -48,17 +53,18 @@ const PL: PoetIntentPage[] = [
   },
   {
     slug: "warsztaty-aktorskie-warszawa",
-    title: "Warsztaty aktorskie Warszawa — Popular Poet",
+    title: "Warsztaty aktorskie po rosyjsku i ukraińsku w Warszawie — Popular Poet",
     description:
-      "Warsztaty aktorskie i masterclassy Popular Poet w Warszawie: intensywna praca sceniczna, improwizacja, głos, ciało i kontakt z partnerem.",
-    h1: "Warsztaty aktorskie w Warszawie",
+      "Warsztaty aktorskie i masterclassy Popular Poet w Warszawie dla rosyjsko- i ukraińskojęzycznych uczestników: scena, improwizacja, głos, ciało i partner.",
+    h1: "Warsztaty aktorskie w Warszawie dla osób rosyjsko- i ukraińskojęzycznych",
     lead:
-      "Jeśli szukasz warsztatów aktorskich w Warszawie, Popular Poet daje formaty krótsze niż pełny kurs: otwarte zajęcia, masterclassy i spotkania tematyczne. Przyjść można po energię, praktykę i sprawdzenie, czy scena jest dla Ciebie.",
+      "Jeśli mieszkasz w Warszawie i szukasz zajęć scenicznych po rosyjsku albo ukraińsku, Popular Poet daje formaty krótsze niż pełny kurs: otwarte zajęcia, masterclassy i spotkania tematyczne. To propozycja dla osób, które chcą wejść w praktykę sceny w swoim języku, a nie szukają polskojęzycznej akademii.",
     bullets: [
+      "dla rosyjsko- i ukraińskojęzycznych uczestników w Warszawie",
       "otwarte zajęcia i masterclassy",
       "ćwiczenia z partnerem i sceną",
       "tematyczne spotkania bez długiej teorii",
-      "możliwość przejścia do regularnej grupy",
+      "możliwość przejścia do regularnej grupy, jeśli format pasuje",
     ],
     courseHref: "/#schedule",
     courseCta: "Sprawdź kalendarz",
@@ -67,6 +73,10 @@ const PL: PoetIntentPage[] = [
       {
         q: "Czym różnią się warsztaty od kursu?",
         a: "Warsztaty i masterclassy są krótsze oraz skupione na konkretnym temacie. Kurs daje regularny rytm pracy i rozwój grupy w czasie.",
+      },
+      {
+        q: "Czy warsztaty odbywają się po polsku?",
+        a: "Zasadniczo nie. Popular Poet działa w Warszawie, ale formaty są tworzone przede wszystkim dla rosyjsko- i ukraińskojęzycznej publiczności oraz uczestników.",
       },
       {
         q: "Czy można kupić jedno wejście?",
@@ -80,17 +90,18 @@ const PL: PoetIntentPage[] = [
   },
   {
     slug: "improwizacja-kurs-warszawa",
-    title: "Kurs improwizacji Warszawa — Popular Poet",
+    title: "Kurs improwizacji po rosyjsku i ukraińsku w Warszawie — Popular Poet",
     description:
-      "Kurs improwizacji aktorskiej w Warszawie: reakcja, humor, partnerstwo i scena bez scenariusza. Popular Poet, ul. Domaniewska 37.",
-    h1: "Kurs improwizacji w Warszawie",
+      "Kurs improwizacji aktorskiej w Warszawie dla osób rosyjsko- i ukraińskojęzycznych: reakcja, humor, partnerstwo i scena bez scenariusza.",
+    h1: "Kurs improwizacji w Warszawie dla rosyjsko- i ukraińskojęzycznych",
     lead:
-      "Improwizacja w Popular Poet to trening reakcji, lekkości i kontaktu. Zamiast uczyć się gotowego tekstu, uczysz się słyszeć partnera, brać impuls z sali i budować scenę tu i teraz.",
+      "Improwizacja w Popular Poet to trening reakcji, lekkości i kontaktu dla osób, które chcą pracować na scenie po rosyjsku lub ukraińsku. Zamiast uczyć się gotowego tekstu, uczysz się słyszeć partnera, brać impuls z sali i budować scenę tu i teraz.",
     bullets: [
+      "improwizacja dla rosyjsko- i ukraińskojęzycznych uczestników",
       "sceny bez scenariusza i presji na perfekcję",
       "ćwiczenia na reakcję, ciało i obecność",
       "komediowe i aktorskie narzędzia impro",
-      "otwarte terminy dla nowych uczestników",
+      "otwarte terminy dla nowych uczestników w Warszawie",
     ],
     courseHref: "/kursy/improvizaciya",
     courseCta: "Zobacz kurs improwizacji",
@@ -99,6 +110,10 @@ const PL: PoetIntentPage[] = [
       {
         q: "Czy trzeba być aktorem?",
         a: "Nie. Improwizacja jest dobra także dla osób, które po prostu chcą więcej swobody, odwagi i reakcji w kontakcie z ludźmi.",
+      },
+      {
+        q: "Czy kurs jest po polsku?",
+        a: "Nie jako główny format. Popular Poet jest miejscem w Warszawie dla rosyjsko- i ukraińskojęzycznych osób; język konkretnej grupy lub zajęć jest podany przy terminie.",
       },
       {
         q: "Czy to bardziej kurs czy rozrywka?",
@@ -226,4 +241,3 @@ export function allPoetIntentPages(): { locale: AppLocale; page: PoetIntentPage 
     POET_INTENT_PAGES[locale].map((page) => ({ locale, page })),
   );
 }
-
