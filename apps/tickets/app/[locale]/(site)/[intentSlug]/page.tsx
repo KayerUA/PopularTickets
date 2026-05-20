@@ -55,16 +55,12 @@ export default async function IntentDiscoverPage({
     if (error?.code === "42703") {
       const fallback = await supabase
         .from("events")
-        .select("id,slug,title,description,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
+        .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
         .eq("visibility", "published")
         .eq("listing_kind", "performance")
         .order("starts_at", { ascending: true });
       rows = (fallback.data ?? []).map((ev) => ({
         ...ev,
-        title_pl: null,
-        description_pl: null,
-        title_uk: null,
-        description_uk: null,
         event_language: null,
       }));
     } else {
