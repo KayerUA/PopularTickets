@@ -8,6 +8,8 @@ export type IntentClusterKey =
   | "chamber"
   | "adults"
   | "russian"
+  | "leisure"
+  | "events"
   | "afisha";
 
 /** Slug URL по локали → кластер контента. */
@@ -21,6 +23,8 @@ export const INTENT_SLUG_TO_CLUSTER: Record<AppLocale, Record<string, IntentClus
   },
   ru: {
     "kuda-shodit-v-varshave-vecherom": "evening",
+    "dosug-v-varshave": "leisure",
+    "sobytiya-v-varshave": "events",
     "russkoyazychnye-meropriyatiya-varshava": "russian",
     "improvizatsiya-varshava": "improv",
     "teatr-varshava": "theatre",
@@ -28,6 +32,8 @@ export const INTENT_SLUG_TO_CLUSTER: Record<AppLocale, Record<string, IntentClus
   },
   uk: {
     "kudy-pity-u-varshavi-vvecheri": "evening",
+    "dozvillya-u-varshavi": "leisure",
+    "podii-u-varshavi": "events",
     "ukrainski-podii-varshava": "russian",
     "improvizatsiya-varshava": "improv",
     "teatr-varshava": "theatre",

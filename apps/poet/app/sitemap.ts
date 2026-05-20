@@ -3,6 +3,7 @@ import { routing } from "@/i18n/routing";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
 import { fetchPublishedPoetCourses } from "@/lib/poetCourses";
 import { POET_STATIC_COURSE_SLUGS } from "@/lib/poetStaticCourses";
+import { allPoetIntentPages } from "@/lib/poetIntentRoutes";
 
 const FACTS_PATH = "/o-popular-poet";
 
@@ -32,6 +33,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.85,
     });
+    for (const { page } of allPoetIntentPages().filter((x) => x.locale === locale)) {
+      entries.push({
+        url: `${base}/${locale}/${page.slug}`,
+        lastModified: last,
+        changeFrequency: "monthly",
+        priority: 0.82,
+      });
+    }
     for (const slug of slugs) {
       entries.push({
         url: `${base}/${locale}/kursy/${encodeURIComponent(slug)}`,
