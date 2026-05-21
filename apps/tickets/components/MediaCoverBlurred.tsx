@@ -6,6 +6,7 @@ type Props = {
   sizes: string;
   priority?: boolean;
   unoptimized?: boolean;
+  quality?: number;
   frameClassName?: string;
   /** События: точка кадрирования для object-cover / contain. */
   coverObjectPosition?: string;
@@ -26,6 +27,7 @@ export function MediaCoverBlurred({
   sizes,
   priority,
   unoptimized,
+  quality = 68,
   frameClassName = "relative aspect-video w-full overflow-hidden bg-zinc-950",
   coverObjectPosition,
   fit = "cover",
@@ -40,6 +42,7 @@ export function MediaCoverBlurred({
         alt=""
         fill
         sizes={sizes}
+        quality={quality}
         unoptimized={unoptimized}
         fetchPriority={priority ? "low" : undefined}
         className="pointer-events-none absolute inset-0 z-0 scale-[1.38] object-cover object-center blur-3xl saturate-[1.18] opacity-[0.82] brightness-110 contrast-[1.05]"
@@ -51,6 +54,7 @@ export function MediaCoverBlurred({
         alt={alt}
         fill
         sizes={sizes}
+        quality={quality}
         priority={priority}
         unoptimized={unoptimized}
         fetchPriority={priority ? "high" : undefined}

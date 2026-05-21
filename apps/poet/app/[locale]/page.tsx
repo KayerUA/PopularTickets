@@ -47,6 +47,7 @@ export default async function HomePage() {
           fill
           priority
           fetchPriority="high"
+          quality={62}
           sizes="(max-width: 1024px) 100vw, 1024px"
           className="pointer-events-none absolute inset-0 object-cover object-center opacity-[0.14]"
           aria-hidden

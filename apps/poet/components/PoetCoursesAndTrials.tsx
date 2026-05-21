@@ -35,7 +35,7 @@ export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: Poe
                     <MediaCoverBlurred
                       src={img}
                       alt={copy.title}
-                      sizes="(max-width:640px) 100vw, 25vw"
+                      sizes="(max-width:640px) calc(100vw - 4rem), (max-width:1024px) 50vw, 240px"
                       unoptimized={img.startsWith("http://") || img.startsWith("https://")}
                       frameClassName="absolute inset-0"
                     />
@@ -68,7 +68,7 @@ export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: Poe
                     <MediaCoverBlurred
                       src={keys.image}
                       alt={t(keys.titleKey)}
-                      sizes="(max-width:640px) 100vw, 25vw"
+                      sizes="(max-width:640px) calc(100vw - 4rem), (max-width:1024px) 50vw, 240px"
                       frameClassName="absolute inset-0"
                     />
                   </div>

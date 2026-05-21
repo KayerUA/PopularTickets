@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getServiceSupabase } from "@/lib/supabase/admin";
 import { fetchPublishedEventBySlug } from "@/lib/supabase/fetchPublishedEventBySlug";
@@ -25,6 +25,7 @@ import { resolveEventCopy } from "@/lib/contentI18n";
 import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
 import { eventLanguageLabel, normalizeEventLanguage } from "@/lib/eventLanguage";
 import { isOptimizableEventImage } from "@/lib/imageOptimization";
+import { legacyEventRedirectPath } from "@/lib/legacyEventRedirects";
 
 /** Server Actions + ISR: закэшированная страница после деплоя даёт «Server Action … was not found». */
 export const dynamic = "force-dynamic";
@@ -103,6 +104,9 @@ export default async function EventPage({
   params: Promise<{ locale: AppLocale; slug: string }>;
 }) {
   const { slug, locale } = await params;
+  const legacyRedirect = legacyEventRedirectPath(locale, slug);
+  if (legacyRedirect) permanentRedirect(legacyRedirect);
+
   const t = await getTranslations({ locale, namespace: "EventPage" });
   const supabase = getServiceSupabase();
   if (!supabase) {
