@@ -1,8 +1,13 @@
 import { companyEmailFooterHtml } from "@/lib/company-email";
+import { esc } from "@/lib/email/htmlEscape";
+import {
+  renderEmailTicketCardHtml,
+  type EmailTicketCardInput,
+  type EmailTicketCardLabels,
+} from "@/lib/email/ticketCardHtml";
 import { ticketEmailStrings } from "@/lib/email/ticketEmailI18n";
 import type { AppLocale } from "@/i18n/routing";
 
-/** Палитра как на сайте (globals.css) — только hex/rgba для почтовых клиентов. */
 const C = {
   bg: "#0b0609",
   velvet: "#0f080c",
@@ -17,14 +22,6 @@ const C = {
   border: "rgba(197,160,89,0.28)",
   borderSoft: "rgba(197,160,89,0.15)",
 } as const;
-
-function esc(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
 
 /** Фон «сцена + кулиса» (компактная строка для атрибута style). */
 const bodyTableBg =
@@ -43,23 +40,12 @@ export function ticketEmailHtml(params: {
   eventTitle: string;
   venue: string;
   startsAt: string;
-  tickets: { id: string; ticketNumber: string; attachmentLabel: string }[];
+  tickets: EmailTicketCardInput[];
+  cardLabels: EmailTicketCardLabels;
   locale: AppLocale;
 }): string {
   const str = ticketEmailStrings(params.locale);
-  const rows = params.tickets
-    .map(
-      (t) => `
-      <tr>
-        <td style="padding:14px 12px;border-bottom:1px solid ${C.borderSoft};font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:${C.text};font-size:15px;">
-          <strong style="color:${C.goldBright};letter-spacing:0.02em;">${esc(t.ticketNumber)}</strong>
-        </td>
-        <td style="padding:14px 12px;border-bottom:1px solid ${C.borderSoft};font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:13px;color:${C.muted};line-height:1.45;">
-          ${esc(t.attachmentLabel)}
-        </td>
-      </tr>`
-    )
-    .join("");
+  const ticketCards = params.tickets.map((t) => renderEmailTicketCardHtml(t, params.cardLabels)).join("");
 
   const kicker = brandKicker(params.locale);
 
@@ -113,19 +99,7 @@ export function ticketEmailHtml(params: {
                   </tr>
                   <tr>
                     <td style="padding:0 22px 14px 22px;">
-                      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:0;border-radius:16px;border:1px solid ${C.borderSoft};overflow:hidden;">
-                        <thead>
-                          <tr style="background:rgba(8,5,6,0.65);">
-                            <th align="left" style="padding:13px 16px;font-family:system-ui,-apple-system,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${C.gold};border-bottom:1px solid ${C.borderSoft};">
-                              ${esc(str.colTicket)}
-                            </th>
-                            <th align="left" style="padding:13px 16px;font-family:system-ui,-apple-system,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${C.gold};border-bottom:1px solid ${C.borderSoft};">
-                              ${esc(str.attachmentColumnTitle)}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                      </table>
+                      ${ticketCards}
                     </td>
                   </tr>
                   <tr>
