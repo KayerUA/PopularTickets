@@ -68,6 +68,24 @@ export function staticCourseKeys(slug: PoetStaticCourseSlug): {
   }
 }
 
+/** Hero / OG: hero_image_url або card_image_url з БД; інакше fallback (статичний slug). */
+export function resolveCourseHeroPath(
+  course: { card_image_url: string; hero_image_url: string | null } | null,
+  fallbackPath?: string,
+): string {
+  if (course) {
+    const card = course.card_image_url.trim() || "/courses/theatre.jpg";
+    return (course.hero_image_url?.trim() || card).trim();
+  }
+  return fallbackPath?.trim() || "/courses/theatre.jpg";
+}
+
+export function courseMediaAbsoluteUrl(base: string, imagePath: string): string {
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
+  const root = base.replace(/\/$/, "");
+  return `${root}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+}
+
 /** Нормалізація значення з БД для класу `poet-course-card--{variant}`. */
 export function normalizeCourseCardVariant(raw: string | null | undefined): PoetCourseCardVariant {
   const v = (raw ?? "").trim();

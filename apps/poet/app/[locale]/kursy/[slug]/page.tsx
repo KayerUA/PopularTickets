@@ -9,8 +9,10 @@ import { resolveCourseCopy, resolveCourseTag } from "@/lib/contentI18n";
 import { buildPoetPageMetadata, poetCanonicalPath } from "@/lib/seoPoet";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
 import {
+  courseMediaAbsoluteUrl,
   isPoetStaticCourseSlug,
   normalizeCourseCardVariant,
+  resolveCourseHeroPath,
   staticCourseKeys,
 } from "@/lib/poetStaticCourses";
 import { formatPoetTrialWhen } from "@/lib/formatPoetTrialDate";
@@ -33,12 +35,14 @@ export async function generateMetadata({ params }: PageProps) {
   const course = await fetchPublishedPoetCourseBySlug(slug);
   let title: string;
   let description: string;
+  let heroPath = "/courses/theatre.jpg";
 
   if (course) {
     const loc = locale as AppLocale;
     const copy = resolveCourseCopy(course, loc);
     if (!copy) return {};
     title = copy.title;
+    heroPath = resolveCourseHeroPath(course);
     const body = copy.description.trim();
     description =
       body && body.length > 10
@@ -48,16 +52,23 @@ export async function generateMetadata({ params }: PageProps) {
     const keys = staticCourseKeys(slug);
     title = tCourse(keys.titleKey);
     description = tCourse(keys.seoDescriptionKey);
+    heroPath = keys.image;
   } else {
     return {};
   }
 
   const base = getPoetSiteUrl();
   const path = `/kursy/${slug}`;
-  const ogImages =
-    base && tMeta("ogImagePath")
-      ? [{ url: `${base}${tMeta("ogImagePath")}`, width: 1200, height: 630, alt: tMeta("ogImageAlt") }]
-      : undefined;
+  const ogImages = base
+    ? [
+        {
+          url: courseMediaAbsoluteUrl(base, heroPath),
+          width: 768,
+          height: 1024,
+          alt: title,
+        },
+      ]
+    : undefined;
 
   const robots =
     course?.visibility === "unlisted" ? ({ index: false, follow: true } as const) : undefined;
@@ -102,8 +113,7 @@ export default async function PoetCoursePage({ params }: PageProps) {
     const copy = resolveCourseCopy(dbCourse, loc);
     if (!copy) notFound();
     const variant = normalizeCourseCardVariant(dbCourse.card_variant);
-    const cardUrl = dbCourse.card_image_url.trim() || "/courses/theatre.jpg";
-    const heroUrl = (dbCourse.hero_image_url?.trim() || cardUrl).trim();
+    const heroUrl = resolveCourseHeroPath(dbCourse);
     display = {
       title: copy.title,
       body: copy.description,
