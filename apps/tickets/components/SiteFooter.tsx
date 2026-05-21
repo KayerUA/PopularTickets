@@ -41,7 +41,7 @@ function TelegramGlyph({ className }: { className?: string }) {
 }
 
 const socialLinkClass =
-  "group inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-poet-gold/[0.08] text-poet-gold-bright transition hover:bg-poet-gold/[0.14] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-poet-gold/45 sm:h-auto sm:min-w-[10.75rem] sm:w-auto sm:inline-flex sm:flex-row sm:items-center sm:justify-start sm:gap-2.5 sm:rounded-xl sm:bg-poet-gold/[0.05] sm:px-3.5 sm:py-2.5 sm:hover:bg-poet-gold/[0.09]";
+  "group inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-poet-gold/[0.08] text-poet-gold-bright transition hover:bg-poet-gold/[0.14] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-poet-gold/45 sm:h-auto sm:min-w-0 sm:w-full sm:flex-row sm:justify-start sm:gap-2.5 sm:rounded-xl sm:bg-poet-gold/[0.05] sm:px-3.5 sm:py-2.5 sm:hover:bg-poet-gold/[0.09]";
 
 export async function SiteFooter() {
   const locale = await getRequestAppLocale();
@@ -56,7 +56,7 @@ export async function SiteFooter() {
     <footer className="relative z-0 border-t border-poet-gold/15 bg-poet-bg/90">
       <div className="poet-safe-x mx-auto max-w-5xl py-10 sm:py-12">
         <section aria-labelledby="footer-social-heading" className="mb-10 sm:mb-12">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+          <div className="grid gap-5 lg:grid-cols-[minmax(18rem,1fr)_minmax(0,2fr)] lg:items-start lg:gap-8">
             <div className="min-w-0 max-w-xl">
               <h2
                 id="footer-social-heading"
@@ -67,7 +67,7 @@ export async function SiteFooter() {
               <p className="mt-2 text-[11px] leading-relaxed text-zinc-400 sm:text-xs">{t("socialIntro")}</p>
               <p className="mt-3 text-[10px] leading-snug text-zinc-500 sm:text-[11px]">{t("socialOutro")}</p>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-3 sm:min-w-0 sm:shrink-0 sm:justify-end sm:gap-2.5">
+            <div className="grid min-w-0 grid-cols-3 justify-items-center gap-3 sm:grid-cols-3 sm:justify-items-stretch sm:gap-2.5">
               <a
                 href={THEATRE_INSTAGRAM_URL}
                 target="_blank"
