@@ -8,6 +8,7 @@ import {
   signVerify,
 } from "@/lib/p24";
 import { sendTicketsEmail } from "@/lib/email/sendTickets";
+import { sendAdminSaleNotification } from "@/lib/email/sendAdminSaleNotification";
 import { formatEventDateTime } from "@/lib/format";
 import type { AppLocale } from "@/i18n/routing";
 
@@ -65,35 +66,39 @@ async function ensureTicketsAndEmail(params: {
     return;
   }
 
-  if (process.env.SKIP_ORDER_EMAIL === "true") {
-    return;
+  if (process.env.SKIP_ORDER_EMAIL !== "true") {
+    const { data: event, error: eErr } = await supabase
+      .from("events")
+      .select("title,venue,starts_at")
+      .eq("id", params.order.event_id)
+      .single();
+
+    if (eErr || !event) {
+      console.error("event load for email", eErr);
+    } else {
+      try {
+        const loc = orderLocale(params.order.locale);
+        await sendTicketsEmail({
+          to: params.order.email,
+          eventTitle: event.title,
+          venue: event.venue,
+          startsAt: formatEventDateTime(event.starts_at as string, loc),
+          tickets: allTickets.map((t) => ({ id: t.id, ticketNumber: t.ticket_number })),
+          locale: loc,
+        });
+      } catch (e) {
+        console.error("email failed", e);
+      }
+    }
   }
-
-  const { data: event, error: eErr } = await supabase
-    .from("events")
-    .select("title,venue,starts_at")
-    .eq("id", params.order.event_id)
-    .single();
-
-  if (eErr || !event) {
-    console.error("event load for email", eErr);
-    return;
-  }
-
-  if (!allTickets.length) return;
 
   try {
-    const loc = orderLocale(params.order.locale);
-    await sendTicketsEmail({
-      to: params.order.email,
-      eventTitle: event.title,
-      venue: event.venue,
-      startsAt: formatEventDateTime(event.starts_at as string, loc),
-      tickets: allTickets.map((t) => ({ id: t.id, ticketNumber: t.ticket_number })),
-      locale: loc,
+    await sendAdminSaleNotification({
+      orderId: params.order.id,
+      ticketNumbers: allTickets.map((t) => t.ticket_number),
     });
   } catch (e) {
-    console.error("email failed", e);
+    console.error("admin sale notify failed", e);
   }
 }
 
