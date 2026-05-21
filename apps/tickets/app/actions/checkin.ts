@@ -1,24 +1,24 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import { getServiceSupabase } from "@/lib/supabase/admin";
-import { rateLimit, clientIp, timingSafeEqualString } from "@/lib/security";
+import {
+  CHECKIN_SESSION_COOKIE,
+  checkinAuthRequired,
+  verifyCheckinSessionToken,
+} from "@/lib/checkinSession";
+import { rateLimit, clientIp } from "@/lib/security";
+import { headers } from "next/headers";
 
-function checkinToken(): string | undefined {
-  const token = process.env.CHECKIN_OPERATOR_TOKEN?.trim();
-  return token || undefined;
-}
-
-function verifyCheckinToken(token: string | undefined): boolean {
-  const expected = checkinToken();
-  if (!expected) return process.env.NODE_ENV !== "production";
-  if (!token) return false;
-  if (token.length !== expected.length) return false;
-  return timingSafeEqualString(token, expected);
+async function assertCheckinAuthorized(): Promise<boolean> {
+  if (!checkinAuthRequired()) return true;
+  const token = (await cookies()).get(CHECKIN_SESSION_COOKIE)?.value;
+  return verifyCheckinSessionToken(token);
 }
 
 export type CheckinLookup =
   | { status: "idle" }
+  | { status: "unauthorized" }
   | { status: "unconfigured" }
   | { status: "invalid" }
   | { status: "valid"; ticketId: string; ticketNumber: string; eventTitle: string; used: boolean }
@@ -26,17 +26,16 @@ export type CheckinLookup =
 
 export async function lookupTicketAction(
   _prev: CheckinLookup,
-  formData: FormData
+  formData: FormData,
 ): Promise<CheckinLookup> {
+  if (!(await assertCheckinAuthorized())) {
+    return { status: "unauthorized" };
+  }
+
   const h = await headers();
   const ip = clientIp(h);
   if (!(await rateLimit(`checkin-lookup:${ip}`, 120, 60_000))) {
     return { status: "rate_limited" };
-  }
-
-  const token = String(formData.get("operatorToken") || "");
-  if (!verifyCheckinToken(token)) {
-    return { status: "invalid" };
   }
 
   const raw = String(formData.get("code") || "").trim();
@@ -67,22 +66,21 @@ export async function lookupTicketAction(
 }
 
 export async function markTicketUsedAction(formData: FormData): Promise<{ ok: boolean; error?: string }> {
+  if (!(await assertCheckinAuthorized())) {
+    return { ok: false, error: "Сессия истекла — войдите снова с кодом контролёра" };
+  }
+
   const h = await headers();
   const ip = clientIp(h);
   if (!(await rateLimit(`checkin-mark:${ip}`, 200, 60_000))) {
     return { ok: false, error: "Слишком много запросов" };
   }
 
-  const token = String(formData.get("operatorToken") || "");
-  if (!verifyCheckinToken(token)) {
-    return { ok: false, error: "Неверный код контролёра" };
-  }
-
   const ticketId = String(formData.get("ticketId") || "").trim();
   if (!ticketId) return { ok: false, error: "Нет билета" };
 
   const supabase = getServiceSupabase();
-  if (!supabase) return { ok: false, error: "База не настроена (.env.local)" };
+  if (!supabase) return { ok: false, error: "База не настроена" };
 
   const { data: ticket, error: tErr } = await supabase
     .from("tickets")
