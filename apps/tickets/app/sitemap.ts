@@ -14,10 +14,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const out: MetadataRoute.Sitemap = [];
   const supabase = getServiceSupabase();
-  let eventRows: { slug: string; updated_at: string }[] = [];
+  let eventRows: { slug: string; updated_at: string; starts_at: string }[] = [];
   if (supabase) {
-    const { data } = await supabase.from("events").select("slug,updated_at").eq("visibility", "published");
-    eventRows = (data ?? []) as { slug: string; updated_at: string }[];
+    const { data } = await supabase.from("events").select("slug,updated_at,starts_at").eq("visibility", "published");
+    eventRows = (data ?? []) as { slug: string; updated_at: string; starts_at: string }[];
   }
 
   for (const locale of routing.locales) {
@@ -46,11 +46,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
     for (const ev of eventRows) {
+      const isPast = new Date(ev.starts_at).getTime() < Date.now();
       out.push({
         url: `${base}/${locale}/events/${ev.slug}`,
         lastModified: ev.updated_at ? new Date(ev.updated_at) : new Date(),
         changeFrequency: "weekly",
-        priority: 0.85,
+        priority: isPast ? 0.5 : 0.85,
       });
     }
   }

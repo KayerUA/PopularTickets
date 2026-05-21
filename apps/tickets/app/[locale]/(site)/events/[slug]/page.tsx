@@ -16,7 +16,7 @@ import { EventStatusBadge } from "@/components/EventStatusBadge";
 import { buildPublicPageMetadata, truncateMetaDescription, canonicalPath } from "@/lib/seo";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { JsonLd } from "@/components/JsonLd";
-import { buildEventJsonLd, buildBreadcrumbListJsonLd } from "@/lib/seo/eventJsonLd";
+import { buildEventJsonLd, buildBreadcrumbListJsonLd, buildFaqPageJsonLd } from "@/lib/seo/eventJsonLd";
 import { COMPANY } from "@/lib/company";
 import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
@@ -164,9 +164,23 @@ export default async function EventPage({
   const poetLessonsUrl = `${POPULAR_POET_SITE_URL.replace(/\/+$/, "")}/${locale}#schedule`;
   const isPast = marketingStatus === "past";
 
+  const faqPairs = [
+    ["faqQ1", "faqA1"],
+    ["faqQ2", "faqA2"],
+    ["faqQ3", "faqA3"],
+    ["faqQ4", "faqA4"],
+  ] as const;
+  const faqLd = buildFaqPageJsonLd(
+    faqPairs.map(([qk, ak]) => ({
+      name: t(qk),
+      acceptedAnswer: { text: t(ak) },
+    })),
+  );
+
   return (
     <div className="poet-safe-x mx-auto max-w-3xl py-8 sm:py-14">
       {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
+      <JsonLd data={faqLd} />
       <nav className="mb-6 text-sm text-zinc-500" aria-label={t("breadcrumbAria")}>
         <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <li>
@@ -377,6 +391,20 @@ export default async function EventPage({
           )}
         </div>
       </div>
+
+      <section className="mt-10 max-w-3xl" aria-labelledby="event-faq-heading">
+        <h2 id="event-faq-heading" className="font-display text-lg font-medium text-zinc-100 sm:text-xl">
+          {t("faqTitle")}
+        </h2>
+        <dl className="mt-5 space-y-5 border-t border-poet-gold/10 pt-5">
+          {faqPairs.map(([qk, ak]) => (
+            <div key={qk}>
+              <dt className="text-sm font-semibold text-zinc-200">{t(qk)}</dt>
+              <dd className="mt-2 text-sm leading-relaxed text-zinc-400">{t(ak)}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
     </div>
   );
 }

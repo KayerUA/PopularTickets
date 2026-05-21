@@ -4,6 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { buildPoetPageMetadata, poetCanonicalPath } from "@/lib/seoPoet";
+import { poetIntentHreflangUrls } from "@/lib/poetIntentClusters";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
 import { PoetJsonLd } from "@/components/PoetJsonLd";
 import { buildBreadcrumbListJsonLd, buildFaqPageJsonLd, buildWebPageJsonLd } from "@/lib/poetJsonLd";
@@ -22,13 +23,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     path: `/${intentSlug}`,
     title: page.title,
     description: page.description,
+    hreflangAlternateUrls: poetIntentHreflangUrls(loc, intentSlug),
     keywords: [
       page.h1,
       "Popular Poet",
       loc === "pl" ? "Warszawa" : "Варшава",
-      loc === "pl" ? "kurs aktorski" : "акторські курси",
-      loc === "pl" ? "warsztaty aktorskie" : "акторська майстерність",
-      loc === "pl" ? "improwizacja" : "імпровізація",
+      loc === "pl" ? "kurs aktorski" : loc === "ru" ? "актёрские курсы" : "акторські курси",
+      loc === "pl" ? "warsztaty aktorskie" : loc === "ru" ? "актёрское мастерство" : "акторська майстерність",
+      loc === "pl" ? "improwizacja" : loc === "ru" ? "импровизация" : "імпровізація",
     ],
   });
 }
@@ -52,10 +54,16 @@ export default async function PoetIntentPage({ params }: PageProps) {
         description: page.description,
       })
     : null;
+
+  const homeLabel = loc === "pl" ? "Strona główna" : loc === "ru" ? "Главная" : "Головна";
+  const cityLabel = loc === "pl" ? "Popular Poet · Warszawa" : "Popular Poet · Варшава";
+  const bulletsAria = loc === "pl" ? "Najważniejsze informacje" : loc === "ru" ? "Коротко" : "Коротко";
+  const faqTitle = loc === "pl" ? "Najczęstsze pytania" : loc === "ru" ? "Частые вопросы" : "Часті запитання";
+
   const breadcrumbLd =
     pageUrl && homeUrl
       ? buildBreadcrumbListJsonLd([
-          { name: loc === "pl" ? "Strona główna" : "Головна", item: homeUrl },
+          { name: homeLabel, item: homeUrl },
           { name: page.h1, item: pageUrl },
         ])
       : null;
@@ -68,14 +76,12 @@ export default async function PoetIntentPage({ params }: PageProps) {
 
       <nav className="text-sm text-zinc-500">
         <Link href="/" className="text-poet-gold/90 hover:text-poet-gold-bright">
-          {loc === "pl" ? "Strona główna" : "Головна"}
+          {homeLabel}
         </Link>
       </nav>
 
       <header className="mt-8 max-w-3xl">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-poet-gold/80">
-          {loc === "pl" ? "Popular Poet · Warszawa" : "Popular Poet · Варшава"}
-        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-poet-gold/80">{cityLabel}</p>
         <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight text-gradient-gold sm:text-5xl">
           {page.h1}
         </h1>
@@ -93,7 +99,7 @@ export default async function PoetIntentPage({ params }: PageProps) {
         </div>
       </header>
 
-      <section className="mt-10 grid gap-4 sm:grid-cols-2" aria-label={loc === "pl" ? "Najważniejsze informacje" : "Коротко"}>
+      <section className="mt-10 grid gap-4 sm:grid-cols-2" aria-label={bulletsAria}>
         {page.bullets.map((item) => (
           <div key={item} className="rounded-2xl border border-poet-gold/15 bg-poet-surface/30 px-5 py-4 text-sm leading-relaxed text-zinc-300">
             {item}
@@ -102,9 +108,7 @@ export default async function PoetIntentPage({ params }: PageProps) {
       </section>
 
       <section className="mt-12 max-w-3xl">
-        <h2 className="font-display text-xl font-medium text-zinc-100">
-          {loc === "pl" ? "Najczęstsze pytania" : "Часті запитання"}
-        </h2>
+        <h2 className="font-display text-xl font-medium text-zinc-100">{faqTitle}</h2>
         <dl className="mt-6 space-y-6 border-t border-poet-gold/10 pt-6">
           {page.faq.map((item) => (
             <div key={item.q}>
@@ -117,4 +121,3 @@ export default async function PoetIntentPage({ params }: PageProps) {
     </div>
   );
 }
-

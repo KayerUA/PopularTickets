@@ -94,7 +94,6 @@ export function buildEventJsonLd(
   const base = getPublicAppUrl()?.replace(/\/$/, "");
   const path = `/events/${event.slug}`;
   const eventUrl = base ? `${base}${canonicalPath(locale, path)}` : undefined;
-  const availability = opts.soldOut || opts.remaining <= 0 ? "https://schema.org/SoldOut" : "https://schema.org/InStock";
 
   const images: string[] = [];
   if (event.image_url) {
@@ -110,6 +109,16 @@ export function buildEventJsonLd(
   const venueAddress = normalizeVenueAddress(event.venue);
   const eventFormat = normalizeEventFormat(event, locale);
   const endDate = defaultEventEndIso(event.starts_at);
+  const startMs = new Date(event.starts_at).getTime();
+  const isPast = !Number.isNaN(startMs) && startMs < Date.now();
+  const eventStatus = isPast
+    ? "https://schema.org/EventCompleted"
+    : "https://schema.org/EventScheduled";
+  const availability = isPast
+    ? "https://schema.org/Discontinued"
+    : opts.soldOut || opts.remaining <= 0
+      ? "https://schema.org/SoldOut"
+      : "https://schema.org/InStock";
 
   return stripJsonLdEmptyValues({
     "@context": "https://schema.org",
@@ -120,7 +129,7 @@ export function buildEventJsonLd(
     endDate,
     inLanguage: eventLanguageIso(normalizeEventLanguage(event.event_language)),
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    eventStatus: "https://schema.org/EventScheduled",
+    eventStatus,
     ...(images.length ? { image: images } : {}),
     additionalType: eventFormat,
     performer: {

@@ -140,7 +140,16 @@
     "prePurchaseNoteBypass": "Po wysłaniu formularza zarezerwujemy miejsce i wyślemy bilet na e-mail. Sprzedawca: {seller}, NIP {nip}. Pełne zasady: „Dane sprzedawcy” i Regulamin.",
     "trialReturnTitle": "To zajęcia z kalendarza Popular Poet",
     "trialReturnBody": "Po rezerwacji biletu możesz wrócić na stronę teatru: tam są programy kursów, najbliższe daty i inne otwarte formaty.",
-    "trialReturnCta": "Do zajęć i kursów"
+    "trialReturnCta": "Do zajęć i kursów",
+    "faqTitle": "Najczęstsze pytania",
+    "faqQ1": "Jak dojechać?",
+    "faqA1": "Adres i link do mapy są na tej stronie. Sala Popular Poet: ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42.",
+    "faqQ2": "W jakim języku jest wydarzenie?",
+    "faqA2": "Język wieczoru jest podany w karcie powyżej. Popular Poet pracuje z publicznością rosyjsko- i ukraińskojęzyczną w Warszawie — każde wydarzenie ma swój język.",
+    "faqQ3": "Czy można zwrócić bilet?",
+    "faqA3": "Warunki zwrotu opisane są w sekcji „Zwroty” na stronie. Dla wydarzeń kulturalnych obowiązują zasady serwisu PopularTickets.",
+    "faqQ4": "Czy jest dress code?",
+    "faqA4": "Nie ma specjalnego dress code. Wystarczy wygodny, codzienny strój — ważne, żeby swobodnie spędzić wieczór w sali."
   },
   "TicketsFacts": {
     "metaTitle": "O PopularTickets — oficjalna kasa Popular Poet",
@@ -190,7 +199,19 @@
     "afishaMetaTitle": "Afisz Warszawa — Popular Poet",
     "afishaMetaDescription": "Afisz Popular Poet: najbliższe spektakle i show. Bilety na PopularTickets.",
     "afishaH1": "Afisz w Warszawie",
-    "afishaIntro": "Jedna lista — najbliższe publiczne wydarzenia z możliwością zakupu biletu online."
+    "afishaIntro": "Jedna lista — najbliższe publiczne wydarzenia z możliwością zakupu biletu online.",
+    "communityMetaTitle": "Gdzie iść samemu w Warszawie — Popular Poet",
+    "communityMetaDescription": "Gdzie iść solo w Warszawie: kameralne show impro i spektakle Popular Poet. Bilety na PopularTickets.",
+    "communityH1": "Gdzie iść samemu w Warszawie",
+    "communityIntro": "Popular Poet to kameralna scena, na którą można przyjść solo — bez presji na parę czy dużą grupę. Poniżej aktualne wydarzenia z biletem online; otwarte zajęcia i kursy są na popularpoet.pl.",
+    "playbackMetaTitle": "PLAY-BACK show Warszawa — Popular Poet",
+    "playbackMetaDescription": "PLAY-BACK theatre i wydarzenia Popular Poet w Warszawie. Bilety online na PopularTickets.",
+    "playbackH1": "PLAY-BACK i wydarzenia sceniczne",
+    "playbackIntro": "PLAY-BACK to format oparty na historiach ludzi z sali. Popular Poet prowadzi go jako zajęcia i jako wydarzenia — poniżej publiczne terminy z biletem.",
+    "trialMetaTitle": "Próbne zajęcia Warszawa — Popular Poet",
+    "trialMetaDescription": "Próbne i otwarte zajęcia Popular Poet w Warszawie. Rezerwacja miejsca online na PopularTickets.",
+    "trialH1": "Próbne zajęcia w Warszawie",
+    "trialIntro": "Chcesz sprawdzić format bez długiego zobowiązania? Poniżej terminy wprowadzających zajęć z rezerwacją online. Pełna oferta kursów — na popularpoet.pl."
   },
   "EventCard": {
     "buyTicket": "Kup bilet",

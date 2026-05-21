@@ -140,7 +140,16 @@
     "prePurchaseNoteBypass": "После отправки формы мы закрепим место и отправим билет на email. Продавец: {seller}, NIP {nip}. Полные правила: «Данные продавца» и Правила сервиса.",
     "trialReturnTitle": "Это занятие из календаря Popular Poet",
     "trialReturnBody": "Если хочется не только смотреть на сцену, но и попробовать себя внутри процесса — вернитесь на сайт театра: там программа курсов, ближайшие даты и другие открытые форматы.",
-    "trialReturnCta": "К занятиям и курсам"
+    "trialReturnCta": "К занятиям и курсам",
+    "faqTitle": "Частые вопросы",
+    "faqQ1": "Как добраться?",
+    "faqA1": "Адрес и ссылка на карту указаны на этой странице. Зал Popular Poet: ul. Domaniewska 37, Centrum biznesowe Zepter, 5 этаж, локал 42.",
+    "faqQ2": "На каком языке событие?",
+    "faqA2": "Язык вечера указан в карточке выше. Popular Poet работает с русскоязычной и украиноязычной аудиторией в Варшаве — у каждого события свой язык.",
+    "faqQ3": "Можно ли вернуть билет?",
+    "faqA3": "Условия возврата описаны в разделе «Возвраты» на сайте. Для культурных мероприятий действуют правила сервиса PopularTickets.",
+    "faqQ4": "Нужен ли dress code?",
+    "faqA4": "Специального дress code нет. Одежда повседневная; главное — комфорт, чтобы спокойно провести вечер в зале."
   },
   "TicketsFacts": {
     "metaTitle": "О PopularTickets — официальная касса Popular Poet",
@@ -198,7 +207,19 @@
     "afishaMetaTitle": "Афиша Варшава — Popular Poet",
     "afishaMetaDescription": "Афиша Popular Poet: ближайшие шоу и спектакли. Билеты на PopularTickets.",
     "afishaH1": "Афиша в Варшаве",
-    "afishaIntro": "Один список — ближайшие публичные события с онлайн-билетом."
+    "afishaIntro": "Один список — ближайшие публичные события с онлайн-билетом.",
+    "communityMetaTitle": "Куда пойти одному в Варшаве — Popular Poet",
+    "communityMetaDescription": "Куда сходить solo в Варшаве: камерные impro-шоу и спектакли Popular Poet. Билеты на PopularTickets.",
+    "communityH1": "Куда пойти одному в Варшаве",
+    "communityIntro": "Popular Poet — камерная сцена, куда можно прийти одному, без давления «идти компанией». Ниже актуальные события с билетом; открытые занятия и курсы — на popularpoet.pl.",
+    "playbackMetaTitle": "PLAY-BACK шоу Варшава — Popular Poet",
+    "playbackMetaDescription": "PLAY-BACK theatre и события Popular Poet в Варшаве. Билеты онлайн на PopularTickets.",
+    "playbackH1": "PLAY-BACK и сценические события",
+    "playbackIntro": "PLAY-BACK — формат на историях людей из зала. Popular Poet ведёт его как занятия и как события — ниже публичные даты с билетом.",
+    "trialMetaTitle": "Пробное занятие Варшава — Popular Poet",
+    "trialMetaDescription": "Пробные и открытые занятия Popular Poet в Варшаве. Бронирование на PopularTickets.",
+    "trialH1": "Пробные занятия в Варшаве",
+    "trialIntro": "Хотите попробовать формат без длинного обязательства? Ниже вводные занятия с онлайн-бронированием. Полная программа курсов — на popularpoet.pl."
   },
   "EventCard": {
     "buyTicket": "Купить билет",

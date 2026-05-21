@@ -8,8 +8,15 @@ import { resolveEventMarketingStatus, sortEventsForMarketing, normalizeEventList
 import { resolveEventCopy } from "@/lib/contentI18n";
 import type { AppLocale } from "@/i18n/routing";
 import { routing } from "@/i18n/routing";
-import { buildPublicPageMetadata } from "@/lib/seo";
-import { intentClusterForSlug } from "@/lib/ticketsIntentRoutes";
+import { buildPublicPageMetadata, canonicalPath } from "@/lib/seo";
+import { getPublicAppUrl } from "@/lib/publicAppUrl";
+import { JsonLd } from "@/components/JsonLd";
+import { buildBreadcrumbListJsonLd } from "@/lib/seo/eventJsonLd";
+import {
+  intentClusterForSlug,
+  intentListingKindFilter,
+  ticketsIntentHreflangUrls,
+} from "@/lib/ticketsIntentRoutes";
 
 export const revalidate = 120;
 
@@ -27,6 +34,7 @@ export async function generateMetadata({
     path: `/${intentSlug}`,
     title: t(`${cluster}MetaTitle`),
     description: t(`${cluster}MetaDescription`),
+    hreflangAlternateUrls: ticketsIntentHreflangUrls(locale, intentSlug),
   });
 }
 
@@ -41,24 +49,33 @@ export default async function IntentDiscoverPage({
   if (!cluster) notFound();
 
   const t = await getTranslations({ locale, namespace: "IntentDiscover" });
+  const listingFilter = intentListingKindFilter(cluster);
   const supabase = getServiceSupabase();
   let list: EventCardProps[] = [];
   if (supabase) {
-    const { data: events, error } = await supabase
+    let query = supabase
       .from("events")
       .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language")
       .eq("visibility", "published")
-      .eq("listing_kind", "performance")
       .order("starts_at", { ascending: true });
+
+    if (listingFilter !== "all") {
+      query = query.eq("listing_kind", listingFilter);
+    }
+
+    const { data: events, error } = await query;
 
     let rows = events;
     if (error?.code === "42703") {
-      const fallback = await supabase
+      let fallbackQuery = supabase
         .from("events")
         .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
         .eq("visibility", "published")
-        .eq("listing_kind", "performance")
         .order("starts_at", { ascending: true });
+      if (listingFilter !== "all") {
+        fallbackQuery = fallbackQuery.eq("listing_kind", listingFilter);
+      }
+      const fallback = await fallbackQuery;
       rows = (fallback.data ?? []).map((ev) => ({
         ...ev,
         event_language: null,
@@ -123,8 +140,20 @@ export default async function IntentDiscoverPage({
     list = sortEventsForMarketing(cards);
   }
 
+  const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "";
+  const homeUrl = base ? `${base}${canonicalPath(locale, "/")}` : "";
+  const pageUrl = base ? `${base}${canonicalPath(locale, `/${intentSlug}`)}` : "";
+  const breadcrumbLd =
+    homeUrl && pageUrl
+      ? buildBreadcrumbListJsonLd([
+          { name: locale === "pl" ? "Strona główna" : locale === "ru" ? "Главная" : "Головна", item: homeUrl },
+          { name: t(`${cluster}H1`), item: pageUrl },
+        ])
+      : null;
+
   return (
     <div className="poet-safe-x mx-auto max-w-5xl py-10 sm:py-14">
+      {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
       <article className="max-w-3xl">
         <h1 className="font-display text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
           <span className="text-gradient-gold">{t(`${cluster}H1`)}</span>

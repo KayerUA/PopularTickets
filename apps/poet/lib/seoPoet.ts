@@ -47,11 +47,13 @@ export type PoetPageMetaInput = {
   keywords?: string[];
   ogImages?: { url: string; width?: number; height?: number; alt?: string }[];
   robots?: Metadata["robots"];
+  /** Явные hreflang URL, если slug отличается по локалям (intent-страницы). */
+  hreflangAlternateUrls?: Record<string, string>;
 };
 
 export function buildPoetPageMetadata(input: PoetPageMetaInput): Metadata {
   const url = poetAbsoluteUrl(input.locale, input.path);
-  const languages = poetHreflangLanguages(input.path);
+  const languages = input.hreflangAlternateUrls ?? poetHreflangLanguages(input.path);
   const ogLocale = OG_LOCALE[input.locale];
   const alternateLocale = routing.locales.filter((l) => l !== input.locale).map((l) => OG_LOCALE[l]);
 

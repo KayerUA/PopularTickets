@@ -86,13 +86,6 @@ export async function fetchPublishedEventBySlug(
   const image_focal_y = clampEventImageFocal((row as { image_focal_y?: unknown }).image_focal_y);
   const event_language = normalizeEventLanguage(row.event_language);
 
-  if (listing_kind === "trial") {
-    const startMs = new Date(String((row as { starts_at?: unknown }).starts_at ?? "")).getTime();
-    if (Number.isNaN(startMs) || startMs < Date.now()) {
-      return { data: null, error: null };
-    }
-  }
-
   const title_pl = typeof (row as { title_pl?: unknown }).title_pl === "string" ? (row as { title_pl: string }).title_pl : null;
   const description_pl =
     typeof (row as { description_pl?: unknown }).description_pl === "string"

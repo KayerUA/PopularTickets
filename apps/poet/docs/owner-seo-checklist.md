@@ -45,3 +45,18 @@
 - `NEXT_PUBLIC_POET_SITE_URL` — канонический URL сайта Poet для SEO (canonical, sitemap, OG).
 - `NEXT_PUBLIC_TICKETS_SITE_URL` — база PopularTickets для ссылок на афишу и фирму.
 - Для **PopularTickets** на Vercel: `NEXT_PUBLIC_APP_URL` = тот же канон, что и основной домен деплоя (часто `https://www.populartickets.pl`), чтобы canonical/P24 не расходились с редиректами.
+
+## Reels / Shorts → landing (воронка)
+
+1. В bio Instagram и в описании YouTube Shorts ставить **ссылку на intent-страницу**, а не только на главную:
+   - комьюнити / «куда одному»: `popularpoet.pl/ru/kuda-poyti-odnomu-varshava` или `populartickets.pl/ru/kuda-poyti-odnomu-varshava`
+   - impro: `popularpoet.pl/ru/improvizatsiya-varshava`
+   - пробное: `popularpoet.pl/ru/probnoe-zanyatie-varshava`
+2. В субтитрах и description Reels/Shorts — ключевые слова: **Warsaw, improv, theatre, русскоязычное**.
+3. После публикации long-form — отправить URL в GSC (**URL Inspection** → Request indexing).
+
+## Отзывы и GBP
+
+1. Регулярно просить отзывы у гостей шоу (Google Maps / GBP) — 2–3 предложения + фото зала.
+2. В GBP добавить фото сцены, афиши и ссылку на intent «куда одному» или афишу tickets.
+3. Категории GBP: Theater, Drama school, Event venue — согласованы с сайтом.

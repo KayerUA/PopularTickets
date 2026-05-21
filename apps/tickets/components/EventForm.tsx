@@ -265,6 +265,9 @@ export function EventForm({
         <AdminFormSection title="Описание и обложка">
           <label className="block text-sm text-zinc-300 sm:col-span-2">
             Описание (русский)
+            <p className="mt-1 text-xs text-zinc-500">
+              Шаблон: что это · для кого · язык · как добраться (ul. Domaniewska 37). Короткий абзац + детали — лучше для SEO и FAQ.
+            </p>
             <textarea
               name="description"
               rows={6}

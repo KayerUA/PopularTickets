@@ -5,5 +5,7 @@
 export const POET_KURSY_LEGACY_SLUG_REDIRECTS: Readonly<Record<string, string>> = {
   "akterskoe-masterstvo": "acting",
   "aktyorskoe-masterstvo": "acting",
+  "improvizaciya": "improv",
+  "improvizatsiya": "improv",
   "story-telling": "story-talling",
 };
