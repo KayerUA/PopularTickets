@@ -28,9 +28,15 @@ export async function verifyCheckinSessionToken(token: string | undefined): Prom
   }
 }
 
-/** Нужен ли код контролёра (production или явно задан CHECKIN_OPERATOR_TOKEN). */
+/** Пароль контролёра для /check-in. CHECKIN_OPERATOR_TOKEN — устаревший алиас. */
+export function readCheckinPasswordEnv(): string | undefined {
+  const v = process.env.CHECKIN_PASSWORD?.trim() || process.env.CHECKIN_OPERATOR_TOKEN?.trim();
+  return v || undefined;
+}
+
+/** Нужен ли вход (production или явно задан CHECKIN_PASSWORD). */
 export function checkinAuthRequired(): boolean {
-  return process.env.NODE_ENV === "production" || Boolean(process.env.CHECKIN_OPERATOR_TOKEN?.trim());
+  return process.env.NODE_ENV === "production" || Boolean(readCheckinPasswordEnv());
 }
 
 export async function isCheckinSessionActive(): Promise<boolean> {

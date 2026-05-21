@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import {
   CHECKIN_SESSION_COOKIE,
   checkinAuthRequired,
+  readCheckinPasswordEnv,
   signCheckinSessionToken,
 } from "@/lib/checkinSession";
 import { timingSafeEqualString } from "@/lib/security";
@@ -14,8 +15,8 @@ export async function checkinLogin(formData: FormData) {
     redirect("/check-in");
   }
 
-  const operatorToken = String(formData.get("operatorToken") || "");
-  const expected = process.env.CHECKIN_OPERATOR_TOKEN?.trim();
+  const operatorToken = String(formData.get("checkinPassword") || formData.get("operatorToken") || "");
+  const expected = readCheckinPasswordEnv();
   if (!expected) {
     redirect("/check-in?error=unconfigured");
   }

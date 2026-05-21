@@ -8,8 +8,8 @@ import { CheckInQrScanner } from "@/components/CheckInQrScanner";
 const initial: CheckinLookup = { status: "idle" };
 
 function loginErrorMessage(code: string | undefined): string | null {
-  if (code === "bad_code") return "Неверный код контролёра.";
-  if (code === "unconfigured") return "Check-in не настроен на сервере (CHECKIN_OPERATOR_TOKEN).";
+  if (code === "bad_code") return "Неверный пароль контролёра.";
+  if (code === "unconfigured") return "Check-in не настроен на сервере (CHECKIN_PASSWORD).";
   if (code === "jwt") return "Не задан ADMIN_JWT_SECRET (≥16 символов).";
   return null;
 }
@@ -36,14 +36,14 @@ export function CheckInPanel({ authRequired, authenticated, loginError }: Props)
         <div>
           <h1 className="font-display text-2xl font-semibold text-zinc-50 sm:text-3xl">Check-in</h1>
           <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-            Введите код контролёра — после входа можно сканировать QR и отмечать билеты без повторного ввода кода.
+            Введите пароль контролёра — после входа можно сканировать QR и отмечать билеты без повторного ввода.
           </p>
         </div>
         <form action={checkinLogin} className="space-y-4 rounded-2xl border border-poet-gold/20 bg-poet-surface/40 p-4 sm:p-5">
           <label className="block text-sm text-zinc-300">
-            Код контролёра
+            Пароль контролёра
             <input
-              name="operatorToken"
+              name="checkinPassword"
               type="password"
               required
               autoFocus
