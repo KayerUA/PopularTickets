@@ -199,6 +199,8 @@ export async function SiteFooter() {
                 <img
                   src={p24Gfx.logoUrl!}
                   alt={t("p24LogoAlt")}
+                  width={192}
+                  height={48}
                   className="h-7 w-auto max-w-[10rem] object-contain object-left opacity-95 sm:h-8 sm:max-w-[12rem]"
                 />
               </div>

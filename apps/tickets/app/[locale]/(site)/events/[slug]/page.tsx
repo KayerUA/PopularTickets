@@ -24,6 +24,7 @@ import { Link } from "@/i18n/navigation";
 import { resolveEventCopy } from "@/lib/contentI18n";
 import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
 import { eventLanguageLabel, normalizeEventLanguage } from "@/lib/eventLanguage";
+import { isOptimizableEventImage } from "@/lib/imageOptimization";
 
 /** Server Actions + ISR: закэшированная страница после деплоя даёт «Server Action … was not found». */
 export const dynamic = "force-dynamic";
@@ -213,7 +214,7 @@ export default async function EventPage({
               alt=""
               sizes="(max-width:768px) 100vw, 896px"
               priority
-              unoptimized
+              unoptimized={!isOptimizableEventImage(event.image_url)}
               coverObjectPosition={eventCoverObjectPosition(event.image_focal_x, event.image_focal_y)}
               frameClassName="absolute inset-0"
             />

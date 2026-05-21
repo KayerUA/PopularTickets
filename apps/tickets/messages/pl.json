@@ -60,7 +60,7 @@
   },
   "Cookies": {
     "title": "Ustawienia cookies",
-    "body": "Stosujemy pliki cookies i podobne technologie niezbędne do działania serwisu (np. utrzymanie sesji, bezpieczeństwo, zapobieganie nadużyciom). Po wyrażeniu zgody możemy w przyszłości uruchomić dodatkowe narzędzia analityczne lub marketingowe — na razie serwis nie ładuje takich skryptów bez Twojej decyzji.",
+    "body": "Używamy niezbędnych cookies, aby strona działała. Dodatkowe narzędzia włączamy tylko po Twoim wyborze.",
     "privacyLink": "Szczegóły zbierania i przetwarzania danych: <link>Polityka prywatności</link>.",
     "essentialOnly": "Tylko niezbędne",
     "acceptAll": "Akceptuję wszystkie",

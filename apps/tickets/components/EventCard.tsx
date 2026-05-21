@@ -9,6 +9,7 @@ import { EventStatusBadge } from "@/components/EventStatusBadge";
 import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { eventLanguageLabel, normalizeEventLanguage, type EventLanguage } from "@/lib/eventLanguage";
+import { isOptimizableEventImage } from "@/lib/imageOptimization";
 
 export type EventCardProps = {
   slug: string;
@@ -57,7 +58,7 @@ export function EventCard(e: EventCardProps) {
               src={e.imageUrl}
               alt=""
               sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
-              unoptimized
+              unoptimized={!isOptimizableEventImage(e.imageUrl)}
               coverObjectPosition={eventCoverObjectPosition(e.imageFocalX, e.imageFocalY)}
               frameClassName="absolute inset-0"
             />

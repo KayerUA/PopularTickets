@@ -32,7 +32,7 @@ export function CookieConsent() {
         <h2 id="cookie-consent-title" className="font-display text-base font-semibold text-gradient-gold sm:text-lg">
           {t("title")}
         </h2>
-        <p className="mt-2 text-xs leading-relaxed text-zinc-400 sm:text-sm">{t("body")}</p>
+        <p className="mt-2 text-[11px] leading-relaxed text-zinc-400 sm:text-xs">{t("body")}</p>
         <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">
           {t.rich("privacyLink", {
             link: (chunks) => (

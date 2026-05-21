@@ -49,6 +49,7 @@ function supabaseStorageImageHost(): string | undefined {
 }
 
 const storageHost = supabaseStorageImageHost();
+const imageHosts = [...new Set([storageHost, "pynbtuvhrratjqlweyas.supabase.co"].filter(Boolean) as string[])];
 
 const nextConfig: NextConfig = {
   ...(useMonorepoTracingRoot ? { outputFileTracingRoot: monorepoRoot } : {}),
@@ -68,15 +69,11 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    remotePatterns: storageHost
-      ? [
-          {
-            protocol: "https",
-            hostname: storageHost,
-            pathname: "/storage/v1/object/public/**",
-          },
-        ]
-      : [],
+    remotePatterns: imageHosts.map((hostname) => ({
+      protocol: "https",
+      hostname,
+      pathname: "/storage/v1/object/public/**",
+    })),
   },
 };
 

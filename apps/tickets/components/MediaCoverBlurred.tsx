@@ -40,8 +40,8 @@ export function MediaCoverBlurred({
         alt=""
         fill
         sizes={sizes}
-        priority={priority}
         unoptimized={unoptimized}
+        fetchPriority={priority ? "low" : undefined}
         className="pointer-events-none absolute inset-0 z-0 scale-[1.38] object-cover object-center blur-3xl saturate-[1.18] opacity-[0.82] brightness-110 contrast-[1.05]"
         style={blurPos}
         aria-hidden
@@ -53,6 +53,7 @@ export function MediaCoverBlurred({
         sizes={sizes}
         priority={priority}
         unoptimized={unoptimized}
+        fetchPriority={priority ? "high" : undefined}
         className={
           fit === "cover"
             ? "pointer-events-none absolute inset-0 z-[1] object-cover object-center"

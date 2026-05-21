@@ -2,6 +2,7 @@ import { PoetMarquee } from "@/components/PoetMarquee";
 import { PoetCourseShowcase, PoetTrialsAndFlow } from "@/components/PoetCoursesAndTrials";
 import { PoetTrialCalendar } from "@/components/PoetTrialCalendar";
 import { PoetJsonLd } from "@/components/PoetJsonLd";
+import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { fetchPublishedTrials } from "@/lib/poetTrials";
 import { fetchPublishedPoetCourses } from "@/lib/poetCourses";
@@ -40,9 +41,14 @@ export default async function HomePage() {
       {orgLd ? <PoetJsonLd data={orgLd} /> : null}
       <PoetJsonLd data={faqLd} />
       <div className="relative overflow-hidden rounded-2xl border border-poet-gold/15">
-        <div
-          className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-[0.14]"
-          style={{ backgroundImage: "url(/courses/theatre-photo.jpg)" }}
+        <Image
+          src="/courses/theatre-photo.jpg"
+          alt=""
+          fill
+          priority
+          fetchPriority="high"
+          sizes="(max-width: 1024px) 100vw, 1024px"
+          className="pointer-events-none absolute inset-0 object-cover object-center opacity-[0.14]"
           aria-hidden
         />
         <div className="relative bg-gradient-to-br from-poet-bg/88 via-poet-bg/76 to-black/70 px-4 py-7 sm:px-8 sm:py-10">
