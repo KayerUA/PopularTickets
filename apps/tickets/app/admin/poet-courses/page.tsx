@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getServiceSupabase } from "@/lib/supabase/admin";
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
+import { deletePoetCourse } from "@/app/actions/poet-courses";
+import { AdminDeleteButton } from "@/components/AdminDeleteButton";
 
 export default async function AdminPoetCoursesPage() {
   const supabase = getServiceSupabase();
@@ -64,9 +66,17 @@ export default async function AdminPoetCoursesPage() {
                   )}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <Link href={`/admin/poet-courses/${r.id}/edit`} className="text-poet-gold hover:text-poet-gold-bright">
-                    Изменить
-                  </Link>
+                  <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+                    <Link href={`/admin/poet-courses/${r.id}/edit`} className="text-poet-gold hover:text-poet-gold-bright">
+                      Изменить
+                    </Link>
+                    <AdminDeleteButton
+                      deleteAction={deletePoetCourse}
+                      id={r.id as string}
+                      title={r.title as string}
+                      entityLabel="Курс"
+                    />
+                  </div>
                 </td>
               </tr>
             ))}

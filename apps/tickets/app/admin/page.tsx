@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getServiceSupabase } from "@/lib/supabase/admin";
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { formatPlDateTime } from "@/lib/format";
+import { deleteEvent } from "@/app/actions/admin-events";
+import { AdminDeleteButton } from "@/components/AdminDeleteButton";
 
 export default async function AdminHome() {
   const supabase = getServiceSupabase();
@@ -19,12 +21,16 @@ export default async function AdminHome() {
 
   const rows = await Promise.all(
     (events ?? []).map(async (ev) => {
-      const { count } = await supabase
-        .from("tickets")
-        .select("id", { count: "exact", head: true })
-        .eq("event_id", ev.id);
-      return { ...ev, sold: count ?? 0 };
-    })
+      const [{ count: sold }, { count: paidOrders }] = await Promise.all([
+        supabase.from("tickets").select("id", { count: "exact", head: true }).eq("event_id", ev.id),
+        supabase
+          .from("orders")
+          .select("id", { count: "exact", head: true })
+          .eq("event_id", ev.id)
+          .eq("status", "paid"),
+      ]);
+      return { ...ev, sold: sold ?? 0, paidOrders: paidOrders ?? 0 };
+    }),
   );
 
   return (
@@ -76,9 +82,18 @@ export default async function AdminHome() {
                   )}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <Link href={`/admin/events/${ev.id}/edit`} className="text-poet-gold hover:text-poet-gold-bright">
-                    Изменить
-                  </Link>
+                  <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+                    <Link href={`/admin/events/${ev.id}/edit`} className="text-poet-gold hover:text-poet-gold-bright">
+                      Изменить
+                    </Link>
+                    <AdminDeleteButton
+                      deleteAction={deleteEvent}
+                      id={ev.id as string}
+                      title={ev.title as string}
+                      entityLabel="Событие"
+                      paidOrders={ev.paidOrders}
+                    />
+                  </div>
                 </td>
               </tr>
             );

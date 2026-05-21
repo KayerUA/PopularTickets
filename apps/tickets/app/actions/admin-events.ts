@@ -409,3 +409,58 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
     };
   }
 }
+
+export async function deleteEvent(formData: FormData): Promise<{ error?: string } | void> {
+  try {
+    await requireAdmin();
+
+    const id = z.string().uuid().parse(formData.get("id"));
+    const supabase = requireServiceSupabase();
+
+    const { data: ev, error: evErr } = await supabase
+      .from("events")
+      .select("id,slug")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (evErr || !ev) return { error: "Событие не найдено" };
+
+    const { count: paidCount, error: paidErr } = await supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", id)
+      .eq("status", "paid");
+
+    if (paidErr) return { error: paidErr.message };
+    if ((paidCount ?? 0) > 0) {
+      return {
+        error: `Нельзя удалить: ${paidCount} оплаченных заказов. Скройте событие (inactive) или оставьте в архиве.`,
+      };
+    }
+
+    const slug = ev.slug as string;
+
+    const slotDel = await supabase.from("poet_trial_slot").delete().eq("tickets_checkout_event_slug", slug);
+    if (slotDel.error && !/does not exist|schema cache/i.test(slotDel.error.message)) {
+      console.warn("[deleteEvent] poet_trial_slot", slotDel.error.message);
+    }
+
+    const { error: ordErr } = await supabase.from("orders").delete().eq("event_id", id);
+    if (ordErr) return { error: ordErr.message };
+
+    const { error: delErr } = await supabase.from("events").delete().eq("id", id);
+    if (delErr) return { error: delErr.message };
+
+    for (const loc of routing.locales) {
+      revalidatePath(`/${loc}`);
+      revalidatePath(`/${loc}/events/${slug}`);
+    }
+    revalidatePath("/admin");
+    revalidatePath("/admin/orders");
+    redirect("/admin");
+  } catch (e) {
+    if (isNextRedirectError(e)) throw e;
+    console.error("[deleteEvent]", e);
+    return { error: e instanceof Error ? e.message : "Не удалось удалить событие" };
+  }
+}

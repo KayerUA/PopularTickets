@@ -54,6 +54,33 @@ function isNextRedirectError(e: unknown): boolean {
   );
 }
 
+export async function deletePoetCourse(formData: FormData): Promise<{ error?: string } | void> {
+  try {
+    await requireAdmin();
+
+    const id = z.string().uuid().parse(formData.get("id"));
+    const supabase = requireServiceSupabase();
+
+    const { data: row, error: loadErr } = await supabase
+      .from("poet_course")
+      .select("id,slug")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (loadErr || !row) return { error: "Курс не найден" };
+
+    const { error } = await supabase.from("poet_course").delete().eq("id", id);
+    if (error) return { error: error.message };
+
+    revalidatePath("/admin/poet-courses");
+    redirect("/admin/poet-courses");
+  } catch (e) {
+    if (isNextRedirectError(e)) throw e;
+    console.error("[deletePoetCourse]", e);
+    return { error: e instanceof Error ? e.message : "Не удалось удалить курс" };
+  }
+}
+
 export async function upsertPoetCourse(_prev: UpsertPoetCourseState, formData: FormData): Promise<UpsertPoetCourseState> {
   try {
     await requireAdmin();
