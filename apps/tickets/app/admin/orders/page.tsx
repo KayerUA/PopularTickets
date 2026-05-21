@@ -114,6 +114,11 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                   <td className="px-3 py-3 text-zinc-300">
                     <div>{o.buyer_name}</div>
                     <div className="text-xs text-zinc-500">{o.email}</div>
+                    {(o.phone as string | null | undefined)?.trim() ? (
+                      <div className="text-xs text-zinc-400">{o.phone}</div>
+                    ) : (
+                      <div className="text-xs text-zinc-600">— тел.</div>
+                    )}
                   </td>
                   <td className="px-3 py-3 text-xs text-zinc-400 whitespace-nowrap">
                     {(o as { marketing_email_opt_in?: boolean }).marketing_email_opt_in ? "да" : "—"}
