@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import { DateTime } from "luxon";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
-import { routing } from "@/i18n/routing";
 import { EVENT_ADMIN_TIMEZONE } from "@/lib/warsawEventDatetime";
 import { getTelegramAdminUserIds } from "@/lib/telegram/config";
 import { createEventFromParsed } from "@/lib/telegram/createEventDraft";
@@ -14,6 +13,16 @@ import {
   updateTelegramDraftStatus,
 } from "@/lib/telegram/draftStore";
 import {
+  cancelAfishaBundle,
+  getAfishaBundle,
+  mergeAfishaPart,
+} from "@/lib/telegram/afishaBundle";
+import {
+  cancelMediaGroupBuffersForChat,
+  enqueueMediaGroupPart,
+  type MediaGroupFlushPayload,
+} from "@/lib/telegram/mediaGroupBuffer";
+import {
   applyClarificationReplyBatch,
   applyDatePolicyBatch,
   clarificationQuestion,
@@ -23,6 +32,9 @@ import {
   parseEventWithGemini,
   parseStoredEvents,
   previewNoteFromDraft,
+  sortEventsByDate,
+  storedImageFileIds,
+  withImageFileIds,
   type ClarificationField,
   type ParsedTelegramEvent,
   type RawParsedEvent,
@@ -64,9 +76,29 @@ export type TelegramUpdate = {
 const chatLocks = new Map<number, Promise<void>>();
 const seenUpdateIds = new Set<number>();
 
-/** Фото без подписи из альбома — ждём текст или прикрепляем к черновику. */
-type PendingPhoto = { fileId: string; at: number; mediaGroupId?: string };
-const pendingPhotosByChat = new Map<number, PendingPhoto>();
+async function onAfishaBundleReady(payload: {
+  chatId: number;
+  userId: number;
+  text: string;
+  fileIds: string[];
+}): Promise<void> {
+  await processNewAfisha(payload.chatId, payload.userId, payload.text, payload.fileIds);
+}
+
+async function onAfishaWaitingForText(payload: { chatId: number; photoCount: number }): Promise<void> {
+  await sendTelegramMessage(
+    payload.chatId,
+    `🖼 ${payload.photoCount} фото. Отправьте текст расписания отдельным сообщением — подпись к фото не нужна, порядок не важен.`,
+  );
+}
+
+function queueAfishaPart(
+  chatId: number,
+  userId: number,
+  part: { text?: string; fileIds?: string[] },
+): void {
+  mergeAfishaPart(chatId, userId, part, onAfishaBundleReady, onAfishaWaitingForText);
+}
 
 async function withChatLock(chatId: number, fn: () => Promise<void>): Promise<void> {
   const prev = chatLocks.get(chatId) ?? Promise.resolve();
@@ -103,11 +135,20 @@ function formatWarsawLocal(startsAtWarsaw: string): string {
   return dt.isValid ? dt.setLocale("ru").toFormat("d MMMM yyyy, HH:mm") : startsAtWarsaw;
 }
 
-function eventPublicUrls(base: string, slug: string): string[] {
-  return routing.locales.map((loc) => `${base}/${loc}/events/${slug}`);
+function eventPublicUrlRu(base: string, slug: string): string {
+  return `${base}/ru/events/${slug}`;
 }
 
-function previewTextSingle(parsed: ParsedTelegramEvent, hasImage: boolean, previewNote?: string): string {
+function photoPreviewNote(imageCount: number, eventCount: number): string {
+  if (imageCount === 0) return "🖼 Без обложки";
+  if (eventCount <= 1) return "🖼 Фото будет загружено при публикации";
+  if (imageCount >= eventCount) {
+    return `🖼 ${imageCount} фото → по порядку на каждое событие (от ближайшей даты)`;
+  }
+  return `🖼 ${imageCount} фото → на первые ${imageCount} события (по дате)`;
+}
+
+function previewTextSingle(parsed: ParsedTelegramEvent, imageCount: number, previewNote?: string): string {
   return [
     "📋 Превью — проверьте и опубликуйте:",
     "",
@@ -116,7 +157,7 @@ function previewTextSingle(parsed: ParsedTelegramEvent, hasImage: boolean, previ
     `💰 ${parsed.pricePln} PLN · ${parsed.totalTickets} мест`,
     `📍 ${parsed.venue}`,
     `🏷 ${parsed.listingKind === "trial" ? "пробное" : "шоу/спектакль"}`,
-    hasImage ? "🖼 Фото будет загружено при публикации" : "🖼 Без обложки",
+    photoPreviewNote(imageCount, 1),
     "🌐 RU + PL + UK (Gemini)",
     previewNote?.trim() ? `\nℹ️ ${previewNote.trim()}` : "",
   ]
@@ -124,12 +165,17 @@ function previewTextSingle(parsed: ParsedTelegramEvent, hasImage: boolean, previ
     .join("\n");
 }
 
-function previewTextBatch(events: RawParsedEvent[], hasImage: boolean, previewNote?: string): string {
+function previewTextBatch(
+  events: RawParsedEvent[],
+  imageCount: number,
+  previewNote?: string,
+): string {
   const lines = events.map((ev, i) => {
     const when = ev.startsAtWarsaw ? formatWarsawLocal(ev.startsAtWarsaw) : "дата ?";
     const price = ev.pricePln != null ? `${ev.pricePln} PLN` : "цена ?";
     const seats = ev.totalTickets != null ? `${ev.totalTickets} мест` : "места ?";
-    return `${i + 1}. ${ev.title}\n   📅 ${when} · 💰 ${price} · ${seats}`;
+    const photoMark = i < imageCount ? " 🖼" : "";
+    return `${i + 1}. ${ev.title}${photoMark}\n   📅 ${when} · 💰 ${price} · ${seats}`;
   });
 
   return [
@@ -138,7 +184,7 @@ function previewTextBatch(events: RawParsedEvent[], hasImage: boolean, previewNo
     ...lines,
     "",
     `📍 ${events[0]?.venue ?? "—"}`,
-    hasImage ? "🖼 Обложка — на все события" : "🖼 Без обложки",
+    photoPreviewNote(imageCount, events.length),
     "🌐 RU + PL + UK (Gemini)",
     previewNote?.trim() ? `\nℹ️ ${previewNote.trim()}` : "",
   ]
@@ -146,45 +192,48 @@ function previewTextBatch(events: RawParsedEvent[], hasImage: boolean, previewNo
     .join("\n");
 }
 
-function publishedText(
-  base: string,
-  event: { id: string; slug: string; title: string; startsAtIso: string; imageUrl: string | null },
-): string {
-  const urls = eventPublicUrls(base, event.slug);
+type PublishedEventInfo = {
+  title: string;
+  slug: string;
+  startsAtIso: string;
+};
+
+function publishedTextSingle(base: string, event: PublishedEventInfo): string {
   const dt = DateTime.fromISO(event.startsAtIso, { zone: "utc" }).setZone(EVENT_ADMIN_TIMEZONE);
   const when = dt.isValid ? dt.setLocale("ru").toFormat("d MMMM yyyy, HH:mm") : event.startsAtIso;
 
   return [
-    "✅ Событие опубликовано (published)",
+    "✅ Событие опубликовано",
     "",
     `📌 ${event.title}`,
     `📅 ${when} (Warsaw)`,
     "",
-    "🎫 Афиша:",
-    ...urls.map((u) => u),
-    "",
-    `✏️ Админка: ${base}/admin/events/${event.id}/edit`,
-    "",
-    event.imageUrl ? "🖼 Обложка загружена" : "🖼 Без обложки — добавьте в админке",
+    `🎫 ${eventPublicUrlRu(base, event.slug)}`,
   ].join("\n");
 }
 
-function publishedBatchIntro(count: number): string {
-  return `✅ Опубликовано ${count} событий (published)\n`;
+function publishedTextBatch(base: string, events: PublishedEventInfo[]): string {
+  const blocks = events.map((event, i) => {
+    const dt = DateTime.fromISO(event.startsAtIso, { zone: "utc" }).setZone(EVENT_ADMIN_TIMEZONE);
+    const when = dt.isValid ? dt.setLocale("ru").toFormat("d MMMM yyyy, HH:mm") : event.startsAtIso;
+    return `${i + 1}. ${event.title}\n   📅 ${when}\n   🎫 ${eventPublicUrlRu(base, event.slug)}`;
+  });
+
+  return [`✅ Опубликовано ${events.length} событий`, "", ...blocks].join("\n\n");
 }
 
 async function showPreview(
   chatId: number,
   draftId: string,
   events: RawParsedEvent[],
-  hasImage: boolean,
+  imageCount: number,
   previewNote?: string,
   isBatch?: boolean,
 ): Promise<void> {
   const batch = isBatch ?? events.length > 1;
   const text = batch
-    ? previewTextBatch(events, hasImage, previewNote)
-    : previewTextSingle(finalizeParsed(events[0]!), hasImage, previewNote);
+    ? previewTextBatch(events, imageCount, previewNote)
+    : previewTextSingle(finalizeParsed(events[0]!), imageCount, previewNote);
   const publishLabel = batch ? `✅ Опубликовать все (${events.length})` : "✅ Опубликовать";
 
   await sendTelegramMessage(chatId, text, {
@@ -197,22 +246,33 @@ async function showPreview(
   });
 }
 
-async function processNewAfisha(chatId: number, userId: number, text: string, fileId?: string): Promise<void> {
+async function processNewAfisha(
+  chatId: number,
+  userId: number,
+  text: string,
+  fileIds: string[] = [],
+): Promise<void> {
   const supabase = requireServiceSupabase();
   await cancelActiveDraftForChat(supabase, chatId);
-  pendingPhotosByChat.delete(chatId);
+  cancelMediaGroupBuffersForChat(chatId);
+  cancelAfishaBundle(chatId);
 
   await sendTelegramMessage(chatId, "⏳ Разбираю афишу (Gemini)…");
 
   let imageForGemini: { base64: string; mimeType: string } | undefined;
-  if (fileId) {
-    const downloaded = await downloadTelegramFile(fileId);
+  const primaryFileId = fileIds[0];
+  if (primaryFileId) {
+    const downloaded = await downloadTelegramFile(primaryFileId);
     imageForGemini = { base64: downloaded.buffer.toString("base64"), mimeType: downloaded.mimeType };
   }
 
-  const { events, missing, previewNote, isBatch } = await parseEventWithGemini(text, imageForGemini);
+  const { events: parsedEvents, missing, previewNote, isBatch } = await parseEventWithGemini(
+    text,
+    imageForGemini,
+  );
+  const events = sortEventsByDate(parsedEvents);
   const draftId = randomUUID();
-  const parsedPayload = draftParsedPayload(events, previewNote, isBatch);
+  const parsedPayload = draftParsedPayload(events, previewNote, isBatch, fileIds);
 
   if (missing.length > 0) {
     await saveTelegramDraft(supabase, {
@@ -221,7 +281,7 @@ async function processNewAfisha(chatId: number, userId: number, text: string, fi
       telegram_user_id: userId,
       status: "awaiting_clarification",
       source_text: text,
-      image_file_id: fileId ?? null,
+      image_file_id: primaryFileId ?? null,
       parsed: parsedPayload,
       missing_fields: missing,
     });
@@ -239,11 +299,11 @@ async function processNewAfisha(chatId: number, userId: number, text: string, fi
     telegram_user_id: userId,
     status: "preview",
     source_text: text,
-    image_file_id: fileId ?? null,
+    image_file_id: primaryFileId ?? null,
     parsed: parsedPayload,
     missing_fields: [],
   });
-  await showPreview(chatId, draftId, events, Boolean(fileId), previewNote, isBatch);
+  await showPreview(chatId, draftId, events, fileIds.length, previewNote, isBatch);
 }
 
 async function applyDraftFieldsFromReply(
@@ -254,20 +314,21 @@ async function applyDraftFieldsFromReply(
   fields: ClarificationField[],
 ): Promise<void> {
   const supabase = requireServiceSupabase();
-  const storedEvents = parseStoredEvents(active.parsed);
-  const mergedEvents = applyClarificationReplyBatch(storedEvents, replyText, fields);
+  const imageFileIds = storedImageFileIds(active.parsed, active.image_file_id);
+  const storedEvents = sortEventsByDate(parseStoredEvents(active.parsed));
+  const mergedEvents = sortEventsByDate(applyClarificationReplyBatch(storedEvents, replyText, fields));
   const datePolicy = applyDatePolicyBatch(mergedEvents);
   let stillMissing = missingClarificationFieldsBatch(mergedEvents);
   if (datePolicy.forceDateClarification && !stillMissing.includes("startsAtWarsaw")) {
     stillMissing = ["startsAtWarsaw", ...stillMissing];
   }
   const previewNote = datePolicy.previewNote ?? previewNoteFromDraft(active.parsed);
-  const isBatch = storedEvents.length > 1;
+  const isBatch = mergedEvents.length > 1;
 
   if (stillMissing.length > 0) {
     await saveTelegramDraft(supabase, {
       ...active,
-      parsed: draftParsedPayload(mergedEvents, previewNote, isBatch),
+      parsed: draftParsedPayload(mergedEvents, previewNote, isBatch, imageFileIds),
       missing_fields: stillMissing,
       status: "awaiting_clarification",
     });
@@ -279,11 +340,11 @@ async function applyDraftFieldsFromReply(
   await saveTelegramDraft(supabase, {
     ...active,
     telegram_user_id: userId,
-    parsed: draftParsedPayload(mergedEvents, previewNote, isBatch),
+    parsed: draftParsedPayload(mergedEvents, previewNote, isBatch, imageFileIds),
     missing_fields: [],
     status: "preview",
   });
-  await showPreview(chatId, active.id, mergedEvents, Boolean(active.image_file_id), previewNote, isBatch);
+  await showPreview(chatId, active.id, mergedEvents, imageFileIds.length, previewNote, isBatch);
 }
 
 async function processClarificationReply(chatId: number, userId: number, replyText: string): Promise<void> {
@@ -310,58 +371,56 @@ async function processPreviewCorrection(
   await applyDraftFieldsFromReply(chatId, userId, active, replyText, fields);
 }
 
-async function attachPhotoToDraft(
+async function appendPhotosToDraft(
   chatId: number,
   userId: number,
   fileId: string,
-  mediaGroupId?: string,
 ): Promise<void> {
   const supabase = requireServiceSupabase();
   const active = await getActiveDraftForChat(supabase, chatId);
+  if (!active || active.telegram_user_id !== userId) return;
 
-  if (active && active.telegram_user_id === userId) {
-    if (!active.image_file_id) {
-      await saveTelegramDraft(supabase, { ...active, image_file_id: fileId });
-      await sendTelegramMessage(chatId, "🖼 Фото прикреплено к черновику.");
-    }
-    return;
-  }
+  const existing = storedImageFileIds(active.parsed, active.image_file_id);
+  if (existing.includes(fileId)) return;
 
-  const pending = pendingPhotosByChat.get(chatId);
-  if (pending && mediaGroupId && pending.mediaGroupId === mediaGroupId) {
-    return;
-  }
-
-  pendingPhotosByChat.set(chatId, { fileId, at: Date.now(), mediaGroupId });
+  const nextIds = [...existing, fileId];
+  await saveTelegramDraft(supabase, {
+    ...active,
+    image_file_id: nextIds[0] ?? active.image_file_id,
+    parsed: withImageFileIds(active.parsed, nextIds),
+  });
   await sendTelegramMessage(
     chatId,
-    "🖼 Фото получено. Отправьте текст афиши следующим сообщением или перешлите фото с подписью сразу.",
+    `🖼 Фото ${nextIds.length} прикреплено к черновику (по порядку на события).`,
   );
+}
+
+async function handleMediaGroupFlush(payload: MediaGroupFlushPayload): Promise<void> {
+  queueAfishaPart(payload.chatId, payload.userId, {
+    fileIds: payload.fileIds,
+    text: payload.text.trim() || undefined,
+  });
 }
 
 async function handleChatMessage(
   chatId: number,
   userId: number,
   text: string,
-  fileId?: string,
+  fileIds: string[] = [],
   mediaGroupId?: string,
 ): Promise<void> {
   const supabase = requireServiceSupabase();
 
-  if (fileId && !text.trim()) {
-    await attachPhotoToDraft(chatId, userId, fileId, mediaGroupId);
+  if (mediaGroupId) {
+    enqueueMediaGroupPart(mediaGroupId, chatId, userId, fileIds[0], text, (payload) =>
+      withChatLock(chatId, () => handleMediaGroupFlush(payload)),
+    );
     return;
-  }
-
-  const pending = pendingPhotosByChat.get(chatId);
-  if (text && !fileId && pending && Date.now() - pending.at < 5 * 60 * 1000) {
-    fileId = pending.fileId;
-    pendingPhotosByChat.delete(chatId);
   }
 
   const active = await getActiveDraftForChat(supabase, chatId);
 
-  if (text && !text.startsWith("/") && !fileId && active) {
+  if (text && !text.startsWith("/") && fileIds.length === 0 && active) {
     if (active.status === "awaiting_clarification") {
       await processClarificationReply(chatId, userId, text);
       return;
@@ -373,15 +432,37 @@ async function handleChatMessage(
     }
   }
 
-  if (active && !fileId && !looksLikeNewAfisha(text, false)) {
+  if (fileIds.length > 0 && !text.trim() && active && active.telegram_user_id === userId) {
+    for (const id of fileIds) {
+      await appendPhotosToDraft(chatId, userId, id);
+    }
+    return;
+  }
+
+  const waitingBundle = getAfishaBundle(chatId);
+  const hasText = text.trim().length > 0;
+  const isNewAfishaPart =
+    fileIds.length > 0 ||
+    (hasText &&
+      (looksLikeNewAfisha(text, fileIds.length > 0) || Boolean(waitingBundle?.fileIds.length)));
+
+  if (isNewAfishaPart && (!active || looksLikeNewAfisha(text, fileIds.length > 0))) {
+    queueAfishaPart(chatId, userId, {
+      text: hasText ? text.trim() : undefined,
+      fileIds: fileIds.length > 0 ? fileIds : undefined,
+    });
+    return;
+  }
+
+  if (active && fileIds.length === 0 && hasText && !looksLikeNewAfisha(text, false)) {
     await sendTelegramMessage(
       chatId,
-      "Есть незавершённый черновик. Ответьте на вопрос выше, исправьте цифры (например «50, 100»), нажмите кнопку в превью, или пришлите новую афишу с фото.",
+      "Есть незавершённый черновик. Ответьте на вопрос выше, исправьте цифры (например «50, 100»), нажмите кнопку в превью, или пришлите новую афишу.",
     );
     return;
   }
 
-  if (!active && !fileId && looksLikeClarificationReply(text)) {
+  if (!active && fileIds.length === 0 && looksLikeClarificationReply(text)) {
     await sendTelegramMessage(
       chatId,
       "Не вижу активный черновик (на проде нужна таблица telegram_event_drafts в Supabase). Перешлите афишу заново.",
@@ -389,7 +470,12 @@ async function handleChatMessage(
     return;
   }
 
-  await processNewAfisha(chatId, userId, text, fileId);
+  if (hasText || fileIds.length > 0) {
+    queueAfishaPart(chatId, userId, {
+      text: hasText ? text.trim() : undefined,
+      fileIds: fileIds.length > 0 ? fileIds : undefined,
+    });
+  }
 }
 
 function looksLikeClarificationReply(text: string): boolean {
@@ -436,38 +522,41 @@ async function publishDraft(
     return false;
   }
 
-  const storedEvents = parseStoredEvents(draft.parsed);
+  const storedEvents = sortEventsByDate(parseStoredEvents(draft.parsed));
+  const imageFileIds = storedImageFileIds(draft.parsed, draft.image_file_id);
   draftId = draft.id;
 
-  let imageUpload: { buffer: Buffer; mimeType: string } | undefined;
-  if (draft.image_file_id) {
-    imageUpload = await downloadTelegramFile(draft.image_file_id);
-  }
-
   const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "https://www.populartickets.pl";
-  const published: ParsedTelegramEvent[] = [];
+  const published: PublishedEventInfo[] = [];
 
-  for (const raw of storedEvents) {
+  for (let i = 0; i < storedEvents.length; i++) {
+    const raw = storedEvents[i]!;
     const parsed = finalizeParsed(raw);
+    const fileId = imageFileIds[i];
+
+    let imageUpload: { buffer: Buffer; mimeType: string } | undefined;
+    if (fileId) {
+      imageUpload = await downloadTelegramFile(fileId);
+    }
+
     const event = await createEventFromParsed(supabase, parsed, {
       visibility: "published",
       image: imageUpload,
     });
-    published.push(parsed);
-    if (storedEvents.length === 1) {
-      await sendTelegramMessage(chatId, publishedText(base, event));
-    }
+
+    published.push({
+      title: event.title,
+      slug: event.slug,
+      startsAtIso: event.startsAtIso,
+    });
   }
 
   await updateTelegramDraftStatus(supabase, draftId, "published");
 
-  if (storedEvents.length > 1) {
-    await sendTelegramMessage(
-      chatId,
-      publishedBatchIntro(storedEvents.length) +
-        published.map((p, i) => `${i + 1}. ${p.title} — ${formatWarsawLocal(p.startsAtWarsaw)}`).join("\n") +
-        `\n\n✏️ Админка: ${base}/admin/events`,
-    );
+  if (published.length === 1) {
+    await sendTelegramMessage(chatId, publishedTextSingle(base, published[0]!));
+  } else {
+    await sendTelegramMessage(chatId, publishedTextBatch(base, published));
   }
 
   return true;
@@ -556,23 +645,24 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
 
   const text = messageBody(msg);
   const fileId = photoFileId(msg);
+  const fileIds = fileId ? [fileId] : [];
 
   if (text === "/start" || text === "/help") {
     await sendTelegramMessage(
       chatId,
-      "Popular Poet → публикация события\n\n1. Перешлите афишу (текст + фото)\n2. Проверьте превью\n3. Нажмите «Опубликовать»\n\nНесколько дат в одном сообщении → несколько событий одной кнопкой.\nGemini заполнит RU + PL + UK. Если не хватает даты/цены/мест — спросит.",
+      "Popular Poet → публикация события\n\n1. Фото и текст — в любом порядке (альбом + текст отдельным сообщением — ок)\n2. Проверьте превью\n3. Нажмите «Опубликовать»\n\nНесколько дат → несколько событий.\nНесколько фото → по порядку на события (от ближайшей даты).\nСсылки после публикации — только /ru/.",
     );
     return;
   }
 
-  if (!text && !fileId) {
+  if (!text && fileIds.length === 0) {
     await sendTelegramMessage(chatId, "Пришлите текст афиши или фото с подписью.");
     return;
   }
 
   try {
     await withChatLock(chatId, () =>
-      handleChatMessage(chatId, userId, text, fileId, msg.media_group_id),
+      handleChatMessage(chatId, userId, text, fileIds, msg.media_group_id),
     );
   } catch (e) {
     console.error("[telegram bot]", e);

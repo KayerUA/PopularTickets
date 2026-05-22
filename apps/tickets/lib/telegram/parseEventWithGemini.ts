@@ -580,24 +580,53 @@ export function rawToStoredParsed(raw: RawParsedEvent): ParsedTelegramEvent {
 export const BATCH_FLAG_KEY = "_batch";
 export const PREVIEW_NOTE_KEY = "_previewNote";
 export const EVENTS_KEY = "events";
+export const IMAGE_FILE_IDS_KEY = "_imageFileIds";
+
+export function sortEventsByDate(events: RawParsedEvent[]): RawParsedEvent[] {
+  return [...events].sort((a, b) => {
+    if (!a.startsAtWarsaw && !b.startsAtWarsaw) return 0;
+    if (!a.startsAtWarsaw) return 1;
+    if (!b.startsAtWarsaw) return -1;
+    return a.startsAtWarsaw.localeCompare(b.startsAtWarsaw);
+  });
+}
+
+export function storedImageFileIds(parsed: Record<string, unknown>, fallbackSingle?: string | null): string[] {
+  const raw = parsed[IMAGE_FILE_IDS_KEY];
+  if (Array.isArray(raw)) {
+    return raw.filter((x): x is string => typeof x === "string" && x.length > 0);
+  }
+  if (fallbackSingle) return [fallbackSingle];
+  return [];
+}
+
+export function withImageFileIds(parsed: Record<string, unknown>, fileIds: string[]): Record<string, unknown> {
+  const next = { ...parsed };
+  if (fileIds.length > 0) next[IMAGE_FILE_IDS_KEY] = fileIds;
+  else delete next[IMAGE_FILE_IDS_KEY];
+  return next;
+}
 
 export function draftParsedPayload(
   events: RawParsedEvent[],
   previewNote?: string,
   isBatch?: boolean,
+  imageFileIds?: string[],
 ): Record<string, unknown> {
   const batch = isBatch ?? events.length > 1;
+  let payload: Record<string, unknown>;
   if (batch) {
-    const payload: Record<string, unknown> = {
+    payload = {
       [BATCH_FLAG_KEY]: true,
       [EVENTS_KEY]: events,
     };
     if (previewNote) payload[PREVIEW_NOTE_KEY] = previewNote;
-    return payload;
+  } else {
+    payload = { ...events[0]! } as Record<string, unknown>;
+    if (previewNote) payload[PREVIEW_NOTE_KEY] = previewNote;
   }
-  const single = { ...events[0]! } as Record<string, unknown>;
-  if (previewNote) single[PREVIEW_NOTE_KEY] = previewNote;
-  return single;
+  if (imageFileIds?.length) payload[IMAGE_FILE_IDS_KEY] = imageFileIds;
+  return payload;
 }
 
 export function previewNoteFromDraft(parsed: Record<string, unknown>): string | undefined {
@@ -610,7 +639,13 @@ export function isBatchDraft(parsed: Record<string, unknown>): boolean {
 }
 
 export function parseStoredEvents(parsed: Record<string, unknown>): RawParsedEvent[] {
-  const { [PREVIEW_NOTE_KEY]: _note, [BATCH_FLAG_KEY]: _batch, [EVENTS_KEY]: events, ...rest } = parsed;
+  const {
+    [PREVIEW_NOTE_KEY]: _note,
+    [BATCH_FLAG_KEY]: _batch,
+    [EVENTS_KEY]: events,
+    [IMAGE_FILE_IDS_KEY]: _imgs,
+    ...rest
+  } = parsed;
   if (Array.isArray(events)) {
     return events.map((ev) => RawParsedSchema.parse(ev));
   }
