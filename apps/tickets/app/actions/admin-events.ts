@@ -16,6 +16,7 @@ import { contentVisibilitySchema } from "@/lib/contentVisibility";
 import { fallbackEventSlug, slugifyEventTitle } from "@/lib/eventSlugFromTitle";
 import { parseStartsAtFromAdminForm } from "@/lib/warsawEventDatetime";
 import { DEFAULT_EVENT_LANGUAGE, normalizeEventLanguage } from "@/lib/eventLanguage";
+import { resolveEventMapsUrlForSave } from "@/lib/theatreVenueDefaults";
 
 const MIN_EVENT_DESCRIPTION_PUBLISH_CHARS = 300;
 
@@ -384,7 +385,8 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       eventIdForMaps = ins.data.id as string;
     }
 
-    const mapsErr = await setMapsUrlRpc(supabase, eventIdForMaps, v.mapsUrl || null);
+    const mapsUrlResolved = resolveEventMapsUrlForSave(v.mapsUrl, v.venue, v.listingKind);
+    const mapsErr = await setMapsUrlRpc(supabase, eventIdForMaps, mapsUrlResolved);
     if (mapsErr.error) {
       return {
         error: `${mapsErr.error} — выполните в Supabase SQL из репозитория supabase/add-maps-url.sql (функции pt_event_*).`,

@@ -1,3 +1,8 @@
+import {
+  defaultMapsUrlForEvent,
+  type EventListingKind,
+} from "@/lib/theatreVenueDefaults";
+
 /** Первая ссылка на Google Maps в тексте (maps.app.goo.gl или google.com/maps). */
 export function extractGoogleMapsUrl(text: string | null | undefined): string | null {
   if (!text) return null;
@@ -11,8 +16,15 @@ export function extractGoogleMapsUrl(text: string | null | undefined): string | 
 export function resolveEventMapsUrl(event: {
   maps_url?: string | null;
   description: string;
+  venue?: string | null;
+  listing_kind?: EventListingKind | null;
 }): string | null {
   const direct = typeof event.maps_url === "string" ? event.maps_url.trim() : "";
   if (direct) return direct;
-  return extractGoogleMapsUrl(event.description);
+  const fromDescription = extractGoogleMapsUrl(event.description);
+  if (fromDescription) return fromDescription;
+  const venue = event.venue ?? "";
+  const listingKind = event.listing_kind ?? "performance";
+  const fallback = defaultMapsUrlForEvent(venue, listingKind);
+  return fallback || null;
 }

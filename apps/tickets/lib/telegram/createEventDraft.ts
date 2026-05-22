@@ -10,7 +10,7 @@ import {
 } from "@/lib/supabase/eventsPoetCourseColumn";
 import { slugifyEventTitle, fallbackEventSlug } from "@/lib/eventSlugFromTitle";
 import { parseStartsAtFromAdminForm } from "@/lib/warsawEventDatetime";
-import { POPULAR_POET_THEATRE_MAPS_URL } from "@/lib/theatreVenueDefaults";
+import { defaultMapsUrlForEvent } from "@/lib/theatreVenueDefaults";
 import type { ContentVisibility } from "@/lib/contentVisibility";
 import type { ParsedTelegramEvent } from "@/lib/telegram/parseEventWithGemini";
 
@@ -118,9 +118,12 @@ export async function createEventFromParsed(
   }
 
   const eventId = ins.data.id as string;
-  const mapsErr = await setMapsUrlRpc(supabase, eventId, POPULAR_POET_THEATRE_MAPS_URL);
-  if (mapsErr.error) {
-    console.warn("[telegram bot] maps_url:", mapsErr.error);
+  const mapsUrl = defaultMapsUrlForEvent(parsed.venue, parsed.listingKind);
+  if (mapsUrl) {
+    const mapsErr = await setMapsUrlRpc(supabase, eventId, mapsUrl);
+    if (mapsErr.error) {
+      console.warn("[telegram bot] maps_url:", mapsErr.error);
+    }
   }
 
   for (const loc of routing.locales) {

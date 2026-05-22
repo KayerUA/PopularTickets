@@ -106,7 +106,7 @@ values
 Адрес (польский): Warszawa, ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42.
     $d1$,
     '/courses/impro.jpg',
-    'https://maps.app.goo.gl/jz9E6JUn8rcymRoH7?g_st=ic',
+    'https://maps.app.goo.gl/BtaKyKYvp6nGZbx37',
     'Warszawa, ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42',
     (now() at time zone 'utc') + interval '10 days',
     5000,
@@ -124,7 +124,7 @@ values
 Адрес: Warszawa, ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42.
     $d2$,
     '/courses/akterka.jpg',
-    'https://maps.app.goo.gl/jz9E6JUn8rcymRoH7?g_st=ic',
+    'https://maps.app.goo.gl/BtaKyKYvp6nGZbx37',
     'Warszawa, ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42',
     (now() at time zone 'utc') + interval '11 days',
     5000,
@@ -142,7 +142,7 @@ values
 Адрес: Warszawa, ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42.
     $d3$,
     '/courses/theatre.jpg',
-    'https://maps.app.goo.gl/jz9E6JUn8rcymRoH7?g_st=ic',
+    'https://maps.app.goo.gl/BtaKyKYvp6nGZbx37',
     'Warszawa, ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42',
     (now() at time zone 'utc') + interval '12 days',
     5000,
@@ -160,7 +160,7 @@ values
 Адрес: Warszawa, ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42.
     $d4$,
     '/courses/play-back.jpg',
-    'https://maps.app.goo.gl/jz9E6JUn8rcymRoH7?g_st=ic',
+    'https://maps.app.goo.gl/BtaKyKYvp6nGZbx37',
     'Warszawa, ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42',
     (now() at time zone 'utc') + interval '13 days',
     5000,

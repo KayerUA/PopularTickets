@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { upsertEvent, type UpsertEventRetryFields, type UpsertEventState } from "@/app/actions/admin-events";
 import { toDatetimeLocalValueWarsaw } from "@/lib/warsawEventDatetime";
 import type { PoetCourseSelectOption } from "@/lib/fetchPoetCourseSelectOptions";
-import { POPULAR_POET_THEATRE_MAPS_URL, POPULAR_POET_TRIAL_VENUE_PL } from "@/lib/theatreVenueDefaults";
+import {
+  defaultMapsUrlForEvent,
+  POPULAR_POET_TRIAL_VENUE_PL,
+} from "@/lib/theatreVenueDefaults";
 import type { ContentVisibility } from "@/lib/contentVisibility";
 import { EventCoverFocalControls } from "@/components/EventCoverFocalControls";
 import { clampEventImageFocal } from "@/lib/eventCoverFocal";
@@ -72,6 +75,10 @@ function mergeRetryDefaults(
   imageFocalY: string;
 } {
   const lk = (fields?.listingKind ?? event?.listing_kind ?? "performance") as "performance" | "trial";
+  const venue =
+    fields?.venue ??
+    event?.venue ??
+    (lk === "trial" && !event ? POPULAR_POET_TRIAL_VENUE_PL : "");
   return {
     slug: fields?.slug ?? event?.slug ?? "",
     title: fields?.title ?? event?.title ?? "",
@@ -84,11 +91,8 @@ function mergeRetryDefaults(
     mapsUrl:
       fields?.mapsUrl ??
       event?.maps_url ??
-      (lk === "trial" && !event ? POPULAR_POET_THEATRE_MAPS_URL : ""),
-    venue:
-      fields?.venue ??
-      event?.venue ??
-      (lk === "trial" && !event ? POPULAR_POET_TRIAL_VENUE_PL : ""),
+      (!event ? defaultMapsUrlForEvent(venue, lk) : ""),
+    venue,
     startsAt: fields?.startsAt ?? (event ? toDatetimeLocalValueWarsaw(event.starts_at) : ""),
     pricePln: fields?.pricePln ?? (event ? (event.price_grosze / 100).toFixed(2) : "50.00"),
     totalTickets: fields?.totalTickets ?? String(event?.total_tickets ?? 100),

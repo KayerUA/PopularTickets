@@ -141,6 +141,8 @@ export default async function EventPage({
   const mapsHref = resolveEventMapsUrl({
     maps_url: event.maps_url,
     description: copy.description,
+    venue: event.venue,
+    listing_kind: listingKind,
   });
   const whenStr = formatEventDateTime(event.starts_at, locale);
   const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "";
