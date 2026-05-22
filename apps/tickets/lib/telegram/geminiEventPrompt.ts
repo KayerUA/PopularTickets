@@ -45,7 +45,9 @@ export function buildGeminiEventParsePrompt(sourceText: string, hasImage: boolea
 • listingKind: trial для пробных занятий / impro / актёрского мастерства.
 • Если в шапке «пробные занятия» — ВСЕ events[] с listingKind: trial.
 • НИКОГДА не пиши «мастер-класс» / masterclass в title для пробных из расписания.
-• «Импровизация комедии» / impro — пробное занятие (trial), не мастер-класс.
+• «Импровизация комедии» / impro — пробное занятие (trial), курс impro на popularpoet.pl.
+• «Актёрское мастерство» — trial, курс acting.
+• PLAY-BACK / playback — trial, курс playback.
 • Разные типы занятий — разные title и описания (см. контекст курсов ниже).
 
 Если в афише одно событие — массив events из одного элемента.

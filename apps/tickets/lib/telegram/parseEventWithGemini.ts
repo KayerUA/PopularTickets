@@ -139,6 +139,8 @@ export const RawParsedSchema = z.object({
   venue: z.string().min(2).max(200),
   listingKind: z.enum(["performance", "trial"]),
   eventLanguage: z.enum(["ru", "uk", "ru_uk", "pl", "en", "mixed"]),
+  /** Slug курса на popularpoet.pl (/kursy/{slug}) — выставляется сервером, не Gemini. */
+  poetCourseSlug: z.enum(["improv", "acting", "playback", "masterclass"]).optional(),
   confidence: z.enum(["high", "medium", "low"]).optional(),
   notes: z.string().max(500).optional(),
 });
@@ -158,6 +160,7 @@ export type ParsedTelegramEvent = {
   venue: string;
   listingKind: "performance" | "trial";
   eventLanguage: ReturnType<typeof normalizeEventLanguage>;
+  poetCourseSlug?: "improv" | "acting" | "playback" | "masterclass";
   confidence?: "high" | "medium" | "low";
   notes?: string;
 };
@@ -269,6 +272,7 @@ function applyScheduleFallback(events: RawParsedEvent[], sourceText: string): vo
     if (/актёр|актер|acting|мастерств/i.test(line.lineHint)) {
       ev.listingKind = "trial";
     }
+    inferPoetCourseSlugForTrial(ev, line.lineHint);
   }
 }
 
@@ -284,6 +288,28 @@ function scheduleSlotKey(startsAtWarsaw: string | null | undefined): string | nu
   const dt = DateTime.fromFormat(startsAtWarsaw, "yyyy-MM-dd'T'HH:mm", { zone: EVENT_ADMIN_TIMEZONE });
   if (!dt.isValid) return null;
   return `${dt.toFormat("MM-dd")}T${dt.toFormat("HH:mm")}`;
+}
+
+function poetCourseSlugFromLineHint(lineHint: string): "improv" | "acting" | "playback" | "masterclass" {
+  if (/playback|play-back|плейбек|play\s*back/i.test(lineHint)) return "playback";
+  if (/актёр|актер|acting/i.test(lineHint) && /мастерств/i.test(lineHint)) return "acting";
+  if (/импров|impro|комед/i.test(lineHint)) return "improv";
+  return "improv";
+}
+
+function inferPoetCourseSlugForTrial(ev: RawParsedEvent, lineHint?: string): void {
+  if (ev.listingKind !== "trial") {
+    delete ev.poetCourseSlug;
+    return;
+  }
+  if (lineHint) {
+    ev.poetCourseSlug = poetCourseSlugFromLineHint(lineHint);
+    return;
+  }
+  const blob = `${ev.title} ${ev.description}`.toLowerCase();
+  if (/playback|play-back|плейбек/i.test(blob)) ev.poetCourseSlug = "playback";
+  else if (/актёр|актер|acting/i.test(blob) && /мастерств/i.test(blob)) ev.poetCourseSlug = "acting";
+  else if (/импров|impro|комед/i.test(blob)) ev.poetCourseSlug = "improv";
 }
 
 function trialTitlesFromLineHint(lineHint: string): Pick<RawParsedEvent, "title" | "titlePl" | "titleUk"> {
@@ -326,11 +352,19 @@ function applyTrialSchedulePolicy(events: RawParsedEvent[], sourceText: string):
 
     if (line) {
       Object.assign(ev, trialTitlesFromLineHint(line.lineHint));
+      inferPoetCourseSlugForTrial(ev, line.lineHint);
       continue;
     }
 
     if (titleLooksLikeMasterclass(ev.title)) {
       Object.assign(ev, trialTitlesFromLineHint("импров"));
+      inferPoetCourseSlugForTrial(ev, "импров");
+    }
+  }
+
+  for (const ev of events) {
+    if (ev.listingKind === "trial" && !ev.poetCourseSlug) {
+      inferPoetCourseSlugForTrial(ev);
     }
   }
 }
@@ -390,6 +424,11 @@ function sanitizeGeminiBatchPayload(input: unknown, sourceText: string): RawPars
 
   applyScheduleFallback(parsed, sourceText);
   applyTrialSchedulePolicy(parsed, sourceText);
+  for (const ev of parsed) {
+    if (ev.listingKind === "trial" && !ev.poetCourseSlug) {
+      inferPoetCourseSlugForTrial(ev);
+    }
+  }
   return parsed;
 }
 
@@ -557,6 +596,7 @@ export function finalizeParsed(raw: RawParsedEvent): ParsedTelegramEvent {
     venue: raw.venue,
     listingKind: raw.listingKind,
     eventLanguage: normalizeEventLanguage(raw.eventLanguage),
+    ...(raw.poetCourseSlug ? { poetCourseSlug: raw.poetCourseSlug } : {}),
     confidence: raw.confidence,
     notes: raw.notes,
   };

@@ -165,7 +165,7 @@ function previewTextSingle(parsed: ParsedTelegramEvent, imageCount: number, prev
     `📅 ${formatWarsawLocal(parsed.startsAtWarsaw)} (Warsaw)`,
     `💰 ${parsed.pricePln} PLN · ${parsed.totalTickets} мест`,
     `📍 ${parsed.venue}`,
-    `🏷 ${parsed.listingKind === "trial" ? "пробное" : "шоу/спектакль"}`,
+    `🏷 ${parsed.listingKind === "trial" ? "пробное" : "шоу/спектакль"}${parsed.poetCourseSlug ? ` · курс ${parsed.poetCourseSlug}` : ""}`,
     photoPreviewNote(imageCount, 1),
     "🌐 RU + PL + UK (Gemini)",
     previewNote?.trim() ? `\nℹ️ ${previewNote.trim()}` : "",

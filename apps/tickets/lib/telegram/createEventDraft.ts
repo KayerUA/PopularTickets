@@ -40,6 +40,19 @@ export type CreatedEventDraft = {
   imageUrl: string | null;
 };
 
+async function resolvePoetCourseId(
+  supabase: SupabaseClient,
+  slug: string | undefined,
+): Promise<string | null> {
+  if (!slug) return null;
+  const { data, error } = await supabase.from("poet_course").select("id").eq("slug", slug).maybeSingle();
+  if (error) {
+    console.warn("[telegram bot] poet_course lookup:", error.message);
+    return null;
+  }
+  return (data?.id as string | undefined) ?? null;
+}
+
 export async function createEventFromParsed(
   supabase: SupabaseClient,
   parsed: ParsedTelegramEvent,
@@ -61,6 +74,11 @@ export async function createEventFromParsed(
     imageUrl = await uploadEventCoverBuffer(supabase, image.buffer, image.mimeType, slug);
   }
 
+  const poetCourseId =
+    parsed.listingKind === "trial" && parsed.poetCourseSlug
+      ? await resolvePoetCourseId(supabase, parsed.poetCourseSlug)
+      : null;
+
   const payload: Record<string, unknown> = {
     slug,
     title: parsed.title,
@@ -77,7 +95,7 @@ export async function createEventFromParsed(
     visibility,
     listing_kind: parsed.listingKind,
     event_language: parsed.eventLanguage,
-    poet_course_id: null,
+    poet_course_id: poetCourseId,
     image_focal_x: 50,
     image_focal_y: 50,
   };
