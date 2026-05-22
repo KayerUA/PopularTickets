@@ -46,7 +46,13 @@ export function isTelegramBotConfigured(): boolean {
 }
 
 /** Free tier AI Studio. Alias на актуальный Flash (не gemini-2.0-flash — quota 0). */
-export const GEMINI_EVENT_MODEL = (process.env.GEMINI_MODEL ?? "gemini-flash-latest").trim();
+function normalizeGeminiModel(raw: string): string {
+  const m = raw.trim();
+  if (/gemini-flash-lateste$/i.test(m)) return "gemini-flash-latest";
+  return m;
+}
+
+export const GEMINI_EVENT_MODEL = normalizeGeminiModel(process.env.GEMINI_MODEL ?? "gemini-flash-latest");
 
 /** Запасные free-модели, если основная недоступна (503 / 429). */
 export const GEMINI_EVENT_MODEL_FALLBACKS = [

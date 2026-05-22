@@ -531,7 +531,8 @@ async function callGeminiGenerate(parts: { text?: string; inline_data?: { mime_t
 
     const errText = await res.text().catch(() => "");
     lastError = `${model} ${res.status}: ${errText.slice(0, 300)}`;
-    if (res.status !== 429 && res.status !== 503) break;
+    // 404 = неверное имя модели в env — пробуем fallback; 429/503 — тоже.
+    if (res.status !== 429 && res.status !== 503 && res.status !== 404) break;
   }
 
   throw new Error(`Gemini API: ${lastError}`);

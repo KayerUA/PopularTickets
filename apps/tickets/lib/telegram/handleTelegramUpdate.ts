@@ -13,15 +13,15 @@ import {
   updateTelegramDraftStatus,
 } from "@/lib/telegram/draftStore";
 import {
-  cancelAfishaBundle,
-  getAfishaBundle,
-  mergeAfishaPart,
-} from "@/lib/telegram/afishaBundle";
-import {
-  cancelMediaGroupBuffersForChat,
-  enqueueMediaGroupPart,
-  type MediaGroupFlushPayload,
-} from "@/lib/telegram/mediaGroupBuffer";
+  appendMediaGroupPartPersistent,
+  cancelAfishaBuffer,
+  claimTelegramBuffer,
+  mergeAfishaPartPersistent,
+  MEDIA_GROUP_DEBOUNCE_MS,
+  mediaGroupBufferKey,
+  peekAfishaBuffer,
+  sleepMs,
+} from "@/lib/telegram/telegramMessageBuffer";
 import {
   applyClarificationReplyBatch,
   applyDatePolicyBatch,
@@ -106,7 +106,7 @@ function queueAfishaPart(
   userId: number,
   part: { text?: string; fileIds?: string[] },
 ): Promise<void> {
-  return mergeAfishaPart(chatId, userId, part, onAfishaBundleReady, onAfishaWaitingForText);
+  return mergeAfishaPartPersistent(chatId, userId, part, onAfishaBundleReady, onAfishaWaitingForText);
 }
 
 async function withChatLock(chatId: number, fn: () => Promise<void>): Promise<void> {
@@ -259,8 +259,7 @@ async function processNewAfisha(
 ): Promise<void> {
   const supabase = requireServiceSupabase();
   await cancelActiveDraftForChat(supabase, chatId);
-  cancelMediaGroupBuffersForChat(chatId);
-  cancelAfishaBundle(chatId);
+  await cancelAfishaBuffer(chatId);
 
   await sendTelegramMessage(chatId, "⏳ Разбираю афишу (Gemini)…");
 
@@ -400,13 +399,6 @@ async function appendPhotosToDraft(
   );
 }
 
-async function handleMediaGroupFlush(payload: MediaGroupFlushPayload): Promise<void> {
-  await queueAfishaPart(payload.chatId, payload.userId, {
-    fileIds: payload.fileIds,
-    text: payload.text.trim() || undefined,
-  });
-}
-
 async function handleChatMessage(
   chatId: number,
   userId: number,
@@ -417,9 +409,20 @@ async function handleChatMessage(
   const supabase = requireServiceSupabase();
 
   if (mediaGroupId) {
-    await enqueueMediaGroupPart(mediaGroupId, chatId, userId, fileIds[0], text, (payload) =>
-      withChatLock(chatId, () => handleMediaGroupFlush(payload)),
+    await appendMediaGroupPartPersistent(mediaGroupId, chatId, userId, fileIds[0], text);
+    await sleepMs(MEDIA_GROUP_DEBOUNCE_MS);
+    const claimed = await claimTelegramBuffer(
+      mediaGroupBufferKey(chatId, mediaGroupId),
+      MEDIA_GROUP_DEBOUNCE_MS - 400,
     );
+    if (claimed) {
+      await withChatLock(chatId, () =>
+        queueAfishaPart(chatId, userId, {
+          fileIds: claimed.file_ids,
+          text: claimed.text_content.trim() || undefined,
+        }),
+      );
+    }
     return;
   }
 
@@ -444,7 +447,7 @@ async function handleChatMessage(
     return;
   }
 
-  const waitingBundle = getAfishaBundle(chatId);
+  const waitingBundle = await peekAfishaBuffer(chatId);
   const hasText = text.trim().length > 0;
   const isNewAfishaPart =
     fileIds.length > 0 ||
