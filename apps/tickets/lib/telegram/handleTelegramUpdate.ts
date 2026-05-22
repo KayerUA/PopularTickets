@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { DateTime } from "luxon";
-import { z } from "zod";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { routing } from "@/i18n/routing";
@@ -15,14 +14,18 @@ import {
   updateTelegramDraftStatus,
 } from "@/lib/telegram/draftStore";
 import {
-  applyClarificationReply,
-  applyDatePolicy,
+  applyClarificationReplyBatch,
+  applyDatePolicyBatch,
   clarificationQuestion,
+  draftParsedPayload,
   finalizeParsed,
-  missingClarificationFields,
+  missingClarificationFieldsBatch,
   parseEventWithGemini,
+  parseStoredEvents,
+  previewNoteFromDraft,
   type ClarificationField,
   type ParsedTelegramEvent,
+  type RawParsedEvent,
 } from "@/lib/telegram/parseEventWithGemini";
 import {
   answerCallbackQuery,
@@ -40,6 +43,7 @@ type TelegramMessage = {
   text?: string;
   caption?: string;
   photo?: TelegramPhotoSize[];
+  media_group_id?: string;
   document?: { file_id: string; mime_type?: string; file_name?: string };
 };
 
@@ -56,26 +60,13 @@ export type TelegramUpdate = {
   callback_query?: TelegramCallbackQuery;
 };
 
-const RawStoredSchema = z.object({
-  title: z.string(),
-  titlePl: z.string(),
-  titleUk: z.string(),
-  description: z.string(),
-  descriptionPl: z.string(),
-  descriptionUk: z.string(),
-  startsAtWarsaw: z.string().nullable(),
-  pricePln: z.number().nullable(),
-  totalTickets: z.number().nullable(),
-  venue: z.string(),
-  listingKind: z.enum(["performance", "trial"]),
-  eventLanguage: z.enum(["ru", "uk", "ru_uk", "pl", "en", "mixed"]),
-  confidence: z.enum(["high", "medium", "low"]).optional(),
-  notes: z.string().optional(),
-});
-
 /** Один апдейт на чат — иначе два параллельных Gemini дают «уточните» + превью с 19/19. */
 const chatLocks = new Map<number, Promise<void>>();
 const seenUpdateIds = new Set<number>();
+
+/** Фото без подписи из альбома — ждём текст или прикрепляем к черновику. */
+type PendingPhoto = { fileId: string; at: number; mediaGroupId?: string };
+const pendingPhotosByChat = new Map<number, PendingPhoto>();
 
 async function withChatLock(chatId: number, fn: () => Promise<void>): Promise<void> {
   const prev = chatLocks.get(chatId) ?? Promise.resolve();
@@ -90,9 +81,11 @@ async function withChatLock(chatId: number, fn: () => Promise<void>): Promise<vo
 }
 
 function looksLikeNewAfisha(text: string, hasPhoto: boolean): boolean {
-  if (hasPhoto) return true;
+  if (hasPhoto && text.trim().length > 0) return true;
   if (text.length >= 80) return true;
-  return /театр|afish|мероприят|шоу|спектакл|impro|poet|domaniewska|занят|playback|pln|zł/i.test(text);
+  return /театр|afish|мероприят|шоу|спектакл|impro|poet|domaniewska|занят|playback|pln|zł|пробн|импров|мастерств|\d{1,2}\.\d{1,2}/i.test(
+    text,
+  );
 }
 
 function messageBody(msg: TelegramMessage): string {
@@ -114,7 +107,7 @@ function eventPublicUrls(base: string, slug: string): string[] {
   return routing.locales.map((loc) => `${base}/${loc}/events/${slug}`);
 }
 
-function previewText(parsed: ParsedTelegramEvent, hasImage: boolean, previewNote?: string): string {
+function previewTextSingle(parsed: ParsedTelegramEvent, hasImage: boolean, previewNote?: string): string {
   return [
     "📋 Превью — проверьте и опубликуйте:",
     "",
@@ -124,6 +117,28 @@ function previewText(parsed: ParsedTelegramEvent, hasImage: boolean, previewNote
     `📍 ${parsed.venue}`,
     `🏷 ${parsed.listingKind === "trial" ? "пробное" : "шоу/спектакль"}`,
     hasImage ? "🖼 Фото будет загружено при публикации" : "🖼 Без обложки",
+    "🌐 RU + PL + UK (Gemini)",
+    previewNote?.trim() ? `\nℹ️ ${previewNote.trim()}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function previewTextBatch(events: RawParsedEvent[], hasImage: boolean, previewNote?: string): string {
+  const lines = events.map((ev, i) => {
+    const when = ev.startsAtWarsaw ? formatWarsawLocal(ev.startsAtWarsaw) : "дата ?";
+    const price = ev.pricePln != null ? `${ev.pricePln} PLN` : "цена ?";
+    const seats = ev.totalTickets != null ? `${ev.totalTickets} мест` : "места ?";
+    return `${i + 1}. ${ev.title}\n   📅 ${when} · 💰 ${price} · ${seats}`;
+  });
+
+  return [
+    `📋 Превью — ${events.length} событий. Проверьте и опубликуйте все:`,
+    "",
+    ...lines,
+    "",
+    `📍 ${events[0]?.venue ?? "—"}`,
+    hasImage ? "🖼 Обложка — на все события" : "🖼 Без обложки",
     "🌐 RU + PL + UK (Gemini)",
     previewNote?.trim() ? `\nℹ️ ${previewNote.trim()}` : "",
   ]
@@ -154,37 +169,28 @@ function publishedText(
   ].join("\n");
 }
 
-const PREVIEW_NOTE_KEY = "_previewNote";
-
-function draftParsedPayload(raw: Record<string, unknown>, previewNote?: string): Record<string, unknown> {
-  const parsed = { ...raw };
-  if (previewNote) parsed[PREVIEW_NOTE_KEY] = previewNote;
-  else delete parsed[PREVIEW_NOTE_KEY];
-  return parsed;
-}
-
-function previewNoteFromDraft(parsed: Record<string, unknown>): string | undefined {
-  const note = parsed[PREVIEW_NOTE_KEY];
-  return typeof note === "string" ? note : undefined;
-}
-
-function parseStoredRaw(parsed: Record<string, unknown>): z.infer<typeof RawStoredSchema> {
-  const { [PREVIEW_NOTE_KEY]: _note, ...rest } = parsed;
-  if (typeof rest.confidence === "number") delete rest.confidence;
-  return RawStoredSchema.parse(rest);
+function publishedBatchIntro(count: number): string {
+  return `✅ Опубликовано ${count} событий (published)\n`;
 }
 
 async function showPreview(
   chatId: number,
   draftId: string,
-  parsed: ParsedTelegramEvent,
+  events: RawParsedEvent[],
   hasImage: boolean,
   previewNote?: string,
+  isBatch?: boolean,
 ): Promise<void> {
-  await sendTelegramMessage(chatId, previewText(parsed, hasImage, previewNote), {
+  const batch = isBatch ?? events.length > 1;
+  const text = batch
+    ? previewTextBatch(events, hasImage, previewNote)
+    : previewTextSingle(finalizeParsed(events[0]!), hasImage, previewNote);
+  const publishLabel = batch ? `✅ Опубликовать все (${events.length})` : "✅ Опубликовать";
+
+  await sendTelegramMessage(chatId, text, {
     inlineKeyboard: [
       [
-        { text: "✅ Опубликовать", callback_data: `pub:${draftId}` },
+        { text: publishLabel, callback_data: `pub:${draftId}` },
         { text: "❌ Отмена", callback_data: `cancel:${draftId}` },
       ],
     ],
@@ -194,6 +200,7 @@ async function showPreview(
 async function processNewAfisha(chatId: number, userId: number, text: string, fileId?: string): Promise<void> {
   const supabase = requireServiceSupabase();
   await cancelActiveDraftForChat(supabase, chatId);
+  pendingPhotosByChat.delete(chatId);
 
   await sendTelegramMessage(chatId, "⏳ Разбираю афишу (Gemini)…");
 
@@ -203,9 +210,9 @@ async function processNewAfisha(chatId: number, userId: number, text: string, fi
     imageForGemini = { base64: downloaded.buffer.toString("base64"), mimeType: downloaded.mimeType };
   }
 
-  const { raw, missing, previewNote } = await parseEventWithGemini(text, imageForGemini);
+  const { events, missing, previewNote, isBatch } = await parseEventWithGemini(text, imageForGemini);
   const draftId = randomUUID();
-  const parsedPayload = draftParsedPayload(raw as unknown as Record<string, unknown>, previewNote);
+  const parsedPayload = draftParsedPayload(events, previewNote, isBatch);
 
   if (missing.length > 0) {
     await saveTelegramDraft(supabase, {
@@ -218,7 +225,7 @@ async function processNewAfisha(chatId: number, userId: number, text: string, fi
       parsed: parsedPayload,
       missing_fields: missing,
     });
-    const question = clarificationQuestion(missing);
+    const question = clarificationQuestion(missing, events.length);
     await sendTelegramMessage(
       chatId,
       previewNote ? `${previewNote}\n\n${question}` : question,
@@ -226,7 +233,6 @@ async function processNewAfisha(chatId: number, userId: number, text: string, fi
     return;
   }
 
-  const parsed = finalizeParsed(raw);
   await saveTelegramDraft(supabase, {
     id: draftId,
     telegram_chat_id: chatId,
@@ -237,7 +243,7 @@ async function processNewAfisha(chatId: number, userId: number, text: string, fi
     parsed: parsedPayload,
     missing_fields: [],
   });
-  await showPreview(chatId, draftId, parsed, Boolean(fileId), previewNote);
+  await showPreview(chatId, draftId, events, Boolean(fileId), previewNote, isBatch);
 }
 
 async function applyDraftFieldsFromReply(
@@ -248,36 +254,36 @@ async function applyDraftFieldsFromReply(
   fields: ClarificationField[],
 ): Promise<void> {
   const supabase = requireServiceSupabase();
-  const rawParsed = parseStoredRaw(active.parsed);
-  const merged = applyClarificationReply(rawParsed, replyText, fields);
-  const datePolicy = applyDatePolicy(merged);
-  let stillMissing = missingClarificationFields(merged);
+  const storedEvents = parseStoredEvents(active.parsed);
+  const mergedEvents = applyClarificationReplyBatch(storedEvents, replyText, fields);
+  const datePolicy = applyDatePolicyBatch(mergedEvents);
+  let stillMissing = missingClarificationFieldsBatch(mergedEvents);
   if (datePolicy.forceDateClarification && !stillMissing.includes("startsAtWarsaw")) {
     stillMissing = ["startsAtWarsaw", ...stillMissing];
   }
-  const previewNote = datePolicy.previewNote;
+  const previewNote = datePolicy.previewNote ?? previewNoteFromDraft(active.parsed);
+  const isBatch = storedEvents.length > 1;
 
   if (stillMissing.length > 0) {
     await saveTelegramDraft(supabase, {
       ...active,
-      parsed: draftParsedPayload(merged as unknown as Record<string, unknown>, previewNote),
+      parsed: draftParsedPayload(mergedEvents, previewNote, isBatch),
       missing_fields: stillMissing,
       status: "awaiting_clarification",
     });
-    const question = `Не удалось разобрать ответ. ${clarificationQuestion(stillMissing)}`;
+    const question = `Не удалось разобрать ответ. ${clarificationQuestion(stillMissing, mergedEvents.length)}`;
     await sendTelegramMessage(chatId, previewNote ? `${previewNote}\n\n${question}` : question);
     return;
   }
 
-  const parsed = finalizeParsed(merged);
   await saveTelegramDraft(supabase, {
     ...active,
     telegram_user_id: userId,
-    parsed: draftParsedPayload(merged as unknown as Record<string, unknown>, previewNote),
+    parsed: draftParsedPayload(mergedEvents, previewNote, isBatch),
     missing_fields: [],
     status: "preview",
   });
-  await showPreview(chatId, active.id, parsed, Boolean(active.image_file_id), previewNote);
+  await showPreview(chatId, active.id, mergedEvents, Boolean(active.image_file_id), previewNote, isBatch);
 }
 
 async function processClarificationReply(chatId: number, userId: number, replyText: string): Promise<void> {
@@ -304,8 +310,55 @@ async function processPreviewCorrection(
   await applyDraftFieldsFromReply(chatId, userId, active, replyText, fields);
 }
 
-async function handleChatMessage(chatId: number, userId: number, text: string, fileId?: string): Promise<void> {
+async function attachPhotoToDraft(
+  chatId: number,
+  userId: number,
+  fileId: string,
+  mediaGroupId?: string,
+): Promise<void> {
   const supabase = requireServiceSupabase();
+  const active = await getActiveDraftForChat(supabase, chatId);
+
+  if (active && active.telegram_user_id === userId) {
+    if (!active.image_file_id) {
+      await saveTelegramDraft(supabase, { ...active, image_file_id: fileId });
+      await sendTelegramMessage(chatId, "🖼 Фото прикреплено к черновику.");
+    }
+    return;
+  }
+
+  const pending = pendingPhotosByChat.get(chatId);
+  if (pending && mediaGroupId && pending.mediaGroupId === mediaGroupId) {
+    return;
+  }
+
+  pendingPhotosByChat.set(chatId, { fileId, at: Date.now(), mediaGroupId });
+  await sendTelegramMessage(
+    chatId,
+    "🖼 Фото получено. Отправьте текст афиши следующим сообщением или перешлите фото с подписью сразу.",
+  );
+}
+
+async function handleChatMessage(
+  chatId: number,
+  userId: number,
+  text: string,
+  fileId?: string,
+  mediaGroupId?: string,
+): Promise<void> {
+  const supabase = requireServiceSupabase();
+
+  if (fileId && !text.trim()) {
+    await attachPhotoToDraft(chatId, userId, fileId, mediaGroupId);
+    return;
+  }
+
+  const pending = pendingPhotosByChat.get(chatId);
+  if (text && !fileId && pending && Date.now() - pending.at < 5 * 60 * 1000) {
+    fileId = pending.fileId;
+    pendingPhotosByChat.delete(chatId);
+  }
+
   const active = await getActiveDraftForChat(supabase, chatId);
 
   if (text && !text.startsWith("/") && !fileId && active) {
@@ -367,9 +420,10 @@ async function publishDraft(
   if (draft.status === "awaiting_clarification") {
     if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Сначала ответьте на вопрос");
     const fields = draft.missing_fields as ClarificationField[];
+    const eventCount = parseStoredEvents(draft.parsed).length;
     await sendTelegramMessage(
       chatId,
-      `Сначала ответьте на вопрос выше.\n${clarificationQuestion(fields)}`,
+      `Сначала ответьте на вопрос выше.\n${clarificationQuestion(fields, eventCount)}`,
     );
     return false;
   }
@@ -382,8 +436,7 @@ async function publishDraft(
     return false;
   }
 
-  // ack уже отправлен в route.ts до компиляции/логики
-  const parsed = finalizeParsed(parseStoredRaw(draft.parsed));
+  const storedEvents = parseStoredEvents(draft.parsed);
   draftId = draft.id;
 
   let imageUpload: { buffer: Buffer; mimeType: string } | undefined;
@@ -391,15 +444,32 @@ async function publishDraft(
     imageUpload = await downloadTelegramFile(draft.image_file_id);
   }
 
-  const event = await createEventFromParsed(supabase, parsed, {
-    visibility: "published",
-    image: imageUpload,
-  });
+  const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "https://www.populartickets.pl";
+  const published: ParsedTelegramEvent[] = [];
+
+  for (const raw of storedEvents) {
+    const parsed = finalizeParsed(raw);
+    const event = await createEventFromParsed(supabase, parsed, {
+      visibility: "published",
+      image: imageUpload,
+    });
+    published.push(parsed);
+    if (storedEvents.length === 1) {
+      await sendTelegramMessage(chatId, publishedText(base, event));
+    }
+  }
 
   await updateTelegramDraftStatus(supabase, draftId, "published");
 
-  const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "https://www.populartickets.pl";
-  await sendTelegramMessage(chatId, publishedText(base, event));
+  if (storedEvents.length > 1) {
+    await sendTelegramMessage(
+      chatId,
+      publishedBatchIntro(storedEvents.length) +
+        published.map((p, i) => `${i + 1}. ${p.title} — ${formatWarsawLocal(p.startsAtWarsaw)}`).join("\n") +
+        `\n\n✏️ Админка: ${base}/admin/events`,
+    );
+  }
+
   return true;
 }
 
@@ -490,7 +560,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
   if (text === "/start" || text === "/help") {
     await sendTelegramMessage(
       chatId,
-      "Popular Poet → публикация события\n\n1. Перешлите афишу (текст + фото)\n2. Проверьте превью\n3. Нажмите «Опубликовать»\n\nGemini заполнит RU + PL + UK. Если не хватает даты/цены/мест — спросит.",
+      "Popular Poet → публикация события\n\n1. Перешлите афишу (текст + фото)\n2. Проверьте превью\n3. Нажмите «Опубликовать»\n\nНесколько дат в одном сообщении → несколько событий одной кнопкой.\nGemini заполнит RU + PL + UK. Если не хватает даты/цены/мест — спросит.",
     );
     return;
   }
@@ -501,7 +571,9 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
   }
 
   try {
-    await withChatLock(chatId, () => handleChatMessage(chatId, userId, text, fileId));
+    await withChatLock(chatId, () =>
+      handleChatMessage(chatId, userId, text, fileId, msg.media_group_id),
+    );
   } catch (e) {
     console.error("[telegram bot]", e);
     const err = e instanceof Error ? e.message : "unknown error";

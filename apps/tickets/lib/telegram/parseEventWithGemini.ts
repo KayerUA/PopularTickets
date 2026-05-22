@@ -43,6 +43,45 @@ function coerceNullableInt(v: unknown): number | null {
   return Math.round(n);
 }
 
+/** Gemini иногда отдаёт секунды, пробел вместо T, диапазон времени — приводим к yyyy-MM-ddTHH:mm. */
+export function normalizeStartsAtWarsaw(v: unknown): string | null {
+  if (v == null || v === "") return null;
+  if (typeof v !== "string") return null;
+
+  let s = v.trim().replace(/Z$/i, "").replace(/\s+\+\d{2}:?\d{0,2}$/, "");
+  s = s.replace(/^(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2})/, "$1T$2");
+
+  const range = s.match(
+    /^(\d{4}-\d{2}-\d{2})T(\d{1,2}:\d{2})\s*[-–—]\s*\d{1,2}:\d{2}/,
+  );
+  if (range) {
+    const [, date, time] = range;
+    const [h, m] = time!.split(":");
+    s = `${date}T${h!.padStart(2, "0")}:${m!.padStart(2, "0")}`;
+  }
+
+  const iso = s.match(/^(\d{4}-\d{2}-\d{2})T(\d{1,2}):(\d{2})(?::\d{2})?/);
+  if (iso) {
+    return `${iso[1]}T${iso[2]!.padStart(2, "0")}:${iso[3]}`;
+  }
+
+  const dmy = s.match(/(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?(?:\s+(\d{1,2})[:.](\d{2}))?/);
+  if (dmy) {
+    const day = dmy[1]!.padStart(2, "0");
+    const month = dmy[2]!.padStart(2, "0");
+    const year = dmy[3]
+      ? dmy[3].length === 2
+        ? `20${dmy[3]}`
+        : dmy[3]
+      : String(DateTime.now().setZone(EVENT_ADMIN_TIMEZONE).year);
+    const hour = (dmy[4] ?? "19").padStart(2, "0");
+    const min = (dmy[5] ?? "00").padStart(2, "0");
+    return `${year}-${month}-${day}T${hour}:${min}`;
+  }
+
+  return null;
+}
+
 function ensureMinDescription(text: unknown, venue: string): string {
   const base = typeof text === "string" ? text.trim() : "";
   if (base.length >= MIN_DESCRIPTION_CHARS) return base.slice(0, 20000);
@@ -81,44 +120,56 @@ function extractJsonFromGeminiText(rawText: string): unknown {
   }
 }
 
-function sanitizeGeminiPayload(input: unknown): unknown {
-  if (!input || typeof input !== "object" || Array.isArray(input)) return input;
-  const o = { ...(input as Record<string, unknown>) };
+const startsAtSchema = z.preprocess(
+  normalizeStartsAtWarsaw,
+  z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/).nullable(),
+);
 
-  const confidence = coerceConfidence(o.confidence);
-  if (confidence) o.confidence = confidence;
-  else delete o.confidence;
+/** Ответ Gemini: null = в источнике не было — нужно спросить у админа. */
+export const RawParsedSchema = z.object({
+  title: z.string().min(2).max(200),
+  titlePl: z.string().min(2).max(200),
+  titleUk: z.string().min(2).max(200),
+  description: z.string().min(MIN_DESCRIPTION_CHARS).max(20000),
+  descriptionPl: z.string().min(MIN_DESCRIPTION_CHARS).max(20000),
+  descriptionUk: z.string().min(MIN_DESCRIPTION_CHARS).max(20000),
+  startsAtWarsaw: startsAtSchema,
+  pricePln: z.number().positive().max(10000).nullable(),
+  totalTickets: z.number().int().min(1).max(5000).nullable(),
+  venue: z.string().min(2).max(200),
+  listingKind: z.enum(["performance", "trial"]),
+  eventLanguage: z.enum(["ru", "uk", "ru_uk", "pl", "en", "mixed"]),
+  confidence: z.enum(["high", "medium", "low"]).optional(),
+  notes: z.string().max(500).optional(),
+});
 
-  o.pricePln = coerceNullableNumber(o.pricePln);
-  o.totalTickets = coerceNullableInt(o.totalTickets);
+export type RawParsedEvent = z.infer<typeof RawParsedSchema>;
 
-  rejectDateLeakage(o);
+export type ParsedTelegramEvent = {
+  title: string;
+  titlePl: string;
+  titleUk: string;
+  description: string;
+  descriptionPl: string;
+  descriptionUk: string;
+  startsAtWarsaw: string;
+  pricePln: number;
+  totalTickets: number;
+  venue: string;
+  listingKind: "performance" | "trial";
+  eventLanguage: ReturnType<typeof normalizeEventLanguage>;
+  confidence?: "high" | "medium" | "low";
+  notes?: string;
+};
 
-  if (typeof o.startsAtWarsaw === "string" && o.startsAtWarsaw.trim() === "") {
-    o.startsAtWarsaw = null;
-  }
+export type ClarificationField = "startsAtWarsaw" | "pricePln" | "totalTickets";
 
-  if (typeof o.listingKind === "string") {
-    const lk = o.listingKind.toLowerCase();
-    o.listingKind = lk.includes("trial") || lk.includes("проб") || lk.includes("prob") ? "trial" : "performance";
-  }
+const CLARIFICATION_LABELS: Record<ClarificationField, string> = {
+  startsAtWarsaw: "дату и время (например: 23.05 19:00)",
+  pricePln: "цену билета в PLN (например: 50)",
+  totalTickets: "количество мест (например: 30)",
+};
 
-  const venue =
-    typeof o.venue === "string" && o.venue.trim().length >= 2
-      ? o.venue.trim()
-      : POPULAR_POET_TRIAL_VENUE_PL;
-  o.venue = venue;
-
-  o.description = ensureMinDescription(o.description, venue);
-  o.descriptionPl = ensureMinDescription(o.descriptionPl, venue);
-  o.descriptionUk = ensureMinDescription(o.descriptionUk, venue);
-
-  delete o.notes;
-
-  return o;
-}
-
-/** Gemini иногда подставляет день/час из даты как цену или места (19 мая → 19 PLN). */
 function rejectDateLeakage(o: Record<string, unknown>): void {
   const starts = o.startsAtWarsaw;
   if (typeof starts !== "string") return;
@@ -135,10 +186,153 @@ function rejectDateLeakage(o: Record<string, unknown>): void {
   }
 }
 
+function sanitizeOneEvent(
+  input: Record<string, unknown>,
+  shared: {
+    pricePln: number | null;
+    totalTickets: number | null;
+    venue: string;
+    eventLanguage: string;
+  },
+): Record<string, unknown> {
+  const o = { ...input };
+
+  const confidence = coerceConfidence(o.confidence);
+  if (confidence) o.confidence = confidence;
+  else delete o.confidence;
+
+  o.startsAtWarsaw = normalizeStartsAtWarsaw(o.startsAtWarsaw);
+  o.pricePln = coerceNullableNumber(o.pricePln) ?? shared.pricePln;
+  o.totalTickets = coerceNullableInt(o.totalTickets) ?? shared.totalTickets;
+
+  rejectDateLeakage(o);
+
+  if (typeof o.listingKind === "string") {
+    const lk = o.listingKind.toLowerCase();
+    o.listingKind = lk.includes("trial") || lk.includes("проб") || lk.includes("prob") ? "trial" : "performance";
+  } else {
+    o.listingKind = "trial";
+  }
+
+  const venue =
+    typeof o.venue === "string" && o.venue.trim().length >= 2 ? o.venue.trim() : shared.venue;
+  o.venue = venue;
+
+  o.eventLanguage = shared.eventLanguage;
+  o.description = ensureMinDescription(o.description, venue);
+  o.descriptionPl = ensureMinDescription(o.descriptionPl, venue);
+  o.descriptionUk = ensureMinDescription(o.descriptionUk, venue);
+
+  delete o.notes;
+
+  return o;
+}
+
+/** Резервный разбор строк расписания «20.05 (ср) 20:00-22:00 — …». */
+export function extractScheduleLinesFromSource(sourceText: string): {
+  startsAtWarsaw: string;
+  lineHint: string;
+}[] {
+  const now = DateTime.now().setZone(EVENT_ADMIN_TIMEZONE);
+  const out: { startsAtWarsaw: string; lineHint: string }[] = [];
+  const re =
+    /(\d{1,2})\.(\d{1,2})(?:\s*\([^)]+\))?\s+(\d{1,2}):(\d{2})(?:\s*[-–—]\s*\d{1,2}:\d{2})?\s*[—–-]\s*(.+)/gm;
+
+  for (const m of sourceText.matchAll(re)) {
+    const day = m[1]!.padStart(2, "0");
+    const month = m[2]!.padStart(2, "0");
+    const hour = m[3]!.padStart(2, "0");
+    const min = m[4]!.padStart(2, "0");
+    const lineHint = m[5]!.trim();
+    out.push({
+      startsAtWarsaw: `${now.year}-${month}-${day}T${hour}:${min}`,
+      lineHint,
+    });
+  }
+
+  return out;
+}
+
+function applyScheduleFallback(events: RawParsedEvent[], sourceText: string): void {
+  const lines = extractScheduleLinesFromSource(sourceText);
+  if (lines.length < 2) return;
+
+  for (let i = 0; i < Math.min(events.length, lines.length); i++) {
+    const ev = events[i]!;
+    const line = lines[i]!;
+    if (!ev.startsAtWarsaw) {
+      ev.startsAtWarsaw = line.startsAtWarsaw;
+    }
+    if (/импров|impro|комед/i.test(line.lineHint) && ev.listingKind !== "trial") {
+      ev.listingKind = "trial";
+    }
+    if (/актёр|актер|acting|мастерств/i.test(line.lineHint)) {
+      ev.listingKind = "trial";
+    }
+  }
+}
+
+function sanitizeGeminiBatchPayload(input: unknown, sourceText: string): RawParsedEvent[] {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new Error("Gemini JSON: ожидался объект");
+  }
+
+  const root = input as Record<string, unknown>;
+  const sharedPrice = coerceNullableNumber(root.pricePln);
+  const sharedTickets = coerceNullableInt(root.totalTickets);
+  const sharedVenue =
+    typeof root.venue === "string" && root.venue.trim().length >= 2
+      ? root.venue.trim()
+      : POPULAR_POET_TRIAL_VENUE_PL;
+  const sharedLang =
+    typeof root.eventLanguage === "string" && root.eventLanguage.trim()
+      ? root.eventLanguage.trim()
+      : "ru";
+
+  let rawEvents: unknown[] | undefined;
+  if (Array.isArray(root.events)) {
+    rawEvents = root.events;
+  } else if (typeof root.title === "string") {
+    rawEvents = [root];
+  }
+
+  if (!rawEvents?.length) {
+    throw new Error("Gemini JSON: пустой массив events");
+  }
+
+  const shared = {
+    pricePln: sharedPrice,
+    totalTickets: sharedTickets,
+    venue: sharedVenue,
+    eventLanguage: sharedLang,
+  };
+
+  const sanitized = rawEvents.map((item) => {
+    if (!item || typeof item !== "object") {
+      throw new Error("Gemini JSON: некорректный элемент events");
+    }
+    return sanitizeOneEvent(item as Record<string, unknown>, shared);
+  });
+
+  const parsed: RawParsedEvent[] = [];
+  for (let i = 0; i < sanitized.length; i++) {
+    const result = RawParsedSchema.safeParse(sanitized[i]);
+    if (!result.success) {
+      throw new Error(
+        `Gemini JSON: events[${i}]: ${result.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ")}`,
+      );
+    }
+    parsed.push(result.data);
+  }
+
+  applyScheduleFallback(parsed, sourceText);
+  return parsed;
+}
+
 const RECENT_PAST_DAYS = 30;
 
 /** Дата без года: не доверяем Gemini — нормализуем сами, предупреждаем по-русски. */
-export function applyDatePolicy(raw: z.infer<typeof RawParsedSchema>): {
+export function applyDatePolicy(raw: RawParsedEvent): {
   previewNote?: string;
   forceDateClarification?: boolean;
 } {
@@ -180,50 +374,26 @@ export function applyDatePolicy(raw: z.infer<typeof RawParsedSchema>): {
   return {};
 }
 
-/** Ответ Gemini: null = в источнике не было — нужно спросить у админа. */
-const RawParsedSchema = z.object({
-  title: z.string().min(2).max(200),
-  titlePl: z.string().min(2).max(200),
-  titleUk: z.string().min(2).max(200),
-  description: z.string().min(MIN_DESCRIPTION_CHARS).max(20000),
-  descriptionPl: z.string().min(MIN_DESCRIPTION_CHARS).max(20000),
-  descriptionUk: z.string().min(MIN_DESCRIPTION_CHARS).max(20000),
-  startsAtWarsaw: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/).nullable(),
-  pricePln: z.number().positive().max(10000).nullable(),
-  totalTickets: z.number().int().min(1).max(5000).nullable(),
-  venue: z.string().min(2).max(200),
-  listingKind: z.enum(["performance", "trial"]),
-  eventLanguage: z.enum(["ru", "uk", "ru_uk", "pl", "en", "mixed"]),
-  confidence: z.enum(["high", "medium", "low"]).optional(),
-  notes: z.string().max(500).optional(),
-});
+export function applyDatePolicyBatch(events: RawParsedEvent[]): {
+  previewNote?: string;
+  forceDateClarification?: boolean;
+} {
+  const notes: string[] = [];
+  let forceDateClarification = false;
 
-export type ParsedTelegramEvent = {
-  title: string;
-  titlePl: string;
-  titleUk: string;
-  description: string;
-  descriptionPl: string;
-  descriptionUk: string;
-  startsAtWarsaw: string;
-  pricePln: number;
-  totalTickets: number;
-  venue: string;
-  listingKind: "performance" | "trial";
-  eventLanguage: ReturnType<typeof normalizeEventLanguage>;
-  confidence?: "high" | "medium" | "low";
-  notes?: string;
-};
+  for (const ev of events) {
+    const policy = applyDatePolicy(ev);
+    if (policy.previewNote) notes.push(policy.previewNote);
+    if (policy.forceDateClarification) forceDateClarification = true;
+  }
 
-export type ClarificationField = "startsAtWarsaw" | "pricePln" | "totalTickets";
+  return {
+    previewNote: notes.length ? [...new Set(notes)].join("\n") : undefined,
+    forceDateClarification: forceDateClarification || undefined,
+  };
+}
 
-const CLARIFICATION_LABELS: Record<ClarificationField, string> = {
-  startsAtWarsaw: "дату и время (например: 23.05 19:00)",
-  pricePln: "цену билета в PLN (например: 50)",
-  totalTickets: "количество мест (например: 30)",
-};
-
-export function missingClarificationFields(raw: z.infer<typeof RawParsedSchema>): ClarificationField[] {
+export function missingClarificationFields(raw: RawParsedEvent): ClarificationField[] {
   const out: ClarificationField[] = [];
   if (!raw.startsAtWarsaw) out.push("startsAtWarsaw");
   if (raw.pricePln == null) out.push("pricePln");
@@ -231,35 +401,38 @@ export function missingClarificationFields(raw: z.infer<typeof RawParsedSchema>)
   return out;
 }
 
-export function clarificationQuestion(fields: ClarificationField[]): string {
+export function missingClarificationFieldsBatch(events: RawParsedEvent[]): ClarificationField[] {
+  const out = new Set<ClarificationField>();
+  if (events.some((e) => !e.startsAtWarsaw)) out.add("startsAtWarsaw");
+  if (events.some((e) => e.pricePln == null)) out.add("pricePln");
+  if (events.some((e) => e.totalTickets == null)) out.add("totalTickets");
+  return [...out];
+}
+
+export function clarificationQuestion(fields: ClarificationField[], eventCount = 1): string {
   if (fields.length === 0) return "";
   const parts = fields.map((f) => CLARIFICATION_LABELS[f]);
-  return `Уточните, пожалуйста: ${parts.join("; ")}.\nОтветьте одним сообщением.`;
+  const prefix =
+    eventCount > 1
+      ? `В афише ${eventCount} событий — уточнение применится ко всем.\n`
+      : "";
+  return `${prefix}Уточните, пожалуйста: ${parts.join("; ")}.\nОтветьте одним сообщением.`;
 }
 
 export function applyClarificationReply(
-  raw: z.infer<typeof RawParsedSchema>,
+  raw: RawParsedEvent,
   replyText: string,
   fields: ClarificationField[],
-): z.infer<typeof RawParsedSchema> {
+): RawParsedEvent {
   const text = replyText.trim();
   const next = { ...raw };
   let textForNums = text;
 
   if (fields.includes("startsAtWarsaw")) {
-    const dm = text.match(/(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?(?:\s+(\d{1,2})[:.](\d{2}))?/);
-    if (dm) {
-      const day = dm[1]!.padStart(2, "0");
-      const month = dm[2]!.padStart(2, "0");
-      const year = dm[3]
-        ? dm[3].length === 2
-          ? `20${dm[3]}`
-          : dm[3]
-        : String(DateTime.now().setZone(EVENT_ADMIN_TIMEZONE).year);
-      const hour = (dm[4] ?? "19").padStart(2, "0");
-      const min = (dm[5] ?? "00").padStart(2, "0");
-      next.startsAtWarsaw = `${year}-${month}-${day}T${hour}:${min}`;
-      textForNums = text.replace(dm[0], " ");
+    const normalized = normalizeStartsAtWarsaw(text);
+    if (normalized) {
+      next.startsAtWarsaw = normalized;
+      textForNums = text.replace(/\d{1,2}[./]\d{1,2}[^\d]*/g, " ");
     }
   }
 
@@ -281,7 +454,29 @@ export function applyClarificationReply(
   return next;
 }
 
-export function finalizeParsed(raw: z.infer<typeof RawParsedSchema>): ParsedTelegramEvent {
+export function applyClarificationReplyBatch(
+  events: RawParsedEvent[],
+  replyText: string,
+  fields: ClarificationField[],
+): RawParsedEvent[] {
+  const onlyShared = fields.every((f): f is "pricePln" | "totalTickets" => f === "pricePln" || f === "totalTickets");
+
+  if (onlyShared || events.length === 1) {
+    const merged = applyClarificationReply(events[0]!, replyText, fields);
+    return events.map((ev) => ({
+      ...ev,
+      ...(merged.pricePln != null ? { pricePln: merged.pricePln } : {}),
+      ...(merged.totalTickets != null ? { totalTickets: merged.totalTickets } : {}),
+      ...(merged.startsAtWarsaw && fields.includes("startsAtWarsaw")
+        ? { startsAtWarsaw: merged.startsAtWarsaw }
+        : {}),
+    }));
+  }
+
+  return events.map((ev) => applyClarificationReply(ev, replyText, fields));
+}
+
+export function finalizeParsed(raw: RawParsedEvent): ParsedTelegramEvent {
   if (!raw.startsAtWarsaw || raw.pricePln == null || raw.totalTickets == null) {
     throw new Error("Не все обязательные поля заполнены");
   }
@@ -342,10 +537,17 @@ async function callGeminiGenerate(parts: { text?: string; inline_data?: { mime_t
   throw new Error(`Gemini API: ${lastError}`);
 }
 
+export type GeminiParseResult = {
+  events: RawParsedEvent[];
+  missing: ClarificationField[];
+  previewNote?: string;
+  isBatch: boolean;
+};
+
 export async function parseEventWithGemini(
   sourceText: string,
   image?: { base64: string; mimeType: string },
-): Promise<{ raw: z.infer<typeof RawParsedSchema>; missing: ClarificationField[]; previewNote?: string }> {
+): Promise<GeminiParseResult> {
   const parts: { text?: string; inline_data?: { mime_type: string; data: string } }[] = [
     { text: buildPrompt(sourceText, Boolean(image)) },
   ];
@@ -359,22 +561,63 @@ export async function parseEventWithGemini(
     throw new Error("Gemini вернул невалидный JSON");
   }
 
-  parsed = sanitizeGeminiPayload(parsed);
+  const events = sanitizeGeminiBatchPayload(parsed, sourceText);
+  const isBatch = events.length > 1;
 
-  const result = RawParsedSchema.safeParse(parsed);
-  if (!result.success) {
-    throw new Error(`Gemini JSON: ${result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
-  }
-
-  const datePolicy = applyDatePolicy(result.data);
-  let missing = missingClarificationFields(result.data);
+  const datePolicy = applyDatePolicyBatch(events);
+  let missing = missingClarificationFieldsBatch(events);
   if (datePolicy.forceDateClarification && !missing.includes("startsAtWarsaw")) {
     missing = ["startsAtWarsaw", ...missing];
   }
 
-  return { raw: result.data, missing, previewNote: datePolicy.previewNote };
+  return { events, missing, previewNote: datePolicy.previewNote, isBatch };
 }
 
-export function rawToStoredParsed(raw: z.infer<typeof RawParsedSchema>): ParsedTelegramEvent {
+export function rawToStoredParsed(raw: RawParsedEvent): ParsedTelegramEvent {
   return finalizeParsed(raw);
+}
+
+export const BATCH_FLAG_KEY = "_batch";
+export const PREVIEW_NOTE_KEY = "_previewNote";
+export const EVENTS_KEY = "events";
+
+export function draftParsedPayload(
+  events: RawParsedEvent[],
+  previewNote?: string,
+  isBatch?: boolean,
+): Record<string, unknown> {
+  const batch = isBatch ?? events.length > 1;
+  if (batch) {
+    const payload: Record<string, unknown> = {
+      [BATCH_FLAG_KEY]: true,
+      [EVENTS_KEY]: events,
+    };
+    if (previewNote) payload[PREVIEW_NOTE_KEY] = previewNote;
+    return payload;
+  }
+  const single = { ...events[0]! } as Record<string, unknown>;
+  if (previewNote) single[PREVIEW_NOTE_KEY] = previewNote;
+  return single;
+}
+
+export function previewNoteFromDraft(parsed: Record<string, unknown>): string | undefined {
+  const note = parsed[PREVIEW_NOTE_KEY];
+  return typeof note === "string" ? note : undefined;
+}
+
+export function isBatchDraft(parsed: Record<string, unknown>): boolean {
+  return parsed[BATCH_FLAG_KEY] === true && Array.isArray(parsed[EVENTS_KEY]);
+}
+
+export function parseStoredEvents(parsed: Record<string, unknown>): RawParsedEvent[] {
+  const { [PREVIEW_NOTE_KEY]: _note, [BATCH_FLAG_KEY]: _batch, [EVENTS_KEY]: events, ...rest } = parsed;
+  if (Array.isArray(events)) {
+    return events.map((ev) => RawParsedSchema.parse(ev));
+  }
+  if (typeof rest.confidence === "number") delete rest.confidence;
+  return [RawParsedSchema.parse(rest)];
+}
+
+export function parseStoredRaw(parsed: Record<string, unknown>): RawParsedEvent {
+  return parseStoredEvents(parsed)[0]!;
 }

@@ -12,6 +12,11 @@ const BRAND = {
   uk: "театр «Популярний поет»",
 } as const;
 
+/** Контекст для SEO-описаний пробных занятий (не копировать дословно — переработать). */
+export const COURSE_DESCRIPTION_IMPROV = `Импровизация — занятия, где человек учится быть свободнее, быстрее реагировать, легче общаться и не бояться проявляться. Формат про игру, живой контакт, смех, раскрепощение и ощущение, что можно быть собой здесь и сейчас.`;
+
+export const COURSE_DESCRIPTION_ACTING = `Актёрское мастерство — работа с голосом, телом, вниманием и подачей, которая помогает увереннее чувствовать себя и на сцене, и в жизни. Участники развивают свободу самовыражения и умение быть в контакте с собой и другими.`;
+
 /**
  * Промпт Gemini: парсинг афиши + SEO-описания для populartickets.pl (RU / PL / UK).
  * Описание — plain text с абзацами и подзаголовками (сайт рендерит pre-wrap, без Markdown).
@@ -30,20 +35,41 @@ export function buildGeminiEventParsePrompt(sourceText: string, hasImage: boolea
 • UK: ${BRAND.uk}
 Не пиши "Popular Poet Theater" в описаниях — только локализованное название.
 
+═══ НЕСКОЛЬКО СОБЫТИЙ В ОДНОЙ АФИШЕ ═══
+Если в тексте несколько дат/времени (расписание пробных занятий на неделю, несколько показов):
+• Верни массив events — отдельный объект на КАЖДУЮ дату/слот.
+• Общую цену (например «Вход: 70 zl») поставь в pricePln на уровне корня JSON — она применится ко всем.
+• totalTickets на корне — общее для всех, если не указано иначе.
+• Диапазон времени «20:00-22:00» → startsAtWarsaw только время НАЧАЛА: 20:00.
+• День недели в скобках игнорируй; год: ${now.year}, если не указан.
+• listingKind: trial для пробных занятий / impro / актёрского мастерства.
+• Разные типы занятий — разные title и описания (см. контекст курсов ниже).
+
+Если в афише одно событие — массив events из одного элемента.
+
+═══ КОНТЕКСТ КУРСОВ (для trial / пробных) ═══
+Импровизация / impro / комедия:
+${COURSE_DESCRIPTION_IMPROV}
+
+Актёрское мастерство:
+${COURSE_DESCRIPTION_ACTING}
+
+Включай суть курса в description (RU/PL/UK), адаптируя под конкретную дату.
+
 ═══ ЦИФРЫ — НЕ УГАДЫВАЙ ═══
-• pricePln: число PLN или null
-• totalTickets: число или null
-• startsAtWarsaw: yyyy-MM-ddTHH:mm или null
+• pricePln: число PLN или null (на корне JSON; в events можно не дублировать)
+• totalTickets: число или null (на корне)
+• startsAtWarsaw в каждом event: строго yyyy-MM-ddTHH:mm (без секунд, без timezone) или null
 • Дата без года: день/месяц в текущем году (yyyy=${now.year}), год поправит сервер
 
-═══ ЗАГОЛОВКИ (title / titlePl / titleUk) ═══
+═══ ЗАГОЛОВКИ (title / titlePl / titleUk) — в каждом event ═══
 • 50–120 символов, цепляющие, без КАПСА
 • Формат: «[тип события]: [название]» или «[название] — ${BRAND.ru}»
 • Включи естественно: impro / импровизация / шоу / спектакль / пробное (если уместно)
 • SEO: Warszawa или Варшава — один раз в titlePl / title / titleUk соответственно
 • Не дублируй дату и цену в заголовке
 
-═══ ОПИСАНИЯ (description / descriptionPl / descriptionUk) ═══
+═══ ОПИСАНИЯ (description / descriptionPl / descriptionUk) — в каждом event ═══
 Каждое ${MIN_EVENT_DESCRIPTION_CHARS}–900 символов (цель ~${TARGET_EVENT_DESCRIPTION_CHARS}).
 Plain text: абзацы через пустую строку. Без Markdown (#, **), без HTML, без emoji.
 Структура (подзаголовки на языке локали):
@@ -79,16 +105,24 @@ SEO (естественно, без keyword stuffing):
 • Уникальный текст на каждом языке (не дословный перевод RU→PL→UK)
 
 ═══ ОСТАЛЬНЫЕ ПОЛЯ ═══
-• venue: "${POPULAR_POET_TRIAL_VENUE_PL}" если адрес не указан (не переводить)
-• listingKind: trial (пробное/занятие) | performance (шоу, спектакль, playback)
-• eventLanguage: ru | uk | ru_uk | pl | en | mixed
-• confidence: "high" | "medium" | "low" (строка, не число) или опусти
+• venue: "${POPULAR_POET_TRIAL_VENUE_PL}" если адрес не указан (не переводить) — на корне JSON
+• listingKind в каждом event: trial (пробное/занятие) | performance (шоу, спектакль, playback)
+• eventLanguage на корне: ru | uk | ru_uk | pl | en | mixed
+• confidence — не заполняй
 • notes — не заполняй
 
 ═══ JSON ═══
 Верни один JSON-объект без markdown-обёртки:
-title, titlePl, titleUk, description, descriptionPl, descriptionUk,
-startsAtWarsaw, pricePln, totalTickets, venue, listingKind, eventLanguage, confidence?
+{
+  "events": [
+    {
+      "title", "titlePl", "titleUk",
+      "description", "descriptionPl", "descriptionUk",
+      "startsAtWarsaw", "listingKind"
+    }
+  ],
+  "pricePln", "totalTickets", "venue", "eventLanguage"
+}
 
 ${hasImage ? "Текст афиши может быть на изображении — прочитай его." : ""}
 
