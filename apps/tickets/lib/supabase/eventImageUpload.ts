@@ -100,3 +100,43 @@ export async function uploadEventCoverImage(
   const { data } = supabase.storage.from(EVENT_IMAGES_BUCKET).getPublicUrl(path);
   return data.publicUrl;
 }
+
+/** Загрузка обложки из буфера (Telegram bot и т.п.). */
+export async function uploadEventCoverBuffer(
+  supabase: SupabaseClient,
+  buffer: Buffer,
+  mimeType: string,
+  slug: string,
+): Promise<string> {
+  if (buffer.length > MAX_BYTES) {
+    throw new Error("Файл обложки больше 5 МБ");
+  }
+  if (!ALLOWED_TYPES.has(mimeType)) {
+    throw new Error("Допустимы только JPG, PNG, WebP и GIF");
+  }
+
+  const safeSlug = slug.replace(/[^a-z0-9-]/gi, "-").slice(0, 60) || "event";
+  const shortId = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+  const path = `${safeSlug}-${shortId}.${extFromMime(mimeType)}`;
+
+  await ensureEventImagesBucket(supabase);
+
+  const uploadOnce = () =>
+    supabase.storage.from(EVENT_IMAGES_BUCKET).upload(path, buffer, {
+      contentType: mimeType,
+      upsert: false,
+    });
+
+  let { error } = await uploadOnce();
+  if (error && /bucket not found|not found|no such bucket|does not exist/i.test(error.message)) {
+    await ensureEventImagesBucket(supabase);
+    const retry = await uploadOnce();
+    error = retry.error;
+  }
+  if (error) {
+    throw new Error(`Не удалось загрузить файл в Storage (${error.message})`);
+  }
+
+  const { data } = supabase.storage.from(EVENT_IMAGES_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
