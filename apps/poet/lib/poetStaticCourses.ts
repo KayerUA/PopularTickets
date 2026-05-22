@@ -3,6 +3,10 @@
  * У продакшені бажано створити відповідні опубліковані `poet_course` з тими ж slug.
  */
 export const POET_STATIC_COURSE_SLUGS = ["improv", "acting", "masterclass", "playback"] as const;
+
+/** Курсы на главной (masterclass временно скрыт). */
+export const POET_HOMEPAGE_COURSE_SLUGS = ["improv", "acting", "playback"] as const;
+export type PoetHomepageCourseSlug = (typeof POET_HOMEPAGE_COURSE_SLUGS)[number];
 export type PoetStaticCourseSlug = (typeof POET_STATIC_COURSE_SLUGS)[number];
 
 export function isPoetStaticCourseSlug(s: string): s is PoetStaticCourseSlug {

@@ -32,7 +32,9 @@ export async function fetchPublishedPoetCourses(): Promise<PoetCourseRow[]> {
     .eq("visibility", "published")
     .order("sort_order", { ascending: true });
 
-  if (!full.error) return (full.data ?? []) as PoetCourseRow[];
+  if (!full.error) {
+    return ((full.data ?? []) as PoetCourseRow[]).filter((c) => c.slug !== "masterclass");
+  }
 
   const basicSel =
     "id, slug, title, body, visibility, card_image_url, hero_image_url, card_variant, card_tag" as const;
@@ -47,7 +49,14 @@ export async function fetchPublishedPoetCourses(): Promise<PoetCourseRow[]> {
     return [];
   }
 
-  return ((basic.data ?? []) as Omit<PoetCourseRow, "title_pl" | "body_pl" | "title_uk" | "body_uk" | "card_tag_pl" | "card_tag_uk">[]).map(
+  return (
+    (basic.data ?? []) as Omit<
+      PoetCourseRow,
+      "title_pl" | "body_pl" | "title_uk" | "body_uk" | "card_tag_pl" | "card_tag_uk"
+    >[]
+  )
+    .filter((c) => c.slug !== "masterclass")
+    .map(
     (row) => ({
       ...row,
       title_pl: null,

@@ -2,20 +2,25 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { AppLocale } from "@/i18n/routing";
 import { THEATRE_DIRECTOR_TELEGRAM_HANDLE, THEATRE_DIRECTOR_TELEGRAM_URL } from "@/lib/theatre";
-import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
+import { THEATRE_INSTAGRAM_URL } from "@/lib/social";
 import type { PoetCourseRow } from "@/lib/poetCourses";
 import { resolveCourseCopy, resolveCourseTag } from "@/lib/contentI18n";
-import { normalizeCourseCardVariant, staticCourseKeys, type PoetStaticCourseSlug } from "@/lib/poetStaticCourses";
+import {
+  normalizeCourseCardVariant,
+  POET_HOMEPAGE_COURSE_SLUGS,
+  staticCourseKeys,
+  type PoetHomepageCourseSlug,
+} from "@/lib/poetStaticCourses";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 
-const STATIC_SLUGS: readonly PoetStaticCourseSlug[] = ["improv", "acting", "masterclass", "playback"];
+const STATIC_SLUGS: readonly PoetHomepageCourseSlug[] = POET_HOMEPAGE_COURSE_SLUGS;
 
 export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: PoetCourseRow[]; locale: AppLocale }) {
   const t = await getTranslations("Poet");
   const useDb = dbCourses.length > 0;
 
   return (
-    <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {useDb
         ? dbCourses
             .map((c) => {
@@ -105,15 +110,24 @@ export async function PoetTrialsAndFlow({ locale }: { locale: AppLocale }) {
           <h3 className="font-display text-lg font-medium text-gradient-gold sm:text-xl">{t("signupTitle")}</h3>
           <p className="mt-3 text-sm leading-relaxed text-zinc-400">
             {t("signupBodyBefore")}
+            <a
+              href={THEATRE_INSTAGRAM_URL}
+              className="font-medium text-poet-gold-bright hover:text-poet-gold"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("signupInstagramLabel")}
+            </a>
+            {t("signupBodyMiddle")}
             <a href={THEATRE_DIRECTOR_TELEGRAM_URL} className="font-medium text-poet-gold-bright hover:text-poet-gold">
               Telegram @{THEATRE_DIRECTOR_TELEGRAM_HANDLE}
             </a>
-            {t("signupBodyMiddle")}
+            {t("signupBodyAfter")}
           </p>
         </div>
         <div className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/35 via-poet-surface/35 to-zinc-950/40 p-6 shadow-[0_0_0_1px_rgba(52,211,153,0.12)] backdrop-blur-md sm:p-8">
           <h3 className="font-display text-lg font-medium text-emerald-200/95 sm:text-xl">{t("giftTitle")}</h3>
-          <p className="mt-3 text-sm leading-relaxed text-zinc-400">{t("giftBody")}</p>
+          <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-zinc-400">{t("giftBody")}</p>
         </div>
       </div>
 

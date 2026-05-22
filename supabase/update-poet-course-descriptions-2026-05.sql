@@ -14,3 +14,16 @@ UPDATE public.poet_course SET
   body_uk = 'Акторська майстерність — це робота з голосом, тілом, увагою й подачею, яка допомагає людині впевненіше почуватися і на сцені, і в житті. На заняттях учасники розвивають свободу самовираження й уміння бути в контакті з собою та іншими.',
   updated_at = now()
 WHERE slug = 'acting';
+
+-- Скрыть мастер-класс на сайте; переименовать improv.
+UPDATE public.poet_course SET
+  title = 'Импровизация',
+  title_pl = 'Improwizacja',
+  title_uk = 'Імпровізація',
+  updated_at = now()
+WHERE slug = 'improv';
+
+UPDATE public.poet_course SET
+  visibility = 'inactive',
+  updated_at = now()
+WHERE slug = 'masterclass';
