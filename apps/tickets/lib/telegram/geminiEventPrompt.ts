@@ -43,6 +43,9 @@ export function buildGeminiEventParsePrompt(sourceText: string, hasImage: boolea
 • Диапазон времени «20:00-22:00» → startsAtWarsaw только время НАЧАЛА: 20:00.
 • День недели в скобках игнорируй; год: ${now.year}, если не указан.
 • listingKind: trial для пробных занятий / impro / актёрского мастерства.
+• Если в шапке «пробные занятия» — ВСЕ events[] с listingKind: trial.
+• НИКОГДА не пиши «мастер-класс» / masterclass в title для пробных из расписания.
+• «Импровизация комедии» / impro — пробное занятие (trial), не мастер-класс.
 • Разные типы занятий — разные title и описания (см. контекст курсов ниже).
 
 Если в афише одно событие — массив events из одного элемента.
@@ -106,7 +109,8 @@ SEO (естественно, без keyword stuffing):
 
 ═══ ОСТАЛЬНЫЕ ПОЛЯ ═══
 • venue: "${POPULAR_POET_TRIAL_VENUE_PL}" если адрес не указан (не переводить) — на корне JSON
-• listingKind в каждом event: trial (пробное/занятие) | performance (шоу, спектакль, playback)
+• listingKind в каждом event: trial (пробное/занятие, в т.ч. impro и актёрское) | performance (шоу, спектакль, playback)
+• Запрещено: listingKind trial + title «мастер-класс» — для пробных только «пробное занятие» / «zajęcia próbne»
 • eventLanguage на корне: ru | uk | ru_uk | pl | en | mixed
 • confidence — не заполняй
 • notes — не заполняй

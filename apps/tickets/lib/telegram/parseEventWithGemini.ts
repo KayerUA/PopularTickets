@@ -272,6 +272,69 @@ function applyScheduleFallback(events: RawParsedEvent[], sourceText: string): vo
   }
 }
 
+function isTrialScheduleAfisha(sourceText: string): boolean {
+  const t = sourceText.toLowerCase();
+  if (/пробн|zajęci[aę]\s+prób|zajec\s+prob|trial\s+class/i.test(t)) return true;
+  const lines = extractScheduleLinesFromSource(sourceText);
+  return lines.length >= 2 && /(?:^|\n)\s*вход\s*:\s*70|70\s*zł|70\s*zl\b/i.test(t);
+}
+
+function scheduleSlotKey(startsAtWarsaw: string | null | undefined): string | null {
+  if (!startsAtWarsaw) return null;
+  const dt = DateTime.fromFormat(startsAtWarsaw, "yyyy-MM-dd'T'HH:mm", { zone: EVENT_ADMIN_TIMEZONE });
+  if (!dt.isValid) return null;
+  return `${dt.toFormat("MM-dd")}T${dt.toFormat("HH:mm")}`;
+}
+
+function trialTitlesFromLineHint(lineHint: string): Pick<RawParsedEvent, "title" | "titlePl" | "titleUk"> {
+  const isActing = /актёр|актер|acting/i.test(lineHint) && /мастерств/i.test(lineHint);
+  if (isActing) {
+    return {
+      title: "Пробное занятие по актёрскому мастерству в Варшаве — театр «Популярный поэт»",
+      titlePl: "Zajęcia próbne z aktorstwa w Warszawie — Teatr „Popularny Poeta”",
+      titleUk: "Пробне заняття з акторської майстерності у Варшаві — театр «Популярний поет»",
+    };
+  }
+  return {
+    title: "Пробное занятие по импровизации в Варшаве — театр «Популярный поэт»",
+    titlePl: "Zajęcia próbne z improwizacji w Warszawie — Teatr „Popularny Poeta”",
+    titleUk: "Пробне заняття з імпровізації у Варшаві — театр «Популярний поет»",
+  };
+}
+
+function titleLooksLikeMasterclass(title: string): boolean {
+  return /мастер[-\s]?класс|master[-\s]?class|masterclass/i.test(title);
+}
+
+/** Пробные из расписания: trial + каноничные title (Gemini путает impro с «мастер-классом»). */
+function applyTrialSchedulePolicy(events: RawParsedEvent[], sourceText: string): void {
+  if (!isTrialScheduleAfisha(sourceText)) return;
+
+  const lines = extractScheduleLinesFromSource(sourceText);
+
+  for (const ev of events) {
+    ev.listingKind = "trial";
+  }
+
+  for (const ev of events) {
+    const key = scheduleSlotKey(ev.startsAtWarsaw);
+    const line =
+      (key ? lines.find((l) => scheduleSlotKey(l.startsAtWarsaw) === key) : undefined) ??
+      (lines.length === events.length
+        ? lines[events.indexOf(ev)]
+        : undefined);
+
+    if (line) {
+      Object.assign(ev, trialTitlesFromLineHint(line.lineHint));
+      continue;
+    }
+
+    if (titleLooksLikeMasterclass(ev.title)) {
+      Object.assign(ev, trialTitlesFromLineHint("импров"));
+    }
+  }
+}
+
 function sanitizeGeminiBatchPayload(input: unknown, sourceText: string): RawParsedEvent[] {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new Error("Gemini JSON: ожидался объект");
@@ -326,6 +389,7 @@ function sanitizeGeminiBatchPayload(input: unknown, sourceText: string): RawPars
   }
 
   applyScheduleFallback(parsed, sourceText);
+  applyTrialSchedulePolicy(parsed, sourceText);
   return parsed;
 }
 
