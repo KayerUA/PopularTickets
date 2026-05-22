@@ -105,8 +105,8 @@ function queueAfishaPart(
   chatId: number,
   userId: number,
   part: { text?: string; fileIds?: string[] },
-): void {
-  mergeAfishaPart(chatId, userId, part, onAfishaBundleReady, onAfishaWaitingForText);
+): Promise<void> {
+  return mergeAfishaPart(chatId, userId, part, onAfishaBundleReady, onAfishaWaitingForText);
 }
 
 async function withChatLock(chatId: number, fn: () => Promise<void>): Promise<void> {
@@ -401,7 +401,7 @@ async function appendPhotosToDraft(
 }
 
 async function handleMediaGroupFlush(payload: MediaGroupFlushPayload): Promise<void> {
-  queueAfishaPart(payload.chatId, payload.userId, {
+  await queueAfishaPart(payload.chatId, payload.userId, {
     fileIds: payload.fileIds,
     text: payload.text.trim() || undefined,
   });
@@ -417,7 +417,7 @@ async function handleChatMessage(
   const supabase = requireServiceSupabase();
 
   if (mediaGroupId) {
-    enqueueMediaGroupPart(mediaGroupId, chatId, userId, fileIds[0], text, (payload) =>
+    await enqueueMediaGroupPart(mediaGroupId, chatId, userId, fileIds[0], text, (payload) =>
       withChatLock(chatId, () => handleMediaGroupFlush(payload)),
     );
     return;
@@ -452,7 +452,7 @@ async function handleChatMessage(
       (looksLikeNewAfisha(text, fileIds.length > 0) || Boolean(waitingBundle?.fileIds.length)));
 
   if (isNewAfishaPart && (!active || looksLikeNewAfisha(text, fileIds.length > 0))) {
-    queueAfishaPart(chatId, userId, {
+    await queueAfishaPart(chatId, userId, {
       text: hasText ? text.trim() : undefined,
       fileIds: fileIds.length > 0 ? fileIds : undefined,
     });
@@ -476,7 +476,7 @@ async function handleChatMessage(
   }
 
   if (hasText || fileIds.length > 0) {
-    queueAfishaPart(chatId, userId, {
+    await queueAfishaPart(chatId, userId, {
       text: hasText ? text.trim() : undefined,
       fileIds: fileIds.length > 0 ? fileIds : undefined,
     });

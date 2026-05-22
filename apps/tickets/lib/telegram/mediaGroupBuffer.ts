@@ -15,6 +15,8 @@ type MediaGroupBuffer = {
   fileIds: string[];
   text: string;
   flushTimer?: ReturnType<typeof setTimeout>;
+  flushPromise?: Promise<void>;
+  resolveFlush?: () => void;
 };
 
 type MediaGroupStore = Map<string, MediaGroupBuffer>;
@@ -25,6 +27,7 @@ function store(): MediaGroupStore {
   return g.__telegramMediaGroupBuffers;
 }
 
+/** Ждём сбор альбома — webhook не должен отвечать 200 до flush (иначе таймер на Vercel не сработает). */
 export function enqueueMediaGroupPart(
   mediaGroupId: string,
   chatId: number,
@@ -32,10 +35,11 @@ export function enqueueMediaGroupPart(
   fileId: string | undefined,
   text: string,
   onFlush: (payload: MediaGroupFlushPayload) => Promise<void>,
-): void {
+): Promise<void> {
   const key = `${chatId}:${mediaGroupId}`;
   const buffers = store();
-  const buf: MediaGroupBuffer = buffers.get(key) ?? {
+  const existing = buffers.get(key);
+  const buf: MediaGroupBuffer = existing ?? {
     chatId,
     userId,
     fileIds: [],
@@ -48,17 +52,28 @@ export function enqueueMediaGroupPart(
   if (text.trim()) buf.text = text.trim();
 
   if (buf.flushTimer) clearTimeout(buf.flushTimer);
+
+  if (!buf.flushPromise) {
+    buf.flushPromise = new Promise<void>((resolve) => {
+      buf.resolveFlush = resolve;
+    });
+  }
+
   buf.flushTimer = setTimeout(() => {
     buffers.delete(key);
-    void onFlush({
+    const payload: MediaGroupFlushPayload = {
       chatId: buf.chatId,
       userId: buf.userId,
       fileIds: [...buf.fileIds],
       text: buf.text,
-    }).catch((e) => console.error("[telegram bot] media group flush", e));
+    };
+    void onFlush(payload)
+      .catch((e) => console.error("[telegram bot] media group flush", e))
+      .finally(() => buf.resolveFlush?.());
   }, FLUSH_MS);
 
   buffers.set(key, buf);
+  return buf.flushPromise;
 }
 
 export function cancelMediaGroupBuffersForChat(chatId: number): void {
@@ -66,6 +81,7 @@ export function cancelMediaGroupBuffersForChat(chatId: number): void {
   for (const [key, buf] of buffers) {
     if (buf.chatId === chatId) {
       if (buf.flushTimer) clearTimeout(buf.flushTimer);
+      buf.resolveFlush?.();
       buffers.delete(key);
     }
   }
