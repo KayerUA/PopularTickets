@@ -1,3 +1,4 @@
+import { waitUntil } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
 import { getTelegramWebhookSecret } from "@/lib/telegram/config";
 import { ackCallbackQueryImmediate } from "@/lib/telegram/telegramBotApi";
@@ -27,14 +28,25 @@ export async function POST(req: NextRequest, context: RouteContext): Promise<Nex
 
   if (update.callback_query?.id) {
     const data = update.callback_query.data ?? "";
-    const hint = data.startsWith("pub:") ? "Публикую…" : data.startsWith("cancel:") ? "Отменяю…" : undefined;
+    const hint = data.startsWith("pub:")
+      ? "Публикую…"
+      : data.startsWith("cancel:")
+        ? "Отменяю…"
+        : data.startsWith("bcast:")
+          ? "Рассылаю…"
+          : undefined;
     ackCallbackQueryImmediate(update.callback_query.id, hint);
   }
 
-  try {
-    await handleTelegramUpdate(update);
-  } catch (e) {
+  const work = handleTelegramUpdate(update).catch((e) => {
     console.error("[telegram webhook]", e);
+  });
+
+  // Telegram ждёт 200 за ~10 с; Gemini/альбом — в фоне (waitUntil держит lambda на Vercel).
+  if (process.env.NODE_ENV === "development") {
+    await work;
+  } else {
+    waitUntil(work);
   }
 
   return NextResponse.json({ ok: true });
