@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { upsertEvent, type UpsertEventRetryFields, type UpsertEventState } from "@/app/actions/admin-events";
 import { toDatetimeLocalValueWarsaw } from "@/lib/warsawEventDatetime";
 import type { PoetCourseSelectOption } from "@/lib/fetchPoetCourseSelectOptions";
@@ -10,6 +11,14 @@ import { EventCoverFocalControls } from "@/components/EventCoverFocalControls";
 import { clampEventImageFocal } from "@/lib/eventCoverFocal";
 import { slugifyEventTitle } from "@/lib/eventSlugFromTitle";
 import { DEFAULT_EVENT_LANGUAGE, normalizeEventLanguage, type EventLanguage } from "@/lib/eventLanguage";
+import {
+  EVENT_COVER_ACCEPT,
+  EVENT_COVER_MAX_UPLOAD_BYTES,
+  eventCoverPreviewTooLarge,
+  eventCoverUploadTooLarge,
+  formatEventCoverBytes,
+} from "@/lib/eventCoverImageLimits";
+import { compressEventCoverFile, shouldCompressEventCoverClient } from "@/lib/compressEventCoverClient";
 
 import { AdminTranslateLocalesButton, type LocaleFields } from "@/components/AdminTranslateLocalesButton";
 
@@ -111,6 +120,7 @@ export function EventForm({
   translateProviderHint?: string;
 }) {
   const [state, formAction, pending] = useActionState(upsertEvent, initialUpsertState);
+  const router = useRouter();
   const d = mergeRetryDefaults(event, state?.fields);
   const [listingKind, setListingKind] = useState<"performance" | "trial">(d.listingKind);
   const [locales, setLocales] = useState<LocaleFields>({
@@ -122,6 +132,13 @@ export function EventForm({
 
   const [imageUrlDraft, setImageUrlDraft] = useState(d.imageUrl);
   const [blobPreview, setBlobPreview] = useState<string | null>(null);
+  const [imagePickError, setImagePickError] = useState<string | null>(null);
+  const [pendingImageLabel, setPendingImageLabel] = useState<string | null>(null);
+  const [imageCompressing, setImageCompressing] = useState(false);
+
+  useEffect(() => {
+    if (state?.redirectTo) router.push(state.redirectTo);
+  }, [state?.redirectTo, router]);
 
   useEffect(() => {
     if (state?.fields) {
@@ -158,6 +175,20 @@ export function EventForm({
       action={formAction}
       encType="multipart/form-data"
       className="max-w-2xl space-y-5"
+      onSubmit={(e) => {
+        if (imageCompressing) {
+          e.preventDefault();
+          return;
+        }
+        const input = e.currentTarget.querySelector<HTMLInputElement>('input[name="imageFile"]');
+        const f = input?.files?.[0];
+        if (f && eventCoverUploadTooLarge(f.size)) {
+          e.preventDefault();
+          setImagePickError(
+            `Файл ${formatEventCoverBytes(f.size)} — больше ${formatEventCoverBytes(EVENT_COVER_MAX_UPLOAD_BYTES)}.`,
+          );
+        }
+      }}
     >
       {state?.error ? (
         <p
@@ -336,18 +367,73 @@ export function EventForm({
               <input
                 name="imageFile"
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif"
+                accept={EVENT_COVER_ACCEPT}
                 onChange={(e) => {
-                  const f = e.target.files?.[0];
+                  const input = e.target;
+                  const f = input.files?.[0];
+                  setImagePickError(null);
+                  setPendingImageLabel(null);
                   setBlobPreview((prev) => {
                     if (prev) URL.revokeObjectURL(prev);
-                    return f ? URL.createObjectURL(f) : null;
+                    return null;
                   });
+                  if (!f) return;
+                  if (eventCoverUploadTooLarge(f.size)) {
+                    setImagePickError(
+                      `Файл ${formatEventCoverBytes(f.size)} — больше ${formatEventCoverBytes(EVENT_COVER_MAX_UPLOAD_BYTES)}. Сожмите на телефоне/ПК и попробуйте снова.`,
+                    );
+                    input.value = "";
+                    return;
+                  }
+
+                  void (async () => {
+                    setImageCompressing(true);
+                    try {
+                      let ready = f;
+                      if (shouldCompressEventCoverClient(f.size)) {
+                        ready = await compressEventCoverFile(f);
+                        const dt = new DataTransfer();
+                        dt.items.add(ready);
+                        input.files = dt.files;
+                        setPendingImageLabel(
+                          `Исходник ${formatEventCoverBytes(f.size)} → ${formatEventCoverBytes(ready.size)} для загрузки`,
+                        );
+                      }
+
+                      if (eventCoverPreviewTooLarge(ready.size)) {
+                        if (!shouldCompressEventCoverClient(f.size)) {
+                          setPendingImageLabel(
+                            `${ready.name} (${formatEventCoverBytes(ready.size)}) — превью отключено, при сохранении сожмём на сервере`,
+                          );
+                        }
+                        return;
+                      }
+
+                      setBlobPreview(URL.createObjectURL(ready));
+                    } catch {
+                      setImagePickError("Не удалось обработать файл. Попробуйте JPG/PNG/WebP поменьше.");
+                      input.value = "";
+                    } finally {
+                      setImageCompressing(false);
+                    }
+                  })();
                 }}
+                disabled={pending || imageCompressing}
                 className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-sm text-white file:mr-3 file:rounded-lg file:border-0 file:bg-poet-gold/20 file:px-3 file:py-1.5 file:text-poet-gold"
               />
             </label>
-            <p className="text-xs text-zinc-500">До 5 МБ. Или вставьте ссылку / путь ниже — без файла.</p>
+            <p className="text-xs text-zinc-500">
+              До {formatEventCoverBytes(EVENT_COVER_MAX_UPLOAD_BYTES)}. Файлы больше ~400 КБ автоматически сжимаются в браузере
+              перед отправкой (ваш 4,8 МБ → обычно ~200–500 КБ). На сервере — ещё раз до WebP 1920px.
+              {imageCompressing ? (
+                <span className="mt-1 block text-poet-gold/90">Сжимаем изображение…</span>
+              ) : null}
+            </p>
+            {imagePickError ? (
+              <p className="text-xs text-red-300" role="alert">
+                {imagePickError}
+              </p>
+            ) : null}
             <label className="block text-sm text-zinc-300">
               Ссылка на картинку (необязательно)
               <input
@@ -360,6 +446,7 @@ export function EventForm({
             </label>
             <EventCoverFocalControls
               previewUrl={coverPreviewUrl}
+              pendingLabel={pendingImageLabel}
               initialX={clampEventImageFocal(Number(d.imageFocalX))}
               initialY={clampEventImageFocal(Number(d.imageFocalY))}
             />
@@ -491,8 +578,8 @@ export function EventForm({
           </div>
         </details>
       </div>
-      <button type="submit" disabled={pending} className="btn-poet poet-shine px-8 disabled:opacity-50">
-        {pending ? "Сохранение…" : "Сохранить"}
+      <button type="submit" disabled={pending || imageCompressing} className="btn-poet poet-shine px-8 disabled:opacity-50">
+        {pending ? "Сохранение…" : imageCompressing ? "Сжатие фото…" : "Сохранить"}
       </button>
     </form>
   );

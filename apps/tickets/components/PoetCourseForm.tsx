@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { upsertPoetCourse, type UpsertPoetCourseState } from "@/app/actions/poet-courses";
 import type { ContentVisibility } from "@/lib/contentVisibility";
 import { AdminTranslateLocalesButton, type LocaleFields } from "@/components/AdminTranslateLocalesButton";
@@ -41,6 +42,7 @@ export function PoetCourseForm({
   translateProviderHint?: string;
 }) {
   const [state, formAction, pending] = useActionState(upsertPoetCourse, initialState);
+  const router = useRouter();
   const defaultVisibility: ContentVisibility = course?.visibility ?? "inactive";
 
   const [locales, setLocales] = useState<LocaleFields>({
@@ -51,6 +53,10 @@ export function PoetCourseForm({
     card_tag_pl: course?.card_tag_pl ?? "",
     card_tag_uk: course?.card_tag_uk ?? "",
   });
+
+  useEffect(() => {
+    if (state?.redirectTo) router.push(state.redirectTo);
+  }, [state?.redirectTo, router]);
 
   useEffect(() => {
     if (!course) return;

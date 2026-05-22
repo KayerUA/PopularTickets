@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 type Props = {
-  deleteAction: (formData: FormData) => Promise<{ error?: string } | void>;
+  deleteAction: (formData: FormData) => Promise<{ error?: string; redirectTo?: string } | void>;
   id: string;
   title: string;
   entityLabel: string;
@@ -13,6 +14,7 @@ type Props = {
 export function AdminDeleteButton({ deleteAction, id, title, entityLabel, paidOrders = 0 }: Props) {
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const blocked = paidOrders > 0;
 
@@ -37,7 +39,11 @@ export function AdminDeleteButton({ deleteAction, id, title, entityLabel, paidOr
             const fd = new FormData();
             fd.set("id", id);
             const res = await deleteAction(fd);
-            if (res && "error" in res && res.error) setError(res.error);
+            if (res?.redirectTo) {
+              router.push(res.redirectTo);
+              return;
+            }
+            if (res?.error) setError(res.error);
           });
         }}
         className="text-xs text-red-400/90 transition hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"

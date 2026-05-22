@@ -1,16 +1,27 @@
-import QRCode from "qrcode";
 import { Resend } from "resend";
 import { ticketEmailHtml } from "@/lib/email/templates";
 import type { EmailTicketCardInput } from "@/lib/email/ticketCardHtml";
 import { emailTicketPdfLayoutStrings, ticketEmailStrings } from "@/lib/email/ticketEmailI18n";
-import { ticketQrDataUrl } from "@/lib/qrDataUrl";
+import { ticketQrPngBuffer } from "@/lib/qrDataUrl";
 import { renderTicketLayoutPdf } from "@/lib/renderTicketLayoutPdf";
 import type { AppLocale } from "@/i18n/routing";
 
 const fromDefault = "PopularTickets <onboarding@resend.dev>";
 
+type ResendAttachment = {
+  filename: string;
+  content: Buffer;
+  contentType?: string;
+  inlineContentId?: string;
+};
+
 function safeFileBase(ticketNumber: string): string {
   return ticketNumber.replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 48) || "bilet";
+}
+
+/** Content-ID для inline QR в HTML письма (Gmail блокирует data: URL). */
+function qrInlineContentId(ticketId: string): string {
+  return `qr-${ticketId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 48)}`;
 }
 
 export async function sendTicketsEmail(params: {
@@ -31,61 +42,64 @@ export async function sendTicketsEmail(params: {
 
   const pdfLabels = emailTicketPdfLayoutStrings(params.locale);
   const str = ticketEmailStrings(params.locale);
-  const attachments: { filename: string; content: Buffer }[] = [];
+  const attachments: ResendAttachment[] = [];
   const emailTickets: EmailTicketCardInput[] = [];
 
   for (const t of params.tickets) {
     const base = safeFileBase(t.ticketNumber);
-    let qrImageSrc = "";
+    const inlineId = qrInlineContentId(t.id);
+
+    let qrPng: Buffer;
+    let qrDataUrl = "";
     try {
-      qrImageSrc = await ticketQrDataUrl(t.id);
+      qrPng = await ticketQrPngBuffer(t.id);
+      qrDataUrl = `data:image/png;base64,${qrPng.toString("base64")}`;
     } catch (err) {
-      console.error("[sendTicketsEmail] QR data URL failed", { ticketId: t.id }, err);
+      console.error("[sendTicketsEmail] QR generation failed", { ticketId: t.id }, err);
+      continue;
     }
 
+    attachments.push({
+      filename: `qr-${base}.png`,
+      content: qrPng,
+      contentType: "image/png",
+      inlineContentId: inlineId,
+    });
+
     try {
-      if (qrImageSrc) {
-        const pdfBuf = await renderTicketLayoutPdf({
-          qrPngDataUrl: qrImageSrc,
-          eventTitle: params.eventTitle,
-          venue: params.venue,
-          dateTimeLabel: params.startsAt,
-          ticketNumber: t.ticketNumber,
-          ticketId: t.id,
-          ...pdfLabels,
-        });
-        attachments.push({ filename: `bilet-${base}.pdf`, content: pdfBuf });
-        emailTickets.push({
-          ticketNumber: t.ticketNumber,
-          ticketId: t.id,
-          qrImageSrc,
-          attachmentLabel: str.colAttachment,
-        });
-      } else {
-        throw new Error("no qr");
-      }
-    } catch (err) {
-      console.error("[sendTicketsEmail] PDF failed, fallback PNG", { ticketId: t.id }, err);
-      const png =
-        qrImageSrc.length > 0
-          ? Buffer.from(qrImageSrc.replace(/^data:image\/png;base64,/, ""), "base64")
-          : await QRCode.toBuffer(t.id, {
-              type: "png",
-              width: 320,
-              margin: 1,
-              errorCorrectionLevel: "M",
-            });
-      if (!qrImageSrc) {
-        qrImageSrc = `data:image/png;base64,${png.toString("base64")}`;
-      }
-      attachments.push({ filename: `qr-${base}.png`, content: png });
+      const pdfBuf = await renderTicketLayoutPdf({
+        qrPngDataUrl: qrDataUrl,
+        eventTitle: params.eventTitle,
+        venue: params.venue,
+        dateTimeLabel: params.startsAt,
+        ticketNumber: t.ticketNumber,
+        ticketId: t.id,
+        ...pdfLabels,
+      });
+      attachments.push({
+        filename: `bilet-${base}.pdf`,
+        content: pdfBuf,
+        contentType: "application/pdf",
+      });
       emailTickets.push({
         ticketNumber: t.ticketNumber,
         ticketId: t.id,
-        qrImageSrc,
+        qrImageSrc: `cid:${inlineId}`,
+        attachmentLabel: str.colAttachment,
+      });
+    } catch (err) {
+      console.error("[sendTicketsEmail] PDF failed, inline QR + PNG attachment", { ticketId: t.id }, err);
+      emailTickets.push({
+        ticketNumber: t.ticketNumber,
+        ticketId: t.id,
+        qrImageSrc: `cid:${inlineId}`,
         attachmentLabel: str.colAttachmentPng,
       });
     }
+  }
+
+  if (!emailTickets.length) {
+    throw new Error("Не удалось сформировать билеты для письма");
   }
 
   const html = ticketEmailHtml({

@@ -1,10 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  EVENT_COVER_ALLOWED_MIME,
+  EVENT_COVER_MAX_UPLOAD_BYTES,
+} from "@/lib/eventCoverImageLimits";
+import { optimizeEventCoverBuffer } from "@/lib/optimizeEventCoverImage";
 
 export const EVENT_IMAGES_BUCKET = "event-images";
 
-const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
-const ALLOWED_TYPES = new Set<string>(ALLOWED_MIME);
+const ALLOWED_TYPES = new Set<string>(EVENT_COVER_ALLOWED_MIME);
 
 /**
  * Создаёт публичный бакет через Storage API (service role), если его ещё нет —
@@ -22,8 +25,8 @@ export async function ensureEventImagesBucket(supabase: SupabaseClient): Promise
 
   const { error: createErr } = await supabase.storage.createBucket(EVENT_IMAGES_BUCKET, {
     public: true,
-    fileSizeLimit: MAX_BYTES,
-    allowedMimeTypes: [...ALLOWED_MIME],
+    fileSizeLimit: EVENT_COVER_MAX_UPLOAD_BYTES,
+    allowedMimeTypes: [...EVENT_COVER_ALLOWED_MIME],
   });
   if (!createErr) return;
 
@@ -39,47 +42,22 @@ export async function ensureEventImagesBucket(supabase: SupabaseClient): Promise
   console.warn("[PopularTickets][Storage] createBucket:", createErr.message);
 }
 
-function extFromMime(type: string): string {
-  switch (type) {
-    case "image/jpeg":
-      return "jpg";
-    case "image/png":
-      return "png";
-    case "image/webp":
-      return "webp";
-    case "image/gif":
-      return "gif";
-    default:
-      return "img";
-  }
-}
-
-/**
- * Загружает файл обложки в Storage и возвращает публичный URL для записи в events.image_url.
- */
-export async function uploadEventCoverImage(
+async function uploadOptimizedCover(
   supabase: SupabaseClient,
-  file: File,
-  slug: string
+  buffer: Buffer,
+  mimeType: string,
+  slug: string,
 ): Promise<string> {
-  if (file.size > MAX_BYTES) {
-    throw new Error("Файл обложки больше 5 МБ");
-  }
-  if (!ALLOWED_TYPES.has(file.type)) {
-    throw new Error("Допустимы только JPG, PNG, WebP и GIF");
-  }
-
   const safeSlug = slug.replace(/[^a-z0-9-]/gi, "-").slice(0, 60) || "event";
   const shortId = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
-  const path = `${safeSlug}-${shortId}.${extFromMime(file.type)}`;
-
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const { buffer: optimized, mimeType: outMime, ext } = await optimizeEventCoverBuffer(buffer, mimeType);
+  const path = `${safeSlug}-${shortId}.${ext}`;
 
   await ensureEventImagesBucket(supabase);
 
   const uploadOnce = () =>
-    supabase.storage.from(EVENT_IMAGES_BUCKET).upload(path, buffer, {
-      contentType: file.type,
+    supabase.storage.from(EVENT_IMAGES_BUCKET).upload(path, optimized, {
+      contentType: outMime,
       upsert: false,
     });
 
@@ -101,6 +79,25 @@ export async function uploadEventCoverImage(
   return data.publicUrl;
 }
 
+/**
+ * Загружает файл обложки в Storage и возвращает публичный URL для записи в events.image_url.
+ */
+export async function uploadEventCoverImage(
+  supabase: SupabaseClient,
+  file: File,
+  slug: string,
+): Promise<string> {
+  if (file.size > EVENT_COVER_MAX_UPLOAD_BYTES) {
+    throw new Error("Файл обложки больше 5 МБ");
+  }
+  if (!ALLOWED_TYPES.has(file.type)) {
+    throw new Error("Допустимы только JPG, PNG, WebP и GIF");
+  }
+
+  const raw = Buffer.from(await file.arrayBuffer());
+  return uploadOptimizedCover(supabase, raw, file.type, slug);
+}
+
 /** Загрузка обложки из буфера (Telegram bot и т.п.). */
 export async function uploadEventCoverBuffer(
   supabase: SupabaseClient,
@@ -108,35 +105,12 @@ export async function uploadEventCoverBuffer(
   mimeType: string,
   slug: string,
 ): Promise<string> {
-  if (buffer.length > MAX_BYTES) {
+  if (buffer.length > EVENT_COVER_MAX_UPLOAD_BYTES) {
     throw new Error("Файл обложки больше 5 МБ");
   }
   if (!ALLOWED_TYPES.has(mimeType)) {
     throw new Error("Допустимы только JPG, PNG, WebP и GIF");
   }
 
-  const safeSlug = slug.replace(/[^a-z0-9-]/gi, "-").slice(0, 60) || "event";
-  const shortId = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
-  const path = `${safeSlug}-${shortId}.${extFromMime(mimeType)}`;
-
-  await ensureEventImagesBucket(supabase);
-
-  const uploadOnce = () =>
-    supabase.storage.from(EVENT_IMAGES_BUCKET).upload(path, buffer, {
-      contentType: mimeType,
-      upsert: false,
-    });
-
-  let { error } = await uploadOnce();
-  if (error && /bucket not found|not found|no such bucket|does not exist/i.test(error.message)) {
-    await ensureEventImagesBucket(supabase);
-    const retry = await uploadOnce();
-    error = retry.error;
-  }
-  if (error) {
-    throw new Error(`Не удалось загрузить файл в Storage (${error.message})`);
-  }
-
-  const { data } = supabase.storage.from(EVENT_IMAGES_BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  return uploadOptimizedCover(supabase, buffer, mimeType, slug);
 }

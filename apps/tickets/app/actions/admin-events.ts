@@ -1,7 +1,6 @@
 "use server";
 
 import { z } from "zod";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
 import { setMapsUrlRpc } from "@/lib/supabase/mapsUrlRpc";
@@ -43,7 +42,9 @@ export type UpsertEventRetryFields = {
 };
 
 export type UpsertEventState = {
-  error: string;
+  error?: string;
+  /** После успешного сохранения — клиент делает router.push (не redirect() из action: ломает useActionState). */
+  redirectTo?: string;
   /** Снимок полей после ошибки — форма перемонтируется и подставляет их обратно. */
   fields?: UpsertEventRetryFields;
   nonce?: string;
@@ -196,15 +197,6 @@ function groszeFromPln(pln: number): number {
   return Math.round(pln * 100);
 }
 
-function isNextRedirectError(e: unknown): boolean {
-  return (
-    e instanceof Error &&
-    "digest" in e &&
-    typeof (e as Error & { digest?: string }).digest === "string" &&
-    String((e as Error & { digest: string }).digest).startsWith("NEXT_REDIRECT")
-  );
-}
-
 /** Slug из формы или автогенерация из названия (если поле slug пустое). */
 function effectiveSlugFromFormData(formData: FormData): string {
   const raw = String(formData.get("slug") ?? "").trim();
@@ -288,7 +280,14 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
     const imageFile = formData.get("imageFile");
     let imageUrlFinal: string | null = v.imageUrl || null;
     if (imageFile instanceof File && imageFile.size > 0) {
-      imageUrlFinal = await uploadEventCoverImage(supabase, imageFile, v.slug);
+      try {
+        imageUrlFinal = await uploadEventCoverImage(supabase, imageFile, v.slug);
+      } catch (e) {
+        return {
+          error: e instanceof Error ? e.message : "Не удалось загрузить обложку",
+          ...newRetryEnvelope(formRetryFromParsed(v, formData, imageUrlFinal)),
+        };
+      }
     }
 
     const payload: Record<string, unknown> = {
@@ -399,9 +398,8 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
     }
     revalidatePath("/admin");
     revalidatePath("/admin/orders");
-    redirect("/admin");
+    return { redirectTo: "/admin" };
   } catch (e) {
-    if (isNextRedirectError(e)) throw e;
     console.error("[upsertEvent]", e);
     return {
       error: e instanceof Error ? e.message : "Не удалось сохранить событие",
@@ -410,7 +408,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
   }
 }
 
-export async function deleteEvent(formData: FormData): Promise<{ error?: string } | void> {
+export async function deleteEvent(formData: FormData): Promise<{ error?: string; redirectTo?: string } | void> {
   try {
     await requireAdmin();
 
@@ -457,9 +455,8 @@ export async function deleteEvent(formData: FormData): Promise<{ error?: string 
     }
     revalidatePath("/admin");
     revalidatePath("/admin/orders");
-    redirect("/admin");
+    return { redirectTo: "/admin" };
   } catch (e) {
-    if (isNextRedirectError(e)) throw e;
     console.error("[deleteEvent]", e);
     return { error: e instanceof Error ? e.message : "Не удалось удалить событие" };
   }

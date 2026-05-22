@@ -7,13 +7,15 @@ type Props = {
   previewUrl: string | null;
   initialX: number;
   initialY: number;
+  /** Файл выбран, но превью отключено (слишком тяжёлый для браузера). */
+  pendingLabel?: string | null;
 };
 
 /**
  * Превью 16:9 как на витрине. Клик задаёт точку для object-position при object-cover.
  * Здесь нативный img — blob: и произвольные URL не ломают Next/Image в проде.
  */
-export function EventCoverFocalControls({ previewUrl, initialX, initialY }: Props) {
+export function EventCoverFocalControls({ previewUrl, initialX, initialY, pendingLabel }: Props) {
   const [x, setX] = useState(() => clampEventImageFocal(initialX));
   const [y, setY] = useState(() => clampEventImageFocal(initialY));
   const boxRef = useRef<HTMLDivElement>(null);
@@ -67,6 +69,10 @@ export function EventCoverFocalControls({ previewUrl, initialX, initialY }: Prop
             aria-hidden
           />
         </div>
+      ) : pendingLabel ? (
+        <p className="rounded-lg border border-poet-gold/25 bg-zinc-950/50 px-3 py-4 text-sm text-zinc-400">
+          {pendingLabel}. Точка фокуса — по центру (50×50 %), её можно сдвинуть после сохранения при редактировании.
+        </p>
       ) : (
         <p className="rounded-lg border border-dashed border-poet-gold/20 bg-zinc-950/40 px-3 py-4 text-sm text-zinc-500">
           Загрузите файл обложки или вставьте ссылку выше — появится превью для выбора фокуса.

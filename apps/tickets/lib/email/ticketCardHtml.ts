@@ -24,7 +24,7 @@ export type EmailTicketCardLabels = {
 export type EmailTicketCardInput = {
   ticketNumber: string;
   ticketId: string;
-  /** data:image/png;base64,… для inline QR в теле письма */
+  /** cid:… для inline QR (Gmail не показывает data: URL) */
   qrImageSrc: string;
   attachmentLabel: string;
 };
@@ -53,7 +53,7 @@ export function renderEmailTicketCardHtml(ticket: EmailTicketCardInput, labels: 
       </p>
     </td>
     <td width="52%" align="center" valign="middle" style="padding:16px 12px;background:linear-gradient(180deg,#0f090b 0%,#0c0709 100%);border-right:2px dashed ${C.borderSoft};">
-      <img src="${ticket.qrImageSrc}" width="168" height="168" alt="QR" style="display:block;margin:0 auto 10px auto;border:2px solid ${C.border};border-radius:6px;background:#fff;padding:6px;" />
+      <img src="${ticket.qrImageSrc}" width="168" height="168" alt="" style="display:block;margin:0 auto 10px auto;border:2px solid ${C.border};border-radius:6px;background:#fff;padding:6px;" />
       <p style="margin:0 0 6px 0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;line-height:1.45;color:${C.dim};word-break:break-all;text-align:center;">
         ${esc(ticket.ticketId)}
       </p>

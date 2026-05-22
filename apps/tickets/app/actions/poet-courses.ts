@@ -1,13 +1,12 @@
 "use server";
 
 import { z } from "zod";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/adminGuard";
 import { contentVisibilitySchema } from "@/lib/contentVisibility";
 
-export type UpsertPoetCourseState = { error: string } | null;
+export type UpsertPoetCourseState = { error?: string; redirectTo?: string } | null;
 
 const cardVariantSchema = z.enum(["improv", "acting", "masterclass", "playback"]);
 
@@ -45,16 +44,7 @@ const PoetCourseSchema = z.object({
     }
   });
 
-function isNextRedirectError(e: unknown): boolean {
-  return (
-    e instanceof Error &&
-    "digest" in e &&
-    typeof (e as Error & { digest?: string }).digest === "string" &&
-    String((e as Error & { digest: string }).digest).startsWith("NEXT_REDIRECT")
-  );
-}
-
-export async function deletePoetCourse(formData: FormData): Promise<{ error?: string } | void> {
+export async function deletePoetCourse(formData: FormData): Promise<{ error?: string; redirectTo?: string } | void> {
   try {
     await requireAdmin();
 
@@ -73,9 +63,8 @@ export async function deletePoetCourse(formData: FormData): Promise<{ error?: st
     if (error) return { error: error.message };
 
     revalidatePath("/admin/poet-courses");
-    redirect("/admin/poet-courses");
+    return { redirectTo: "/admin/poet-courses" };
   } catch (e) {
-    if (isNextRedirectError(e)) throw e;
     console.error("[deletePoetCourse]", e);
     return { error: e instanceof Error ? e.message : "Не удалось удалить курс" };
   }
@@ -140,9 +129,8 @@ export async function upsertPoetCourse(_prev: UpsertPoetCourseState, formData: F
     }
 
     revalidatePath("/admin/poet-courses");
-    redirect("/admin/poet-courses");
+    return { redirectTo: "/admin/poet-courses" };
   } catch (e) {
-    if (isNextRedirectError(e)) throw e;
     console.error("[upsertPoetCourse]", e);
     return { error: e instanceof Error ? e.message : "Не удалось сохранить курс" };
   }

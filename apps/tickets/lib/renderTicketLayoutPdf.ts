@@ -255,13 +255,13 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
   const font = await pdfDoc.embedFont(regularBytes, { subset: false });
   const fontBold = await pdfDoc.embedFont(boldBytes, { subset: false });
 
-  /** Landscape: полоса билета + блок события снизу. */
+  /** Landscape: полоса билета сверху + блок события снизу (y растёт вверх). */
   const W = 520;
   const H = 248;
   const margin = 14;
   const ticketH = 152;
-  const ticketBottom = H - margin - 62;
-  const ticketTop = ticketBottom + ticketH;
+  const ticketTop = H - margin;
+  const ticketBottom = ticketTop - ticketH;
 
   const page = pdfDoc.addPage([W, H]);
 
