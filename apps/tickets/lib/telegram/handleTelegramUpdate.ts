@@ -3,7 +3,7 @@ import { DateTime } from "luxon";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { EVENT_ADMIN_TIMEZONE } from "@/lib/warsawEventDatetime";
-import { getTelegramAdminUserIds } from "@/lib/telegram/config";
+import { getTelegramAdminUserIds, getTelegramBroadcastChatIds, isTelegramAutoBroadcast } from "@/lib/telegram/config";
 import { createEventFromParsed } from "@/lib/telegram/createEventDraft";
 import {
   cancelActiveDraftForChat,
@@ -45,6 +45,11 @@ import {
   editTelegramMessage,
   sendTelegramMessage,
 } from "@/lib/telegram/telegramBotApi";
+import {
+  broadcastDraftToGroups,
+  mergePublishedIntoParsed,
+  type PublishedEventInfo,
+} from "@/lib/telegram/broadcastToGroups";
 
 type TelegramUser = { id: number; username?: string };
 type TelegramPhotoSize = { file_id: string; width: number; height: number };
@@ -71,6 +76,10 @@ export type TelegramUpdate = {
   message?: TelegramMessage;
   callback_query?: TelegramCallbackQuery;
 };
+
+function isPrivateTelegramChat(chat: { type: string }): boolean {
+  return chat.type === "private";
+}
 
 /** Один апдейт на чат — иначе два параллельных Gemini дают «уточните» + превью с 19/19. */
 const chatLocks = new Map<number, Promise<void>>();
@@ -192,13 +201,9 @@ function previewTextBatch(
     .join("\n");
 }
 
-type PublishedEventInfo = {
-  title: string;
-  slug: string;
-  startsAtIso: string;
-};
+type PublishedEventInfoLocal = PublishedEventInfo;
 
-function publishedTextSingle(base: string, event: PublishedEventInfo): string {
+function publishedTextSingle(base: string, event: PublishedEventInfoLocal): string {
   const dt = DateTime.fromISO(event.startsAtIso, { zone: "utc" }).setZone(EVENT_ADMIN_TIMEZONE);
   const when = dt.isValid ? dt.setLocale("ru").toFormat("d MMMM yyyy, HH:mm") : event.startsAtIso;
 
@@ -212,7 +217,7 @@ function publishedTextSingle(base: string, event: PublishedEventInfo): string {
   ].join("\n");
 }
 
-function publishedTextBatch(base: string, events: PublishedEventInfo[]): string {
+function publishedTextBatch(base: string, events: PublishedEventInfoLocal[]): string {
   const blocks = events.map((event, i) => {
     const dt = DateTime.fromISO(event.startsAtIso, { zone: "utc" }).setZone(EVENT_ADMIN_TIMEZONE);
     const when = dt.isValid ? dt.setLocale("ru").toFormat("d MMMM yyyy, HH:mm") : event.startsAtIso;
@@ -527,7 +532,7 @@ async function publishDraft(
   draftId = draft.id;
 
   const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "https://www.populartickets.pl";
-  const published: PublishedEventInfo[] = [];
+  const published: PublishedEventInfoLocal[] = [];
 
   for (let i = 0; i < storedEvents.length; i++) {
     const raw = storedEvents[i]!;
@@ -551,12 +556,37 @@ async function publishDraft(
     });
   }
 
-  await updateTelegramDraftStatus(supabase, draftId, "published");
+  await updateTelegramDraftStatus(
+    supabase,
+    draftId,
+    "published",
+    mergePublishedIntoParsed(draft.parsed, published),
+  );
 
   if (published.length === 1) {
     await sendTelegramMessage(chatId, publishedTextSingle(base, published[0]!));
   } else {
     await sendTelegramMessage(chatId, publishedTextBatch(base, published));
+  }
+
+  const broadcastChats = getTelegramBroadcastChatIds();
+  if (broadcastChats.length > 0) {
+    if (isTelegramAutoBroadcast()) {
+      try {
+        const result = await broadcastDraftToGroups(supabase, draftId);
+        await sendTelegramMessage(
+          chatId,
+          `📢 Разослано в ${result.chats} групп(ы): ${result.sent} сообщ.${result.failed ? `, ошибок: ${result.failed}` : ""}`,
+        );
+      } catch (e) {
+        const err = e instanceof Error ? e.message : "unknown";
+        await sendTelegramMessage(chatId, `⚠️ Рассылка в группы не удалась: ${err}`);
+      }
+    } else {
+      await sendTelegramMessage(chatId, "Разослать афишу в Telegram-группы?", {
+        inlineKeyboard: [[{ text: "📢 В группы", callback_data: `bcast:${draftId}` }]],
+      });
+    }
   }
 
   return true;
@@ -596,7 +626,34 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
     }
     if (!chatId) return;
 
+    if (cq.message && !isPrivateTelegramChat(cq.message.chat)) {
+      return;
+    }
+
     try {
+      if (data.startsWith("bcast:")) {
+        const draftId = data.slice(6);
+        if (cq.id) await answerCallbackQuery(cq.id, "Рассылаю…");
+        try {
+          const supabase = requireServiceSupabase();
+          const result = await broadcastDraftToGroups(supabase, draftId);
+          await sendTelegramMessage(
+            chatId,
+            `📢 Готово: ${result.sent} сообщ. в ${result.chats} групп(ы)${result.failed ? `, ошибок: ${result.failed}` : ""}`,
+          );
+          if (cq.message?.message_id) {
+            try {
+              await editTelegramMessage(chatId, cq.message.message_id, "📢 Разослано в группы.");
+            } catch {
+              /* ignore */
+            }
+          }
+        } catch (e) {
+          const err = e instanceof Error ? e.message : "unknown error";
+          await sendTelegramMessage(chatId, `❌ Рассылка: ${err}`);
+        }
+        return;
+      }
       if (data.startsWith("pub:")) {
         const ok = await publishDraft(chatId, userId, data.slice(4), cq.id);
         if (ok && cq.message?.message_id) {
@@ -638,6 +695,19 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
   const chatId = msg.chat.id;
   const userId = msg.from.id;
 
+  // В группах бот молчит — только /chatid для админа (настройка TELEGRAM_BROADCAST_CHAT_IDS).
+  if (!isPrivateTelegramChat(msg.chat)) {
+    const text = messageBody(msg);
+    if (admins.has(userId) && (text === "/chatid" || text.startsWith("/chatid@"))) {
+      await sendTelegramMessage(
+        chatId,
+        `Chat ID: \`${chatId}\`\n\nДобавьте в TELEGRAM_BROADCAST_CHAT_IDS на Vercel (бот должен быть админом группы).`,
+        { parseMode: "Markdown" },
+      );
+    }
+    return;
+  }
+
   if (!admins.has(userId)) {
     await sendTelegramMessage(chatId, "Нет доступа. Добавьте ваш Telegram user id в TELEGRAM_ADMIN_USER_IDS.");
     return;
@@ -648,9 +718,21 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
   const fileIds = fileId ? [fileId] : [];
 
   if (text === "/start" || text === "/help") {
+    const broadcastHint = getTelegramBroadcastChatIds().length
+      ? "\n\n📢 После публикации — кнопка «В группы» (или авто при TELEGRAM_AUTO_BROADCAST=1).\n/chatid — id чата (добавьте бота в группу как админа, затем id в TELEGRAM_BROADCAST_CHAT_IDS)."
+      : "\n\n/chatid — узнать id чата для TELEGRAM_BROADCAST_CHAT_IDS (бот должен быть админом группы).";
     await sendTelegramMessage(
       chatId,
-      "Popular Poet → публикация события\n\n1. Фото и текст — в любом порядке (альбом + текст отдельным сообщением — ок)\n2. Проверьте превью\n3. Нажмите «Опубликовать»\n\nНесколько дат → несколько событий.\nНесколько фото → по порядку на события (от ближайшей даты).\nСсылки после публикации — только /ru/.",
+      `Popular Poet → публикация события\n\n1. Фото и текст — в любом порядке (альбом + текст отдельным сообщением — ок)\n2. Проверьте превью\n3. Нажмите «Опубликовать»\n\nНесколько дат → несколько событий.\nНесколько фото → по порядку на события (от ближайшей даты).\nСсылки после публикации — только /ru/.${broadcastHint}`,
+    );
+    return;
+  }
+
+  if (text === "/chatid" || text.startsWith("/chatid@")) {
+    await sendTelegramMessage(
+      chatId,
+      `Chat ID: \`${chatId}\`\n\nЭто личный чат. Для группы добавьте бота туда и отправьте /chatid в группе.`,
+      { parseMode: "Markdown" },
     );
     return;
   }

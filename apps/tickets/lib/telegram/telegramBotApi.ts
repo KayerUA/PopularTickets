@@ -44,6 +44,20 @@ export async function sendTelegramMessage(
   return result.message_id;
 }
 
+export async function sendTelegramPhoto(
+  chatId: number,
+  photoFileId: string,
+  caption: string,
+  opts?: { parseMode?: "HTML" | "Markdown" },
+): Promise<void> {
+  await telegramApi("sendPhoto", {
+    chat_id: chatId,
+    photo: photoFileId,
+    caption: caption.slice(0, 1024),
+    parse_mode: opts?.parseMode,
+  });
+}
+
 export async function answerCallbackQuery(callbackQueryId: string, text?: string): Promise<void> {
   try {
     await telegramApi("answerCallbackQuery", {

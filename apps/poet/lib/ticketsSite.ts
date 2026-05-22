@@ -31,3 +31,10 @@ export function ticketsEventPage(locale: AppLocale, eventSlug: string): string {
   return `${b}/${locale}/events/${encodeURIComponent(eventSlug)}`;
 }
 
+/** Страница подарочного сертификата (PopularTickets). */
+export function ticketsGiftPage(locale: AppLocale = "ru"): string {
+  const b = getTicketsSiteBase();
+  if (!b) return "#";
+  return `${b}/${locale}/podarok`;
+}
+

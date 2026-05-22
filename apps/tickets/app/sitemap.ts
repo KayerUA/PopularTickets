@@ -6,7 +6,7 @@ import { allIntentSlugs } from "@/lib/ticketsIntentRoutes";
 import { ticketsFactsPathForLocale } from "@/lib/ticketsFactsHreflang";
 import type { AppLocale } from "@/i18n/routing";
 
-const STATIC_PATHS = ["", "/firma", "/regulamin", "/zwroty", "/polityka-prywatnosci"] as const;
+const STATIC_PATHS = ["", "/firma", "/regulamin", "/zwroty", "/polityka-prywatnosci", "/podarok"] as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getPublicAppUrl()?.replace(/\/$/, "");

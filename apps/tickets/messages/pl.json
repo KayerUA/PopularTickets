@@ -15,7 +15,11 @@
     "privacyDescription": "Zasady przetwarzania danych osobowych w serwisie PopularTickets (RODO).",
     "homeKeywords": "PopularTickets, bilety na spektakl, show impro Warszawa, komediowe show, teatr Popular Poet, improwizacja, spektakle po rosyjsku, Przelewy24, kup bilet online",
     "checkoutReturnTitle": "Dziękujemy za zamówienie — PopularTickets",
-    "checkoutReturnDescription": "Potwierdzenie zamówienia i dostęp do biletów w serwisie PopularTickets."
+    "checkoutReturnDescription": "Potwierdzenie zamówienia i dostęp do biletów w serwisie PopularTickets.",
+    "giftTitle": "Bon podarunkowy — Popular Poet",
+    "giftDescription": "Kup bon podarunkowy na zajęcia próbne lub karnet 4 zajęć w teatrze Popular Poet (Warszawa).",
+    "giftThanksTitle": "Dziękujemy za zamówienie certyfikatu",
+    "giftThanksDescription": "Potwierdzenie płatności za bon podarunkowy Popular Poet."
   },
   "Nav": {
     "theatre": "Teatr Popular Poet",
@@ -252,6 +256,42 @@
     "nettoLabel": "Netto",
     "vatLabel": "w tym VAT (8%)",
     "vatLegalNote": "W podsumowaniu widzisz cenę końcową z podatkiem (kultura w Polsce: 8% VAT); wyliczenia od kwoty brutto."
+  },
+  "GiftPage": {
+    "backHome": "← Afisz",
+    "title": "Bon podarunkowy",
+    "intro": "Opłać zajęcia próbne lub karnet 4 zajęć w teatrze Popular Poet — skontaktujemy się w ciągu 1–2 dni roboczych, aby przekazać certyfikat.",
+    "theatreLinkPrefix": "Więcej o kursach na",
+    "chooseProduct": "Wybierz certyfikat",
+    "trialGiftTitle": "Zajęcia próbne",
+    "trialGiftBody": "Jedna wizyta na zajęciach próbnych w dowolnym kierunku — impro, aktorstwo i inne.",
+    "pass4Title": "Karnet 4 zajęć",
+    "pass4Body": "Karta na 4 zajęcia w wybranym kierunku — na regularne kursy teatru.",
+    "recipientName": "Imię obdarowanego (opcjonalnie)",
+    "giftMessage": "Życzenia na certyfikacie (opcjonalnie)",
+    "giftMessagePlaceholder": "Np. wszystkiego najlepszego!",
+    "summaryTitle": "Do zapłaty",
+    "summaryNote": "Po płatności wyślemy potwierdzenie na e-mail i skontaktujemy się w sprawie certyfikatu.",
+    "hint": "Płatność przez Przelewy24. Certyfikat wystawiamy ręcznie po opłaceniu.",
+    "hintBypass": "Po wysłaniu formularza potwierdzimy zamówienie i skontaktujemy się w sprawie certyfikatu.",
+    "submit": "Opłać certyfikat",
+    "submitBypass": "Złóż zamówienie",
+    "submitting": "Przetwarzamy…",
+    "emailInvalid": "Podaj poprawny adres e-mail.",
+    "phoneRequired": "Podaj numer telefonu.",
+    "phoneInvalid": "Numer musi mieć co najmniej 7 cyfr."
+  },
+  "GiftThanks": {
+    "brand": "Popular Poet",
+    "title": "Dziękujemy za zamówienie",
+    "titlePaid": "Płatność otrzymana",
+    "body": "Jeśli właśnie opłaciłeś certyfikat — poczekaj chwilę i odśwież stronę.",
+    "bodyPaid": "Dziękujemy, {name}! Otrzymaliśmy płatność — skontaktujemy się w ciągu 1–2 dni roboczych, aby przekazać certyfikat.",
+    "bodyPending": "Czekamy na potwierdzenie płatności z Przelewy24…",
+    "pendingHint": "Zwykle trwa to do minuty. Jeśli status się nie zmienia — kliknij «Odśwież».",
+    "refresh": "Odśwież",
+    "accessDenied": "Link jest nieprawidłowy lub wygasł. Sprawdź e-mail z potwierdzeniem.",
+    "backEvents": "← Do afiszu"
   },
   "CheckoutReturn": {
     "brand": "Popular Poet",

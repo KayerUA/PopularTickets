@@ -181,6 +181,62 @@ export async function handleP24Notification(
 
   const supabase = requireServiceSupabase();
 
+  const { data: giftOrder, error: giftErr } = await supabase
+    .from("gift_orders")
+    .select("id,amount_grosze,currency,status")
+    .eq("p24_session_id", n.sessionId)
+    .maybeSingle();
+
+  if (!giftErr && giftOrder) {
+    await recordPaymentCallback({
+      orderId: giftOrder.id,
+      sessionId: n.sessionId,
+      providerOrderId: n.orderId,
+      status: "received",
+      payload: n,
+    });
+
+    if (giftOrder.amount_grosze !== n.amount || giftOrder.currency !== n.currency) {
+      return { status: 409, body: "amount mismatch" };
+    }
+
+    const verifySignGift = signVerify({
+      sessionId: n.sessionId,
+      orderId: n.orderId,
+      amount: n.amount,
+      currency: n.currency,
+    });
+
+    try {
+      await p24Verify({
+        merchantId: getMerchantId(),
+        posId: getPosId(),
+        sessionId: n.sessionId,
+        amount: n.amount,
+        currency: n.currency,
+        orderId: n.orderId,
+        sign: verifySignGift,
+      });
+    } catch (e) {
+      console.error("p24 verify gift", e);
+      return { status: 502, body: "verify failed" };
+    }
+
+    if (giftOrder.status !== "pending" && giftOrder.status !== "paid") {
+      return { status: 200, body: "ignored" };
+    }
+
+    try {
+      const { fulfillPaidGiftOrder } = await import("@/lib/email/sendGiftOrderEmails");
+      await fulfillPaidGiftOrder(giftOrder.id, n.orderId);
+    } catch (e) {
+      console.error("gift fulfillment", e);
+      return { status: 500, body: "fulfillment failed" };
+    }
+
+    return { status: 200, body: "ok" };
+  }
+
   const { data: order, error: oErr } = await supabase
     .from("orders")
     .select("id,event_id,quantity,amount_grosze,currency,status,email,buyer_name,locale")

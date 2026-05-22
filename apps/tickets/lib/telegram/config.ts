@@ -25,6 +25,22 @@ export function getTelegramAdminUserIds(): Set<number> {
   return new Set(ids);
 }
 
+/** Chat id групп для рассылки афиши (через запятую, отрицательные для supergroup). */
+export function getTelegramBroadcastChatIds(): number[] {
+  const raw = (process.env.TELEGRAM_BROADCAST_CHAT_IDS ?? "").trim();
+  if (!raw) return [];
+  return raw
+    .split(/[,;\s]+/)
+    .map((s) => Number(s.trim()))
+    .filter((n) => Number.isFinite(n) && n !== 0);
+}
+
+/** Авто-рассылка в группы сразу после публикации (без кнопки). */
+export function isTelegramAutoBroadcast(): boolean {
+  const v = (process.env.TELEGRAM_AUTO_BROADCAST ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "on" || v === "yes";
+}
+
 export function isTelegramBotConfigured(): boolean {
   return Boolean(getTelegramBotToken() && getTelegramWebhookSecret() && getGeminiApiKey());
 }

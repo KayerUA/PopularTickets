@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import type { AppLocale } from "@/i18n/routing";
 import { THEATRE_DIRECTOR_TELEGRAM_HANDLE, THEATRE_DIRECTOR_TELEGRAM_URL } from "@/lib/theatre";
 import { THEATRE_INSTAGRAM_URL } from "@/lib/social";
+import { ticketsGiftPage } from "@/lib/ticketsSite";
 import type { PoetCourseRow } from "@/lib/poetCourses";
 import { resolveCourseCopy, resolveCourseTag } from "@/lib/contentI18n";
 import {
@@ -128,6 +129,12 @@ export async function PoetTrialsAndFlow({ locale }: { locale: AppLocale }) {
         <div className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/35 via-poet-surface/35 to-zinc-950/40 p-6 shadow-[0_0_0_1px_rgba(52,211,153,0.12)] backdrop-blur-md sm:p-8">
           <h3 className="font-display text-lg font-medium text-emerald-200/95 sm:text-xl">{t("giftTitle")}</h3>
           <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-zinc-400">{t("giftBody")}</p>
+          <a
+            href={ticketsGiftPage(locale)}
+            className="btn-poet btn-poet-theatre mt-5 inline-flex min-h-11 items-center justify-center px-6 py-2.5 text-sm font-semibold"
+          >
+            {t("giftCta")}
+          </a>
         </div>
       </div>
 
