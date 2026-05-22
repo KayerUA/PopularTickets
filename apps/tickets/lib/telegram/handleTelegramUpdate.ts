@@ -328,7 +328,22 @@ async function handleChatMessage(chatId: number, userId: number, text: string, f
     return;
   }
 
+  if (!active && !fileId && looksLikeClarificationReply(text)) {
+    await sendTelegramMessage(
+      chatId,
+      "Не вижу активный черновик (на проде нужна таблица telegram_event_drafts в Supabase). Перешлите афишу заново.",
+    );
+    return;
+  }
+
   await processNewAfisha(chatId, userId, text, fileId);
+}
+
+function looksLikeClarificationReply(text: string): boolean {
+  const t = text.trim();
+  if (/^\d+(?:[.,]\d+)?(?:\s*[,;\s]\s*\d+(?:[.,]\d+)?)*$/.test(t)) return true;
+  if (/^\d{1,2}[./]\d{1,2}/.test(t)) return true;
+  return false;
 }
 
 async function publishDraft(
@@ -336,7 +351,7 @@ async function publishDraft(
   userId: number,
   draftId: string,
   callbackQueryId?: string,
-): Promise<void> {
+): Promise<boolean> {
   const supabase = requireServiceSupabase();
   let draft = await getTelegramDraft(supabase, draftId);
   if (!draft) draft = await getActiveDraftForChat(supabase, chatId);
@@ -347,7 +362,16 @@ async function publishDraft(
       chatId,
       "Черновик не найден — перешлите афишу заново и опубликуйте с нового превью.",
     );
-    return;
+    return false;
+  }
+  if (draft.status === "awaiting_clarification") {
+    if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Сначала ответьте на вопрос");
+    const fields = draft.missing_fields as ClarificationField[];
+    await sendTelegramMessage(
+      chatId,
+      `Сначала ответьте на вопрос выше.\n${clarificationQuestion(fields)}`,
+    );
+    return false;
   }
   if (draft.status !== "preview") {
     if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Черновик уже закрыт");
@@ -355,7 +379,7 @@ async function publishDraft(
       chatId,
       "Этот черновик уже закрыт. Перешлите афишу заново, если нужно новое событие.",
     );
-    return;
+    return false;
   }
 
   // ack уже отправлен в route.ts до компиляции/логики
@@ -376,6 +400,7 @@ async function publishDraft(
 
   const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "https://www.populartickets.pl";
   await sendTelegramMessage(chatId, publishedText(base, event));
+  return true;
 }
 
 async function cancelDraft(chatId: number, userId: number, draftId: string, callbackQueryId?: string): Promise<void> {
@@ -414,8 +439,8 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
 
     try {
       if (data.startsWith("pub:")) {
-        await publishDraft(chatId, userId, data.slice(4), cq.id);
-        if (cq.message?.message_id) {
+        const ok = await publishDraft(chatId, userId, data.slice(4), cq.id);
+        if (ok && cq.message?.message_id) {
           try {
             await editTelegramMessage(chatId, cq.message.message_id, "✅ Опубликовано — см. сообщение ниже.");
           } catch {

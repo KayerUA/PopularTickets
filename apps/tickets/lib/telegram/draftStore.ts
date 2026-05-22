@@ -67,6 +67,11 @@ export async function saveTelegramDraft(
   const ins = await supabase.from(TABLE).upsert(payload).select("*").single();
   if (ins.error) {
     if (!isMissingTableError(ins.error.message)) throw new Error(ins.error.message);
+    if (process.env.VERCEL) {
+      throw new Error(
+        "Таблица telegram_event_drafts не найдена в Supabase. Выполните SQL: supabase/telegram-event-drafts.sql",
+      );
+    }
     const full: TelegramEventDraftRow = {
       ...payload,
       created_at: new Date().toISOString(),
