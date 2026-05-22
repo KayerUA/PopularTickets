@@ -8,6 +8,7 @@ import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
 import { THEATRE_INSTAGRAM_URL, THEATRE_TELEGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
 import { PoetJsonLd } from "@/components/PoetJsonLd";
 import { buildWebPageJsonLd } from "@/lib/poetJsonLd";
+import { POET_PUBLIC_PHONE, POET_THEATRE_MAPS_URL } from "@/lib/poetEntity";
 
 export const revalidate = 3600;
 
@@ -90,6 +91,25 @@ export default async function PoetFactsPage({ params }: PageProps) {
             {t("whereLine1")}
             <br />
             {t("whereLine2")}
+          </p>
+          <p className="mt-3">
+            <a
+              href={POET_THEATRE_MAPS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-poet-gold/90 hover:text-poet-gold-bright"
+            >
+              {t("mapsLink")} <span aria-hidden>↗</span>
+            </a>
+          </p>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-poet-gold/90">{t("phoneTitle")}</h3>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-300">
+            <a href={`tel:${POET_PUBLIC_PHONE.tel}`} className="font-medium text-poet-gold/90 hover:text-poet-gold-bright">
+              {POET_PUBLIC_PHONE.display}
+            </a>
           </p>
         </div>
 

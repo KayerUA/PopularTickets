@@ -3,11 +3,14 @@ import { poetCanonicalPath } from "@/lib/seoPoet";
 import {
   POET_ADDRESS_COUNTRY,
   POET_ADDRESS_LOCALITY,
+  POET_ADDRESS_POSTAL_CODE,
   POET_ADDRESS_STREET,
   POET_GEO_LAT,
   POET_GEO_LNG,
   POET_ORGANIZATION_ALTERNATE_NAMES,
   POET_ORGANIZATION_NAME,
+  POET_PUBLIC_PHONE,
+  POET_THEATRE_MAPS_URL,
   poetSameAsUrls,
 } from "@/lib/poetEntity";
 
@@ -59,6 +62,8 @@ export function buildPoetOrganizationLocalGraph(input: {
         url,
         parentOrganization: { "@id": orgId },
         address: postal,
+        telephone: POET_PUBLIC_PHONE.tel,
+        hasMap: POET_THEATRE_MAPS_URL,
         geo: {
           "@type": "GeoCoordinates",
           latitude: POET_GEO_LAT,

@@ -5,6 +5,12 @@ import { COMPANY } from "@/lib/company";
 import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
 import { THEATRE_INSTAGRAM_URL, THEATRE_TELEGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
 import { eventLanguageIso, normalizeEventLanguage, type EventLanguage } from "@/lib/eventLanguage";
+import {
+  isPopularPoetTheatreVenue,
+  POPULAR_POET_THEATRE_GEO,
+  POPULAR_POET_THEATRE_MAPS_URL,
+  POPULAR_POET_THEATRE_POSTAL_CODE,
+} from "@/lib/theatreVenueDefaults";
 
 type EventRow = {
   title: string;
@@ -89,7 +95,7 @@ function normalizeVenueAddress(venue: string): {
 export function buildEventJsonLd(
   event: EventRow,
   locale: AppLocale,
-  opts: { remaining: number; soldOut: boolean }
+  opts: { remaining: number; soldOut: boolean; mapsUrl?: string | null },
 ): object {
   const base = getPublicAppUrl()?.replace(/\/$/, "");
   const path = `/events/${event.slug}`;
@@ -107,6 +113,11 @@ export function buildEventJsonLd(
   const rawDesc = typeof event.description === "string" ? event.description : "";
   const desc = rawDesc.replace(/\s+/g, " ").trim().slice(0, 2000);
   const venueAddress = normalizeVenueAddress(event.venue);
+  const atTheatre = isPopularPoetTheatreVenue(event.venue) || event.listing_kind === "trial";
+  const mapsUrl =
+    (typeof opts.mapsUrl === "string" && opts.mapsUrl.trim()) ||
+    (atTheatre ? POPULAR_POET_THEATRE_MAPS_URL : "");
+  const postalCode = venueAddress.postalCode ?? (atTheatre ? POPULAR_POET_THEATRE_POSTAL_CODE : undefined);
   const eventFormat = normalizeEventFormat(event, locale);
   const endDate = defaultEventEndIso(event.starts_at);
   const startMs = new Date(event.starts_at).getTime();
@@ -140,11 +151,21 @@ export function buildEventJsonLd(
     location: {
       "@type": "Place",
       name: venueAddress.name,
+      ...(mapsUrl ? { hasMap: mapsUrl } : {}),
+      ...(atTheatre
+        ? {
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: POPULAR_POET_THEATRE_GEO.lat,
+              longitude: POPULAR_POET_THEATRE_GEO.lng,
+            },
+          }
+        : {}),
       address: {
         "@type": "PostalAddress",
         addressCountry: "PL",
         addressLocality: venueAddress.addressLocality,
-        postalCode: venueAddress.postalCode,
+        postalCode,
         streetAddress: venueAddress.streetAddress,
       },
     },

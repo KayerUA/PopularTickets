@@ -45,8 +45,8 @@
 
 | № | Тема | Статус |
 |---|------|--------|
-| 19 | Усилить страницу фактов, sameAs, Organization / LocalBusiness | `planned` |
-| 20 | schema.org Event (полный набор полей) | `planned` (частично есть JSON-LD) |
+| 19 | Усилить страницу фактов, sameAs, Organization / LocalBusiness | `done` (hasMap, geo, phone, maps в footer/facts) |
+| 20 | schema.org Event (полный набор полей) | `done` (hasMap, geo, postalCode для театра) |
 | 21 | Course / Event для курсов vs пробных | `planned` |
 | 22 | Отдельные посадочные под запросы (PL/RU/UK) | `planned` + `content` |
 | 23 | Связка брендов PopularTickets ↔ Popular Poet | `content` + `planned` |

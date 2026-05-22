@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { THEATRE_INSTAGRAM_URL, THEATRE_TELEGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
 import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
 import type { AppLocale } from "@/i18n/routing";
+import { POET_PUBLIC_PHONE, POET_THEATRE_MAPS_URL } from "@/lib/poetEntity";
 
 function InstagramGlyph({ className }: { className?: string }) {
   return (
@@ -114,6 +115,22 @@ export async function PoetFooter() {
               {t("footerAddressLine1")}
               <br />
               {t("footerAddressLine2")}
+            </p>
+            <p className="pt-1">
+              <a
+                href={POET_THEATRE_MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-poet-gold/90 hover:text-poet-gold-bright"
+              >
+                {t("footerMapsLink")} <span aria-hidden>↗</span>
+              </a>
+            </p>
+            <p className="text-zinc-400">
+              <span className="text-zinc-500">{t("footerPhoneLabel")}: </span>
+              <a href={`tel:${POET_PUBLIC_PHONE.tel}`} className="text-poet-gold/90 hover:text-poet-gold-bright">
+                {POET_PUBLIC_PHONE.display}
+              </a>
             </p>
             {tickets ? (
               <p>

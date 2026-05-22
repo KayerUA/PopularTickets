@@ -25,6 +25,9 @@
 
 1. Категории, адрес и часы — **выровнять** с текстом на сайте и в `llms.txt` (ul. Domaniewska 37, Zepter, piętro 5, lokal 42, Warszawa).
 2. Указать основной сайт **popularpoet.pl**; при необходимости — ссылку на афишу **populartickets.pl** в описании или постах.
+3. **Каноническая ссылка на карту театра (Domaniewska 37):** `https://maps.app.goo.gl/BtaKyKYvp6nGZbx37` — должна совпадать на GBP, в футере popularpoet.pl, на `/firma` (блок театра) и в `events.maps_url` для пробных.
+4. **Не путать** с legacy URL `https://maps.app.goo.gl/jz9E6JUn8rcymRoH7` — в репозитории он привязан к off-site событию (Świetlica Wolności, Nowy Świat). Если в GBP стоит старая ссылка — заменить на `BtaKy…` или убедиться, что обе ведут на **одно** место (Zepter, Domaniewska 37).
+5. Телефон GBP: **+48 452 203 802** (как на populartickets.pl `/firma`).
 
 ## Внешние ссылки и профили
 

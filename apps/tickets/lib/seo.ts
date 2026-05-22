@@ -51,6 +51,26 @@ function hreflangLanguages(path: string): Record<string, string> | undefined {
   return languages;
 }
 
+/** Путь к дефолтному OG-изображению (1200×630) на public. */
+export const DEFAULT_TICKETS_OG_IMAGE_PATH = "/courses/theatre-photo.jpg";
+
+export function defaultTicketsOgImages(base: string | undefined): { url: string; width: number; height: number; alt: string }[] | undefined {
+  if (!base) return undefined;
+  return [
+    {
+      url: `${base.replace(/\/$/, "")}${DEFAULT_TICKETS_OG_IMAGE_PATH}`,
+      width: 1200,
+      height: 630,
+      alt: "Popular Poet — theatre and workshops in Warsaw",
+    },
+  ];
+}
+
+/** Hreflang для событий: все локали (resolveEventCopy всегда отдаёт fallback на ru/pl/uk). */
+export function hreflangLanguagesForPublishedEvent(path: string): Record<string, string> | undefined {
+  return hreflangLanguages(path);
+}
+
 export function truncateMetaDescription(text: string | null | undefined, max = 158): string {
   if (text == null || typeof text !== "string") return "";
   const flat = text.replace(/\s+/g, " ").trim();
@@ -83,6 +103,9 @@ export function buildPublicPageMetadata(input: PublicPageMetaInput): Metadata {
   const languages = input.hreflangAlternateUrls ?? hreflangLanguages(input.path);
   const ogLocale = OG_LOCALE[input.locale];
   const alternateLocale = routing.locales.filter((l) => l !== input.locale).map((l) => OG_LOCALE[l]);
+  const base = getPublicAppUrl()?.replace(/\/$/, "");
+  const ogImages =
+    input.ogImages?.length ? input.ogImages : defaultTicketsOgImages(base);
 
   return {
     title: input.title,
@@ -100,13 +123,13 @@ export function buildPublicPageMetadata(input: PublicPageMetaInput): Metadata {
       locale: ogLocale,
       alternateLocale,
       type: input.ogType ?? "website",
-      ...(input.ogImages?.length ? { images: input.ogImages } : {}),
+      ...(ogImages?.length ? { images: ogImages } : {}),
     },
     twitter: {
-      card: input.ogImages?.length ? "summary_large_image" : "summary",
+      card: ogImages?.length ? "summary_large_image" : "summary",
       title: input.title,
       description: input.description,
-      ...(input.ogImages?.length ? { images: input.ogImages.map((i) => i.url) } : {}),
+      ...(ogImages?.length ? { images: ogImages.map((i) => i.url) } : {}),
     },
     robots: input.robots ?? { index: true, follow: true },
     other: { ...GEO_OTHER },

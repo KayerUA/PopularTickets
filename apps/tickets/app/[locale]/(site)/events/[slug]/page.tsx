@@ -13,7 +13,7 @@ import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
 import { resolveEventMapsUrl } from "@/lib/mapsUrl";
 import { resolveEventMarketingStatus, normalizeEventListingKind } from "@/lib/eventMarketingStatus";
 import { EventStatusBadge } from "@/components/EventStatusBadge";
-import { buildPublicPageMetadata, truncateMetaDescription, canonicalPath } from "@/lib/seo";
+import { buildPublicPageMetadata, truncateMetaDescription, canonicalPath, hreflangLanguagesForPublishedEvent } from "@/lib/seo";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { JsonLd } from "@/components/JsonLd";
 import { buildEventJsonLd, buildBreadcrumbListJsonLd, buildFaqPageJsonLd } from "@/lib/seo/eventJsonLd";
@@ -95,6 +95,7 @@ export async function generateMetadata({
     ogType: "article",
     ogImages,
     robots,
+    hreflangAlternateUrls: hreflangLanguagesForPublishedEvent(`/events/${slug}`),
   });
 }
 
@@ -223,7 +224,7 @@ export default async function EventPage({
             event_language: eventLanguage,
           },
           locale,
-          { remaining, soldOut }
+          { remaining, soldOut, mapsUrl: mapsHref }
         )}
       />
       <div className="animate-fade-up overflow-hidden rounded-2xl border border-poet-gold/25 bg-poet-surface/50 shadow-gold backdrop-blur-md sm:rounded-3xl">

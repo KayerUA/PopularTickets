@@ -8,6 +8,10 @@ export const POPULAR_POET_TRIAL_VENUE_PL =
 /** Google Maps — театр Popular Poet (Domaniewska 37). */
 export const POPULAR_POET_THEATRE_MAPS_URL = "https://maps.app.goo.gl/BtaKyKYvp6nGZbx37";
 
+/** Индекс и координаты площадки (Centrum biznesowe Zepter, Domaniewska 37). */
+export const POPULAR_POET_THEATRE_POSTAL_CODE = "02-677";
+export const POPULAR_POET_THEATRE_GEO = { lat: 52.1783, lng: 21.0034 } as const;
+
 const LEGACY_THEATRE_MAPS_URL_FRAGMENT = "jz9E6JUn8rcymRoH7";
 
 /** Событие проходит в театре на Domaniewskiej 37 (пробные или performance с этим адресом). */

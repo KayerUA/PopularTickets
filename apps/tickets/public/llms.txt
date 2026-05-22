@@ -31,6 +31,14 @@ Company details:
 - REGON: 540923962
 - Registered address: ul. Floriańska 6/02, 03-707 Warszawa, Poland
 
+## Theatre venue (performances and trial classes)
+
+Popular Poet stage and workshops:
+
+- ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42, 02-677 Warszawa, Poland
+- Google Maps: https://maps.app.goo.gl/BtaKyKYvp6nGZbx37
+- Phone: +48 452 203 802
+
 ## Related project
 
 Popular Poet is the theatre and workshop space connected with PopularTickets.

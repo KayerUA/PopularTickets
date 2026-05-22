@@ -8,7 +8,7 @@ import {
   THEATRE_DIRECTOR_TELEGRAM_URL,
 } from "@/lib/theatre";
 import type { AppLocale } from "@/i18n/routing";
-import { buildPublicPageMetadata } from "@/lib/seo";
+import { POPULAR_POET_THEATRE_MAPS_URL } from "@/lib/theatreVenueDefaults";
 
 export async function generateMetadata({
   params,
@@ -106,6 +106,16 @@ export default async function FirmaPage({ params }: { params: Promise<{ locale: 
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-poet-gold/90">{t("theatreVenueTitle")}</h3>
           <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-zinc-200">{t("theatreVenueBody")}</p>
+          <p className="mt-3">
+            <a
+              href={POPULAR_POET_THEATRE_MAPS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-poet-gold hover:text-poet-gold-bright"
+            >
+              {t("theatreMapsLink")} <span aria-hidden>↗</span>
+            </a>
+          </p>
         </div>
 
         <div>
