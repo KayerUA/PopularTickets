@@ -9,6 +9,7 @@ import type { AppLocale } from "@/i18n/routing";
 import { splitTheatreTicketTotalGrosze } from "@/lib/plVatTheatreTicket";
 import { formatPlnFromGrosze } from "@/lib/format";
 import { P24_FOOTER_GRAPHICS } from "@/lib/p24FooterAssets";
+import { CHECKOUT_FORM_ID } from "@/components/EventMobileStickyCta";
 
 type Props = {
   eventSlug: string;
@@ -18,13 +19,10 @@ type Props = {
   unitPriceGrosze: number;
   /** MVP: bez Przelewy24 — natychmiastowe potwierdzenie */
   bypassPayment?: boolean;
-  /** Link do mapy — na mobile pokazujemy obok CTA w przyklejonym pasku. */
-  mapsHref?: string;
 };
 
-export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosze, bypassPayment, mapsHref }: Props) {
+export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosze, bypassPayment }: Props) {
   const t = useTranslations("CheckoutForm");
-  const tEvent = useTranslations("EventPage");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -37,7 +35,8 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
 
   return (
     <form
-      className="relative mt-6 space-y-4 rounded-2xl border border-poet-gold/25 bg-gradient-to-b from-[#1a0c12]/90 via-poet-bg/85 to-zinc-950/90 p-4 pb-28 shadow-[0_0_0_1px_rgba(197,160,89,0.12),inset_0_1px_0_rgba(255,230,200,0.06)] sm:p-5 sm:pb-5"
+      id={CHECKOUT_FORM_ID}
+      className="relative mt-6 space-y-4 rounded-2xl border border-poet-gold/25 bg-gradient-to-b from-[#1a0c12]/90 via-poet-bg/85 to-zinc-950/90 p-4 shadow-[0_0_0_1px_rgba(197,160,89,0.12),inset_0_1px_0_rgba(255,230,200,0.06)] sm:p-5"
       action={async (formData) => {
         setError(null);
         setPending(true);
@@ -202,31 +201,13 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
         </div>
       ) : null}
 
-      {/* Mobile: przyklejony pasek — mapa + CTA; desktop: tylko przycisk w przepływie */}
-      <div className="fixed inset-x-0 bottom-0 z-50 flex gap-2 border-t border-poet-gold/25 bg-poet-bg/92 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-md supports-[backdrop-filter]:bg-poet-bg/88 sm:static sm:z-auto sm:block sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
-        <div className="poet-safe-x mx-auto flex w-full max-w-3xl gap-2 sm:mx-0 sm:max-w-none">
-          {mapsHref ? (
-            <a
-              href={mapsHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex shrink-0 flex-col items-center justify-center rounded-xl border border-poet-gold/35 bg-zinc-900/85 px-2.5 py-2 text-center text-[10px] font-semibold uppercase leading-tight tracking-wide text-poet-gold-bright transition hover:border-poet-gold/55 hover:bg-poet-gold/10 sm:hidden"
-            >
-              {tEvent("openInMapsShort")}
-              <span aria-hidden className="mt-0.5 text-[10px] opacity-75">
-                ↗
-              </span>
-            </a>
-          ) : null}
-          <button
-            type="submit"
-            disabled={pending}
-            className="btn-poet btn-poet-theatre min-w-0 flex-1 py-3.5 text-sm font-semibold tracking-wide sm:w-auto sm:flex-none sm:px-12 sm:py-3"
-          >
-            {pending ? t("submitting") : bypassPayment ? t("submitBypass") : t("submit")}
-          </button>
-        </div>
-      </div>
+      <button
+        type="submit"
+        disabled={pending}
+        className="btn-poet btn-poet-theatre hidden w-full py-3.5 text-sm font-semibold tracking-wide sm:inline-flex sm:w-auto sm:px-12 sm:py-3"
+      >
+        {pending ? t("submitting") : bypassPayment ? t("submitBypass") : t("submit")}
+      </button>
     </form>
   );
 }

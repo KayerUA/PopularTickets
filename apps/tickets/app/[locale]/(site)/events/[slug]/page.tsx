@@ -7,6 +7,7 @@ import { SupabaseQueryErrorPanel } from "@/components/SupabaseQueryErrorPanel";
 import { formatPlnFromGrosze, formatEventDateTime, formatEventDateShortForTitle } from "@/lib/format";
 import { splitTheatreTicketGrossGrosze } from "@/lib/plVatTheatreTicket";
 import { EventCheckoutForm } from "@/components/EventCheckoutForm";
+import { EventMobileStickyCta } from "@/components/EventMobileStickyCta";
 import { getTranslations } from "next-intl/server";
 import type { AppLocale } from "@/i18n/routing";
 import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
@@ -180,8 +181,12 @@ export default async function EventPage({
     })),
   );
 
+  const showCheckout = !isPast && remaining > 0;
+
   return (
-    <div className="poet-safe-x mx-auto max-w-3xl py-8 sm:py-14">
+    <div
+      className={`poet-safe-x mx-auto max-w-3xl py-8 sm:py-14${showCheckout ? " pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] sm:pb-14" : ""}`}
+    >
       {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
       <JsonLd data={faqLd} />
       <nav className="mb-6 text-sm text-zinc-500" aria-label={t("breadcrumbAria")}>
@@ -386,7 +391,6 @@ export default async function EventPage({
                 locale={locale}
                 unitPriceGrosze={event.price_grosze}
                 bypassPayment={isCheckoutBypassPayment()}
-                mapsHref={mapsHref ?? undefined}
               />
             </section>
           ) : (
@@ -408,6 +412,15 @@ export default async function EventPage({
           ))}
         </dl>
       </section>
+
+      {showCheckout ? (
+        <EventMobileStickyCta
+          priceGrosze={event.price_grosze}
+          remaining={remaining}
+          bypassPayment={isCheckoutBypassPayment()}
+          mapsHref={mapsHref ?? undefined}
+        />
+      ) : null}
     </div>
   );
 }
