@@ -9,6 +9,7 @@ import {
 } from "@/lib/theatre";
 import type { AppLocale } from "@/i18n/routing";
 import { POPULAR_POET_THEATRE_MAPS_URL } from "@/lib/theatreVenueDefaults";
+import { buildPublicPageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
