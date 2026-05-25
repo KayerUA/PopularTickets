@@ -90,7 +90,7 @@ function normalizeVenueAddress(venue: string): {
 }
 
 /**
- * Schema.org Event для страницы события (Google Rich Results / GEO).
+ * Schema.org Event для страницы события (Google Rich Results / Google Events).
  */
 export function buildEventJsonLd(
   event: EventRow,
@@ -100,6 +100,9 @@ export function buildEventJsonLd(
   const base = getPublicAppUrl()?.replace(/\/$/, "");
   const path = `/events/${event.slug}`;
   const eventUrl = base ? `${base}${canonicalPath(locale, path)}` : undefined;
+  const orgUrl = base ? `${base}${canonicalPath(locale, "/firma")}` : undefined;
+  const operatorId = orgUrl ? `${orgUrl}#operator` : undefined;
+  const performerId = POPULAR_POET_SITE_URL.replace(/\/$/, "") + "#theater";
 
   const images: string[] = [];
   if (event.image_url) {
@@ -131,6 +134,66 @@ export function buildEventJsonLd(
       ? "https://schema.org/SoldOut"
       : "https://schema.org/InStock";
 
+  const ticketSeller = stripJsonLdEmptyValues({
+    "@type": "Organization",
+    ...(operatorId ? { "@id": operatorId } : {}),
+    name: COMPANY.legalNameShort,
+    legalName: COMPANY.legalName,
+    url: orgUrl,
+    taxID: COMPANY.nip,
+    identifier: [
+      { "@type": "PropertyValue", name: "KRS", value: COMPANY.krs },
+      { "@type": "PropertyValue", name: "REGON", value: COMPANY.regon },
+    ],
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: COMPANY.address.street,
+      postalCode: COMPANY.address.postalCode,
+      addressLocality: COMPANY.address.city,
+      addressRegion: COMPANY.address.voivodeship,
+      addressCountry: "PL",
+    },
+  }) as object;
+
+  const performer = stripJsonLdEmptyValues({
+    "@type": "TheaterGroup",
+    ...(performerId ? { "@id": performerId } : {}),
+    name: "Popular Poet",
+    alternateName: ["Театр Популярный Поэт", "Популярный Поэт", "Teatr Popular Poet"],
+    url: POPULAR_POET_SITE_URL.replace(/\/$/, ""),
+    sameAs: [THEATRE_INSTAGRAM_URL, THEATRE_YOUTUBE_URL, THEATRE_TELEGRAM_URL].filter(Boolean),
+  }) as object;
+
+  const organizer = stripJsonLdEmptyValues({
+    "@type": "Organization",
+    name: "Popular Poet",
+    url: POPULAR_POET_SITE_URL.replace(/\/$/, ""),
+    ...(operatorId ? { parentOrganization: { "@id": operatorId } } : {}),
+  }) as object;
+
+  const offers = stripJsonLdEmptyValues({
+    "@type": "Offer",
+    name: locale === "pl" ? "Bilet" : locale === "uk" ? "Квиток" : "Билет",
+    url: eventUrl,
+    price: (event.price_grosze / 100).toFixed(2),
+    priceCurrency: "PLN",
+    availability,
+    category: "EventTicket",
+    validFrom: new Date().toISOString(),
+    validThrough: event.starts_at,
+    seller: ticketSeller,
+    ...(eventUrl
+      ? {
+          itemOffered: {
+            "@type": "Event",
+            name: event.title,
+            startDate: event.starts_at,
+            url: eventUrl,
+          },
+        }
+      : {}),
+  }) as object;
+
   return stripJsonLdEmptyValues({
     "@context": "https://schema.org",
     "@type": "Event",
@@ -141,13 +204,11 @@ export function buildEventJsonLd(
     inLanguage: eventLanguageIso(normalizeEventLanguage(event.event_language)),
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus,
+    ...(eventUrl ? { url: eventUrl } : {}),
     ...(images.length ? { image: images } : {}),
     additionalType: eventFormat,
-    performer: {
-      "@type": "TheaterGroup",
-      name: "Popular Poet",
-      url: POPULAR_POET_SITE_URL.replace(/\/$/, ""),
-    },
+    performer,
+    organizer,
     location: {
       "@type": "Place",
       name: venueAddress.name,
@@ -169,26 +230,7 @@ export function buildEventJsonLd(
         streetAddress: venueAddress.streetAddress,
       },
     },
-    ...(eventUrl
-      ? {
-          url: eventUrl,
-          organizer: {
-            "@type": "Organization",
-            name: "Popular Poet",
-            alternateName: ["Театр Популярный Поэт", "Популярный Поэт"],
-            url: POPULAR_POET_SITE_URL.replace(/\/$/, ""),
-          },
-          offers: {
-            "@type": "Offer",
-            url: eventUrl,
-            price: (event.price_grosze / 100).toFixed(2),
-            priceCurrency: "PLN",
-            availability,
-            validFrom: new Date().toISOString().slice(0, 10),
-            validThrough: event.starts_at,
-          },
-        }
-      : {}),
+    offers,
   }) as object;
 }
 

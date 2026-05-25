@@ -110,6 +110,13 @@
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
   }
 
+  /** Sticky checkout bar — GPU layer, без backdrop-blur (iOS fixed jump). */
+  .event-mobile-sticky-cta {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+  }
+
   .font-display {
     font-family: var(--font-display), ui-serif, Georgia, serif;
   }
