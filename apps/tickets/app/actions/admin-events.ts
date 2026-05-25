@@ -13,10 +13,14 @@ import {
   isEventsLanguageUnavailable,
 } from "@/lib/supabase/eventsPoetCourseColumn";
 import { contentVisibilitySchema } from "@/lib/contentVisibility";
-import { fallbackEventSlug, slugifyEventTitle } from "@/lib/eventSlugFromTitle";
+import { buildEventSlugFromTitleAndDate } from "@/lib/eventSlugFromTitle";
 import { parseStartsAtFromAdminForm } from "@/lib/warsawEventDatetime";
 import { DEFAULT_EVENT_LANGUAGE, normalizeEventLanguage } from "@/lib/eventLanguage";
 import { resolveEventMapsUrlForSave } from "@/lib/theatreVenueDefaults";
+import {
+  resolveVenueFieldsFromPreset,
+  type EventVenuePresetId,
+} from "@/lib/eventVenues";
 
 const MIN_EVENT_DESCRIPTION_PUBLISH_CHARS = 300;
 
@@ -198,13 +202,25 @@ function groszeFromPln(pln: number): number {
   return Math.round(pln * 100);
 }
 
-/** Slug из формы или автогенерация из названия (если поле slug пустое). */
+function resolveVenueFromFormData(formData: FormData): { venue: string; mapsUrl: string } {
+  const presetRaw = String(formData.get("venuePresetId") ?? "popular-poet-theatre");
+  const presetId: EventVenuePresetId =
+    presetRaw === "swietlica-wolnosci" || presetRaw === "custom" ? presetRaw : "popular-poet-theatre";
+  const listingKind = String(formData.get("listingKind") ?? "performance") === "trial" ? "trial" : "performance";
+  return resolveVenueFieldsFromPreset(
+    presetId,
+    String(formData.get("venue") ?? ""),
+    String(formData.get("mapsUrl") ?? ""),
+    listingKind,
+  );
+}
+
 function effectiveSlugFromFormData(formData: FormData): string {
   const raw = String(formData.get("slug") ?? "").trim();
   if (raw !== "") return raw;
-  const fromTitle = slugifyEventTitle(String(formData.get("title") ?? ""));
-  if (fromTitle.length >= 2) return fromTitle;
-  return fallbackEventSlug();
+  const title = String(formData.get("title") ?? "");
+  const startsAt = String(formData.get("startsAt") ?? "");
+  return buildEventSlugFromTitleAndDate(title, startsAt);
 }
 
 async function allocateUniqueEventSlugForInsert(
@@ -228,6 +244,8 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
   try {
     await requireAdmin();
 
+    const venueResolved = resolveVenueFromFormData(formData);
+
     const parsed = EventSchema.safeParse({
       id: formData.get("id") || undefined,
       slug: effectiveSlugFromFormData(formData),
@@ -238,8 +256,8 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       titleUk: formData.get("titleUk") || "",
       descriptionUk: formData.get("descriptionUk") || "",
       imageUrl: formData.get("imageUrl") || "",
-      mapsUrl: formData.get("mapsUrl") || "",
-      venue: formData.get("venue"),
+      mapsUrl: venueResolved.mapsUrl,
+      venue: venueResolved.venue,
       startsAt: formData.get("startsAt"),
       pricePln: formData.get("pricePln"),
       totalTickets: formData.get("totalTickets"),
@@ -385,7 +403,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       eventIdForMaps = ins.data.id as string;
     }
 
-    const mapsUrlResolved = resolveEventMapsUrlForSave(v.mapsUrl, v.venue, v.listingKind);
+    const mapsUrlResolved = resolveEventMapsUrlForSave(v.mapsUrl ?? "", v.venue, v.listingKind);
     const mapsErr = await setMapsUrlRpc(supabase, eventIdForMaps, mapsUrlResolved);
     if (mapsErr.error) {
       return {

@@ -9,10 +9,11 @@ import {
   defaultMapsUrlForEvent,
   POPULAR_POET_TRIAL_VENUE_PL,
 } from "@/lib/theatreVenueDefaults";
+import { buildEventSlugFromTitleAndDate } from "@/lib/eventSlugFromTitle";
+import { AdminEventVenueFields } from "@/components/AdminEventVenueFields";
 import type { ContentVisibility } from "@/lib/contentVisibility";
 import { EventCoverFocalControls } from "@/components/EventCoverFocalControls";
 import { clampEventImageFocal } from "@/lib/eventCoverFocal";
-import { slugifyEventTitle } from "@/lib/eventSlugFromTitle";
 import { DEFAULT_EVENT_LANGUAGE, normalizeEventLanguage, type EventLanguage } from "@/lib/eventLanguage";
 import {
   EVENT_COVER_ACCEPT,
@@ -169,9 +170,18 @@ export function EventForm({
     blobPreview ?? (trimmedDraft ? trimmedDraft : null) ?? (trimmedSavedUrl ? trimmedSavedUrl : null);
 
   const venueFieldKey = event ? `venue-${event.id}` : `venue-${listingKind}-${state?.nonce ?? "0"}`;
-  const mapsFieldKey = event ? `maps-${event.id}` : `maps-${listingKind}-${state?.nonce ?? "0"}`;
 
   const formInstanceKey = state?.nonce ?? `evt-${event?.id ?? "new"}`;
+
+  const suggestSlugFromTitle = () => {
+    if (event) return;
+    const slugEl = document.getElementById("admin-event-slug") as HTMLInputElement | null;
+    const titleEl = document.getElementById("admin-event-title") as HTMLInputElement | null;
+    const startsEl = document.querySelector<HTMLInputElement>('input[name="startsAt"]');
+    if (!slugEl || !titleEl) return;
+    if (slugEl.value.trim() !== "") return;
+    slugEl.value = buildEventSlugFromTitleAndDate(titleEl.value, startsEl?.value ?? "");
+  };
 
   return (
     <form
@@ -217,7 +227,8 @@ export function EventForm({
             />
             {!event ? (
               <p className="mt-1 text-xs text-zinc-500">
-                Если оставить пустым, slug соберётся из названия (латиница). При занятом адресе добавим суффикс -2, -3…
+                Если оставить пустым, slug соберётся из названия и даты (напр. improvizatsiya-2026-05-21). При занятом
+                адресе добавим суффикс -2, -3…
               </p>
             ) : null}
           </label>
@@ -228,14 +239,7 @@ export function EventForm({
               name="title"
               required
               defaultValue={d.title}
-              onBlur={() => {
-                if (event) return;
-                const slugEl = document.getElementById("admin-event-slug") as HTMLInputElement | null;
-                const titleEl = document.getElementById("admin-event-title") as HTMLInputElement | null;
-                if (!slugEl || !titleEl) return;
-                if (slugEl.value.trim() !== "") return;
-                slugEl.value = slugifyEventTitle(titleEl.value);
-              }}
+              onBlur={suggestSlugFromTitle}
               className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
             />
           </label>
@@ -458,27 +462,12 @@ export function EventForm({
         </AdminFormSection>
 
         <AdminFormSection title="Место, время, билеты">
-          <label className="block text-sm text-zinc-300 sm:col-span-2">
-            Карта (Google Maps, по желанию)
-            <input
-              key={mapsFieldKey}
-              name="mapsUrl"
-              type="url"
-              defaultValue={d.mapsUrl}
-              className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
-              placeholder="https://maps.app.goo.gl/..."
-            />
-          </label>
-          <label className="block text-sm text-zinc-300 sm:col-span-2">
-            Адрес / место
-            <input
-              key={venueFieldKey}
-              name="venue"
-              required
-              defaultValue={d.venue}
-              className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
-            />
-          </label>
+          <AdminEventVenueFields
+            key={`${venueFieldKey}-${listingKind}`}
+            initialVenue={d.venue}
+            initialMapsUrl={d.mapsUrl}
+            listingKind={listingKind}
+          />
           <label className="block text-sm text-zinc-300">
             Дата и время
             <input
@@ -486,6 +475,7 @@ export function EventForm({
               type="datetime-local"
               required
               defaultValue={d.startsAt || undefined}
+              onBlur={suggestSlugFromTitle}
               className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
             />
             <span className="mt-1 block text-xs text-zinc-500">Час в Europe/Warsaw (Варшава), сохраняется в UTC.</span>

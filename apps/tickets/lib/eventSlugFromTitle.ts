@@ -88,3 +88,21 @@ export function fallbackEventSlug(): string {
   const n = typeof crypto !== "undefined" && crypto.getRandomValues ? crypto.getRandomValues(new Uint32Array(1))[0] : Date.now();
   return `event-${(n >>> 0).toString(36)}`;
 }
+
+/** YYYY-MM-DD из datetime-local (админка) или ISO. */
+export function dateSuffixFromAdminStartsAt(startsAt: string): string | null {
+  const trimmed = startsAt.trim();
+  const m = trimmed.match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : null;
+}
+
+/** Slug для SEO: translit названия + дата события, напр. improvizatsiya-2026-05-21 */
+export function buildEventSlugFromTitleAndDate(title: string, startsAt: string): string {
+  const base = slugifyEventTitle(title);
+  const date = dateSuffixFromAdminStartsAt(startsAt);
+  if (!base && !date) return fallbackEventSlug();
+  if (!base) return `event-${date}`.slice(0, 80);
+  if (!date) return base.length >= 2 ? base : fallbackEventSlug();
+  const combined = `${base}-${date}`.replace(/-+/g, "-").replace(/-+$/g, "").slice(0, 80);
+  return combined.length >= 2 ? combined : fallbackEventSlug();
+}

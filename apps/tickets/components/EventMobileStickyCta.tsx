@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { formatPlnFromGrosze } from "@/lib/format";
 
@@ -13,16 +15,30 @@ type Props = {
 };
 
 /**
- * Mobile-only sticky buy bar at viewport bottom.
- * Must live outside ancestors with backdrop-filter/transform (see event card wrapper).
+ * Mobile/tablet sticky buy bar — portal to document.body (escapes overflow/backdrop ancestors).
  */
 export function EventMobileStickyCta({ priceGrosze, remaining, bypassPayment, mapsHref }: Props) {
   const t = useTranslations("CheckoutForm");
   const tEvent = useTranslations("EventPage");
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleBuy = () => {
+    const form = document.getElementById(CHECKOUT_FORM_ID) as HTMLFormElement | null;
+    if (!form) {
+      document.getElementById("event-checkout")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    document.getElementById("event-checkout")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    form.requestSubmit();
+  };
+
+  const bar = (
     <div
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-poet-gold/25 bg-poet-bg/92 backdrop-blur-md supports-[backdrop-filter]:bg-poet-bg/88 sm:hidden"
+      className="fixed inset-x-0 bottom-0 z-[90] border-t border-poet-gold/30 bg-poet-bg/95 shadow-[0_-8px_32px_rgba(0,0,0,0.45)] backdrop-blur-md supports-[backdrop-filter]:bg-poet-bg/90 md:hidden"
       role="region"
       aria-label={tEvent("stickyCtaAria")}
     >
@@ -30,9 +46,7 @@ export function EventMobileStickyCta({ priceGrosze, remaining, bypassPayment, ma
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">{tEvent("priceLabel")}</p>
           <p className="text-lg font-semibold leading-tight text-poet-gold-bright">{formatPlnFromGrosze(priceGrosze)}</p>
-          <p className="truncate text-[11px] text-zinc-500">
-            {tEvent("remainingShort", { count: remaining })}
-          </p>
+          <p className="truncate text-[11px] text-zinc-500">{tEvent("remainingShort", { count: remaining })}</p>
         </div>
         {mapsHref ? (
           <a
@@ -48,8 +62,8 @@ export function EventMobileStickyCta({ priceGrosze, remaining, bypassPayment, ma
           </a>
         ) : null}
         <button
-          type="submit"
-          form={CHECKOUT_FORM_ID}
+          type="button"
+          onClick={handleBuy}
           className="btn-poet btn-poet-theatre shrink-0 px-5 py-3.5 text-sm font-semibold tracking-wide"
         >
           {bypassPayment ? t("submitBypass") : t("submitShort")}
@@ -57,6 +71,9 @@ export function EventMobileStickyCta({ priceGrosze, remaining, bypassPayment, ma
       </div>
     </div>
   );
+
+  if (!mounted) return null;
+  return createPortal(bar, document.body);
 }
 
 export { CHECKOUT_FORM_ID };

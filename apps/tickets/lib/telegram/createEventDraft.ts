@@ -8,7 +8,7 @@ import {
   isEventsLanguageUnavailable,
   isEventsPoetCourseIdUnavailable,
 } from "@/lib/supabase/eventsPoetCourseColumn";
-import { slugifyEventTitle, fallbackEventSlug } from "@/lib/eventSlugFromTitle";
+import { buildEventSlugFromTitleAndDate, fallbackEventSlug } from "@/lib/eventSlugFromTitle";
 import { parseStartsAtFromAdminForm } from "@/lib/warsawEventDatetime";
 import { defaultMapsUrlForEvent } from "@/lib/theatreVenueDefaults";
 import type { ContentVisibility } from "@/lib/contentVisibility";
@@ -63,7 +63,7 @@ export async function createEventFromParsed(
 ): Promise<CreatedEventDraft> {
   const visibility = opts.visibility ?? "published";
   const image = opts.image;
-  const fromTitle = slugifyEventTitle(parsed.title);
+  const fromTitle = buildEventSlugFromTitleAndDate(parsed.title, parsed.startsAtWarsaw);
   const baseSlug = fromTitle.length >= 2 ? fromTitle : fallbackEventSlug();
   const slug = await allocateUniqueEventSlug(supabase, baseSlug);
   const startsAtIso = parseStartsAtFromAdminForm(parsed.startsAtWarsaw);

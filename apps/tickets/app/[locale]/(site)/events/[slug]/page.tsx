@@ -185,7 +185,7 @@ export default async function EventPage({
 
   return (
     <div
-      className={`poet-safe-x mx-auto max-w-3xl py-8 sm:py-14${showCheckout ? " pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] sm:pb-14" : ""}`}
+      className={`poet-safe-x mx-auto max-w-3xl py-8 sm:py-14${showCheckout ? " pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:pb-14" : ""}`}
     >
       {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
       <JsonLd data={faqLd} />
