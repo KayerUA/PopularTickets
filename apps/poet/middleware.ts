@@ -5,6 +5,14 @@ import { POET_KURSY_LEGACY_SLUG_REDIRECTS } from "@/lib/poetKursyLegacySlugRedir
 
 const intlMiddleware = createIntlMiddleware(routing);
 
+/** next-intl отдаёт 307 — для SEO/GSC каноничнее постоянный 308. */
+function permanentRedirectIfTemporary(res: NextResponse): NextResponse {
+  if (res.status !== 307) return res;
+  const location = res.headers.get("Location");
+  if (!location) return res;
+  return NextResponse.redirect(new URL(location, res.url), 308);
+}
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -38,7 +46,7 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  return intlMiddleware(req);
+  return permanentRedirectIfTemporary(intlMiddleware(req));
 }
 
 export const config = {

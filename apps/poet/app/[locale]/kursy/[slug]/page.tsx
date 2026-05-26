@@ -19,10 +19,19 @@ import { formatPoetTrialWhen } from "@/lib/formatPoetTrialDate";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { PoetJsonLd } from "@/components/PoetJsonLd";
 import { buildBreadcrumbListJsonLd, buildCourseJsonLd } from "@/lib/poetJsonLd";
+import { POET_STATIC_COURSE_SLUGS } from "@/lib/poetStaticCourses";
 
 export const revalidate = 60;
 
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
+
+export function generateStaticParams() {
+  return routing.locales.flatMap((locale) =>
+    POET_STATIC_COURSE_SLUGS.map((slug) => ({ locale, slug })),
+  );
+}
+
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: PageProps) {
   const { locale, slug } = await params;

@@ -182,16 +182,6 @@ export function buildEventJsonLd(
     validFrom: new Date().toISOString(),
     validThrough: event.starts_at,
     seller: ticketSeller,
-    ...(eventUrl
-      ? {
-          itemOffered: {
-            "@type": "Event",
-            name: event.title,
-            startDate: event.starts_at,
-            url: eventUrl,
-          },
-        }
-      : {}),
   }) as object;
 
   return stripJsonLdEmptyValues({

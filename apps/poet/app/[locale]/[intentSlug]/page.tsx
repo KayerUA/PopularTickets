@@ -8,9 +8,18 @@ import { poetIntentHreflangUrls } from "@/lib/poetIntentClusters";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
 import { PoetJsonLd } from "@/components/PoetJsonLd";
 import { buildBreadcrumbListJsonLd, buildFaqPageJsonLd, buildWebPageJsonLd } from "@/lib/poetJsonLd";
-import { poetIntentPage } from "@/lib/poetIntentRoutes";
+import { allPoetIntentPages, poetIntentPage } from "@/lib/poetIntentRoutes";
 
 type PageProps = { params: Promise<{ locale: string; intentSlug: string }> };
+
+export function generateStaticParams() {
+  return allPoetIntentPages().map(({ locale, page }) => ({
+    locale,
+    intentSlug: page.slug,
+  }));
+}
+
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, intentSlug } = await params;

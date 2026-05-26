@@ -17,14 +17,14 @@ type Props = {
 
 /**
  * Mobile/tablet sticky buy bar — portal to document.body.
- * visualViewport sync fixes iOS Safari jump when scrolling back up; hides near checkout form.
+ * iOS: bottom через CSS-переменную от visualViewport; скрывается у формы checkout.
  */
 export function EventMobileStickyCta({ priceGrosze, remaining, bypassPayment, mapsHref }: Props) {
   const t = useTranslations("CheckoutForm");
   const tEvent = useTranslations("EventPage");
   const [mounted, setMounted] = useState(false);
   const [checkoutInView, setCheckoutInView] = useState(false);
-  const barRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -32,30 +32,32 @@ export function EventMobileStickyCta({ priceGrosze, remaining, bypassPayment, ma
 
   useEffect(() => {
     if (!mounted) return;
-    const bar = barRef.current;
-    if (!bar) return;
 
     const syncViewport = () => {
+      rafRef.current = null;
       const vv = window.visualViewport;
-      if (!vv) {
-        bar.style.bottom = "0px";
-        return;
-      }
-      const gap = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      bar.style.bottom = `${gap}px`;
+      const gap = vv ? Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) : 0;
+      document.documentElement.style.setProperty("--event-sticky-cta-bottom", `${gap}px`);
+    };
+
+    const scheduleSync = () => {
+      if (rafRef.current !== null) return;
+      rafRef.current = window.requestAnimationFrame(syncViewport);
     };
 
     syncViewport();
-    window.visualViewport?.addEventListener("resize", syncViewport);
-    window.visualViewport?.addEventListener("scroll", syncViewport);
-    window.addEventListener("scroll", syncViewport, { passive: true });
-    window.addEventListener("orientationchange", syncViewport);
+    window.visualViewport?.addEventListener("resize", scheduleSync);
+    window.visualViewport?.addEventListener("scroll", scheduleSync);
+    window.addEventListener("scroll", scheduleSync, { passive: true });
+    window.addEventListener("orientationchange", scheduleSync);
 
     return () => {
-      window.visualViewport?.removeEventListener("resize", syncViewport);
-      window.visualViewport?.removeEventListener("scroll", syncViewport);
-      window.removeEventListener("scroll", syncViewport);
-      window.removeEventListener("orientationchange", syncViewport);
+      if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
+      window.visualViewport?.removeEventListener("resize", scheduleSync);
+      window.visualViewport?.removeEventListener("scroll", scheduleSync);
+      window.removeEventListener("scroll", scheduleSync);
+      window.removeEventListener("orientationchange", scheduleSync);
+      document.documentElement.style.removeProperty("--event-sticky-cta-bottom");
     };
   }, [mounted]);
 
@@ -66,9 +68,9 @@ export function EventMobileStickyCta({ priceGrosze, remaining, bypassPayment, ma
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setCheckoutInView(Boolean(entry?.isIntersecting && entry.intersectionRatio > 0.12));
+        setCheckoutInView(Boolean(entry?.isIntersecting && entry.intersectionRatio > 0.2));
       },
-      { threshold: [0, 0.12, 0.35, 0.6], rootMargin: "0px 0px -4rem 0px" },
+      { threshold: [0, 0.2, 0.45], rootMargin: "0px 0px -5rem 0px" },
     );
     observer.observe(section);
     return () => observer.disconnect();
@@ -86,13 +88,13 @@ export function EventMobileStickyCta({ priceGrosze, remaining, bypassPayment, ma
 
   const bar = (
     <div
-      ref={barRef}
-      className={`event-mobile-sticky-cta fixed inset-x-0 bottom-0 z-[90] border-t border-poet-gold/30 bg-poet-bg shadow-[0_-8px_32px_rgba(0,0,0,0.45)] transition-[transform,opacity] duration-200 ease-out md:hidden ${
+      className={`event-mobile-sticky-cta fixed inset-x-0 z-[90] border-t border-poet-gold/30 bg-poet-bg shadow-[0_-8px_32px_rgba(0,0,0,0.45)] transition-[transform,opacity] duration-200 ease-out md:hidden ${
         checkoutInView ? "pointer-events-none translate-y-full opacity-0" : "translate-y-0 opacity-100"
       }`}
+      style={{ bottom: "var(--event-sticky-cta-bottom, 0px)" }}
       role="region"
       aria-label={tEvent("stickyCtaAria")}
-      aria-hidden={checkoutInView}
+      aria-hidden={checkoutInView || undefined}
     >
       <div className="poet-safe-x mx-auto flex max-w-3xl items-center gap-2 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]">
         <div className="min-w-0 flex-1">
