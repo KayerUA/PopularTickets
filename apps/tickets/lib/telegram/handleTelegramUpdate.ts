@@ -4,6 +4,8 @@ import { requireServiceSupabase } from "@/lib/supabase/admin";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { EVENT_ADMIN_TIMEZONE } from "@/lib/warsawEventDatetime";
 import { getTelegramAdminUserIds, getTelegramBroadcastChatIds, isTelegramAutoBroadcast } from "@/lib/telegram/config";
+import { formatDiscoveryStatusForTelegram } from "@/lib/eventDiscovery/formatDiscoveryStatus";
+import type { EventDiscoveryResult } from "@/lib/eventDiscovery/notifyEventPublished";
 import { createEventFromParsed } from "@/lib/telegram/createEventDraft";
 import {
   cancelActiveDraftForChat,
@@ -201,27 +203,30 @@ function previewTextBatch(
     .join("\n");
 }
 
-type PublishedEventInfoLocal = PublishedEventInfo;
+type PublishedEventInfoLocal = PublishedEventInfo & { discovery?: EventDiscoveryResult };
 
 function publishedTextSingle(base: string, event: PublishedEventInfoLocal): string {
   const dt = DateTime.fromISO(event.startsAtIso, { zone: "utc" }).setZone(EVENT_ADMIN_TIMEZONE);
   const when = dt.isValid ? dt.setLocale("ru").toFormat("d MMMM yyyy, HH:mm") : event.startsAtIso;
 
-  return [
-    "✅ Событие опубликовано",
-    "",
-    `📌 ${event.title}`,
-    `📅 ${when} (Warsaw)`,
-    "",
-    `🎫 ${eventPublicUrlRu(base, event.slug)}`,
-  ].join("\n");
+  return (
+    [
+      "✅ Событие опубликовано",
+      "",
+      `📌 ${event.title}`,
+      `📅 ${when} (Warsaw)`,
+      "",
+      `🎫 ${eventPublicUrlRu(base, event.slug)}`,
+    ].join("\n") + formatDiscoveryStatusForTelegram(event.discovery)
+  );
 }
 
 function publishedTextBatch(base: string, events: PublishedEventInfoLocal[]): string {
   const blocks = events.map((event, i) => {
     const dt = DateTime.fromISO(event.startsAtIso, { zone: "utc" }).setZone(EVENT_ADMIN_TIMEZONE);
     const when = dt.isValid ? dt.setLocale("ru").toFormat("d MMMM yyyy, HH:mm") : event.startsAtIso;
-    return `${i + 1}. ${event.title}\n   📅 ${when}\n   🎫 ${eventPublicUrlRu(base, event.slug)}`;
+    const status = formatDiscoveryStatusForTelegram(event.discovery).replace(/^\n\n/, "");
+    return `${i + 1}. ${event.title}\n   📅 ${when}\n   🎫 ${eventPublicUrlRu(base, event.slug)}${status ? `\n   ${status.replace(/\n/g, "\n   ")}` : ""}`;
   });
 
   return [`✅ Опубликовано ${events.length} событий`, "", ...blocks].join("\n\n");
@@ -556,6 +561,7 @@ async function publishDraft(
       title: event.title,
       slug: event.slug,
       startsAtIso: event.startsAtIso,
+      discovery: event.discovery,
     });
   }
 

@@ -1,12 +1,9 @@
 import { routing, type AppLocale } from "@/i18n/routing";
 import { canonicalPath } from "@/lib/seo";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
-import {
-  getTelegramBotToken,
-  getTelegramDiscoveryNotifyChatIds,
-  isTelegramDiscoveryNotifyEnabled,
-} from "@/lib/telegram/config";
-import { sendTelegramMessage } from "@/lib/telegram/telegramBotApi";
+import { resolveAbsoluteAssetUrl } from "@/lib/safePublicUrl";
+import { createGoogleBusinessProfileEventPost } from "@/lib/googleBusinessProfile/createEventPost";
+import { isGoogleGbpConfigured } from "@/lib/googleBusinessProfile/config";
 
 export type EventDiscoveryPayload = {
   slug: string;
@@ -18,6 +15,16 @@ export type EventDiscoveryPayload = {
   listing_kind: string | null;
   maps_url: string | null;
   visibility: string;
+  image_url?: string | null;
+};
+
+export type EventDiscoverySource = "telegram" | "admin";
+
+export type EventDiscoveryResult = {
+  indexNow: "ok" | "skipped" | "failed";
+  gbp: "created" | "skipped" | "failed";
+  gbpSearchUrl?: string;
+  gbpError?: string;
 };
 
 function absoluteEventUrls(slug: string): string[] {
@@ -26,24 +33,17 @@ function absoluteEventUrls(slug: string): string[] {
   return routing.locales.map((locale) => `${base}${canonicalPath(locale as AppLocale, `/events/${slug}`)}`);
 }
 
-function escapeTelegramHtml(text: string): string {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function primaryTicketUrl(urls: string[]): string {
+  return urls.find((u) => u.includes("/ru/events/")) ?? urls[0] ?? "";
 }
 
-function formatEventWhenWarsaw(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString("ru-RU", { timeZone: "Europe/Warsaw", dateStyle: "long", timeStyle: "short" });
-}
-
-/** IndexNow — быстрее для Bing/Yandex; Google по-прежнему опирается на sitemap + crawl. */
-async function pingIndexNow(urls: string[]): Promise<void> {
+async function pingIndexNow(urls: string[]): Promise<"ok" | "skipped" | "failed"> {
   const key = process.env.INDEXNOW_KEY?.trim();
   const host = process.env.INDEXNOW_HOST?.trim() || "www.populartickets.pl";
-  if (!key || urls.length === 0) return;
+  if (!key || urls.length === 0) return "skipped";
 
   try {
-    await fetch("https://api.indexnow.org/indexnow", {
+    const res = await fetch("https://api.indexnow.org/indexnow", {
       method: "POST",
       headers: { "Content-Type": "application/json; charset=utf-8" },
       body: JSON.stringify({
@@ -53,12 +53,13 @@ async function pingIndexNow(urls: string[]): Promise<void> {
         urlList: urls.slice(0, 10_000),
       }),
     });
+    return res.ok || res.status === 202 ? "ok" : "failed";
   } catch (e) {
     console.warn("[eventDiscovery] IndexNow failed:", e);
+    return "failed";
   }
 }
 
-/** Webhook для Make/Zapier/n8n → Google Business Profile «Событие», соцсети и т.д. */
 async function postDiscoveryWebhook(payload: EventDiscoveryPayload, urls: string[]): Promise<void> {
   const hook = process.env.EVENT_DISCOVERY_WEBHOOK_URL?.trim();
   if (!hook) return;
@@ -75,14 +76,8 @@ async function postDiscoveryWebhook(payload: EventDiscoveryPayload, urls: string
         event: {
           ...payload,
           price_pln: (payload.price_grosze / 100).toFixed(2),
-          ticket_url: urls[0] ?? `${base}/ru/events/${payload.slug}`,
+          ticket_url: primaryTicketUrl(urls) || `${base}/ru/events/${payload.slug}`,
           ticket_urls: urls,
-        },
-        gbp_hint: {
-          topicType: "EVENT",
-          title: payload.title,
-          startDate: payload.starts_at,
-          callToAction: { actionType: "BOOK", url: urls[0] },
         },
       }),
     });
@@ -91,50 +86,60 @@ async function postDiscoveryWebhook(payload: EventDiscoveryPayload, urls: string
   }
 }
 
-/** Telegram — напоминание админам + ссылки (без Make/Zapier). */
-async function notifyTelegramDiscovery(payload: EventDiscoveryPayload, urls: string[]): Promise<void> {
-  if (!isTelegramDiscoveryNotifyEnabled() || !getTelegramBotToken()) return;
+async function publishToGoogleBusinessProfile(
+  payload: EventDiscoveryPayload,
+  ticketUrl: string,
+): Promise<Pick<EventDiscoveryResult, "gbp" | "gbpSearchUrl" | "gbpError">> {
+  if (!isGoogleGbpConfigured()) {
+    return { gbp: "skipped", gbpError: "not_configured" };
+  }
 
-  const chatIds = getTelegramDiscoveryNotifyChatIds();
-  if (!chatIds.length) return;
+  const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "";
+  const imageAbs = resolveAbsoluteAssetUrl(payload.image_url, base);
 
-  const ticketUrl = urls.find((u) => u.includes("/ru/events/")) ?? urls[0];
-  if (!ticketUrl) return;
+  const result = await createGoogleBusinessProfileEventPost({
+    title: payload.title,
+    description: payload.description,
+    startsAtIso: payload.starts_at,
+    ticketUrl,
+    imageUrl: imageAbs,
+  });
 
-  const pricePln = (payload.price_grosze / 100).toFixed(2);
-  const lines = [
-    "🎭 <b>Опубликовано на PopularTickets</b>",
-    "",
-    `<b>${escapeTelegramHtml(payload.title)}</b>`,
-    `📅 ${escapeTelegramHtml(formatEventWhenWarsaw(payload.starts_at))}`,
-    `📍 ${escapeTelegramHtml(payload.venue)}`,
-    `💰 ${pricePln} PLN`,
-    payload.maps_url ? `<a href="${payload.maps_url}">Google Maps</a>` : "",
-    "",
-    `<a href="${ticketUrl}">Страница билетов</a>`,
-    "",
-    "💡 Добавьте «Событие» в Google Business Profile (Teatr Popular Poet), если ещё не сделано.",
-    "🔍 Google Search подхватит Event schema + sitemap автоматически.",
-  ].filter(Boolean);
-
-  await Promise.all(
-    chatIds.map(async (chatId) => {
-      try {
-        await sendTelegramMessage(chatId, lines.join("\n"), { parseMode: "HTML" });
-      } catch (e) {
-        console.warn("[eventDiscovery] telegram notify failed:", chatId, e);
-      }
-    }),
-  );
+  if (result.ok) {
+    return { gbp: "created", gbpSearchUrl: result.searchUrl };
+  }
+  if (result.error === "not_configured") {
+    return { gbp: "skipped", gbpError: result.error };
+  }
+  return { gbp: "failed", gbpError: result.error };
 }
 
 /**
- * Вызывать после publish/update published-события (admin, telegram bot).
- * Не блокирует сохранение — ошибки только в лог.
+ * После publish: сайт (JSON-LD/sitemap) уже есть; здесь — внешние каналы.
+ * Telegram-бот: GBP + IndexNow; без дублирующих «напоминаний» в личку.
  */
-export async function notifyEventPublished(payload: EventDiscoveryPayload): Promise<void> {
-  if (payload.visibility !== "published") return;
+export async function runEventDiscovery(
+  payload: EventDiscoveryPayload,
+  _opts?: { source?: EventDiscoverySource },
+): Promise<EventDiscoveryResult> {
+  if (payload.visibility !== "published") {
+    return { indexNow: "skipped", gbp: "skipped" };
+  }
 
   const urls = absoluteEventUrls(payload.slug);
-  await Promise.all([pingIndexNow(urls), postDiscoveryWebhook(payload, urls), notifyTelegramDiscovery(payload, urls)]);
+  const ticketUrl = primaryTicketUrl(urls);
+  if (!ticketUrl) {
+    return { indexNow: "skipped", gbp: "skipped", gbpError: "no_ticket_url" };
+  }
+
+  const [indexNow, gbpPart] = await Promise.all([
+    pingIndexNow(urls),
+    publishToGoogleBusinessProfile(payload, ticketUrl),
+    postDiscoveryWebhook(payload, urls),
+  ]);
+
+  return { indexNow, ...gbpPart };
 }
+
+/** @deprecated alias */
+export const notifyEventPublished = runEventDiscovery;

@@ -5,8 +5,9 @@ import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { formatPlnFromGrosze } from "@/lib/format";
 
-const CHECKOUT_FORM_ID = "event-checkout-form";
+export const CHECKOUT_FORM_ID = "event-checkout-form";
 const CHECKOUT_SECTION_ID = "event-checkout";
+export const CHECKOUT_SUBMIT_ID = "event-checkout-submit";
 
 type Props = {
   priceGrosze: number;
@@ -23,7 +24,7 @@ export function EventMobileStickyCta({ priceGrosze, remaining, bypassPayment, ma
   const t = useTranslations("CheckoutForm");
   const tEvent = useTranslations("EventPage");
   const [mounted, setMounted] = useState(false);
-  const [checkoutInView, setCheckoutInView] = useState(false);
+  const [submitVisible, setSubmitVisible] = useState(false);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -63,16 +64,16 @@ export function EventMobileStickyCta({ priceGrosze, remaining, bypassPayment, ma
 
   useEffect(() => {
     if (!mounted) return;
-    const section = document.getElementById(CHECKOUT_SECTION_ID);
-    if (!section) return;
+    const submit = document.getElementById(CHECKOUT_SUBMIT_ID);
+    if (!submit) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setCheckoutInView(Boolean(entry?.isIntersecting && entry.intersectionRatio > 0.2));
+        setSubmitVisible(Boolean(entry?.isIntersecting && entry.intersectionRatio >= 0.5));
       },
-      { threshold: [0, 0.2, 0.45], rootMargin: "0px 0px -80px 0px" },
+      { threshold: [0, 0.25, 0.5, 0.75, 1], rootMargin: "0px 0px -88px 0px" },
     );
-    observer.observe(section);
+    observer.observe(submit);
     return () => observer.disconnect();
   }, [mounted]);
 
@@ -89,12 +90,12 @@ export function EventMobileStickyCta({ priceGrosze, remaining, bypassPayment, ma
   const bar = (
     <div
       className={`event-mobile-sticky-cta fixed inset-x-0 z-[90] border-t border-poet-gold/30 bg-poet-bg shadow-[0_-8px_32px_rgba(0,0,0,0.45)] transition-[transform,opacity] duration-200 ease-out md:hidden ${
-        checkoutInView ? "pointer-events-none translate-y-full opacity-0" : "translate-y-0 opacity-100"
+        submitVisible ? "pointer-events-none translate-y-full opacity-0" : "translate-y-0 opacity-100"
       }`}
       style={{ bottom: "var(--event-sticky-cta-bottom, 0px)" }}
       role="region"
       aria-label={tEvent("stickyCtaAria")}
-      aria-hidden={checkoutInView || undefined}
+      aria-hidden={submitVisible || undefined}
     >
       <div className="poet-safe-x mx-auto flex max-w-3xl items-center gap-2 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]">
         <div className="min-w-0 flex-1">
@@ -129,5 +130,3 @@ export function EventMobileStickyCta({ priceGrosze, remaining, bypassPayment, ma
   if (!mounted) return null;
   return createPortal(bar, document.body);
 }
-
-export { CHECKOUT_FORM_ID };

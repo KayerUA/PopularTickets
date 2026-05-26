@@ -1,96 +1,106 @@
-# PopularTickets — автоматическое обнаружение событий
+# Авто-публикация событий (Telegram → сайт → Google)
 
-Сайт с **5–30+ событиями в месяц** не должен требовать ручного noindex или «запросить индексирование» на каждый URL. В коде настроена **автоматическая политика** и **хуки при publish**.
+## Как это работает сейчас
 
-## Что делает код без вашего участия
+**Telegram-бот** (афиша → «Опубликовать»):
 
-| Действие | Когда | Результат |
-|----------|--------|-----------|
-| **Event JSON-LD** | Каждый рендер страницы `/events/{slug}` | Google Search / Events rich results, Gemini может цитировать структурированные данные |
-| **Sitemap** | Все `visibility=published` | Будущие — priority 0.9, недавно прошедшие — 0.6, старые — 0.35; **все остаются в sitemap** |
-| **robots** | published | **index, follow** (и прошлые события — архив контента). `unlisted` → noindex |
-| **IndexNow** | Admin save / Telegram bot publish | Пинг Bing/Yandex (если задан `INDEXNOW_KEY`) |
-| **Webhook** | То же | JSON в Make/Zapier/n8n (опционально) |
-| **Telegram** | То же | Сообщение `TELEGRAM_ADMIN_USER_IDS` (+ опц. группа) — ссылки и напоминание про GBP |
+1. Создаёт событие на **populartickets.pl** (JSON-LD Event, sitemap) — автоматически
+2. **Google Business Profile** — создаёт пост «Событие» через API, если настроены `GOOGLE_GBP_*`
+3. **IndexNow** — пинг URL, если настроен `INDEXNOW_KEY`
+4. В ответе бота видно статус: `📍 Google Business: событие создано` или `ℹ️ не настроен`
 
-Опционально: `EVENT_SEO_ARCHIVE_DAYS=365` — через N дней после **начала** события ставится `noindex, follow` (по умолчанию **выключено**).
+Отдельное «тестовое событие» или Make/Zapier **не нужны** — всё в том же флоу, что и публикация афиши.
 
-## Google Search vs Maps vs Business Profile
+## Что нельзя автоматизировать на 100%
 
-**Важно:** JSON-LD и sitemap **не создают** карточку «Событие» в Google Business Profile автоматически. Это разные системы:
+| Канал | Как попадает |
+|-------|----------------|
+| **Сайт + Google Search Events** | Event schema + sitemap (авто) |
+| **Google Business Profile** | GBP API при настроенном OAuth (авто из бота) |
+| **Google Maps (слой событий)** | Нет публичного API «создать событие на карте» — Google подтягивает с сайта/GBP, без гарантий |
+| **Gemini** | Органически из индекса, не управляется |
 
-1. **Google Search / Events** — читает `Event` schema на populartickets.pl + sitemap. Работает из коробки после деплоя.
-2. **Google Maps (Events layer)** — частично подтягивает публичные события с сайтов с корректной разметкой; гарантий нет, нужны crawl + authority.
-3. **Google Business Profile** — события создаются через **профиль организации** (ручной UI) или **Google Business Profile API** / интеграции (Make, Zapier, Localo и т.п.).
+## Одноразовая настройка Google Business Profile (~20 мин)
 
-Рекомендуемая схема: **сайт = источник правды**, webhook дублирует publish в GBP.
+### 1. Google Cloud
 
-## Настройка IndexNow (5 минут)
+1. [Google Cloud Console](https://console.cloud.google.com/) → новый проект
+2. **APIs & Services → Enable APIs:**
+   - **My Business Business Information API**
+   - **My Business Account Management API**
+   - (legacy) **Google My Business API** / Business Profile APIs
+3. **OAuth consent screen** → External → добавить scope `https://www.googleapis.com/auth/business.manage`
+4. **Credentials → Create OAuth client ID → Desktop app** → скачать `client_id` + `client_secret`
 
-1. Сгенерировать ключ, например: `openssl rand -hex 16`
-2. В Vercel (проект tickets), Production:
-   - `INDEXNOW_KEY=<ваш ключ>`
-   - `INDEXNOW_HOST=www.populartickets.pl`
-3. После деплоя проверить: `https://www.populartickets.pl/<KEY>.txt` → в теле только ключ.
-4. Опубликовать тестовое событие — в логах Vercel не должно быть `[eventDiscovery] IndexNow failed`.
+### 2. Refresh token
 
-Google IndexNow **не использует**; для Google достаточно sitemap + Event schema + internal links (related events, hub pages).
+На своём Mac (один раз):
 
-## Telegram вместо Make/Zapier
-
-Если webhook не нужен — **ничего настраивать не надо**: при publish бот шлёт личку всем из `TELEGRAM_ADMIN_USER_IDS` (уже заданы для бота афиш):
-
-```
-🎭 Опубликовано на PopularTickets
-📅 6 июня 2026 г., 19:30
-📍 Yo Bar & Pub…
-💰 50.00 PLN
-[Страница билетов] [Google Maps]
-💡 Добавьте «Событие» в Google Business Profile…
+```bash
+# Установить google-auth-oauthlib или использовать OAuth Playground:
+# https://developers.google.com/oauthplayground/
+# Scope: https://www.googleapis.com/auth/business.manage
+# Use your own OAuth credentials → Authorize → Exchange → refresh_token
 ```
 
-- Выключить: `TELEGRAM_DISCOVERY_NOTIFY=false`
-- Доп. группа команды: `TELEGRAM_DISCOVERY_CHAT_IDS=-1001234567890` (бот — админ группы)
-- Админ должен хотя бы раз написать боту `/start`, иначе личка не доставится
+Или Python:
 
-## Настройка webhook → GBP (Make / Zapier) — опционально
-
-1. Создать сценарий: **Webhook** → **Google Business Profile: Create Post** (тип Event) или аналог через [GBP API](https://developers.google.com/my-business/reference/rest).
-2. URL webhook → `EVENT_DISCOVERY_WEBHOOK_URL` в Vercel.
-3. Тело POST (пример):
-
-```json
-{
-  "source": "populartickets",
-  "type": "event_published",
-  "event": {
-    "slug": "improv-2026-06-06",
-    "title": "…",
-    "starts_at": "2026-06-06T17:30:00.000Z",
-    "ticket_url": "https://www.populartickets.pl/ru/events/improv-2026-06-06",
-    "maps_url": "https://maps.app.goo.gl/…"
-  },
-  "gbp_hint": {
-    "topicType": "EVENT",
-    "title": "…",
-    "startDate": "2026-06-06T17:30:00.000Z",
-    "callToAction": { "actionType": "BOOK", "url": "https://…" }
-  }
-}
+```bash
+pip install google-auth-oauthlib
+# credentials.json из Desktop OAuth client
+python -c "
+from google_auth_oauthlib.flow import InstalledAppFlow
+SCOPES = ['https://www.googleapis.com/auth/business.manage']
+flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+creds = flow.run_local_server(port=8080, access_type='offline', prompt='consent')
+print('refresh_token:', creds.refresh_token)
+"
 ```
 
-Привязать GBP к **Teatr Popular Poet** (ul. Domaniewska) — одна локация, много событий.
+### 3. accountId и locationId
 
-## Что ещё усиливает видимость (раз в квартал, не на каждый ивент)
+```bash
+# В .env.local:
+GOOGLE_GBP_CLIENT_ID=...
+GOOGLE_GBP_CLIENT_SECRET=...
+GOOGLE_GBP_REFRESH_TOKEN=...
 
-- **GSC:** один sitemap `https://www.populartickets.pl/sitemap.xml` — без ручного submit каждого event URL.
-- **SameAs / performer** в JSON-LD уже указывает popularpoet.pl и соцсети театра.
-- **Cross-links:** hub-страницы poet → билеты; related events на странице события.
-- **Prod SQL:** `supabase/fix-event-urls-2026-05.sql` — битые `image_url` ломали metadata (Invalid URL).
+node scripts/gbp-list-locations.mjs
+```
 
-## Триггеры в коде
+Скопировать `accountId` и `locationId` для **Teatr Popular Poet** (Domaniewska).
 
-- `apps/tickets/app/actions/admin-events.ts` — сохранение в админке
-- `apps/tickets/lib/telegram/createEventDraft.ts` — публикация из Telegram-бота
+### 4. Vercel (Production, проект tickets)
 
-Оба вызывают `notifyEventPublished()` только для `visibility === "published"`.
+```env
+GOOGLE_GBP_ACCOUNT_ID=1234567890
+GOOGLE_GBP_LOCATION_ID=9876543210
+GOOGLE_GBP_CLIENT_ID=....apps.googleusercontent.com
+GOOGLE_GBP_CLIENT_SECRET=...
+GOOGLE_GBP_REFRESH_TOKEN=1//...
+GOOGLE_GBP_LANGUAGE=ru
+```
+
+После деплоя: опубликовать афишу через бота → в ответе должно быть `📍 Google Business: событие создано`.
+
+## IndexNow (опционально)
+
+```env
+INDEXNOW_KEY=<openssl rand -hex 16>
+INDEXNOW_HOST=www.populartickets.pl
+```
+
+Проверка: `https://www.populartickets.pl/<KEY>.txt`
+
+## Админка vs бот
+
+- **Бот** — основной флоу; GBP + IndexNow после «Опубликовать»
+- **Админка** — те же каналы при save с `visibility=published`, без лишних сообщений в Telegram
+
+## Ошибки GBP
+
+- `403` — API не включён или аккаунт не владелец локации
+- `invalid_grant` — refresh token протух / отозван → получить новый
+- `not_configured` в боте — не заданы `GOOGLE_GBP_*` в Vercel
+
+Документация Google: [Create Posts on Google](https://developers.google.com/my-business/content/posts-data)

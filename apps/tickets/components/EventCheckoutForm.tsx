@@ -9,7 +9,7 @@ import type { AppLocale } from "@/i18n/routing";
 import { splitTheatreTicketTotalGrosze } from "@/lib/plVatTheatreTicket";
 import { formatPlnFromGrosze } from "@/lib/format";
 import { P24_FOOTER_GRAPHICS } from "@/lib/p24FooterAssets";
-import { CHECKOUT_FORM_ID } from "@/components/EventMobileStickyCta";
+import { CHECKOUT_FORM_ID, CHECKOUT_SUBMIT_ID } from "@/components/EventMobileStickyCta";
 import {
   firstCheckoutFieldError,
   validateCheckoutFormData,
@@ -316,9 +316,10 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
       ) : null}
 
       <button
+        id={CHECKOUT_SUBMIT_ID}
         type="submit"
         disabled={pending}
-        className="btn-poet btn-poet-theatre hidden w-full py-3.5 text-sm font-semibold tracking-wide md:inline-flex md:w-auto md:px-12 md:py-3"
+        className="btn-poet btn-poet-theatre flex w-full scroll-mt-28 py-3.5 text-sm font-semibold tracking-wide md:inline-flex md:w-auto md:px-12 md:py-3"
       >
         {pending ? t("submitting") : bypassPayment ? t("submitBypass") : t("submit")}
       </button>
