@@ -1,6 +1,7 @@
 import type { AppLocale } from "@/i18n/routing";
 import { canonicalPath } from "@/lib/seo";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
+import { resolveAbsoluteAssetUrl } from "@/lib/safePublicUrl";
 import { COMPANY } from "@/lib/company";
 import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
 import { THEATRE_INSTAGRAM_URL, THEATRE_TELEGRAM_URL, THEATRE_YOUTUBE_URL } from "@/lib/social";
@@ -105,13 +106,8 @@ export function buildEventJsonLd(
   const performerId = POPULAR_POET_SITE_URL.replace(/\/$/, "") + "#theater";
 
   const images: string[] = [];
-  if (event.image_url) {
-    if (event.image_url.startsWith("http://") || event.image_url.startsWith("https://")) {
-      images.push(event.image_url);
-    } else if (base) {
-      images.push(new URL(event.image_url, base).toString());
-    }
-  }
+  const imageAbs = resolveAbsoluteAssetUrl(event.image_url, base);
+  if (imageAbs) images.push(imageAbs);
 
   const rawDesc = typeof event.description === "string" ? event.description : "";
   const desc = rawDesc.replace(/\s+/g, " ").trim().slice(0, 2000);

@@ -2,6 +2,7 @@ import {
   defaultMapsUrlForEvent,
   type EventListingKind,
 } from "@/lib/theatreVenueDefaults";
+import { normalizeHttpUrl } from "@/lib/safePublicUrl";
 
 /** Первая ссылка на Google Maps в тексте (maps.app.goo.gl или google.com/maps). */
 export function extractGoogleMapsUrl(text: string | null | undefined): string | null {
@@ -19,12 +20,12 @@ export function resolveEventMapsUrl(event: {
   venue?: string | null;
   listing_kind?: EventListingKind | null;
 }): string | null {
-  const direct = typeof event.maps_url === "string" ? event.maps_url.trim() : "";
+  const direct = typeof event.maps_url === "string" ? normalizeHttpUrl(event.maps_url) : null;
   if (direct) return direct;
   const fromDescription = extractGoogleMapsUrl(event.description);
   if (fromDescription) return fromDescription;
   const venue = event.venue ?? "";
   const listingKind = event.listing_kind ?? "performance";
   const fallback = defaultMapsUrlForEvent(venue, listingKind);
-  return fallback || null;
+  return fallback ? normalizeHttpUrl(fallback) : null;
 }

@@ -46,12 +46,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
     for (const ev of eventRows) {
-      const isPast = new Date(ev.starts_at).getTime() < Date.now();
+      const isFuture = new Date(ev.starts_at).getTime() >= Date.now();
+      if (!isFuture) continue;
       out.push({
         url: `${base}/${locale}/events/${ev.slug}`,
         lastModified: ev.updated_at ? new Date(ev.updated_at) : new Date(),
         changeFrequency: "weekly",
-        priority: isPast ? 0.5 : 0.85,
+        priority: 0.85,
       });
     }
   }

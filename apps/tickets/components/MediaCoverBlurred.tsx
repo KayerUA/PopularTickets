@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { isRenderableImageSrc } from "@/lib/safePublicUrl";
 
 type Props = {
   src: string;
@@ -34,11 +35,20 @@ export function MediaCoverBlurred({
 }: Props) {
   const pos = coverObjectPosition ? { objectPosition: coverObjectPosition } : undefined;
   const blurPos = fit === "cover" ? pos : undefined;
+  const safeSrc = isRenderableImageSrc(src) ? src.trim() : null;
+
+  if (!safeSrc) {
+    return (
+      <div className={frameClassName}>
+        <div className="absolute inset-0 bg-gradient-to-br from-poet-gold-dim/35 via-poet-bg to-zinc-950" aria-hidden />
+      </div>
+    );
+  }
 
   return (
     <div className={frameClassName}>
       <Image
-        src={src}
+        src={safeSrc}
         alt=""
         fill
         sizes={sizes}
@@ -50,7 +60,7 @@ export function MediaCoverBlurred({
         aria-hidden
       />
       <Image
-        src={src}
+        src={safeSrc}
         alt={alt}
         fill
         sizes={sizes}

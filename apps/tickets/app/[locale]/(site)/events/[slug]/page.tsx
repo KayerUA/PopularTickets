@@ -26,7 +26,11 @@ import { resolveEventCopy } from "@/lib/contentI18n";
 import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
 import { eventLanguageLabel, normalizeEventLanguage } from "@/lib/eventLanguage";
 import { isOptimizableEventImage } from "@/lib/imageOptimization";
+import { isRenderableImageSrc, resolveAbsoluteAssetUrl } from "@/lib/safePublicUrl";
 import { legacyEventRedirectPath } from "@/lib/legacyEventRedirects";
+import { fetchRelatedEvents } from "@/lib/fetchRelatedEvents";
+import { eventContextLinks } from "@/lib/eventContextLinks";
+import { RelatedEventsSection } from "@/components/RelatedEventsSection";
 
 /** Server Actions + ISR: закэшированная страница после деплоя даёт «Server Action … was not found». */
 export const dynamic = "force-dynamic";
@@ -71,11 +75,9 @@ export async function generateMetadata({
   const desc = `${tMeta("eventDescriptionBuy")} ${formatEventDateTime(event.starts_at, locale)}. ${event.venue}. ${eventLanguageLabel(eventLanguage, locale)}. ${truncateMetaDescription(copy.description)}`;
   const base = getPublicAppUrl()?.replace(/\/$/, "");
   let ogImages: { url: string; width: number; height: number; alt: string }[] | undefined;
-  if (event.image_url && base) {
-    const abs = event.image_url.startsWith("http://") || event.image_url.startsWith("https://")
-      ? event.image_url
-      : new URL(event.image_url, base).toString();
-    ogImages = [{ url: abs, width: 1200, height: 630, alt: copy.title }];
+  const ogImageAbs = resolveAbsoluteAssetUrl(event.image_url, base);
+  if (ogImageAbs) {
+    ogImages = [{ url: ogImageAbs, width: 1200, height: 630, alt: copy.title }];
   }
   const keywords = [
     ...tMeta("homeKeywords")
@@ -85,8 +87,12 @@ export async function generateMetadata({
     copy.title,
     event.venue,
   ];
-  const robots =
+  const robotsUnlisted =
     event.visibility === "unlisted" ? ({ index: false, follow: true } as const) : undefined;
+  const isPastMeta = new Date(event.starts_at).getTime() < Date.now();
+  const robots =
+    robotsUnlisted ??
+    (isPastMeta ? ({ index: false, follow: true } as const) : undefined);
   return buildPublicPageMetadata({
     locale,
     path: `/events/${slug}`,
@@ -182,6 +188,18 @@ export default async function EventPage({
   );
 
   const showCheckout = !isPast && remaining > 0;
+  const contextLinks = eventContextLinks(locale, {
+    listingKind,
+    title: copy.title,
+    description: copy.description,
+  });
+  const relatedEvents = await fetchRelatedEvents(supabase, {
+    locale,
+    excludeSlug: slug,
+    listingKind,
+    title: copy.title,
+    description: copy.description,
+  });
 
   return (
     <div
@@ -412,6 +430,13 @@ export default async function EventPage({
           ))}
         </dl>
       </section>
+
+      <RelatedEventsSection
+        locale={locale}
+        related={relatedEvents}
+        ticketsIntentPath={contextLinks.ticketsIntentPath}
+        poetHubUrl={contextLinks.poetHubUrl}
+      />
 
       {showCheckout ? (
         <EventMobileStickyCta

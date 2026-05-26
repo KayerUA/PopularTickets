@@ -156,6 +156,21 @@ function publicAppUrlForCheck() {
 
 const publicUrl = publicAppUrlForCheck();
 
+if (publicUrl) {
+  if (!publicUrl.startsWith("https://")) {
+    console.warn("[check-env] NEXT_PUBLIC_APP_URL / public URL powinien używać HTTPS (SEO canonical, P24).");
+  }
+  if (
+    process.env.VERCEL_ENV === "production" &&
+    publicUrl.includes("populartickets.pl") &&
+    !publicUrl.includes("www.populartickets.pl")
+  ) {
+    console.warn(
+      "[check-env] Production PopularTickets: zalecany kanon https://www.populartickets.pl (zgodny z redirectami i sitemap)."
+    );
+  }
+}
+
 if (!bypass && !publicUrl) {
   console.error(
     "[check-env] Przy CHECKOUT_BYPASS_PAYMENT=false ustaw NEXT_PUBLIC_APP_URL albo uruchom na Vercel (VERCEL_URL / VERCEL_PROJECT_PRODUCTION_URL na production)."

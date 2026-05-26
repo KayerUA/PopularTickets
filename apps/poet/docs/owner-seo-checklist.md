@@ -21,7 +21,34 @@
 3. Не валидировать в отчёте «Переадресация» URL `https://www.popularpoet.pl/` — канон главной: `https://www.popularpoet.pl/ru` (или `/pl` для PL-аудитории).
 4. Подождать 1–3 недели после первого sitemap; новые intent-страницы пререндерятся при деплое (`generateStaticParams`).
 
-## Bing Webmaster Tools
+### После деплоя SEO-хабов (2026-05) — запросить индексирование
+
+Не чаще **3–5 URL в день** (GSC → Проверка URL → Запросить индексирование):
+
+**popularpoet.pl (приоритет):**
+
+- `https://www.popularpoet.pl/ru/improvizatsiya-varshava`
+- `https://www.popularpoet.pl/ru/akterskie-kursy-varshava`
+- `https://www.popularpoet.pl/ru/akterskaya-maysternost-varshava`
+- `https://www.popularpoet.pl/ru/probnoe-zanyatie-varshava`
+- `https://www.popularpoet.pl/pl/kurs-aktorski-warszawa`
+
+**populartickets.pl:**
+
+- `https://www.populartickets.pl/ru` (афиша)
+- 1–2 актуальных event URL из афиши (не прошедших)
+
+### Rich Results Test (после деплоя tickets)
+
+1. Открыть [Rich Results Test](https://search.google.com/test/rich-results).
+2. Проверить URL опубликованного события на PopularTickets — ожидаются **Event** + **FAQ** (если на странице есть FAQ).
+3. При ошибках `Invalid URL` или битых `image` — выполнить `supabase/fix-event-urls-2026-05.sql` в prod и перепроверить.
+
+### Canonical / env (PopularTickets)
+
+- Production Vercel: **`NEXT_PUBLIC_APP_URL=https://www.populartickets.pl`** (без слэша в конце).
+- Smoke: в HTML event/intent должно быть `link rel="canonical"` на **тот же** URL с локалью (`/ru/events/...`, не главная и не staging).
+
 
 1. Подтвердить сайт (DNS или файл).
 2. Отправить тот же **sitemap.xml**.

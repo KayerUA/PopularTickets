@@ -11,12 +11,13 @@ import { routing } from "@/i18n/routing";
 import { buildPublicPageMetadata, canonicalPath } from "@/lib/seo";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { JsonLd } from "@/components/JsonLd";
-import { buildBreadcrumbListJsonLd } from "@/lib/seo/eventJsonLd";
+import { buildBreadcrumbListJsonLd, buildFaqPageJsonLd } from "@/lib/seo/eventJsonLd";
 import {
   intentClusterForSlug,
   intentListingKindFilter,
   ticketsIntentHreflangUrls,
 } from "@/lib/ticketsIntentRoutes";
+import { intentFaqTranslationKeys } from "@/lib/ticketsIntentFaq";
 
 export const revalidate = 120;
 
@@ -151,9 +152,17 @@ export default async function IntentDiscoverPage({
         ])
       : null;
 
+  const faqPairs = intentFaqTranslationKeys(cluster).map(([qk, ak]) => ({
+    q: t(qk),
+    a: t(ak),
+  }));
+
+  const faqLd = buildFaqPageJsonLd(faqPairs.map((p) => ({ name: p.q, acceptedAnswer: { text: p.a } })));
+
   return (
     <div className="poet-safe-x mx-auto max-w-5xl py-10 sm:py-14">
       {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
+      {faqLd ? <JsonLd data={faqLd} /> : null}
       <article className="max-w-3xl">
         <h1 className="font-display text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
           <span className="text-gradient-gold">{t(`${cluster}H1`)}</span>
@@ -164,6 +173,22 @@ export default async function IntentDiscoverPage({
         <p className="text-[11px] font-mono uppercase tracking-[0.4em] text-zinc-500">{t("eventsSectionLabel")}</p>
         {list.length ? <HomeEventsGrid events={list} /> : <p className="text-zinc-500">{t("eventsEmpty")}</p>}
       </section>
+
+      {faqPairs.length ? (
+        <section className="mt-12 max-w-3xl" aria-labelledby="intent-faq-heading">
+          <h2 id="intent-faq-heading" className="font-display text-lg font-medium text-zinc-100 sm:text-xl">
+            {t("faqTitle")}
+          </h2>
+          <dl className="mt-5 space-y-5 border-t border-poet-gold/10 pt-5">
+            {faqPairs.map((item) => (
+              <div key={item.q}>
+                <dt className="text-sm font-semibold text-zinc-200">{item.q}</dt>
+                <dd className="mt-2 text-sm leading-relaxed text-zinc-400">{item.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ) : null}
     </div>
   );
 }
