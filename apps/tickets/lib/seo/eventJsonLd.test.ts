@@ -60,6 +60,15 @@ describe("buildEventJsonLd", () => {
     expect(seller.taxID).toBeTruthy();
   });
 
+  it("includes maximumAttendeeCapacity when total_tickets set", () => {
+    const ld = buildEventJsonLd({ ...baseEvent, total_tickets: 50 }, "ru", {
+      remaining: 49,
+      soldOut: false,
+      mapsUrl: null,
+    }) as Record<string, unknown>;
+    expect(ld.maximumAttendeeCapacity).toBe(50);
+  });
+
   it("marks sold out availability", () => {
     const ld = buildEventJsonLd(baseEvent, "pl", {
       remaining: 0,

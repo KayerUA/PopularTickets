@@ -21,6 +21,7 @@ import {
   resolveVenueFieldsFromPreset,
   type EventVenuePresetId,
 } from "@/lib/eventVenues";
+import { notifyEventPublished } from "@/lib/eventDiscovery/notifyEventPublished";
 
 const MIN_EVENT_DESCRIPTION_PUBLISH_CHARS = 300;
 
@@ -412,8 +413,21 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       };
     }
 
+    void notifyEventPublished({
+      slug: v.slug,
+      title: v.title,
+      description: v.description,
+      venue: v.venue,
+      starts_at: startsAtIso,
+      price_grosze: groszeFromPln(v.pricePln),
+      listing_kind: v.listingKind,
+      maps_url: mapsUrlResolved,
+      visibility: v.visibility,
+    });
+
     for (const loc of routing.locales) {
       revalidatePath(`/${loc}`);
+      revalidatePath(`/${loc}/events`);
       revalidatePath(`/${loc}/events/${v.slug}`);
     }
     revalidatePath("/admin");

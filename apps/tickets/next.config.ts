@@ -51,9 +51,18 @@ function supabaseStorageImageHost(): string | undefined {
 const storageHost = supabaseStorageImageHost();
 const imageHosts = [...new Set([storageHost, "pynbtuvhrratjqlweyas.supabase.co"].filter(Boolean) as string[])];
 
+function indexNowRewrites(): { source: string; destination: string }[] {
+  const key = process.env.INDEXNOW_KEY?.trim();
+  if (!key) return [];
+  return [{ source: `/${key}.txt`, destination: `/api/indexnow/${key}` }];
+}
+
 const nextConfig: NextConfig = {
   ...(useMonorepoTracingRoot ? { outputFileTracingRoot: monorepoRoot } : {}),
   outputFileTracingIncludes: ticketPdfTracingIncludes,
+  async rewrites() {
+    return indexNowRewrites();
+  },
   async headers() {
     return [
       {

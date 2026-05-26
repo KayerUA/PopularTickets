@@ -41,6 +41,27 @@ export function isTelegramAutoBroadcast(): boolean {
   return v === "1" || v === "true" || v === "on" || v === "yes";
 }
 
+/** Уведомление админам о publish (SEO / GBP reminder). По умолчанию вкл., если есть TELEGRAM_ADMIN_USER_IDS. */
+export function isTelegramDiscoveryNotifyEnabled(): boolean {
+  const v = (process.env.TELEGRAM_DISCOVERY_NOTIFY ?? "").trim().toLowerCase();
+  if (v === "0" || v === "false" || v === "off" || v === "no") return false;
+  if (v === "1" || v === "true" || v === "on" || v === "yes") return true;
+  return getTelegramAdminUserIds().size > 0;
+}
+
+/** Chat id для discovery-уведомлений: админы + опционально TELEGRAM_DISCOVERY_CHAT_IDS. */
+export function getTelegramDiscoveryNotifyChatIds(): number[] {
+  const ids = new Set<number>(getTelegramAdminUserIds());
+  const raw = (process.env.TELEGRAM_DISCOVERY_CHAT_IDS ?? "").trim();
+  if (raw) {
+    for (const part of raw.split(/[,;\s]+/)) {
+      const n = Number(part.trim());
+      if (Number.isFinite(n) && n !== 0) ids.add(n);
+    }
+  }
+  return [...ids];
+}
+
 export function isTelegramBotConfigured(): boolean {
   return Boolean(getTelegramBotToken() && getTelegramWebhookSecret() && getGeminiApiKey());
 }

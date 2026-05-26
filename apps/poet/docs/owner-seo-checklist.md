@@ -36,7 +36,7 @@
 **populartickets.pl:**
 
 - `https://www.populartickets.pl/ru` (афиша)
-- 1–2 актуальных event URL из афиши (не прошедших)
+- 1–2 актуальных event URL из афиши (будущие или недавно прошедшие — оба в sitemap)
 
 ### Rich Results Test (после деплоя tickets)
 

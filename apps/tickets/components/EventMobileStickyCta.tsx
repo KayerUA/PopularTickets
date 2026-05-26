@@ -70,7 +70,7 @@ export function EventMobileStickyCta({ priceGrosze, remaining, bypassPayment, ma
       ([entry]) => {
         setCheckoutInView(Boolean(entry?.isIntersecting && entry.intersectionRatio > 0.2));
       },
-      { threshold: [0, 0.2, 0.45], rootMargin: "0px 0px -5rem 0px" },
+      { threshold: [0, 0.2, 0.45], rootMargin: "0px 0px -80px 0px" },
     );
     observer.observe(section);
     return () => observer.disconnect();

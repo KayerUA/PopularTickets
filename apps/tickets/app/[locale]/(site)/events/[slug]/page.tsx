@@ -31,6 +31,7 @@ import { legacyEventRedirectPath } from "@/lib/legacyEventRedirects";
 import { fetchRelatedEvents } from "@/lib/fetchRelatedEvents";
 import { eventContextLinks } from "@/lib/eventContextLinks";
 import { RelatedEventsSection } from "@/components/RelatedEventsSection";
+import { eventRobotsMeta } from "@/lib/eventSeoPolicy";
 
 /** Server Actions + ISR: закэшированная страница после деплоя даёт «Server Action … was not found». */
 export const dynamic = "force-dynamic";
@@ -87,12 +88,7 @@ export async function generateMetadata({
     copy.title,
     event.venue,
   ];
-  const robotsUnlisted =
-    event.visibility === "unlisted" ? ({ index: false, follow: true } as const) : undefined;
-  const isPastMeta = new Date(event.starts_at).getTime() < Date.now();
-  const robots =
-    robotsUnlisted ??
-    (isPastMeta ? ({ index: false, follow: true } as const) : undefined);
+  const robots = eventRobotsMeta(event.starts_at, event.visibility);
   return buildPublicPageMetadata({
     locale,
     path: `/events/${slug}`,
@@ -156,13 +152,14 @@ export default async function EventPage({
   const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "";
   const homePath = canonicalPath(locale, "/");
   const homeUrl = base ? `${base}${homePath}` : "";
-  const afishaUrl = base ? `${base}${homePath}#afisha` : "";
+  const eventsPath = canonicalPath(locale, "/events");
+  const eventsUrl = base ? `${base}${eventsPath}` : "";
   const eventUrlAbs = base ? `${base}${canonicalPath(locale, `/events/${slug}`)}` : "";
   const breadcrumbLd =
-    homeUrl && afishaUrl && eventUrlAbs
+    homeUrl && eventsUrl && eventUrlAbs
       ? buildBreadcrumbListJsonLd([
           { name: t("breadcrumbHome"), item: homeUrl },
-          { name: t("breadcrumbAfisha"), item: afishaUrl },
+          { name: t("breadcrumbAfisha"), item: eventsUrl },
           { name: copy.title, item: eventUrlAbs },
         ])
       : null;
@@ -219,7 +216,7 @@ export default async function EventPage({
           </li>
           <li>
             <Link
-              href="/#afisha"
+              href="/events"
               className="text-zinc-400 underline decoration-zinc-600 underline-offset-2 transition hover:text-zinc-200"
             >
               {t("breadcrumbAfisha")}
@@ -245,6 +242,7 @@ export default async function EventPage({
             slug: event.slug,
             listing_kind: event.listing_kind,
             event_language: eventLanguage,
+            total_tickets: event.total_tickets,
           },
           locale,
           { remaining, soldOut, mapsUrl: mapsHref }
@@ -300,7 +298,7 @@ export default async function EventPage({
                 </span>
                 {isPast ? (
                   <Link
-                    href="/#afisha"
+                    href="/events"
                     className="text-zinc-400 underline decoration-zinc-600 underline-offset-2 transition hover:text-zinc-200"
                   >
                     {t("skipToAfisha")}
@@ -317,7 +315,7 @@ export default async function EventPage({
             ) : isPast ? (
               <p className="mt-2">
                 <Link
-                  href="/#afisha"
+                  href="/events"
                   className="text-sm text-zinc-400 underline decoration-zinc-600 underline-offset-2 transition hover:text-zinc-200"
                 >
                   {t("skipToAfisha")}
@@ -389,7 +387,7 @@ export default async function EventPage({
               <p className="font-medium text-poet-gold-bright/95">{t("eventEndedTitle")}</p>
               <p className="text-sm leading-relaxed text-zinc-400">{t("archiveCheckoutHint")}</p>
               <Link
-                href="/#afisha"
+                href="/events"
                 className="inline-flex min-h-10 items-center justify-center rounded-full border border-poet-gold/35 px-4 py-2 text-sm font-medium text-poet-gold-bright transition hover:border-poet-gold/55 hover:bg-poet-gold/10"
               >
                 {t("eventEndedCta")}

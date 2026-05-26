@@ -3,7 +3,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import type { AppLocale } from "@/i18n/routing";
 import { logSupabasePostgrestError } from "@/lib/supabase/logError";
 
-type TitleNs = "Home" | "EventPage";
+type TitleNs = "Home" | "EventPage" | "EventsIndex";
 
 type Props = {
   locale: AppLocale;

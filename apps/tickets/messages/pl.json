@@ -27,6 +27,24 @@
     "events": "Afisz",
     "company": "Zasady"
   },
+  "NotFound": {
+    "title": "Nie znaleziono strony",
+    "body": "Takiej strony nie ma — wydarzenie mogło zniknąć z afisza albo link jest nieaktualny.",
+    "home": "Strona główna",
+    "events": "Do afisza"
+  },
+  "EventsIndex": {
+    "metaTitle": "Afisz — bilety na show i spektakle Popular Poet w Warszawie",
+    "metaDescription": "Wszystkie nadchodzące i minione wydarzenia Popular Poet w Warszawie — impro, show komediowe, spektakle. Bilety online.",
+    "title": "Afisz",
+    "subtitle": "Show improwizowane, spektakle i wieczory sceniczne Popular Poet w Warszawie.",
+    "sectionLabel": "Wszystkie wydarzenia",
+    "empty": "Brak opublikowanych wydarzeń — zajrzyj później.",
+    "loadError": "Nie udało się załadować afisza",
+    "breadcrumbAria": "Nawigacja",
+    "breadcrumbHome": "Strona główna",
+    "breadcrumbAfisha": "Afisz"
+  },
   "LocaleSwitcher": {
     "label": "Język",
     "pl": "PL",

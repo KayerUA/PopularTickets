@@ -11,6 +11,7 @@ import {
 import { buildEventSlugFromTitleAndDate, fallbackEventSlug } from "@/lib/eventSlugFromTitle";
 import { parseStartsAtFromAdminForm } from "@/lib/warsawEventDatetime";
 import { defaultMapsUrlForEvent } from "@/lib/theatreVenueDefaults";
+import { notifyEventPublished } from "@/lib/eventDiscovery/notifyEventPublished";
 import type { ContentVisibility } from "@/lib/contentVisibility";
 import type { ParsedTelegramEvent } from "@/lib/telegram/parseEventWithGemini";
 
@@ -126,8 +127,21 @@ export async function createEventFromParsed(
     }
   }
 
+  void notifyEventPublished({
+    slug,
+    title: parsed.title,
+    description: parsed.description,
+    venue: parsed.venue,
+    starts_at: startsAtIso,
+    price_grosze: priceGrosze,
+    listing_kind: parsed.listingKind,
+    maps_url: mapsUrl ?? null,
+    visibility,
+  });
+
   for (const loc of routing.locales) {
     revalidatePath(`/${loc}`);
+    revalidatePath(`/${loc}/events`);
     revalidatePath(`/${loc}/events/${slug}`);
   }
   revalidatePath("/admin");

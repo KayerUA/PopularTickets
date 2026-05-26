@@ -23,6 +23,7 @@ type EventRow = {
   slug: string;
   listing_kind?: string | null;
   event_language?: EventLanguage | null;
+  total_tickets?: number | null;
 };
 
 const EVENT_LANG: Record<AppLocale, string> = {
@@ -190,6 +191,9 @@ export function buildEventJsonLd(
     inLanguage: eventLanguageIso(normalizeEventLanguage(event.event_language)),
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus,
+    ...(typeof event.total_tickets === "number" && event.total_tickets > 0
+      ? { maximumAttendeeCapacity: event.total_tickets }
+      : {}),
     ...(eventUrl ? { url: eventUrl } : {}),
     ...(images.length ? { image: images } : {}),
     additionalType: eventFormat,

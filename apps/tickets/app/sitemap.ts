@@ -5,8 +5,9 @@ import { routing } from "@/i18n/routing";
 import { allIntentSlugs } from "@/lib/ticketsIntentRoutes";
 import { ticketsFactsPathForLocale } from "@/lib/ticketsFactsHreflang";
 import type { AppLocale } from "@/i18n/routing";
+import { eventSitemapTier } from "@/lib/eventSeoPolicy";
 
-const STATIC_PATHS = ["", "/firma", "/regulamin", "/zwroty", "/polityka-prywatnosci", "/podarok"] as const;
+const STATIC_PATHS = ["", "/events", "/firma", "/regulamin", "/zwroty", "/polityka-prywatnosci", "/podarok"] as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getPublicAppUrl()?.replace(/\/$/, "");
@@ -46,13 +47,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
     for (const ev of eventRows) {
-      const isFuture = new Date(ev.starts_at).getTime() >= Date.now();
-      if (!isFuture) continue;
+      const tier = eventSitemapTier(ev.starts_at);
       out.push({
         url: `${base}/${locale}/events/${ev.slug}`,
         lastModified: ev.updated_at ? new Date(ev.updated_at) : new Date(),
-        changeFrequency: "weekly",
-        priority: 0.85,
+        changeFrequency: tier.changeFrequency,
+        priority: tier.priority,
       });
     }
   }
