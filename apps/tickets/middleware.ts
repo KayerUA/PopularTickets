@@ -5,11 +5,15 @@ import { routing } from "@/i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
-function permanentRedirectIfTemporary(res: NextResponse): NextResponse {
+function permanentRedirectIfTemporary(req: NextRequest, res: NextResponse): NextResponse {
   if (res.status !== 307) return res;
   const location = res.headers.get("Location");
   if (!location) return res;
-  return NextResponse.redirect(new URL(location, res.url), 308);
+  try {
+    return NextResponse.redirect(new URL(location, req.url), 308);
+  } catch {
+    return res;
+  }
 }
 
 /** next-intl читает локаль из заголовка; без него корневой layout с getLocale() падает на /admin и /check-in. */
@@ -83,7 +87,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  return permanentRedirectIfTemporary(intlMiddleware(req));
+  return permanentRedirectIfTemporary(req, intlMiddleware(req));
 }
 
 export const config = {
