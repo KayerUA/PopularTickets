@@ -5,7 +5,7 @@ const baseEvent = {
   title: "Комедийное шоу «Популярные импровизаторы»",
   description: "Живая импровизация в Варшаве.",
   venue: "Yo Bar & Pub, Aleja Komisji Edukacji Narodowej 47/U9, 02-797 Warszawa",
-  starts_at: "2026-06-06T17:30:00.000Z",
+  starts_at: "2026-06-06T17:30:00+00:00",
   image_url: "/events/test.png",
   price_grosze: 5000,
   slug: "improv-2026-06-06",
@@ -27,7 +27,7 @@ describe("buildEventJsonLd", () => {
 
     expect(ld["@type"]).toBe("Event");
     expect(ld.startDate).toBe(baseEvent.starts_at);
-    expect(ld.endDate).toBeTruthy();
+    expect(ld.endDate).toBe("2026-06-06T20:30:00+00:00");
     expect(ld.eventStatus).toBe("https://schema.org/EventScheduled");
     expect(ld.eventAttendanceMode).toBe("https://schema.org/OfflineEventAttendanceMode");
 

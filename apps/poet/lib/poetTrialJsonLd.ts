@@ -16,8 +16,8 @@ import type { PoetTrialDisplay } from "@/lib/poetTrials";
 import { poetCanonicalPath } from "@/lib/seoPoet";
 import { getTicketsSiteBase, ticketsEventPage } from "@/lib/ticketsSite";
 import { POPULAR_POET_TRIAL_VENUE_PL } from "@/lib/theatreVenueDefaults";
-
-const DEFAULT_EVENT_DURATION_MS = 3 * 60 * 60 * 1000;
+import { eventEndDateIso } from "@/lib/eventEndDateIso";
+import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
 
 function stripJsonLdEmptyValues(value: unknown): unknown {
   if (Array.isArray(value)) {
@@ -31,12 +31,6 @@ function stripJsonLdEmptyValues(value: unknown): unknown {
     );
   }
   return value;
-}
-
-function defaultEventEndIso(startsAt: string): string {
-  const d = new Date(startsAt);
-  if (Number.isNaN(d.getTime())) return startsAt;
-  return new Date(d.getTime() + DEFAULT_EVENT_DURATION_MS).toISOString();
 }
 
 function isTheatreVenue(venue: string): boolean {
@@ -53,6 +47,8 @@ function buildTrialEventJsonLd(trial: PoetTrialDisplay, locale: AppLocale): Reco
   const isPast = !Number.isNaN(startsMs) && startsMs < Date.now();
   const soldOut = trial.status === "sold_out" || trial.remainingTickets <= 0;
   const atTheatre = isTheatreVenue(trial.venue) || trial.venue === POPULAR_POET_TRIAL_VENUE_PL;
+  const poetUrl = getPoetSiteUrl()?.replace(/\/$/, "");
+  const endDate = eventEndDateIso(trial.starts_at);
 
   const description = (trial.body ?? trial.title).replace(/\s+/g, " ").trim().slice(0, 2000);
 
@@ -61,7 +57,7 @@ function buildTrialEventJsonLd(trial: PoetTrialDisplay, locale: AppLocale): Reco
     name: trial.title,
     description: description || trial.title,
     startDate: trial.starts_at,
-    endDate: defaultEventEndIso(trial.starts_at),
+    endDate,
     inLanguage: eventLanguageIso(normalizeEventLanguage(trial.eventLanguage)),
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: isPast
@@ -74,12 +70,14 @@ function buildTrialEventJsonLd(trial: PoetTrialDisplay, locale: AppLocale): Reco
       "@type": "TheaterGroup",
       name: POET_ORGANIZATION_NAME,
       alternateName: POET_ORGANIZATION_ALTERNATE_NAMES,
+      ...(poetUrl ? { url: poetUrl } : {}),
       sameAs: poetSameAsUrls(),
     },
     organizer: {
       "@type": "Organization",
       name: POET_ORGANIZATION_NAME,
       alternateName: POET_ORGANIZATION_ALTERNATE_NAMES,
+      ...(poetUrl ? { url: poetUrl } : {}),
     },
     location: {
       "@type": "Place",
@@ -113,10 +111,11 @@ function buildTrialEventJsonLd(trial: PoetTrialDisplay, locale: AppLocale): Reco
           ? "https://schema.org/SoldOut"
           : "https://schema.org/InStock",
       validFrom: new Date().toISOString(),
-      validThrough: trial.starts_at,
+      validThrough: endDate,
       seller: {
         "@type": "Organization",
         name: POET_ORGANIZATION_NAME,
+        ...(poetUrl ? { url: poetUrl } : {}),
       },
     },
   }) as Record<string, unknown>;

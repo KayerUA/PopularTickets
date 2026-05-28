@@ -263,41 +263,92 @@ async function loadSoldCountsByEventSlug(
   return soldBySlug;
 }
 
-/** Якщо ще не застосовано SQL з poet_course_id / embed — повертаємо події без join, щоб пробні знову з'явились на popularpoet.pl. */
-async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
-  rows: Record<string, unknown>[];
-  mode: "full" | "basic";
-}> {
-  const full = await supabase
+const TRIAL_EVENT_CORE_SELECT =
+  "id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, venue, price_grosze, image_url, image_focal_x, image_focal_y, total_tickets";
+
+const TRIAL_EVENT_COURSE_EMBED = "poet_course ( id, slug, title, title_pl, title_uk )";
+
+function fetchPublishedTrialEvents(supabase: SupabaseClient, select: string) {
+  return supabase
     .from("events")
-    .select(
-      "id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, venue, price_grosze, image_url, image_focal_x, image_focal_y, total_tickets, event_language, poet_course_id, poet_course ( id, slug, title, title_pl, title_uk )",
-    )
+    .select(select)
     .eq("visibility", "published")
     .eq("listing_kind", "trial")
     .gte("starts_at", trialListingStartsFromIso())
     .order("starts_at", { ascending: true });
+}
+
+function fetchTrialEventsForCourse(supabase: SupabaseClient, courseId: string, select: string) {
+  return supabase
+    .from("events")
+    .select(select)
+    .in("visibility", ["published", "unlisted"])
+    .eq("listing_kind", "trial")
+    .eq("poet_course_id", courseId)
+    .gte("starts_at", trialListingStartsFromIso())
+    .order("starts_at", { ascending: true });
+}
+
+/** Якщо ще не застосовано SQL з poet_course_id / event_language — каскад fallback, але завжди з image_url. */
+async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
+  rows: Record<string, unknown>[];
+  mode: "full" | "basic";
+}> {
+  const full = await fetchPublishedTrialEvents(
+    supabase,
+    `${TRIAL_EVENT_CORE_SELECT}, event_language, poet_course_id, ${TRIAL_EVENT_COURSE_EMBED}`,
+  );
 
   if (!full.error) {
     return { rows: (full.data ?? []) as Record<string, unknown>[], mode: "full" };
   }
 
-  console.warn("[poetTrials] events select with poet_course failed, fallback without FK/join:", full.error.message);
+  console.warn("[poetTrials] events select (full) failed, trying fallbacks:", full.error.message);
 
-  const basic = await supabase
-    .from("events")
-    .select("id, slug, title, description, starts_at")
-    .eq("visibility", "published")
-    .eq("listing_kind", "trial")
-    .gte("starts_at", trialListingStartsFromIso())
-    .order("starts_at", { ascending: true });
+  const withCourseNoLang = await fetchPublishedTrialEvents(
+    supabase,
+    `${TRIAL_EVENT_CORE_SELECT}, poet_course_id, ${TRIAL_EVENT_COURSE_EMBED}`,
+  );
+  if (!withCourseNoLang.error) {
+    const rows = ((withCourseNoLang.data ?? []) as Record<string, unknown>[]).map((r) => ({
+      ...r,
+      event_language: null,
+    }));
+    return { rows, mode: "full" };
+  }
 
-  if (basic.error) {
-    console.error("[poetTrials events]", basic.error.message);
+  const noJoinWithLang = await fetchPublishedTrialEvents(
+    supabase,
+    `${TRIAL_EVENT_CORE_SELECT}, event_language, poet_course_id`,
+  );
+  if (!noJoinWithLang.error) {
+    return { rows: (noJoinWithLang.data ?? []) as Record<string, unknown>[], mode: "basic" };
+  }
+
+  const noJoinNoLang = await fetchPublishedTrialEvents(
+    supabase,
+    `${TRIAL_EVENT_CORE_SELECT}, poet_course_id`,
+  );
+  if (!noJoinNoLang.error) {
+    const rows = ((noJoinNoLang.data ?? []) as Record<string, unknown>[]).map((r) => ({
+      ...r,
+      event_language: null,
+    }));
+    return { rows, mode: "basic" };
+  }
+
+  const coreOnly = await fetchPublishedTrialEvents(supabase, TRIAL_EVENT_CORE_SELECT);
+  if (coreOnly.error) {
+    console.error("[poetTrials events]", coreOnly.error.message);
     return { rows: [], mode: "basic" };
   }
 
-  return { rows: (basic.data ?? []) as Record<string, unknown>[], mode: "basic" };
+  const rows = ((coreOnly.data ?? []) as Record<string, unknown>[]).map((r) => ({
+    ...r,
+    event_language: null,
+    poet_course_id: null,
+  }));
+  return { rows, mode: "basic" };
 }
 
 async function loadPublishedTrialSlotRows(supabase: SupabaseClient): Promise<{
@@ -379,16 +430,11 @@ async function loadTrialEventsForCourse(supabase: SupabaseClient, courseId: stri
   rows: Record<string, unknown>[];
   mode: "full" | "idOnly" | "none";
 }> {
-  const fullSel =
-    "id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, venue, price_grosze, image_url, image_focal_x, image_focal_y, total_tickets, event_language, poet_course_id, poet_course ( id, slug, title, title_pl, title_uk )" as const;
-  const full = await supabase
-    .from("events")
-    .select(fullSel)
-    .in("visibility", ["published", "unlisted"])
-    .eq("listing_kind", "trial")
-    .eq("poet_course_id", courseId)
-    .gte("starts_at", trialListingStartsFromIso())
-    .order("starts_at", { ascending: true });
+  const full = await fetchTrialEventsForCourse(
+    supabase,
+    courseId,
+    `${TRIAL_EVENT_CORE_SELECT}, event_language, poet_course_id, ${TRIAL_EVENT_COURSE_EMBED}`,
+  );
 
   if (!full.error) {
     return { rows: (full.data ?? []) as Record<string, unknown>[], mode: "full" };
@@ -396,20 +442,43 @@ async function loadTrialEventsForCourse(supabase: SupabaseClient, courseId: stri
 
   console.warn("[poetTrials] events by course (full) failed:", full.error.message);
 
-  const idOnly = await supabase
-    .from("events")
-    .select("id, slug, title, description, starts_at, poet_course_id")
-    .in("visibility", ["published", "unlisted"])
-    .eq("listing_kind", "trial")
-    .eq("poet_course_id", courseId)
-    .gte("starts_at", trialListingStartsFromIso())
-    .order("starts_at", { ascending: true });
-
-  if (!idOnly.error) {
-    return { rows: (idOnly.data ?? []) as Record<string, unknown>[], mode: "idOnly" };
+  const withCourseNoLang = await fetchTrialEventsForCourse(
+    supabase,
+    courseId,
+    `${TRIAL_EVENT_CORE_SELECT}, poet_course_id, ${TRIAL_EVENT_COURSE_EMBED}`,
+  );
+  if (!withCourseNoLang.error) {
+    const rows = ((withCourseNoLang.data ?? []) as Record<string, unknown>[]).map((r) => ({
+      ...r,
+      event_language: null,
+    }));
+    return { rows, mode: "full" };
   }
 
-  console.warn("[poetTrials] events by course (id only) failed — column poet_course_id may be missing:", idOnly.error.message);
+  const noJoinNoLang = await fetchTrialEventsForCourse(
+    supabase,
+    courseId,
+    `${TRIAL_EVENT_CORE_SELECT}, poet_course_id`,
+  );
+  if (!noJoinNoLang.error) {
+    const rows = ((noJoinNoLang.data ?? []) as Record<string, unknown>[]).map((r) => ({
+      ...r,
+      event_language: null,
+    }));
+    return { rows, mode: "idOnly" };
+  }
+
+  const coreOnly = await fetchTrialEventsForCourse(supabase, courseId, TRIAL_EVENT_CORE_SELECT);
+  if (!coreOnly.error) {
+    const rows = ((coreOnly.data ?? []) as Record<string, unknown>[]).map((r) => ({
+      ...r,
+      event_language: null,
+      poet_course_id: courseId,
+    }));
+    return { rows, mode: "idOnly" };
+  }
+
+  console.warn("[poetTrials] events by course failed — poet_course_id may be missing:", coreOnly.error.message);
   return { rows: [], mode: "none" };
 }
 

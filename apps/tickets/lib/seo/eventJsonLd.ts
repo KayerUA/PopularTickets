@@ -12,6 +12,7 @@ import {
   POPULAR_POET_THEATRE_MAPS_URL,
   POPULAR_POET_THEATRE_POSTAL_CODE,
 } from "@/lib/theatreVenueDefaults";
+import { eventEndDateIso } from "@/lib/seo/eventEndDateIso";
 
 type EventRow = {
   title: string;
@@ -61,13 +62,6 @@ function normalizeEventFormat(event: EventRow, locale: AppLocale): string {
 }
 
 /** Google рекомендует endDate; в БД только starts_at — оценка длительности сеанса для Rich Results. */
-const DEFAULT_EVENT_DURATION_MS = 3 * 60 * 60 * 1000;
-
-function defaultEventEndIso(startsAt: string): string {
-  const d = new Date(startsAt);
-  if (Number.isNaN(d.getTime())) return startsAt;
-  return new Date(d.getTime() + DEFAULT_EVENT_DURATION_MS).toISOString();
-}
 
 function normalizeVenueAddress(venue: string): {
   name: string;
@@ -119,7 +113,7 @@ export function buildEventJsonLd(
     (atTheatre ? POPULAR_POET_THEATRE_MAPS_URL : "");
   const postalCode = venueAddress.postalCode ?? (atTheatre ? POPULAR_POET_THEATRE_POSTAL_CODE : undefined);
   const eventFormat = normalizeEventFormat(event, locale);
-  const endDate = defaultEventEndIso(event.starts_at);
+  const endDate = eventEndDateIso(event.starts_at);
   const startMs = new Date(event.starts_at).getTime();
   const isPast = !Number.isNaN(startMs) && startMs < Date.now();
   const eventStatus = isPast
@@ -177,7 +171,7 @@ export function buildEventJsonLd(
     availability,
     category: "EventTicket",
     validFrom: new Date().toISOString(),
-    validThrough: event.starts_at,
+    validThrough: endDate,
     seller: ticketSeller,
   }) as object;
 
