@@ -38,20 +38,35 @@ export async function POST(req: NextRequest, context: RouteContext): Promise<Nex
     ackCallbackQueryImmediate(update.callback_query.id, hint);
   }
 
-  const work = handleTelegramUpdate(update).catch((e) => {
+  const isMultiPhoto = Boolean(update.message?.media_group_id);
+
+  try {
+    if (process.env.NODE_ENV === "development") {
+      const { background } = await handleTelegramUpdate(update);
+      if (background) await background;
+    } else if (isMultiPhoto) {
+      // Несколько фото в одном пересыле: ~3 с debounce в запросе, Gemini — в фоне.
+      const { background } = await handleTelegramUpdate(update);
+      if (background) {
+        waitUntil(
+          background.catch((e) => {
+            console.error("[telegram webhook] background gemini", e);
+          }),
+        );
+      }
+    } else {
+      waitUntil(
+        handleTelegramUpdate(update)
+          .then(async ({ background }) => {
+            if (background) await background;
+          })
+          .catch((e) => {
+            console.error("[telegram webhook]", e);
+          }),
+      );
+    }
+  } catch (e) {
     console.error("[telegram webhook]", e);
-  });
-
-  const isMediaAlbum = Boolean(update.message?.media_group_id);
-
-  // Альбом: debounce до ~9 с — ждём в запросе, иначе waitUntil на Vercel часто обрывается до claim.
-  if (process.env.NODE_ENV === "development") {
-    await work;
-  } else if (isMediaAlbum) {
-    await Promise.race([work, new Promise((r) => setTimeout(r, 9500))]);
-    waitUntil(work);
-  } else {
-    waitUntil(work);
   }
 
   return NextResponse.json({ ok: true });

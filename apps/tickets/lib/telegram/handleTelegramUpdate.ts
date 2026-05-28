@@ -17,10 +17,12 @@ import {
 import {
   appendMediaGroupPartPersistent,
   cancelAfishaBuffer,
-  finalizeMediaGroupWhenStable,
+  claimTelegramBuffer,
   mergeAfishaPartPersistent,
-  markMediaGroupAckSent,
+  MEDIA_GROUP_DEBOUNCE_MS,
+  mediaGroupBufferKey,
   peekAfishaBuffer,
+  sleepMs,
 } from "@/lib/telegram/telegramMessageBuffer";
 import {
   applyClarificationReplyBatch,
@@ -254,17 +256,13 @@ async function showPreview(
   });
 }
 
-async function processNewAfisha(
+async function runGeminiForAfisha(
   chatId: number,
   userId: number,
   text: string,
   fileIds: string[] = [],
 ): Promise<void> {
   const supabase = requireServiceSupabase();
-  await cancelActiveDraftForChat(supabase, chatId);
-  await cancelAfishaBuffer(chatId);
-
-  await sendTelegramMessage(chatId, "⏳ Разбираю афишу (Gemini)…");
 
   let imageForGemini: { base64: string; mimeType: string } | undefined;
   const primaryFileId = fileIds[0];
@@ -311,6 +309,20 @@ async function processNewAfisha(
     missing_fields: [],
   });
   await showPreview(chatId, draftId, events, fileIds.length, previewNote, isBatch);
+}
+
+async function processNewAfisha(
+  chatId: number,
+  userId: number,
+  text: string,
+  fileIds: string[] = [],
+): Promise<void> {
+  const supabase = requireServiceSupabase();
+  await cancelActiveDraftForChat(supabase, chatId);
+  await cancelAfishaBuffer(chatId);
+
+  await sendTelegramMessage(chatId, "⏳ Разбираю афишу (Gemini)…");
+  await runGeminiForAfisha(chatId, userId, text, fileIds);
 }
 
 async function applyDraftFieldsFromReply(
@@ -402,15 +414,38 @@ async function appendPhotosToDraft(
   );
 }
 
-async function handleMediaGroupBundle(
+export type TelegramUpdateHandleResult = {
+  /** Gemini / тяжёлая работа после быстрого ответа webhook (несколько фото в одном пересыле). */
+  background?: Promise<void>;
+};
+
+type HandleChatContext = {
+  deferGemini?: (work: Promise<void>) => void;
+};
+
+async function startMultiPhotoAfisha(
   chatId: number,
   userId: number,
-  claimed: { file_ids: string[]; text_content: string },
+  text: string,
+  fileIds: string[],
+  ctx?: HandleChatContext,
 ): Promise<void> {
-  const caption = claimed.text_content.trim();
-  const fileIds = claimed.file_ids;
-  if (fileIds.length === 0) return;
-  await processNewAfisha(chatId, userId, caption, fileIds);
+  const supabase = requireServiceSupabase();
+  await cancelActiveDraftForChat(supabase, chatId);
+  await cancelAfishaBuffer(chatId);
+  await sendTelegramMessage(chatId, "⏳ Разбираю афишу (Gemini)…");
+
+  const geminiWork = runGeminiForAfisha(chatId, userId, text, fileIds).catch(async (e) => {
+    console.error("[telegram bot] gemini", e);
+    const err = e instanceof Error ? e.message : "unknown error";
+    await sendTelegramMessage(chatId, `❌ Ошибка разбора:\n${err}`);
+  });
+
+  if (ctx?.deferGemini) {
+    ctx.deferGemini(geminiWork);
+    return;
+  }
+  await geminiWork;
 }
 
 async function handleChatMessage(
@@ -419,43 +454,26 @@ async function handleChatMessage(
   text: string,
   fileIds: string[] = [],
   mediaGroupId?: string,
+  ctx?: HandleChatContext,
 ): Promise<void> {
   if (mediaGroupId) {
-    try {
-      try {
-        requireServiceSupabase();
-      } catch {
-        await sendTelegramMessage(
-          chatId,
-          "⚠️ Supabase не настроен на сервере — альбомы не собираются. Проверьте NEXT_PUBLIC_SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY на Vercel + SQL telegram_message_buffers.",
-        );
-        return;
-      }
+    await appendMediaGroupPartPersistent(mediaGroupId, chatId, userId, fileIds[0], text);
+    await sleepMs(MEDIA_GROUP_DEBOUNCE_MS);
 
-      const part = await appendMediaGroupPartPersistent(mediaGroupId, chatId, userId, fileIds[0], text);
-      if (part.firstPart) {
-        await cancelAfishaBuffer(chatId);
-      }
-      if (part.ackPending) {
-        await sendTelegramMessage(chatId, "⏳ Собираю альбом…");
-        await markMediaGroupAckSent(chatId, mediaGroupId);
-      }
-
-      const claimed = await finalizeMediaGroupWhenStable(chatId, mediaGroupId);
-      if (!claimed) {
-        await sendTelegramMessage(
-          chatId,
-          "⚠️ Не удалось собрать альбом (таймаут). Перешлите афишу ещё раз — можно одним фото или текстом.",
-        );
-        return;
-      }
-
-      await withChatLock(chatId, () => handleMediaGroupBundle(chatId, userId, claimed));
-    } catch (e) {
-      const err = e instanceof Error ? e.message : "unknown error";
-      console.error("[telegram bot] media_group", e);
-      await sendTelegramMessage(chatId, `❌ Ошибка альбома:\n${err}`);
+    const bufferKey = mediaGroupBufferKey(chatId, mediaGroupId);
+    let claimed = await claimTelegramBuffer(bufferKey, MEDIA_GROUP_DEBOUNCE_MS - 400);
+    if (!claimed) {
+      await sleepMs(1200);
+      claimed = await claimTelegramBuffer(bufferKey, 800);
     }
+    if (!claimed) {
+      // Другой serverless-инстанс уже обрабатывает эти фото.
+      return;
+    }
+
+    await withChatLock(chatId, () =>
+      startMultiPhotoAfisha(chatId, userId, claimed.text_content.trim(), claimed.file_ids, ctx),
+    );
     return;
   }
 
@@ -643,8 +661,8 @@ async function cancelDraft(chatId: number, userId: number, draftId: string, call
   await sendTelegramMessage(chatId, "❌ Публикация отменена.");
 }
 
-export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void> {
-  if (seenUpdateIds.has(update.update_id)) return;
+export async function handleTelegramUpdate(update: TelegramUpdate): Promise<TelegramUpdateHandleResult> {
+  if (seenUpdateIds.has(update.update_id)) return {};
   seenUpdateIds.add(update.update_id);
   if (seenUpdateIds.size > 500) {
     const oldest = seenUpdateIds.values().next().value;
@@ -661,12 +679,12 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
 
     if (!admins.has(userId)) {
       await answerCallbackQuery(cq.id, "Нет доступа");
-      return;
+      return {};
     }
-    if (!chatId) return;
+    if (!chatId) return {};
 
     if (cq.message && !isPrivateTelegramChat(cq.message.chat)) {
-      return;
+      return {};
     }
 
     try {
@@ -691,7 +709,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
           const err = e instanceof Error ? e.message : "unknown error";
           await sendTelegramMessage(chatId, `❌ Рассылка: ${err}`);
         }
-        return;
+        return {};
       }
       if (data.startsWith("pub:")) {
         const ok = await publishDraft(chatId, userId, data.slice(4), cq.id);
@@ -702,7 +720,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
             /* inline keyboard исчезает после edit — ок */
           }
         }
-        return;
+        return {};
       }
       if (data.startsWith("cancel:")) {
         await cancelDraft(chatId, userId, data.slice(7), cq.id);
@@ -713,7 +731,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
             /* ignore */
           }
         }
-        return;
+        return {};
       }
     } catch (e) {
       console.error("[telegram bot] callback", e);
@@ -725,11 +743,11 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
       }
       await sendTelegramMessage(chatId, `❌ Ошибка публикации:\n${err}`);
     }
-    return;
+    return {};
   }
 
   const msg = update.message;
-  if (!msg?.from) return;
+  if (!msg?.from) return {};
 
   const chatId = msg.chat.id;
   const userId = msg.from.id;
@@ -744,12 +762,12 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
         { parseMode: "Markdown" },
       );
     }
-    return;
+    return {};
   }
 
   if (!admins.has(userId)) {
     await sendTelegramMessage(chatId, "Нет доступа. Добавьте ваш Telegram user id в TELEGRAM_ADMIN_USER_IDS.");
-    return;
+    return {};
   }
 
   const text = messageBody(msg);
@@ -765,7 +783,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
       chatId,
       `Popular Poet → публикация события\n\n1. Фото и текст — в любом порядке (альбом + текст отдельным сообщением — ок)\n2. Проверьте превью\n3. Нажмите «Опубликовать»\n\nНесколько дат → несколько событий.\nНесколько фото → по порядку на события (от ближайшей даты).\nСсылки после публикации — только /ru/.${broadcastHint}`,
     );
-    return;
+    return {};
   }
 
   if (text === "/chatid" || text.startsWith("/chatid@")) {
@@ -774,21 +792,29 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
       `Chat ID: \`${chatId}\`\n\nЭто личный чат. Для группы добавьте бота туда и отправьте /chatid в группе.`,
       { parseMode: "Markdown" },
     );
-    return;
+    return {};
   }
 
   if (!text && fileIds.length === 0) {
     await sendTelegramMessage(chatId, "Пришлите текст афиши или фото с подписью.");
-    return;
+    return {};
   }
 
   try {
+    let background: Promise<void> | undefined;
+    const ctx: HandleChatContext = {
+      deferGemini: (work) => {
+        background = work;
+      },
+    };
     await withChatLock(chatId, () =>
-      handleChatMessage(chatId, userId, text, fileIds, msg.media_group_id),
+      handleChatMessage(chatId, userId, text, fileIds, msg.media_group_id, ctx),
     );
+    return { background };
   } catch (e) {
     console.error("[telegram bot]", e);
     const err = e instanceof Error ? e.message : "unknown error";
     await sendTelegramMessage(chatId, `❌ Ошибка:\n${err}`);
+    return {};
   }
 }

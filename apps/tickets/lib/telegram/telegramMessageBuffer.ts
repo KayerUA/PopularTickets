@@ -7,7 +7,7 @@ export type TelegramBufferRow = {
   user_id: number;
   text_content: string;
   file_ids: string[];
-  flags: { notifiedWaitingForText?: boolean; notifiedAlbum?: boolean };
+  flags: { notifiedWaitingForText?: boolean };
   updated_at: string;
 };
 
@@ -218,7 +218,7 @@ export async function appendMediaGroupPartPersistent(
   userId: number,
   fileId: string | undefined,
   text: string,
-): Promise<{ firstPart: boolean; photoCount: number; caption: string; ackPending: boolean }> {
+): Promise<void> {
   let supabase: SupabaseClient | null = null;
   try {
     supabase = requireServiceSupabase();
@@ -228,12 +228,10 @@ export async function appendMediaGroupPartPersistent(
 
   const id = mediaGroupBufferId(chatId, groupKey);
   const prev = await readRow(supabase, id);
-  const firstPart = !prev || prev.file_ids.length === 0;
   const fileIds = [...(prev?.file_ids ?? [])];
   if (fileId && !fileIds.includes(fileId)) fileIds.push(fileId);
 
   const mergedText = text.trim() || prev?.text_content || "";
-  const ackPending = firstPart || !prev?.flags?.notifiedAlbum;
 
   await writeRow(supabase, {
     id,
@@ -241,79 +239,9 @@ export async function appendMediaGroupPartPersistent(
     user_id: userId,
     text_content: mergedText,
     file_ids: fileIds,
-    flags: { notifiedAlbum: prev?.flags?.notifiedAlbum ?? false },
+    flags: {},
     updated_at: new Date().toISOString(),
   });
-
-  return { firstPart, photoCount: fileIds.length, caption: mergedText, ackPending };
-}
-
-export async function markMediaGroupAckSent(chatId: number, groupId: string): Promise<void> {
-  let supabase: SupabaseClient | null = null;
-  try {
-    supabase = requireServiceSupabase();
-  } catch {
-    supabase = null;
-  }
-  const id = mediaGroupBufferId(chatId, groupId);
-  const prev = await readRow(supabase, id);
-  if (!prev) return;
-  await writeRow(supabase, {
-    ...prev,
-    flags: { ...prev.flags, notifiedAlbum: true },
-    updated_at: prev.updated_at,
-  });
-}
-
-/** Ждём паузу после последнего фото, затем забираем буфер (общий для всех serverless-инстансов). */
-export async function finalizeMediaGroupWhenStable(
-  chatId: number,
-  groupId: string,
-  opts?: { stableMs?: number; maxWaitMs?: number; pollMs?: number },
-): Promise<TelegramBufferRow | null> {
-  const stableMs = opts?.stableMs ?? 1600;
-  const maxWaitMs = opts?.maxWaitMs ?? 9000;
-  const pollMs = opts?.pollMs ?? 350;
-
-  let supabase: SupabaseClient | null = null;
-  try {
-    supabase = requireServiceSupabase();
-  } catch {
-    supabase = null;
-  }
-
-  const id = mediaGroupBufferId(chatId, groupId);
-  const deadline = Date.now() + maxWaitMs;
-  let lastUpdatedAt: string | null = null;
-  let stableSince = 0;
-
-  while (Date.now() < deadline) {
-    const row = await readRow(supabase, id);
-    if (!row || row.file_ids.length === 0) {
-      await sleepMs(pollMs);
-      continue;
-    }
-
-    if (row.updated_at === lastUpdatedAt) {
-      if (stableSince === 0) stableSince = Date.now();
-      else if (Date.now() - stableSince >= stableMs) {
-        const claimed = await claimTelegramBuffer(id, Math.max(0, stableMs - 300));
-        if (claimed) return claimed;
-        // Другой инстанс уже забрал — выходим.
-        if (!(await readRow(supabase, id))) return null;
-        stableSince = 0;
-      }
-    } else {
-      lastUpdatedAt = row.updated_at;
-      stableSince = 0;
-    }
-
-    await sleepMs(pollMs);
-  }
-
-  const row = await readRow(supabase, id);
-  if (!row || row.file_ids.length === 0) return null;
-  return claimTelegramBuffer(id, 0);
 }
 
 export function mediaGroupBufferKey(chatId: number, groupId: string): string {
