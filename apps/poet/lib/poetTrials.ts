@@ -289,6 +289,11 @@ function fetchTrialEventsForCourse(supabase: SupabaseClient, courseId: string, s
     .order("starts_at", { ascending: true });
 }
 
+/** Supabase dynamic select — cast через unknown, иначе TS видит GenericStringError[]. */
+function asEventRows(data: unknown): Record<string, unknown>[] {
+  return (data ?? []) as unknown as Record<string, unknown>[];
+}
+
 /** Якщо ще не застосовано SQL з poet_course_id / event_language — каскад fallback, але завжди з image_url. */
 async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
   rows: Record<string, unknown>[];
@@ -300,7 +305,7 @@ async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
   );
 
   if (!full.error) {
-    return { rows: (full.data ?? []) as Record<string, unknown>[], mode: "full" };
+    return { rows: asEventRows(full.data), mode: "full" };
   }
 
   console.warn("[poetTrials] events select (full) failed, trying fallbacks:", full.error.message);
@@ -310,7 +315,7 @@ async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
     `${TRIAL_EVENT_CORE_SELECT}, poet_course_id, ${TRIAL_EVENT_COURSE_EMBED}`,
   );
   if (!withCourseNoLang.error) {
-    const rows = ((withCourseNoLang.data ?? []) as Record<string, unknown>[]).map((r) => ({
+    const rows = (asEventRows(withCourseNoLang.data)).map((r) => ({
       ...r,
       event_language: null,
     }));
@@ -322,7 +327,7 @@ async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
     `${TRIAL_EVENT_CORE_SELECT}, event_language, poet_course_id`,
   );
   if (!noJoinWithLang.error) {
-    return { rows: (noJoinWithLang.data ?? []) as Record<string, unknown>[], mode: "basic" };
+    return { rows: asEventRows(noJoinWithLang.data), mode: "basic" };
   }
 
   const noJoinNoLang = await fetchPublishedTrialEvents(
@@ -330,7 +335,7 @@ async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
     `${TRIAL_EVENT_CORE_SELECT}, poet_course_id`,
   );
   if (!noJoinNoLang.error) {
-    const rows = ((noJoinNoLang.data ?? []) as Record<string, unknown>[]).map((r) => ({
+    const rows = (asEventRows(noJoinNoLang.data)).map((r) => ({
       ...r,
       event_language: null,
     }));
@@ -343,7 +348,7 @@ async function loadPublishedTrialEventRows(supabase: SupabaseClient): Promise<{
     return { rows: [], mode: "basic" };
   }
 
-  const rows = ((coreOnly.data ?? []) as Record<string, unknown>[]).map((r) => ({
+  const rows = (asEventRows(coreOnly.data)).map((r) => ({
     ...r,
     event_language: null,
     poet_course_id: null,
@@ -364,7 +369,7 @@ async function loadPublishedTrialSlotRows(supabase: SupabaseClient): Promise<{
     .order("starts_at", { ascending: true, nullsFirst: false });
 
   if (!full.error) {
-    return { rows: (full.data ?? []) as Record<string, unknown>[], mode: "full" };
+    return { rows: asEventRows(full.data), mode: "full" };
   }
 
   console.warn("[poetTrials] slots select with poet_course failed, fallback:", full.error.message);
@@ -382,7 +387,7 @@ async function loadPublishedTrialSlotRows(supabase: SupabaseClient): Promise<{
     return { rows: [], mode: "basic" };
   }
 
-  return { rows: (basic.data ?? []) as Record<string, unknown>[], mode: "basic" };
+  return { rows: asEventRows(basic.data), mode: "basic" };
 }
 
 /**
@@ -437,7 +442,7 @@ async function loadTrialEventsForCourse(supabase: SupabaseClient, courseId: stri
   );
 
   if (!full.error) {
-    return { rows: (full.data ?? []) as Record<string, unknown>[], mode: "full" };
+    return { rows: asEventRows(full.data), mode: "full" };
   }
 
   console.warn("[poetTrials] events by course (full) failed:", full.error.message);
@@ -448,7 +453,7 @@ async function loadTrialEventsForCourse(supabase: SupabaseClient, courseId: stri
     `${TRIAL_EVENT_CORE_SELECT}, poet_course_id, ${TRIAL_EVENT_COURSE_EMBED}`,
   );
   if (!withCourseNoLang.error) {
-    const rows = ((withCourseNoLang.data ?? []) as Record<string, unknown>[]).map((r) => ({
+    const rows = (asEventRows(withCourseNoLang.data)).map((r) => ({
       ...r,
       event_language: null,
     }));
@@ -461,7 +466,7 @@ async function loadTrialEventsForCourse(supabase: SupabaseClient, courseId: stri
     `${TRIAL_EVENT_CORE_SELECT}, poet_course_id`,
   );
   if (!noJoinNoLang.error) {
-    const rows = ((noJoinNoLang.data ?? []) as Record<string, unknown>[]).map((r) => ({
+    const rows = (asEventRows(noJoinNoLang.data)).map((r) => ({
       ...r,
       event_language: null,
     }));
@@ -470,7 +475,7 @@ async function loadTrialEventsForCourse(supabase: SupabaseClient, courseId: stri
 
   const coreOnly = await fetchTrialEventsForCourse(supabase, courseId, TRIAL_EVENT_CORE_SELECT);
   if (!coreOnly.error) {
-    const rows = ((coreOnly.data ?? []) as Record<string, unknown>[]).map((r) => ({
+    const rows = (asEventRows(coreOnly.data)).map((r) => ({
       ...r,
       event_language: null,
       poet_course_id: courseId,
@@ -496,7 +501,7 @@ async function loadTrialSlotsForCourse(supabase: SupabaseClient, courseId: strin
     .order("starts_at", { ascending: true, nullsFirst: false });
 
   if (!full.error) {
-    return { rows: (full.data ?? []) as Record<string, unknown>[], mode: "full" };
+    return { rows: asEventRows(full.data), mode: "full" };
   }
 
   console.warn("[poetTrials] slots by course (with join) failed, fallback:", full.error.message);
@@ -515,7 +520,7 @@ async function loadTrialSlotsForCourse(supabase: SupabaseClient, courseId: strin
     return { rows: [], mode: "basic" };
   }
 
-  return { rows: (basic.data ?? []) as Record<string, unknown>[], mode: "basic" };
+  return { rows: asEventRows(basic.data), mode: "basic" };
 }
 
 /** Пробні лише для сторінки курсу (подія з `poet_course_id` + legacy slot з `course_id`). */
