@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { buildEventJsonLd } from "@/lib/seo/eventJsonLd";
+import { buildEventItemListJsonLd, buildEventJsonLd } from "@/lib/seo/eventJsonLd";
 
 const baseEvent = {
   title: "Комедийное шоу «Популярные импровизаторы»",
@@ -93,5 +93,35 @@ describe("buildEventJsonLd", () => {
     const geo = location.geo as Record<string, unknown>;
     expect(geo.latitude).toBeTruthy();
     expect(geo.longitude).toBeTruthy();
+  });
+});
+
+describe("buildEventItemListJsonLd", () => {
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_APP_URL = "https://www.populartickets.pl";
+  });
+
+  it("builds ItemList with nested Event items", () => {
+    const ld = buildEventItemListJsonLd(
+      "ru",
+      "Ближайшие события",
+      "https://www.populartickets.pl/ru/probnoe-zanyatie-varshava#afisha",
+      [
+        {
+          event: { ...baseEvent, starts_at: "2026-12-01T18:00:00.000Z" },
+          remaining: 10,
+          soldOut: false,
+          mapsUrl: null,
+        },
+      ],
+    ) as Record<string, unknown>;
+
+    expect(ld?.["@type"]).toBe("ItemList");
+    expect(ld?.numberOfItems).toBe(1);
+    const items = ld?.itemListElement as Array<Record<string, unknown>>;
+    expect(items[0]?.["@type"]).toBe("ListItem");
+    const event = items[0]?.item as Record<string, unknown>;
+    expect(event["@type"]).toBe("Event");
+    expect(event.name).toBe(baseEvent.title);
   });
 });

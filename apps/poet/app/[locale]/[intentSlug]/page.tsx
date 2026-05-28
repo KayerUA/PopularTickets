@@ -11,6 +11,9 @@ import { buildBreadcrumbListJsonLd, buildFaqPageJsonLd, buildWebPageJsonLd } fro
 import { allPoetIntentPages, poetIntentPage } from "@/lib/poetIntentRoutes";
 import { getPoetIntentHubExpansion } from "@/lib/poetIntentHubExpansions";
 import { fetchPoetIntentTicketEvents } from "@/lib/poetIntentEvents";
+import { filterTrialsForIntentCluster } from "@/lib/poetIntentTrialFilter";
+import { fetchPublishedTrials } from "@/lib/poetTrials";
+import { buildPoetTrialItemListJsonLd } from "@/lib/poetTrialJsonLd";
 import { getTicketsSiteBase } from "@/lib/ticketsSite";
 import { formatEventDateTime } from "@/lib/formatEventDateTime";
 
@@ -103,6 +106,19 @@ export default async function PoetIntentPage({ params }: PageProps) {
     ? await fetchPoetIntentTicketEvents(loc, expansion.ticketsCluster, ticketsBase)
     : [];
 
+  const allTrials = expansion ? await fetchPublishedTrials(loc) : [];
+  const intentTrials = expansion ? filterTrialsForIntentCluster(allTrials, expansion.ticketsCluster) : [];
+  const eventsListLd =
+    pageUrl && intentTrials.length
+      ? buildPoetTrialItemListJsonLd({
+          trials: intentTrials,
+          locale: loc,
+          listName: ticketsHeading,
+          listUrl: pageUrl,
+          poetBaseUrl: base ?? undefined,
+        })
+      : null;
+
   const relatedHubs = (expansion?.relatedHubSlugs ?? [])
     .map((hubSlug) => {
       const hub = poetIntentPage(loc, hubSlug);
@@ -114,6 +130,7 @@ export default async function PoetIntentPage({ params }: PageProps) {
     <div className="poet-safe-x mx-auto max-w-5xl pb-12 pt-8 sm:pb-16 sm:pt-12">
       {pageLd ? <PoetJsonLd data={pageLd} /> : null}
       {breadcrumbLd ? <PoetJsonLd data={breadcrumbLd} /> : null}
+      {eventsListLd ? <PoetJsonLd data={eventsListLd} /> : null}
       <PoetJsonLd data={faqLd} />
 
       <nav className="mb-6 text-sm text-zinc-500" aria-label="Breadcrumb">

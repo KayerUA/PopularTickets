@@ -33,6 +33,8 @@ export type PoetTrialDisplay = {
   imageFocalY: number | null;
   eventLanguage: EventLanguage | null;
   status: EventMarketingStatus;
+  totalTickets: number;
+  remainingTickets: number;
 };
 
 type PoetCourseJoin = { id: string; slug: string; title: string; title_pl?: string | null; title_uk?: string | null };
@@ -164,6 +166,8 @@ function mapEventRow(
     eventLanguage:
       r.event_language != null ? normalizeEventLanguage(r.event_language) : mode === "full" ? "ru_uk" : null,
     status,
+    totalTickets,
+    remainingTickets: Math.max(0, totalTickets - soldCount),
   };
 }
 
@@ -203,10 +207,11 @@ function mapSlotRow(
   const body = locale === "pl" ? copy.description || null : normalizeTrialBody(copy.description || null);
   const startsAt = (raw.starts_at as string | null) ?? null;
   const totalTickets = DEFAULT_TRIAL_TOTAL_TICKETS;
+  const remainingTickets = Math.max(0, totalTickets - soldCount);
   const status = startsAt
     ? resolveEventMarketingStatus({
         startsAt,
-        remaining: Math.max(0, totalTickets - soldCount),
+        remaining: remainingTickets,
         totalTickets,
       })
     : null;
@@ -227,6 +232,8 @@ function mapSlotRow(
     imageFocalY: null,
     eventLanguage: "ru_uk",
     status,
+    totalTickets,
+    remainingTickets,
   };
 }
 

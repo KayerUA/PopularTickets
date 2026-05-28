@@ -224,6 +224,53 @@ export function buildEventJsonLd(
   }) as object;
 }
 
+export type EventItemListEntry = {
+  event: EventRow;
+  remaining: number;
+  soldOut: boolean;
+  mapsUrl?: string | null;
+};
+
+/** ItemList из Event для листингов (intent-хабы, афиша). */
+export function buildEventItemListJsonLd(
+  locale: AppLocale,
+  listName: string,
+  listUrl: string | undefined,
+  entries: EventItemListEntry[],
+): object | null {
+  const now = Date.now();
+  const future = entries.filter((entry) => {
+    const ms = new Date(entry.event.starts_at).getTime();
+    return !Number.isNaN(ms) && ms >= now;
+  });
+
+  const itemListElement = future.flatMap((entry, index) => {
+    const event = buildEventJsonLd(entry.event, locale, {
+      remaining: entry.remaining,
+      soldOut: entry.soldOut,
+      mapsUrl: entry.mapsUrl,
+    }) as Record<string, unknown>;
+    return [
+      {
+        "@type": "ListItem",
+        position: index + 1,
+        item: event,
+      },
+    ];
+  });
+
+  if (!itemListElement.length) return null;
+
+  return stripJsonLdEmptyValues({
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: listName,
+    ...(listUrl ? { url: listUrl } : {}),
+    numberOfItems: itemListElement.length,
+    itemListElement,
+  }) as object;
+}
+
 export function buildBreadcrumbListJsonLd(items: { name: string; item: string }[]): object {
   return stripJsonLdEmptyValues({
     "@context": "https://schema.org",

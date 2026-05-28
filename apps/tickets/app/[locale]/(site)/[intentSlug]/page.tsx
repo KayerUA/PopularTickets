@@ -11,7 +11,8 @@ import { routing } from "@/i18n/routing";
 import { buildPublicPageMetadata, canonicalPath } from "@/lib/seo";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { JsonLd } from "@/components/JsonLd";
-import { buildBreadcrumbListJsonLd, buildFaqPageJsonLd } from "@/lib/seo/eventJsonLd";
+import { buildBreadcrumbListJsonLd, buildEventItemListJsonLd, buildFaqPageJsonLd } from "@/lib/seo/eventJsonLd";
+import type { EventItemListEntry } from "@/lib/seo/eventJsonLd";
 import {
   intentClusterForSlug,
   intentListingKindFilter,
@@ -53,6 +54,7 @@ export default async function IntentDiscoverPage({
   const listingFilter = intentListingKindFilter(cluster);
   const supabase = getServiceSupabase();
   let list: EventCardProps[] = [];
+  let jsonLdEntries: EventItemListEntry[] = [];
   if (supabase) {
     let query = supabase
       .from("events")
@@ -115,6 +117,24 @@ export default async function IntentDiscoverPage({
         remaining,
         totalTickets,
       });
+      const soldOut = status === "sold_out" || remaining <= 0;
+      jsonLdEntries.push({
+        event: {
+          title: copy.title,
+          description: copy.description ?? "",
+          venue: ev.venue as string,
+          starts_at: ev.starts_at as string,
+          image_url: (ev.image_url as string | null) ?? null,
+          price_grosze: ev.price_grosze as number,
+          slug: ev.slug as string,
+          listing_kind: (ev as { listing_kind?: string | null }).listing_kind,
+          event_language: (ev as { event_language?: never }).event_language,
+          total_tickets: totalTickets,
+        },
+        remaining,
+        soldOut,
+        mapsUrl: null,
+      });
       return [
         {
           slug: ev.slug as string,
@@ -158,10 +178,17 @@ export default async function IntentDiscoverPage({
   }));
 
   const faqLd = buildFaqPageJsonLd(faqPairs.map((p) => ({ name: p.q, acceptedAnswer: { text: p.a } })));
+  const eventsListLd = buildEventItemListJsonLd(
+    locale,
+    t("eventsSectionLabel"),
+    pageUrl ? `${pageUrl}#afisha` : undefined,
+    jsonLdEntries,
+  );
 
   return (
     <div className="poet-safe-x mx-auto max-w-5xl py-10 sm:py-14">
       {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
+      {eventsListLd ? <JsonLd data={eventsListLd} /> : null}
       {faqLd ? <JsonLd data={faqLd} /> : null}
       <article className="max-w-3xl">
         <h1 className="font-display text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">

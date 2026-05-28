@@ -9,6 +9,8 @@ import { fetchPublishedPoetCourses } from "@/lib/poetCourses";
 import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
 import { buildFaqPageJsonLd, buildPoetOrganizationLocalGraph } from "@/lib/poetJsonLd";
+import { buildPoetTrialItemListJsonLd } from "@/lib/poetTrialJsonLd";
+import { poetCanonicalPath } from "@/lib/seoPoet";
 import type { AppLocale } from "@/i18n/routing";
 
 export const revalidate = 60;
@@ -35,10 +37,21 @@ export default async function HomePage() {
     ] as const
   ).map(([qk, ak]) => ({ name: t(qk), acceptedAnswer: { text: t(ak) } }));
   const faqLd = buildFaqPageJsonLd(faqMainEntity);
+  const scheduleListLd =
+    base && trials.length
+      ? buildPoetTrialItemListJsonLd({
+          trials,
+          locale,
+          listName: t("calendarTitle"),
+          listUrl: `${base}${poetCanonicalPath(locale, "/")}#schedule`,
+          poetBaseUrl: base,
+        })
+      : null;
 
   return (
     <div className="poet-safe-x mx-auto max-w-5xl pb-12 pt-6 sm:pb-16 sm:pt-8">
       {orgLd ? <PoetJsonLd data={orgLd} /> : null}
+      {scheduleListLd ? <PoetJsonLd data={scheduleListLd} /> : null}
       <PoetJsonLd data={faqLd} />
       <div className="relative overflow-hidden rounded-2xl border border-poet-gold/15">
         <Image
