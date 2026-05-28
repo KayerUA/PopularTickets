@@ -67,6 +67,11 @@ export async function middleware(req: NextRequest) {
     return nextWithDefaultLocale(req);
   }
 
+  /** IndexNow key file — не отдавать как `[locale]`. */
+  if (/^\/[a-f0-9]{32}\.txt$/.test(pathname)) {
+    return NextResponse.next();
+  }
+
   /** Канон как у sitemap/SEO: `/ru`, не `/ru/` (снимает дубли в GSC). */
   const localeHomeTrailing = pathname.match(/^\/(pl|uk|ru)\/$/);
   if (localeHomeTrailing) {
