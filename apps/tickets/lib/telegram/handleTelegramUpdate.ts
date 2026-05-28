@@ -17,12 +17,10 @@ import {
 import {
   appendMediaGroupPartPersistent,
   cancelAfishaBuffer,
-  claimTelegramBuffer,
+  claimMediaGroupBufferWithRetry,
   mergeAfishaPartPersistent,
-  MEDIA_GROUP_DEBOUNCE_MS,
-  mediaGroupBufferKey,
+  markMediaGroupAckSent,
   peekAfishaBuffer,
-  sleepMs,
 } from "@/lib/telegram/telegramMessageBuffer";
 import {
   applyClarificationReplyBatch,
@@ -404,6 +402,17 @@ async function appendPhotosToDraft(
   );
 }
 
+async function handleMediaGroupBundle(
+  chatId: number,
+  userId: number,
+  claimed: { file_ids: string[]; text_content: string },
+): Promise<void> {
+  const caption = claimed.text_content.trim();
+  const fileIds = claimed.file_ids;
+  if (fileIds.length === 0) return;
+  await processNewAfisha(chatId, userId, caption, fileIds);
+}
+
 async function handleChatMessage(
   chatId: number,
   userId: number,
@@ -411,25 +420,24 @@ async function handleChatMessage(
   fileIds: string[] = [],
   mediaGroupId?: string,
 ): Promise<void> {
-  const supabase = requireServiceSupabase();
-
   if (mediaGroupId) {
-    await appendMediaGroupPartPersistent(mediaGroupId, chatId, userId, fileIds[0], text);
-    await sleepMs(MEDIA_GROUP_DEBOUNCE_MS);
-    const claimed = await claimTelegramBuffer(
-      mediaGroupBufferKey(chatId, mediaGroupId),
-      MEDIA_GROUP_DEBOUNCE_MS - 400,
-    );
+    const part = await appendMediaGroupPartPersistent(mediaGroupId, chatId, userId, fileIds[0], text);
+    if (part.firstPart) {
+      await cancelAfishaBuffer(chatId);
+    }
+    if (part.ackPending) {
+      await sendTelegramMessage(chatId, "⏳ Собираю альбом…");
+      await markMediaGroupAckSent(chatId, mediaGroupId);
+    }
+
+    const claimed = await claimMediaGroupBufferWithRetry(chatId, mediaGroupId);
     if (claimed) {
-      await withChatLock(chatId, () =>
-        queueAfishaPart(chatId, userId, {
-          fileIds: claimed.file_ids,
-          text: claimed.text_content.trim() || undefined,
-        }),
-      );
+      await withChatLock(chatId, () => handleMediaGroupBundle(chatId, userId, claimed));
     }
     return;
   }
+
+  const supabase = requireServiceSupabase();
 
   const active = await getActiveDraftForChat(supabase, chatId);
 
@@ -727,6 +735,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
   const fileIds = fileId ? [fileId] : [];
 
   if (text === "/start" || text === "/help") {
+    await cancelAfishaBuffer(chatId);
     const broadcastHint = getTelegramBroadcastChatIds().length
       ? "\n\n📢 После публикации — кнопка «В группы» (или авто при TELEGRAM_AUTO_BROADCAST=1).\n/chatid — id чата (добавьте бота в группу как админа, затем id в TELEGRAM_BROADCAST_CHAT_IDS)."
       : "\n\n/chatid — узнать id чата для TELEGRAM_BROADCAST_CHAT_IDS (бот должен быть админом группы).";
