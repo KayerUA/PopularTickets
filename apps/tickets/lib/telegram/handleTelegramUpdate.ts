@@ -36,7 +36,6 @@ import {
   previewNoteFromDraft,
   sortEventsByDate,
   storedImageFileIds,
-  withImageFileIds,
   type ClarificationField,
   type ParsedTelegramEvent,
   type RawParsedEvent,
@@ -393,25 +392,60 @@ async function processPreviewCorrection(
 async function appendPhotosToDraft(
   chatId: number,
   userId: number,
-  fileId: string,
+  fileIds: string[],
 ): Promise<void> {
+  if (!fileIds.length) return;
+
   const supabase = requireServiceSupabase();
   const active = await getActiveDraftForChat(supabase, chatId);
   if (!active || active.telegram_user_id !== userId) return;
 
   const existing = storedImageFileIds(active.parsed, active.image_file_id);
-  if (existing.includes(fileId)) return;
+  const nextIds = [...existing];
+  let added = 0;
+  for (const fileId of fileIds) {
+    if (nextIds.includes(fileId)) continue;
+    nextIds.push(fileId);
+    added += 1;
+  }
+  if (added === 0) return;
 
-  const nextIds = [...existing, fileId];
+  const events = sortEventsByDate(parseStoredEvents(active.parsed));
+  const previewNote = previewNoteFromDraft(active.parsed);
+  const isBatch = events.length > 1;
+
   await saveTelegramDraft(supabase, {
     ...active,
     image_file_id: nextIds[0] ?? active.image_file_id,
-    parsed: withImageFileIds(active.parsed, nextIds),
+    parsed: draftParsedPayload(events, previewNote, isBatch, nextIds),
   });
+
+  if (active.status === "preview") {
+    await showPreview(chatId, active.id, events, nextIds.length, previewNote, isBatch);
+    return;
+  }
+
   await sendTelegramMessage(
     chatId,
-    `🖼 Фото ${nextIds.length} прикреплено к черновику (по порядку на события).`,
+    added === 1
+      ? `🖼 Фото ${nextIds.length} прикреплено к черновику (по порядку на события).`
+      : `🖼 +${added} фото (всего ${nextIds.length}) — по порядку дат на события.`,
   );
+}
+
+async function mergePhotosIntoPreviewDraft(
+  chatId: number,
+  userId: number,
+  fileIds: string[],
+): Promise<boolean> {
+  if (!fileIds.length) return false;
+
+  const supabase = requireServiceSupabase();
+  const active = await getActiveDraftForChat(supabase, chatId);
+  if (!active || active.telegram_user_id !== userId || active.status !== "preview") return false;
+
+  await appendPhotosToDraft(chatId, userId, fileIds);
+  return true;
 }
 
 export type TelegramUpdateHandleResult = {
@@ -431,6 +465,13 @@ async function startMultiPhotoAfisha(
   ctx?: HandleChatContext,
 ): Promise<void> {
   const supabase = requireServiceSupabase();
+
+  const mergedIntoPreview = await mergePhotosIntoPreviewDraft(chatId, userId, fileIds);
+  if (mergedIntoPreview) {
+    await cancelAfishaBuffer(chatId);
+    return;
+  }
+
   await cancelActiveDraftForChat(supabase, chatId);
   await cancelAfishaBuffer(chatId);
   await sendTelegramMessage(chatId, "⏳ Разбираю афишу (Gemini)…");
@@ -494,9 +535,7 @@ async function handleChatMessage(
   }
 
   if (fileIds.length > 0 && !text.trim() && active && active.telegram_user_id === userId) {
-    for (const id of fileIds) {
-      await appendPhotosToDraft(chatId, userId, id);
-    }
+    await appendPhotosToDraft(chatId, userId, fileIds);
     return;
   }
 

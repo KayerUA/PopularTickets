@@ -157,5 +157,20 @@
     "footerCompanyLink": "Данные продавца и оплата",
     "footerEnvMissing": "Укажите NEXT_PUBLIC_TICKETS_SITE_URL, чтобы показать ссылку на билеты.",
     "footerTagline": "Польша · театр · курсы · билеты онлайн"
+  },
+  "EventCard": {
+    "buyTicket": "Купить билет",
+    "buyTrial": "Бронирую место",
+    "languageLabel": "Язык",
+    "ctaPast": "Подробнее",
+    "ctaSoldOut": "Мест нет"
+  },
+  "EventStatus": {
+    "past": "Прошло",
+    "sold_out": "Распродано",
+    "last_tickets": "Последние места",
+    "starting_soon_show": "На этой неделе",
+    "starting_soon_trial": "Скоро старт",
+    "this_week": "На этой неделе"
   }
 }

@@ -157,5 +157,20 @@
     "footerCompanyLink": "Dane sprzedawcy i płatności",
     "footerEnvMissing": "Ustaw NEXT_PUBLIC_TICKETS_SITE_URL, aby pokazać link do biletów.",
     "footerTagline": "Polska · teatr · kursy · bilety online"
+  },
+  "EventCard": {
+    "buyTicket": "Kup bilet",
+    "buyTrial": "Rezerwuję miejsce",
+    "languageLabel": "Język",
+    "ctaPast": "Szczegóły",
+    "ctaSoldOut": "Brak miejsc"
+  },
+  "EventStatus": {
+    "past": "Minęło",
+    "sold_out": "Wyprzedane",
+    "last_tickets": "Ostatnie miejsca",
+    "starting_soon_show": "W tym tygodniu",
+    "starting_soon_trial": "Wkrótce start",
+    "this_week": "W tym tygodniu"
   }
 }

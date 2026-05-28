@@ -157,5 +157,20 @@
     "footerCompanyLink": "Дані продавця й оплата",
     "footerEnvMissing": "Задайте NEXT_PUBLIC_TICKETS_SITE_URL, щоб показати посилання на квитки.",
     "footerTagline": "Польща · театр · курси · квитки онлайн"
+  },
+  "EventCard": {
+    "buyTicket": "Купити квиток",
+    "buyTrial": "Бронюю місце",
+    "languageLabel": "Мова",
+    "ctaPast": "Детальніше",
+    "ctaSoldOut": "Місць немає"
+  },
+  "EventStatus": {
+    "past": "Минуло",
+    "sold_out": "Розпродано",
+    "last_tickets": "Останні місця",
+    "starting_soon_show": "Цього тижня",
+    "starting_soon_trial": "Скоро старт",
+    "this_week": "Цього тижня"
   }
 }

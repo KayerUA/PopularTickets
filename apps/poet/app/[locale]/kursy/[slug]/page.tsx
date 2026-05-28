@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { fetchPublishedPoetCourseBySlug } from "@/lib/poetCourses";
 import { fetchPublishedTrials, fetchTrialsForCourse, filterTrialsByCourseSlug, type PoetTrialDisplay } from "@/lib/poetTrials";
-import { getTicketsSiteBase, ticketsEventPage, ticketsHome } from "@/lib/ticketsSite";
+import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
 import { resolveCourseCopy, resolveCourseTag } from "@/lib/contentI18n";
 import { buildPoetPageMetadata, poetCanonicalPath } from "@/lib/seoPoet";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
@@ -15,7 +15,7 @@ import {
   resolveCourseHeroPath,
   staticCourseKeys,
 } from "@/lib/poetStaticCourses";
-import { formatPoetTrialWhen } from "@/lib/formatPoetTrialDate";
+import { PoetTrialEventsGrid } from "@/components/PoetTrialEventsGrid";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { PoetJsonLd } from "@/components/PoetJsonLd";
 import { buildBreadcrumbListJsonLd, buildCourseJsonLd } from "@/lib/poetJsonLd";
@@ -234,33 +234,9 @@ export default async function PoetCoursePage({ params }: PageProps) {
             </div>
           </div>
         ) : (
-          <ul className="mt-6 grid gap-4 sm:grid-cols-2">
-            {trials.map((slot) => {
-              const when = formatPoetTrialWhen(slot.starts_at, locale as AppLocale);
-              return (
-                <li
-                  key={slot.id}
-                  className="flex flex-col rounded-2xl border border-poet-gold/25 bg-gradient-to-b from-zinc-900/50 to-poet-surface/30 p-5 shadow-gold-sm backdrop-blur-sm"
-                >
-                  <div className="flex flex-1 flex-col gap-2">
-                    <h3 className="font-display text-lg font-medium text-zinc-100">{slot.title}</h3>
-                    {when ? <p className="text-xs font-medium text-emerald-300/90">{when}</p> : null}
-                    {slot.body ? <p className="text-sm leading-relaxed text-zinc-500">{slot.body}</p> : null}
-                  </div>
-                  {tickets ? (
-                    <a
-                      href={ticketsEventPage(locale as AppLocale, slot.slug)}
-                      className="btn-poet-theatre btn-poet mt-5 inline-flex w-full justify-center no-underline sm:w-auto"
-                    >
-                      {t("trialBuyCta")}
-                    </a>
-                  ) : (
-                    <span className="mt-5 text-xs text-amber-200/80">{t("envMissing")}</span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+          <div className="mt-6">
+            <PoetTrialEventsGrid locale={locale as AppLocale} trials={trials} />
+          </div>
         )}
       </section>
     </div>
