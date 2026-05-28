@@ -154,7 +154,12 @@ export default async function PoetIntentPage({ params }: PageProps) {
         <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight text-gradient-gold sm:text-5xl">
           {page.h1}
         </h1>
-        <p className="mt-5 text-base leading-relaxed text-zinc-300 sm:text-lg">{page.lead}</p>
+        {page.answerLead ? (
+          <p className="mt-5 text-base font-semibold leading-relaxed text-zinc-100 sm:text-lg">{page.answerLead}</p>
+        ) : null}
+        <p className={`${page.answerLead ? "mt-3" : "mt-5"} text-base leading-relaxed text-zinc-300 sm:text-lg`}>
+          {page.lead}
+        </p>
         <div className="mt-7 flex flex-wrap gap-3">
           <Link href={page.courseHref} className="btn-poet-theatre btn-poet inline-flex no-underline">
             {page.courseCta}

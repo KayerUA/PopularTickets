@@ -194,15 +194,12 @@ export default async function IntentDiscoverPage({
         <h1 className="font-display text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
           <span className="text-gradient-gold">{t(`${cluster}H1`)}</span>
         </h1>
-        <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-zinc-300">{t(`${cluster}Intro`)}</p>
+        <p className="mt-4 text-base font-semibold leading-relaxed text-zinc-100">{t(`${cluster}Answer`)}</p>
+        <p className="mt-3 whitespace-pre-line text-base leading-relaxed text-zinc-300">{t(`${cluster}Intro`)}</p>
       </article>
-      <section className="mt-10 scroll-mt-24 space-y-6" id="afisha">
-        <p className="text-[11px] font-mono uppercase tracking-[0.4em] text-zinc-500">{t("eventsSectionLabel")}</p>
-        {list.length ? <HomeEventsGrid events={list} /> : <p className="text-zinc-500">{t("eventsEmpty")}</p>}
-      </section>
 
       {faqPairs.length ? (
-        <section className="mt-12 max-w-3xl" aria-labelledby="intent-faq-heading">
+        <section className="mt-10 max-w-3xl" aria-labelledby="intent-faq-heading">
           <h2 id="intent-faq-heading" className="font-display text-lg font-medium text-zinc-100 sm:text-xl">
             {t("faqTitle")}
           </h2>
@@ -216,6 +213,11 @@ export default async function IntentDiscoverPage({
           </dl>
         </section>
       ) : null}
+
+      <section className="mt-10 scroll-mt-24 space-y-6" id="afisha">
+        <p className="text-[11px] font-mono uppercase tracking-[0.4em] text-zinc-500">{t("eventsSectionLabel")}</p>
+        {list.length ? <HomeEventsGrid events={list} /> : <p className="text-zinc-500">{t("eventsEmpty")}</p>}
+      </section>
     </div>
   );
 }

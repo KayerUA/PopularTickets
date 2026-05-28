@@ -39,6 +39,11 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url, 308);
   }
 
+  /** IndexNow key file — не отдавать как `[locale]`. */
+  if (/^\/[a-f0-9]{32}\.txt$/.test(pathname)) {
+    return NextResponse.next();
+  }
+
   const kursyLegacy = pathname.match(/^\/(pl|uk|ru)\/kursy\/([^/]+)\/?$/);
   if (kursyLegacy) {
     const [, loc, rawSlug] = kursyLegacy;
@@ -54,5 +59,11 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/(pl|uk|ru)/:path*", "/((?!_next|_vercel|.*\\..*).*)"],
+  matcher: [
+    "/",
+    "/(pl|uk|ru)/:path*",
+    "/((?!_next|_vercel|.*\\..*).*)",
+    /** IndexNow key file — middleware matcher по умолчанию исключает пути с точкой. */
+    "/:key([a-f0-9]{32}).txt",
+  ],
 };

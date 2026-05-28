@@ -16,7 +16,15 @@ function supabaseStorageImageHost(): string | undefined {
 const storageHost = supabaseStorageImageHost();
 const imageHosts = [...new Set([storageHost, "pynbtuvhrratjqlweyas.supabase.co"].filter(Boolean) as string[])];
 
+/** IndexNow key file — runtime-проверка в /api/indexnow/[key]; rewrite не зависит от env на build. */
+function indexNowRewrites(): { source: string; destination: string }[] {
+  return [{ source: "/:key([a-f0-9]{32}).txt", destination: "/api/indexnow/:key" }];
+}
+
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return indexNowRewrites();
+  },
   images: {
     remotePatterns: imageHosts.map((hostname) => ({
       protocol: "https",

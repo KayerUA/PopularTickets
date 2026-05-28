@@ -5,7 +5,7 @@ export const PL_KURS_AKTORSKI_WARSZAWA: PoetIntentHubExpansion = {
   relatedHubSlugs: ["improwizacja-kurs-warszawa", "probnie-zajecia-warszawa", "warsztaty-aktorskie-warszawa"],
   sections: [
     {
-      heading: "Kurs aktorski Popular Poet w Warszawie",
+      heading: "Gdzie odbywa się kurs aktorski Popular Poet w Warszawie?",
       paragraphs: [
         "Popular Poet to przestrzeń sceniczna przy ul. Domaniewska 37 dla osób rosyjsko- i ukraińskojęzycznych w Warszawie. Kurs aktorski to praktyka: głos, ciało, emocje, tekst, partner i scena — bez wieloletniej akademii.",
         "Polska wersja strony pomaga znaleźć informacje w Google; zajęcia odbywają się w języku wskazanym przy terminie — najczęściej po rosyjsku lub ukraińsku, nie po polsku.",
@@ -14,7 +14,7 @@ export const PL_KURS_AKTORSKI_WARSZAWA: PoetIntentHubExpansion = {
       ],
     },
     {
-      heading: "Dla kogo jest ten kurs",
+      heading: "Dla kogo jest ten kurs?",
       paragraphs: [
         "Dla osób bez doświadczenia scenicznego, które chcą spróbować. Dla tych, którzy wracają do teatru po przerwie.",
         "Dla osób pracujących — wieczorne lub weekendowe terminy. Dla tych, którzy szukają kontaktu z ludźmi poza biurem.",
@@ -23,7 +23,7 @@ export const PL_KURS_AKTORSKI_WARSZAWA: PoetIntentHubExpansion = {
       ],
     },
     {
-      heading: "Program zajęć",
+      heading: "Co obejmuje program zajęć?",
       paragraphs: [
         "Rozgrzewka, praca z głosem i oddechem, ćwiczenia ruchowe, etiudy partnerskie, krótkie sceny, omówienie.",
         "Emocja bez przesady — szukamy prawdy, nie melodramatu. Tekst — monolog i dialog jako żywa mowa.",
@@ -32,7 +32,7 @@ export const PL_KURS_AKTORSKI_WARSZAWA: PoetIntentHubExpansion = {
       ],
     },
     {
-      heading: "Strach przed sceną",
+      heading: "Jak radzić sobie ze strachem przed sceną?",
       paragraphs: [
         "To normalne. Na pierwszych zajęciach wielu się stresuje — dlatego zaczynamy od krótkich ćwiczeń i jasnych zasad.",
         "Introwertycy mogą obserwować i wchodzić stopniowo. Ekstrawertycy uczą się słuchać partnera.",
@@ -41,7 +41,7 @@ export const PL_KURS_AKTORSKI_WARSZAWA: PoetIntentHubExpansion = {
       ],
     },
     {
-      heading: "Pedagogowie i sala",
+      heading: "Kim są pedagodzy i jaka jest sala?",
       paragraphs: [
         "Pedagogowie to praktycy Popular Poet — występują w show i spektaklach. Nie tylko „wykładowcy”.",
         "Sala kameralna — bliskość, kontakt wzrokowy, brak ogromnej przepaści między sceną a widownią.",
@@ -50,7 +50,7 @@ export const PL_KURS_AKTORSKI_WARSZAWA: PoetIntentHubExpansion = {
       ],
     },
     {
-      heading: "Zapisy i bilety",
+      heading: "Jak się zapisać i kupić bilety?",
       paragraphs: [
         "Program kursu aktorskiego — w sekcji „Kursy” na stronie Popular Poet. Terminy — w kalendarzu na stronie głównej.",
         "Zajęcia próbne — w bloku wydarzeń poniżej lub na osobnej stronie o zajęciach próbnych.",

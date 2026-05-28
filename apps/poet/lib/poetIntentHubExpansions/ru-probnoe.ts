@@ -5,7 +5,7 @@ export const RU_PROBNOE_ZANYATIE: PoetIntentHubExpansion = {
   relatedHubSlugs: ["akterskie-kursy-varshava", "improvizatsiya-varshava", "kurs-dlya-nachinayushchih-varshava"],
   sections: [
     {
-      heading: "Пробное занятие в Popular Poet",
+      heading: "Что такое пробное занятие в Popular Poet?",
       paragraphs: [
         "Пробное (вводное) занятие — способ познакомиться со студией без подписки на полный курс. Одна встреча с группой, педагогом и форматом: актёрское мастерство, импровизация или смежное направление.",
         "Занятия проходят в зале на ul. Domaniewska 37, Warszawa. Язык указан у даты — русский, украинский или смешанный RU/UK.",
@@ -14,7 +14,7 @@ export const RU_PROBNOE_ZANYATIE: PoetIntentHubExpansion = {
       ],
     },
     {
-      heading: "Для кого пробный формат",
+      heading: "Для кого подходит пробный формат?",
       paragraphs: [
         "Для полных новичков: «хочу попробовать, но не уверен(а)». Для тех, кто давно не был на сцене.",
         "Для родителей и занятых людей — одна дата без долгих обязательств.",
@@ -23,7 +23,7 @@ export const RU_PROBNOE_ZANYATIE: PoetIntentHubExpansion = {
       ],
     },
     {
-      heading: "Что будет на занятии",
+      heading: "Что будет на занятии?",
       paragraphs: [
         "Знакомство, разминка, 2–3 упражнения, короткая сцена или импровизационная игра, ответы на вопросы. Без «экзамена» и без обязательства продолжать.",
         "Педагог объясняет правила безопасности группы: уважение, конфиденциальность, право не выходить в центр.",
@@ -32,7 +32,7 @@ export const RU_PROBNOE_ZANYATIE: PoetIntentHubExpansion = {
       ],
     },
     {
-      heading: "Страх и «я не справлюсь»",
+      heading: "Что делать, если страшно или «я не справлюсь»?",
       paragraphs: [
         "На пробном половина людей волнуется — это норма. Формат как раз для того, чтобы проверить, ваш ли это страх или ваш ли это кайф.",
         "Можно много наблюдать и мало играть — педагог не заставляет.",
@@ -41,7 +41,7 @@ export const RU_PROBNOE_ZANYATIE: PoetIntentHubExpansion = {
       ],
     },
     {
-      heading: "Как записаться и что дальше",
+      heading: "Как записаться и что дальше?",
       paragraphs: [
         "Актуальные даты — в блоке «Ближайшие события на PopularTickets» ниже и в календаре на главной.",
         "Подробности актёрского курса и импровизации — в разделе «Курсы». Для начинающих есть отдельная страница с подсказками по выбору формата.",
@@ -50,7 +50,7 @@ export const RU_PROBNOE_ZANYATIE: PoetIntentHubExpansion = {
       ],
     },
     {
-      heading: "Площадка и логистика",
+      heading: "Где проходит занятие и как добраться?",
       paragraphs: [
         "Адрес: Warszawa, ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42.",
         "Карта Google — в футере popularpoet.pl и в контактах на PopularTickets.",

@@ -96,5 +96,11 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/(pl|uk|ru)/:path*", "/((?!_next|_vercel|.*\\..*).*)"],
+  matcher: [
+    "/",
+    "/(pl|uk|ru)/:path*",
+    "/((?!_next|_vercel|.*\\..*).*)",
+    /** IndexNow key file — middleware matcher по умолчанию исключает пути с точкой. */
+    "/:key([a-f0-9]{32}).txt",
+  ],
 };

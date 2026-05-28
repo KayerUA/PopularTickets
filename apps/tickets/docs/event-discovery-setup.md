@@ -90,7 +90,32 @@ INDEXNOW_KEY=<openssl rand -hex 16>
 INDEXNOW_HOST=www.populartickets.pl
 ```
 
-Проверка: `https://www.populartickets.pl/<KEY>.txt`
+Один и тот же `INDEXNOW_KEY` задайте в Vercel **обоих** проектов (tickets + poet).
+
+Проверка key file:
+- `https://www.populartickets.pl/<KEY>.txt`
+- `https://www.popularpoet.pl/<KEY>.txt`
+
+Пинг sitemap обоих доменов после деплоя:
+
+```bash
+node scripts/indexnow-ping-sitemap.mjs --all
+```
+
+## Bing Webmaster Tools (ручной шаг)
+
+После деплоя robots/IndexNow/SRO:
+
+1. Зарегистрируйте [Bing Webmaster Tools](https://www.bing.com/webmasters) для обоих доменов:
+   - `https://www.populartickets.pl`
+   - `https://www.popularpoet.pl`
+2. Импорт из Google Search Console (если доступно) или DNS/HTML-верификация.
+3. Отправьте sitemap:
+   - `https://www.populartickets.pl/sitemap.xml`
+   - `https://www.popularpoet.pl/sitemap.xml`
+4. Убедитесь, что `INDEXNOW_KEY` в Vercel совпадает с локальным `.env` на обоих проектах.
+
+Bing использует IndexNow для быстрой индексации — пинг `--all` после каждого крупного обновления контента.
 
 ## Админка vs бот
 
