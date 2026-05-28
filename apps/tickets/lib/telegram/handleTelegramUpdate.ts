@@ -17,7 +17,7 @@ import {
 import {
   appendMediaGroupPartPersistent,
   cancelAfishaBuffer,
-  claimMediaGroupBufferWithRetry,
+  finalizeMediaGroupWhenStable,
   mergeAfishaPartPersistent,
   markMediaGroupAckSent,
   peekAfishaBuffer,
@@ -421,18 +421,40 @@ async function handleChatMessage(
   mediaGroupId?: string,
 ): Promise<void> {
   if (mediaGroupId) {
-    const part = await appendMediaGroupPartPersistent(mediaGroupId, chatId, userId, fileIds[0], text);
-    if (part.firstPart) {
-      await cancelAfishaBuffer(chatId);
-    }
-    if (part.ackPending) {
-      await sendTelegramMessage(chatId, "⏳ Собираю альбом…");
-      await markMediaGroupAckSent(chatId, mediaGroupId);
-    }
+    try {
+      try {
+        requireServiceSupabase();
+      } catch {
+        await sendTelegramMessage(
+          chatId,
+          "⚠️ Supabase не настроен на сервере — альбомы не собираются. Проверьте NEXT_PUBLIC_SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY на Vercel + SQL telegram_message_buffers.",
+        );
+        return;
+      }
 
-    const claimed = await claimMediaGroupBufferWithRetry(chatId, mediaGroupId);
-    if (claimed) {
+      const part = await appendMediaGroupPartPersistent(mediaGroupId, chatId, userId, fileIds[0], text);
+      if (part.firstPart) {
+        await cancelAfishaBuffer(chatId);
+      }
+      if (part.ackPending) {
+        await sendTelegramMessage(chatId, "⏳ Собираю альбом…");
+        await markMediaGroupAckSent(chatId, mediaGroupId);
+      }
+
+      const claimed = await finalizeMediaGroupWhenStable(chatId, mediaGroupId);
+      if (!claimed) {
+        await sendTelegramMessage(
+          chatId,
+          "⚠️ Не удалось собрать альбом (таймаут). Перешлите афишу ещё раз — можно одним фото или текстом.",
+        );
+        return;
+      }
+
       await withChatLock(chatId, () => handleMediaGroupBundle(chatId, userId, claimed));
+    } catch (e) {
+      const err = e instanceof Error ? e.message : "unknown error";
+      console.error("[telegram bot] media_group", e);
+      await sendTelegramMessage(chatId, `❌ Ошибка альбома:\n${err}`);
     }
     return;
   }

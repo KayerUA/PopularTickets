@@ -47,16 +47,22 @@ function normalizeRow(raw: Record<string, unknown>): TelegramBufferRow {
 }
 
 async function readRow(supabase: SupabaseClient | null, id: string): Promise<TelegramBufferRow | null> {
-  const mem = memStore().get(id);
-  if (mem) return mem;
-
-  if (!supabase) return null;
-  const { data, error } = await supabase.from(TABLE).select("*").eq("id", id).maybeSingle();
-  if (error) {
-    if (isMissingTableError(error.message)) return memStore().get(id) ?? null;
-    throw new Error(error.message);
+  if (supabase) {
+    const { data, error } = await supabase.from(TABLE).select("*").eq("id", id).maybeSingle();
+    if (error) {
+      if (isMissingTableError(error.message)) return memStore().get(id) ?? null;
+      throw new Error(error.message);
+    }
+    if (data) {
+      const row = normalizeRow(data as Record<string, unknown>);
+      memStore().set(id, row);
+      return row;
+    }
+    memStore().delete(id);
+    return null;
   }
-  return data ? normalizeRow(data as Record<string, unknown>) : null;
+
+  return memStore().get(id) ?? null;
 }
 
 async function writeRow(supabase: SupabaseClient | null, row: TelegramBufferRow): Promise<void> {
@@ -259,18 +265,55 @@ export async function markMediaGroupAckSent(chatId: number, groupId: string): Pr
   });
 }
 
-/** Debounce + retry: на serverless только один инстанс успевает claim. */
-export async function claimMediaGroupBufferWithRetry(
+/** Ждём паузу после последнего фото, затем забираем буфер (общий для всех serverless-инстансов). */
+export async function finalizeMediaGroupWhenStable(
   chatId: number,
   groupId: string,
+  opts?: { stableMs?: number; maxWaitMs?: number; pollMs?: number },
 ): Promise<TelegramBufferRow | null> {
-  await sleepMs(MEDIA_GROUP_DEBOUNCE_MS);
-  const key = mediaGroupBufferKey(chatId, groupId);
-  let claimed = await claimTelegramBuffer(key, MEDIA_GROUP_DEBOUNCE_MS - 400);
-  if (claimed) return claimed;
-  await sleepMs(1800);
-  claimed = await claimTelegramBuffer(key, 1200);
-  return claimed;
+  const stableMs = opts?.stableMs ?? 1600;
+  const maxWaitMs = opts?.maxWaitMs ?? 9000;
+  const pollMs = opts?.pollMs ?? 350;
+
+  let supabase: SupabaseClient | null = null;
+  try {
+    supabase = requireServiceSupabase();
+  } catch {
+    supabase = null;
+  }
+
+  const id = mediaGroupBufferId(chatId, groupId);
+  const deadline = Date.now() + maxWaitMs;
+  let lastUpdatedAt: string | null = null;
+  let stableSince = 0;
+
+  while (Date.now() < deadline) {
+    const row = await readRow(supabase, id);
+    if (!row || row.file_ids.length === 0) {
+      await sleepMs(pollMs);
+      continue;
+    }
+
+    if (row.updated_at === lastUpdatedAt) {
+      if (stableSince === 0) stableSince = Date.now();
+      else if (Date.now() - stableSince >= stableMs) {
+        const claimed = await claimTelegramBuffer(id, Math.max(0, stableMs - 300));
+        if (claimed) return claimed;
+        // Другой инстанс уже забрал — выходим.
+        if (!(await readRow(supabase, id))) return null;
+        stableSince = 0;
+      }
+    } else {
+      lastUpdatedAt = row.updated_at;
+      stableSince = 0;
+    }
+
+    await sleepMs(pollMs);
+  }
+
+  const row = await readRow(supabase, id);
+  if (!row || row.file_ids.length === 0) return null;
+  return claimTelegramBuffer(id, 0);
 }
 
 export function mediaGroupBufferKey(chatId: number, groupId: string): string {

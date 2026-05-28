@@ -42,9 +42,14 @@ export async function POST(req: NextRequest, context: RouteContext): Promise<Nex
     console.error("[telegram webhook]", e);
   });
 
-  // Telegram ждёт 200 за ~10 с; Gemini/альбом — в фоне (waitUntil держит lambda на Vercel).
+  const isMediaAlbum = Boolean(update.message?.media_group_id);
+
+  // Альбом: debounce до ~9 с — ждём в запросе, иначе waitUntil на Vercel часто обрывается до claim.
   if (process.env.NODE_ENV === "development") {
     await work;
+  } else if (isMediaAlbum) {
+    await Promise.race([work, new Promise((r) => setTimeout(r, 9500))]);
+    waitUntil(work);
   } else {
     waitUntil(work);
   }
