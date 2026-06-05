@@ -12,9 +12,13 @@ export function formatDiscoveryStatusForTelegram(result: EventDiscoveryResult | 
       lines.push(`   ${result.gbpSearchUrl}`);
     }
   } else if (result.gbp === "failed") {
-    lines.push(`⚠️ Google Business: ${result.gbpError ?? "ошибка"}`);
+    lines.push(`⚠️ Google Business API: ${result.gbpError ?? "ошибка"}`);
+    if (result.gbpManual) lines.push("   → ниже отдельное сообщение для ручного поста");
   } else if (result.gbpError === "not_configured") {
-    lines.push("ℹ️ Google Business: не настроен (GOOGLE_GBP_* в Vercel)");
+    lines.push("ℹ️ Google Business API: не настроен / quota 0");
+    if (result.gbpManual) lines.push("   → ниже отдельное сообщение для ручного поста");
+  } else if (result.gbp === "skipped" && result.gbpManual) {
+    lines.push("ℹ️ Google Business: вручную (см. сообщение ниже)");
   }
 
   if (result.indexNow === "ok") {

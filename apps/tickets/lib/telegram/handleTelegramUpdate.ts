@@ -5,6 +5,7 @@ import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { EVENT_ADMIN_TIMEZONE } from "@/lib/warsawEventDatetime";
 import { getTelegramAdminUserIds, getTelegramBroadcastChatIds, isTelegramAutoBroadcast } from "@/lib/telegram/config";
 import { formatDiscoveryStatusForTelegram } from "@/lib/eventDiscovery/formatDiscoveryStatus";
+import { formatGbpManualTelegramMessage } from "@/lib/googleBusinessProfile/gbpManualFallback";
 import type { EventDiscoveryResult } from "@/lib/eventDiscovery/notifyEventPublished";
 import { createEventFromParsed } from "@/lib/telegram/createEventDraft";
 import {
@@ -650,6 +651,13 @@ async function publishDraft(
       startsAtIso: event.startsAtIso,
       discovery: event.discovery,
     });
+  }
+
+  for (const item of published) {
+    const manual = item.discovery?.gbpManual;
+    if (manual && item.discovery?.gbp !== "created") {
+      await sendTelegramMessage(chatId, formatGbpManualTelegramMessage(manual));
+    }
   }
 
   await updateTelegramDraftStatus(

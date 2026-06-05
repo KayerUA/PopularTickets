@@ -4,6 +4,11 @@ import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { resolveAbsoluteAssetUrl } from "@/lib/safePublicUrl";
 import { createGoogleBusinessProfileEventPost } from "@/lib/googleBusinessProfile/createEventPost";
 import { isGoogleGbpConfigured } from "@/lib/googleBusinessProfile/config";
+import {
+  buildGbpManualPost,
+  isGbpManualFallbackEnabled,
+  type GbpManualPost,
+} from "@/lib/googleBusinessProfile/gbpManualFallback";
 
 export type EventDiscoveryPayload = {
   slug: string;
@@ -25,6 +30,8 @@ export type EventDiscoveryResult = {
   gbp: "created" | "skipped" | "failed";
   gbpSearchUrl?: string;
   gbpError?: string;
+  /** Текст для ручного поста в GBP, если API недоступен. */
+  gbpManual?: GbpManualPost;
 };
 
 function absoluteEventUrls(slug: string): string[] {
@@ -138,7 +145,23 @@ export async function runEventDiscovery(
     postDiscoveryWebhook(payload, urls),
   ]);
 
-  return { indexNow, ...gbpPart };
+  const result: EventDiscoveryResult = { indexNow, ...gbpPart };
+
+  if (result.gbp !== "created" && isGbpManualFallbackEnabled()) {
+    const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "";
+    const imageAbs = resolveAbsoluteAssetUrl(payload.image_url, base);
+    result.gbpManual = buildGbpManualPost({
+      title: payload.title,
+      description: payload.description,
+      startsAtIso: payload.starts_at,
+      ticketUrl,
+      imageUrl: imageAbs,
+      venue: payload.venue,
+      pricePln: payload.price_grosze / 100,
+    });
+  }
+
+  return result;
 }
 
 /** @deprecated alias */
