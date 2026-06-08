@@ -22,6 +22,7 @@ import { routing, type AppLocale } from "@/i18n/routing";
 import { requirePublicAppUrlForP24 } from "@/lib/publicAppUrl";
 import { buildCheckoutReturnPath } from "@/lib/orderReceiptToken";
 import { allowsPublicEventByVisibility } from "@/lib/contentVisibility";
+import { effectiveEventPriceGrosze } from "@/lib/eventPrice";
 
 function p24UiLanguage(locale: AppLocale): string {
   if (locale === "pl") return "pl";
@@ -79,7 +80,7 @@ export async function createPendingOrder(
   const supabase = requireServiceSupabase();
   const { data: event, error: evErr } = await supabase
     .from("events")
-    .select("id,slug,price_grosze,total_tickets,visibility,starts_at")
+    .select("id,slug,price_grosze,day_of_event_price_grosze,total_tickets,visibility,starts_at")
     .eq("slug", eventSlug)
     .maybeSingle();
 
@@ -105,7 +106,11 @@ export async function createPendingOrder(
   }
 
   const orderId = crypto.randomUUID();
-  const amountGrosze = event.price_grosze * quantity;
+  const amountGrosze = effectiveEventPriceGrosze({
+    starts_at: event.starts_at as string,
+    price_grosze: event.price_grosze as number,
+    day_of_event_price_grosze: event.day_of_event_price_grosze as number | null,
+  }) * quantity;
 
   const marketingEmailOptIn = formData.get("marketingEmailOptIn") === "on";
 

@@ -166,6 +166,11 @@ export default async function EventPage({
 
   const soldOut = remaining <= 0 || marketingStatus === "sold_out";
   const ticketVat = splitTheatreTicketGrossGrosze(event.price_grosze);
+  const hasDayOfEventIncrease =
+    typeof event.day_of_event_price_grosze === "number" &&
+    event.day_of_event_price_grosze > event.regular_price_grosze;
+  const isEventDayPrice =
+    hasDayOfEventIncrease && event.price_grosze === event.day_of_event_price_grosze;
   const isTrialEvent = listingKind === "trial";
   const eventLanguage = normalizeEventLanguage(event.event_language);
   const poetLessonsUrl = `${POPULAR_POET_SITE_URL.replace(/\/+$/, "")}/${locale}#schedule`;
@@ -351,6 +356,13 @@ export default async function EventPage({
             <div className="min-w-0 sm:max-w-md">
               <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{t("priceLabel")}</p>
               <p className="text-xl font-semibold text-poet-gold-bright">{formatPlnFromGrosze(event.price_grosze)}</p>
+              {hasDayOfEventIncrease ? (
+                <p className="mt-1 max-w-sm text-xs leading-relaxed text-poet-gold/85">
+                  {isEventDayPrice
+                    ? t("eventDayPriceActive")
+                    : t("bookEarlyPrice", { price: formatPlnFromGrosze(event.day_of_event_price_grosze!) })}
+                </p>
+              ) : null}
               <details className="mt-2 group">
                 <summary className="cursor-pointer list-none text-xs font-medium text-poet-gold/85 marker:hidden [&::-webkit-details-marker]:hidden">
                   <span className="underline decoration-poet-gold/30 underline-offset-2 group-open:text-poet-gold-bright">

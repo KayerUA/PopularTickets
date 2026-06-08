@@ -2,10 +2,11 @@ import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import { fetchOptionalMapsUrl } from "@/lib/supabase/fetchOptionalMapsUrl";
 import { clampEventImageFocal } from "@/lib/eventCoverFocal";
 import { normalizeEventLanguage, type EventLanguage } from "@/lib/eventLanguage";
+import { effectiveEventPriceGrosze } from "@/lib/eventPrice";
 
 /** Без maps_url — иначе при «schema cache» без колонки падает весь запрос. */
 const EVENT_SELECT_PUBLIC =
-  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,listing_kind,event_language,visibility" as const;
+  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,day_of_event_price_grosze,total_tickets,listing_kind,event_language,visibility" as const;
 
 export type PublishedEventRow = {
   id: string;
@@ -23,6 +24,8 @@ export type PublishedEventRow = {
   venue: string;
   starts_at: string;
   price_grosze: number;
+  regular_price_grosze: number;
+  day_of_event_price_grosze: number | null;
   total_tickets: number;
   /** `performance` — спектакль/шоу; `trial` — пробное / вводное занятие. */
   listing_kind: string | null;
@@ -49,7 +52,7 @@ export async function fetchPublishedEventBySlug(
     main = await supabase
       .from("events")
       .select(
-        "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,total_tickets,listing_kind,visibility"
+        "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,day_of_event_price_grosze,total_tickets,listing_kind,visibility"
       )
       .eq("slug", slug)
       .in("visibility", ["published", "unlisted"])
@@ -100,6 +103,8 @@ export async function fetchPublishedEventBySlug(
   return {
     data: {
       ...row,
+      regular_price_grosze: row.price_grosze,
+      price_grosze: effectiveEventPriceGrosze(row),
       description,
       title_pl,
       description_pl,

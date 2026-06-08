@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { EventCardProps } from "@/components/EventCard";
+import { eventPriceDetails } from "@/lib/eventPrice";
 import type { AppLocale } from "@/i18n/routing";
 import { resolveEventCopy } from "@/lib/contentI18n";
 import {
@@ -10,7 +11,7 @@ import {
 } from "@/lib/eventMarketingStatus";
 
 const EVENT_SELECT =
-  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language" as const;
+  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language" as const;
 
 function improvScore(title: string, description: string): number {
   const text = `${title} ${description}`.toLowerCase();
@@ -47,7 +48,7 @@ export async function fetchRelatedEvents(
     const fallback = await supabase
       .from("events")
       .select(
-        "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind",
+        "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind",
       )
       .eq("visibility", "published")
       .eq("listing_kind", input.listingKind)
@@ -122,12 +123,19 @@ async function buildRelatedCards(
     const totalTickets = ev.total_tickets as number;
     const sold = soldMap.get(ev.id as string) ?? 0;
     const remaining = totalTickets - sold;
+    const pricing = eventPriceDetails({
+      starts_at: ev.starts_at as string,
+      price_grosze: ev.price_grosze as number,
+      day_of_event_price_grosze: ev.day_of_event_price_grosze as number | null,
+    });
     cards.push({
       slug: ev.slug as string,
       title: copy.title,
       venue: ev.venue as string,
       startsAt: ev.starts_at as string,
-      priceGrosze: ev.price_grosze as number,
+      priceGrosze: pricing.effectivePriceGrosze,
+      dayOfEventPriceGrosze: pricing.dayOfEventPriceGrosze,
+      isEventDayPrice: pricing.isEventDay && pricing.hasDayOfEventIncrease,
       imageUrl: (ev.image_url as string | null) ?? null,
       imageFocalX: typeof ev.image_focal_x === "number" ? ev.image_focal_x : null,
       imageFocalY: typeof ev.image_focal_y === "number" ? ev.image_focal_y : null,

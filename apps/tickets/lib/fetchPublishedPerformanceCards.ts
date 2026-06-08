@@ -4,6 +4,7 @@ import type { EventCardProps } from "@/components/EventCard";
 import type { AppLocale } from "@/i18n/routing";
 import { resolveEventCopy } from "@/lib/contentI18n";
 import { resolveEventMarketingStatus, sortEventsForMarketing, normalizeEventListingKind } from "@/lib/eventMarketingStatus";
+import { eventPriceDetails } from "@/lib/eventPrice";
 
 export async function fetchPublishedPerformanceCards(
   supabase: SupabaseClient,
@@ -12,7 +13,7 @@ export async function fetchPublishedPerformanceCards(
   let { data: events, error } = await supabase
     .from("events")
     .select(
-      "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language",
+      "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language",
     )
     .eq("visibility", "published")
     .eq("listing_kind", "performance")
@@ -22,7 +23,7 @@ export async function fetchPublishedPerformanceCards(
     const fallback = await supabase
       .from("events")
       .select(
-        "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind",
+        "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind",
       )
       .eq("visibility", "published")
       .eq("listing_kind", "performance")
@@ -65,13 +66,20 @@ export async function fetchPublishedPerformanceCards(
       remaining,
       totalTickets,
     });
+    const pricing = eventPriceDetails({
+      starts_at: ev.starts_at as string,
+      price_grosze: ev.price_grosze as number,
+      day_of_event_price_grosze: ev.day_of_event_price_grosze as number | null,
+    });
     return [
       {
         slug: ev.slug as string,
         title: copy.title,
         venue: ev.venue as string,
         startsAt: ev.starts_at as string,
-        priceGrosze: ev.price_grosze as number,
+        priceGrosze: pricing.effectivePriceGrosze,
+        dayOfEventPriceGrosze: pricing.dayOfEventPriceGrosze,
+        isEventDayPrice: pricing.isEventDay && pricing.hasDayOfEventIncrease,
         imageUrl: (ev.image_url as string | null) ?? null,
         imageFocalX:
           typeof (ev as { image_focal_x?: unknown }).image_focal_x === "number"

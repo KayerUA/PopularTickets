@@ -35,6 +35,7 @@ export type CreatedEventDraft = {
   title: string;
   startsAtIso: string;
   pricePln: number;
+  dayOfEventPricePln: number | null;
   totalTickets: number;
   venue: string;
   listingKind: "performance" | "trial";
@@ -70,6 +71,10 @@ export async function createEventFromParsed(
   const slug = await allocateUniqueEventSlug(supabase, baseSlug);
   const startsAtIso = parseStartsAtFromAdminForm(parsed.startsAtWarsaw);
   const priceGrosze = Math.round(parsed.pricePln * 100);
+  const dayOfEventPriceGrosze =
+    parsed.dayOfEventPricePln != null && parsed.dayOfEventPricePln > parsed.pricePln
+      ? Math.round(parsed.dayOfEventPricePln * 100)
+      : null;
 
   let imageUrl: string | null = null;
   if (image) {
@@ -93,6 +98,7 @@ export async function createEventFromParsed(
     venue: parsed.venue,
     starts_at: startsAtIso,
     price_grosze: priceGrosze,
+    day_of_event_price_grosze: dayOfEventPriceGrosze,
     total_tickets: parsed.totalTickets,
     visibility,
     listing_kind: parsed.listingKind,
@@ -157,6 +163,7 @@ export async function createEventFromParsed(
     title: parsed.title,
     startsAtIso,
     pricePln: parsed.pricePln,
+    dayOfEventPricePln: parsed.dayOfEventPricePln,
     totalTickets: parsed.totalTickets,
     venue: parsed.venue,
     listingKind: parsed.listingKind,

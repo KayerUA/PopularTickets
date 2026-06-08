@@ -137,6 +137,8 @@
   },
   "EventPage": {
     "priceLabel": "Bilet",
+    "bookEarlyPrice": "Warto kupić wcześniej: w dniu wydarzenia bilet będzie kosztować {price}.",
+    "eventDayPriceActive": "Dziś obowiązuje cena z dnia wydarzenia.",
     "remainingLabel": "Wolne miejsca",
     "soldOut": "Wyprzedane.",
     "purchaseClosedPast": "To wydarzenie już się odbyło — sprzedaż biletów jest zamknięta.",
@@ -348,6 +350,8 @@
     "buyTicket": "Kup bilet",
     "buyTrial": "Rezerwuję miejsce",
     "languageLabel": "Język",
+    "bookEarlyPrice": "Warto wcześniej · w dniu wydarzenia {price}",
+    "eventDayPriceActive": "Dziś obowiązuje cena z dnia wydarzenia",
     "ctaPast": "Szczegóły",
     "ctaSoldOut": "Brak biletów"
   },

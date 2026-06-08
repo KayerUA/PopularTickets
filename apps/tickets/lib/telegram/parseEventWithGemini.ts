@@ -135,6 +135,7 @@ export const RawParsedSchema = z.object({
   descriptionUk: z.string().min(MIN_DESCRIPTION_CHARS).max(20000),
   startsAtWarsaw: startsAtSchema,
   pricePln: z.number().positive().max(10000).nullable(),
+  dayOfEventPricePln: z.number().positive().max(10000).nullable().optional().default(null),
   totalTickets: z.number().int().min(1).max(5000).nullable(),
   venue: z.string().min(2).max(200),
   listingKind: z.enum(["performance", "trial"]),
@@ -156,6 +157,7 @@ export type ParsedTelegramEvent = {
   descriptionUk: string;
   startsAtWarsaw: string;
   pricePln: number;
+  dayOfEventPricePln: number | null;
   totalTickets: number;
   venue: string;
   listingKind: "performance" | "trial";
@@ -181,7 +183,7 @@ function rejectDateLeakage(o: Record<string, unknown>): void {
   const day = dt.day;
   const hour = dt.hour;
   const minute = dt.minute;
-  for (const key of ["pricePln", "totalTickets"] as const) {
+  for (const key of ["pricePln", "dayOfEventPricePln", "totalTickets"] as const) {
     const v = o[key];
     if (typeof v === "number" && (v === day || v === hour || v === minute)) {
       o[key] = null;
@@ -193,6 +195,7 @@ function sanitizeOneEvent(
   input: Record<string, unknown>,
   shared: {
     pricePln: number | null;
+    dayOfEventPricePln: number | null;
     totalTickets: number | null;
     venue: string;
     eventLanguage: string;
@@ -206,9 +209,17 @@ function sanitizeOneEvent(
 
   o.startsAtWarsaw = normalizeStartsAtWarsaw(o.startsAtWarsaw);
   o.pricePln = coerceNullableNumber(o.pricePln) ?? shared.pricePln;
+  o.dayOfEventPricePln = coerceNullableNumber(o.dayOfEventPricePln) ?? shared.dayOfEventPricePln;
   o.totalTickets = coerceNullableInt(o.totalTickets) ?? shared.totalTickets;
 
   rejectDateLeakage(o);
+  if (
+    typeof o.pricePln === "number" &&
+    typeof o.dayOfEventPricePln === "number" &&
+    o.dayOfEventPricePln <= o.pricePln
+  ) {
+    o.dayOfEventPricePln = null;
+  }
 
   if (typeof o.listingKind === "string") {
     const lk = o.listingKind.toLowerCase();
@@ -376,6 +387,7 @@ function sanitizeGeminiBatchPayload(input: unknown, sourceText: string): RawPars
 
   const root = input as Record<string, unknown>;
   const sharedPrice = coerceNullableNumber(root.pricePln);
+  const sharedDayOfEventPrice = coerceNullableNumber(root.dayOfEventPricePln);
   const sharedTickets = coerceNullableInt(root.totalTickets);
   const sharedVenue =
     typeof root.venue === "string" && root.venue.trim().length >= 2
@@ -399,6 +411,7 @@ function sanitizeGeminiBatchPayload(input: unknown, sourceText: string): RawPars
 
   const shared = {
     pricePln: sharedPrice,
+    dayOfEventPricePln: sharedDayOfEventPrice,
     totalTickets: sharedTickets,
     venue: sharedVenue,
     eventLanguage: sharedLang,
@@ -592,6 +605,10 @@ export function finalizeParsed(raw: RawParsedEvent): ParsedTelegramEvent {
     descriptionUk: raw.descriptionUk,
     startsAtWarsaw: raw.startsAtWarsaw,
     pricePln: raw.pricePln,
+    dayOfEventPricePln:
+      raw.dayOfEventPricePln != null && raw.dayOfEventPricePln > raw.pricePln
+        ? raw.dayOfEventPricePln
+        : null,
     totalTickets: raw.totalTickets,
     venue: raw.venue,
     listingKind: raw.listingKind,

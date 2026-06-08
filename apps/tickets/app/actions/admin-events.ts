@@ -38,6 +38,7 @@ export type UpsertEventRetryFields = {
   venue: string;
   startsAt: string;
   pricePln: string;
+  dayOfEventPricePln: string;
   totalTickets: string;
   visibility: string;
   listingKind: "performance" | "trial";
@@ -75,6 +76,7 @@ function formRetryFromFormData(formData: FormData): UpsertEventRetryFields {
     venue: String(formData.get("venue") ?? ""),
     startsAt: String(formData.get("startsAt") ?? ""),
     pricePln: String(formData.get("pricePln") ?? ""),
+    dayOfEventPricePln: String(formData.get("dayOfEventPricePln") ?? ""),
     totalTickets: String(formData.get("totalTickets") ?? ""),
     visibility: String(formData.get("visibility") ?? "inactive"),
     listingKind: lk === "trial" ? "trial" : "performance",
@@ -108,6 +110,7 @@ function formRetryFromParsed(
     venue: v.venue,
     startsAt: String(formData.get("startsAt") ?? ""),
     pricePln: String(formData.get("pricePln") ?? ""),
+    dayOfEventPricePln: String(formData.get("dayOfEventPricePln") ?? ""),
     totalTickets: String(v.totalTickets),
     visibility: v.visibility,
     listingKind: v.listingKind,
@@ -151,6 +154,10 @@ const EventSchema = z.object({
   venue: z.string().min(2).max(200),
   startsAt: z.string().min(1),
   pricePln: z.coerce.number().positive(),
+  dayOfEventPricePln: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null ? null : Number(v)),
+    z.number().positive().nullable(),
+  ),
   totalTickets: z.coerce.number().int().min(1).max(5000),
   visibility: contentVisibilitySchema.default("inactive"),
   listingKind: z.enum(["performance", "trial"]).default("performance"),
@@ -171,6 +178,13 @@ const EventSchema = z.object({
   ),
 })
   .superRefine((data, ctx) => {
+    if (data.dayOfEventPricePln != null && data.dayOfEventPricePln <= data.pricePln) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Цена в день мероприятия должна быть выше обычной цены.",
+        path: ["dayOfEventPricePln"],
+      });
+    }
     if (data.visibility === "published" || data.visibility === "unlisted") {
       const len = data.description.trim().length;
       if (len < MIN_EVENT_DESCRIPTION_PUBLISH_CHARS) {
@@ -261,6 +275,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       venue: venueResolved.venue,
       startsAt: formData.get("startsAt"),
       pricePln: formData.get("pricePln"),
+      dayOfEventPricePln: formData.get("dayOfEventPricePln"),
       totalTickets: formData.get("totalTickets"),
       visibility: formData.get("visibility") || "inactive",
       listingKind: formData.get("listingKind") || "performance",
@@ -286,6 +301,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
     const v = { ...v0, slug: slugFinal };
 
     const priceGrosze = groszeFromPln(v.pricePln);
+    const dayOfEventPriceGrosze = v.dayOfEventPricePln == null ? null : groszeFromPln(v.dayOfEventPricePln);
 
     let startsAtIso: string;
     try {
@@ -322,6 +338,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       venue: v.venue,
       starts_at: startsAtIso,
       price_grosze: priceGrosze,
+      day_of_event_price_grosze: dayOfEventPriceGrosze,
       total_tickets: v.totalTickets,
       visibility: v.visibility,
       listing_kind: v.listingKind,

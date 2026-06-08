@@ -6,6 +6,7 @@ import { HomeEventsGrid } from "@/components/HomeEventsGrid";
 import type { EventCardProps } from "@/components/EventCard";
 import { resolveEventMarketingStatus, sortEventsForMarketing, normalizeEventListingKind } from "@/lib/eventMarketingStatus";
 import { resolveEventCopy } from "@/lib/contentI18n";
+import { eventPriceDetails } from "@/lib/eventPrice";
 import type { AppLocale } from "@/i18n/routing";
 import { routing } from "@/i18n/routing";
 import { buildPublicPageMetadata, canonicalPath } from "@/lib/seo";
@@ -58,7 +59,7 @@ export default async function IntentDiscoverPage({
   if (supabase) {
     let query = supabase
       .from("events")
-      .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language")
+      .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language")
       .eq("visibility", "published")
       .order("starts_at", { ascending: true });
 
@@ -72,7 +73,7 @@ export default async function IntentDiscoverPage({
     if (error?.code === "42703") {
       let fallbackQuery = supabase
         .from("events")
-        .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
+        .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
         .eq("visibility", "published")
         .order("starts_at", { ascending: true });
       if (listingFilter !== "all") {
@@ -135,13 +136,20 @@ export default async function IntentDiscoverPage({
         soldOut,
         mapsUrl: null,
       });
+      const pricing = eventPriceDetails({
+        starts_at: ev.starts_at as string,
+        price_grosze: ev.price_grosze as number,
+        day_of_event_price_grosze: ev.day_of_event_price_grosze as number | null,
+      });
       return [
         {
           slug: ev.slug as string,
           title: copy.title,
           venue: ev.venue as string,
           startsAt: ev.starts_at as string,
-          priceGrosze: ev.price_grosze as number,
+          priceGrosze: pricing.effectivePriceGrosze,
+          dayOfEventPriceGrosze: pricing.dayOfEventPriceGrosze,
+          isEventDayPrice: pricing.isEventDay && pricing.hasDayOfEventIncrease,
           imageUrl: (ev.image_url as string | null) ?? null,
           imageFocalX:
             typeof (ev as { image_focal_x?: unknown }).image_focal_x === "number"

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { buildEventItemListJsonLd, buildEventJsonLd } from "@/lib/seo/eventJsonLd";
 
 const baseEvent = {
@@ -12,6 +12,15 @@ const baseEvent = {
   listing_kind: "performance",
   event_language: "ru_uk" as const,
 };
+
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-06-01T12:00:00.000Z"));
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe("buildEventJsonLd", () => {
   beforeEach(() => {

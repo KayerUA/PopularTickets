@@ -21,6 +21,7 @@ create table if not exists public.events (
   venue text not null,
   starts_at timestamptz not null,
   price_grosze int not null check (price_grosze > 0),
+  day_of_event_price_grosze int check (day_of_event_price_grosze is null or day_of_event_price_grosze > 0),
   total_tickets int not null check (total_tickets > 0),
   visibility text not null default 'inactive' check (visibility in ('published', 'unlisted', 'inactive')),
   created_at timestamptz not null default now(),

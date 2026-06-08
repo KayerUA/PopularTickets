@@ -17,6 +17,8 @@ export type EventCardProps = {
   venue: string;
   startsAt: string;
   priceGrosze: number;
+  dayOfEventPriceGrosze?: number | null;
+  isEventDayPrice?: boolean;
   imageUrl: string | null;
   /** 0–100 для object-position (центр 50). */
   imageFocalX?: number | null;
@@ -82,7 +84,16 @@ export function EventCard(e: EventCardProps) {
             <p className="line-clamp-2 text-sm text-zinc-400 [overflow-wrap:anywhere]">{e.venue}</p>
           </div>
           <div className="flex shrink-0 flex-col gap-3 border-t border-poet-gold/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-lg font-medium text-poet-gold-bright sm:text-base">{formatPlnFromGrosze(e.priceGrosze)}</span>
+            <div>
+              <span className="text-lg font-medium text-poet-gold-bright sm:text-base">{formatPlnFromGrosze(e.priceGrosze)}</span>
+              {e.dayOfEventPriceGrosze ? (
+                <p className="mt-0.5 text-[11px] leading-snug text-poet-gold/80">
+                  {e.isEventDayPrice
+                    ? t("eventDayPriceActive")
+                    : t("bookEarlyPrice", { price: formatPlnFromGrosze(e.dayOfEventPriceGrosze) })}
+                </p>
+              ) : null}
+            </div>
             <span
               className={`w-full justify-center px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wide sm:w-auto sm:py-2 ${
                 e.status === "past" || e.status === "sold_out"

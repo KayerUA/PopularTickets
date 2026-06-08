@@ -137,6 +137,8 @@
   },
   "EventPage": {
     "priceLabel": "Квиток",
+    "bookEarlyPrice": "Вигідніше заздалегідь: у день події квиток коштуватиме {price}.",
+    "eventDayPriceActive": "Сьогодні діє ціна дня події.",
     "remainingLabel": "Вільні місця",
     "soldOut": "Розпродано.",
     "purchaseClosedPast": "Подія вже відбулася — квитки більше не продаються.",
@@ -356,6 +358,8 @@
     "buyTicket": "Купити квиток",
     "buyTrial": "Бронюю місце",
     "languageLabel": "Мова",
+    "bookEarlyPrice": "Вигідніше заздалегідь · у день події {price}",
+    "eventDayPriceActive": "Сьогодні діє ціна дня події",
     "ctaPast": "Деталі",
     "ctaSoldOut": "Немає квитків"
   },

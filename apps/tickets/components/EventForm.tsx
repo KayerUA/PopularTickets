@@ -42,6 +42,7 @@ export type AdminEventRow = {
   venue: string;
   starts_at: string;
   price_grosze: number;
+  day_of_event_price_grosze?: number | null;
   total_tickets: number;
   visibility: ContentVisibility;
   listing_kind: "performance" | "trial";
@@ -67,6 +68,7 @@ function mergeRetryDefaults(
   venue: string;
   startsAt: string;
   pricePln: string;
+  dayOfEventPricePln: string;
   totalTickets: string;
   visibility: ContentVisibility;
   listingKind: "performance" | "trial";
@@ -96,6 +98,9 @@ function mergeRetryDefaults(
     venue,
     startsAt: fields?.startsAt ?? (event ? toDatetimeLocalValueWarsaw(event.starts_at) : ""),
     pricePln: fields?.pricePln ?? (event ? (event.price_grosze / 100).toFixed(2) : "50.00"),
+    dayOfEventPricePln:
+      fields?.dayOfEventPricePln ??
+      (event?.day_of_event_price_grosze ? (event.day_of_event_price_grosze / 100).toFixed(2) : ""),
     totalTickets: fields?.totalTickets ?? String(event?.total_tickets ?? 100),
     visibility: (fields?.visibility ?? event?.visibility ?? "inactive") as ContentVisibility,
     listingKind: lk,
@@ -492,6 +497,22 @@ export function EventForm({
               defaultValue={d.pricePln}
               className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
             />
+          </label>
+          <label className="block text-sm text-zinc-300">
+            Цена в день мероприятия, PLN
+            <input
+              name="dayOfEventPricePln"
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min="0.01"
+              defaultValue={d.dayOfEventPricePln || undefined}
+              className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
+              placeholder="Не менять"
+            />
+            <span className="mt-1 block text-xs text-zinc-500">
+              Необязательно. Включается с 00:00 в день события по времени Варшавы.
+            </span>
           </label>
           <label className="block text-sm text-zinc-300 sm:col-span-2">
             Всего билетов

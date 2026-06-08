@@ -39,6 +39,7 @@ export function buildGeminiEventParsePrompt(sourceText: string, hasImage: boolea
 Если в тексте несколько дат/времени (расписание пробных занятий на неделю, несколько показов):
 • Верни массив events — отдельный объект на КАЖДУЮ дату/слот.
 • Общую цену (например «Вход: 70 zl») поставь в pricePln на уровне корня JSON — она применится ко всем.
+• Если явно указана отдельная более высокая цена в день события, поставь её в dayOfEventPricePln на уровне корня. Не угадывай её.
 • totalTickets на корне — общее для всех, если не указано иначе.
 • Диапазон времени «20:00-22:00» → startsAtWarsaw только время НАЧАЛА: 20:00.
 • День недели в скобках игнорируй; год: ${now.year}, если не указан.
@@ -63,6 +64,7 @@ ${COURSE_DESCRIPTION_ACTING}
 
 ═══ ЦИФРЫ — НЕ УГАДЫВАЙ ═══
 • pricePln: число PLN или null (на корне JSON; в events можно не дублировать)
+• dayOfEventPricePln: более высокая цена в день события или null (на корне JSON; не заполняй без явного указания)
 • totalTickets: число или null (на корне)
 • startsAtWarsaw в каждом event: строго yyyy-MM-ddTHH:mm (без секунд, без timezone) или null
 • Дата без года: день/месяц в текущем году (yyyy=${now.year}), год поправит сервер
@@ -127,7 +129,7 @@ SEO (естественно, без keyword stuffing):
       "startsAtWarsaw", "listingKind"
     }
   ],
-  "pricePln", "totalTickets", "venue", "eventLanguage"
+  "pricePln", "dayOfEventPricePln", "totalTickets", "venue", "eventLanguage"
 }
 
 ${hasImage ? "Текст афиши может быть на изображении — прочитай его." : ""}

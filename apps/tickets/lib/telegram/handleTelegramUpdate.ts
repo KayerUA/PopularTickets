@@ -160,12 +160,15 @@ function photoPreviewNote(imageCount: number, eventCount: number): string {
 }
 
 function previewTextSingle(parsed: ParsedTelegramEvent, imageCount: number, previewNote?: string): string {
+  const priceLine = parsed.dayOfEventPricePln
+    ? `💰 ${parsed.pricePln} PLN заранее · ${parsed.dayOfEventPricePln} PLN в день события · ${parsed.totalTickets} мест`
+    : `💰 ${parsed.pricePln} PLN · ${parsed.totalTickets} мест`;
   return [
     "📋 Превью — проверьте и опубликуйте:",
     "",
     `📌 ${parsed.title}`,
     `📅 ${formatWarsawLocal(parsed.startsAtWarsaw)} (Warsaw)`,
-    `💰 ${parsed.pricePln} PLN · ${parsed.totalTickets} мест`,
+    priceLine,
     `📍 ${parsed.venue}`,
     `🏷 ${parsed.listingKind === "trial" ? "пробное" : "шоу/спектакль"}${parsed.poetCourseSlug ? ` · курс ${parsed.poetCourseSlug}` : ""}`,
     photoPreviewNote(imageCount, 1),
@@ -184,9 +187,10 @@ function previewTextBatch(
   const lines = events.map((ev, i) => {
     const when = ev.startsAtWarsaw ? formatWarsawLocal(ev.startsAtWarsaw) : "дата ?";
     const price = ev.pricePln != null ? `${ev.pricePln} PLN` : "цена ?";
+    const dayPrice = ev.dayOfEventPricePln != null ? ` → ${ev.dayOfEventPricePln} PLN в день события` : "";
     const seats = ev.totalTickets != null ? `${ev.totalTickets} мест` : "места ?";
     const photoMark = i < imageCount ? " 🖼" : "";
-    return `${i + 1}. ${ev.title}${photoMark}\n   📅 ${when} · 💰 ${price} · ${seats}`;
+    return `${i + 1}. ${ev.title}${photoMark}\n   📅 ${when} · 💰 ${price}${dayPrice} · ${seats}`;
   });
 
   return [
