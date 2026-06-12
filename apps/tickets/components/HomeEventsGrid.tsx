@@ -27,7 +27,7 @@ export function HomeEventsGrid({ events }: { events: EventCardProps[] }) {
       variants={container}
       initial="hidden"
       animate="show"
-      className="grid auto-rows-[minmax(0,1fr)] items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3"
+      className="grid auto-rows-[minmax(0,1fr)] items-stretch gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
     >
       {events.map((ev) => (
         <motion.div key={ev.slug} variants={item} className="flex h-full min-h-0 w-full min-w-0 flex-col">

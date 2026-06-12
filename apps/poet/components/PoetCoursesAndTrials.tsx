@@ -21,7 +21,7 @@ export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: Poe
   const useDb = dbCourses.length > 0;
 
   return (
-    <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="mt-8 grid gap-5 sm:mt-10 sm:grid-cols-2 lg:grid-cols-3">
       {useDb
         ? dbCourses
             .map((c) => {
@@ -34,10 +34,10 @@ export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: Poe
               <li key={c.id} className="h-full list-none">
                 <Link
                   href={`/kursy/${c.slug}`}
-                  className={`poet-course-card poet-course-card--${variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 sm:p-6`}
+                  className={`poet-course-card poet-course-card--${variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-4 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] outline-none transition duration-500 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-poet-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--poet-bg)] sm:p-5`}
                 >
                   <div className="poet-shine pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
-                  <div className="relative -mx-1 -mt-1 mb-3 aspect-[3/4] w-full overflow-hidden rounded-lg border border-poet-gold/15 bg-zinc-950 sm:aspect-video">
+                  <div className="relative mb-4 aspect-[16/10] w-full overflow-hidden rounded-xl border border-poet-gold/20 bg-zinc-950">
                     <MediaCoverBlurred
                       src={img}
                       alt={copy.title}
@@ -49,11 +49,11 @@ export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: Poe
                   {tagLine ? (
                     <p className="relative text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500">{tagLine}</p>
                   ) : null}
-                  <h3 className="relative mt-2 font-display text-xl font-semibold tracking-tight text-gradient-gold sm:text-[1.35rem]">
+                  <h3 className="relative mt-2 font-display text-[1.35rem] font-semibold leading-tight tracking-tight text-gradient-gold sm:text-[1.45rem]">
                     {copy.title}
                   </h3>
-                  <p className="relative mt-3 flex-1 text-sm leading-relaxed text-zinc-400">{copy.description}</p>
-                  <span className="relative mt-5 inline-flex w-full items-center justify-center rounded-lg border border-poet-gold/25 bg-black/25 px-3 py-2 text-center text-xs font-semibold text-poet-gold-bright transition group-hover:border-poet-gold/45 group-hover:bg-poet-gold/10">
+                  <p className="relative mt-3 line-clamp-4 flex-1 text-[0.9375rem] leading-relaxed text-zinc-300 sm:line-clamp-5 sm:text-sm">{copy.description}</p>
+                  <span className="relative mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-poet-gold/30 bg-black/30 px-4 py-2.5 text-center text-sm font-semibold text-poet-gold-bright transition group-hover:border-poet-gold/55 group-hover:bg-poet-gold/10">
                     {t("courseCardCta")}
                   </span>
                 </Link>
@@ -67,10 +67,10 @@ export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: Poe
               <li key={slug} className="h-full list-none">
                 <Link
                   href={`/kursy/${slug}`}
-                  className={`poet-course-card poet-course-card--${keys.variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 sm:p-6`}
+                  className={`poet-course-card poet-course-card--${keys.variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-4 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] outline-none transition duration-500 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-poet-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--poet-bg)] sm:p-5`}
                 >
                   <div className="poet-shine pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
-                  <div className="relative -mx-1 -mt-1 mb-3 aspect-[3/4] w-full overflow-hidden rounded-lg border border-poet-gold/15 bg-zinc-950 sm:aspect-video">
+                  <div className="relative mb-4 aspect-[16/10] w-full overflow-hidden rounded-xl border border-poet-gold/20 bg-zinc-950">
                     <MediaCoverBlurred
                       src={keys.image}
                       alt={t(keys.titleKey)}
@@ -79,11 +79,11 @@ export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: Poe
                     />
                   </div>
                   <p className="relative text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500">{t(keys.tagKey)}</p>
-                  <h3 className="relative mt-2 font-display text-xl font-semibold tracking-tight text-gradient-gold sm:text-[1.35rem]">
+                  <h3 className="relative mt-2 font-display text-[1.35rem] font-semibold leading-tight tracking-tight text-gradient-gold sm:text-[1.45rem]">
                     {t(keys.titleKey)}
                   </h3>
-                  <p className="relative mt-3 flex-1 text-sm leading-relaxed text-zinc-400">{t(keys.bodyKey)}</p>
-                  <span className="relative mt-5 inline-flex w-full items-center justify-center rounded-lg border border-poet-gold/25 bg-black/25 px-3 py-2 text-center text-xs font-semibold text-poet-gold-bright transition group-hover:border-poet-gold/45 group-hover:bg-poet-gold/10">
+                  <p className="relative mt-3 line-clamp-4 flex-1 text-[0.9375rem] leading-relaxed text-zinc-300 sm:line-clamp-5 sm:text-sm">{t(keys.bodyKey)}</p>
+                  <span className="relative mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-poet-gold/30 bg-black/30 px-4 py-2.5 text-center text-sm font-semibold text-poet-gold-bright transition group-hover:border-poet-gold/55 group-hover:bg-poet-gold/10">
                     {t("courseCardCta")}
                   </span>
                 </Link>

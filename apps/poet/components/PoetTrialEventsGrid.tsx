@@ -12,7 +12,7 @@ export function PoetTrialEventsGrid({
   showCourseBadge?: boolean;
 }) {
   return (
-    <ul className="grid auto-rows-[minmax(0,1fr)] items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="grid auto-rows-[minmax(0,1fr)] items-stretch gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
       {trials.map((slot) => (
         <li key={slot.id} className="flex h-full min-h-0 w-full min-w-0 flex-col">
           <PoetTrialEventCard slot={slot} locale={locale} showCourseBadge={showCourseBadge} />
