@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { unstable_rethrow } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { createPendingOrder } from "@/app/actions/checkout";
 import type { AppLocale } from "@/i18n/routing";
-import { splitTheatreTicketTotalGrosze } from "@/lib/plVatTheatreTicket";
 import { formatPlnFromGrosze } from "@/lib/format";
 import { P24_FOOTER_GRAPHICS } from "@/lib/p24FooterAssets";
 import { CHECKOUT_FORM_ID, CHECKOUT_SUBMIT_ID } from "@/components/EventMobileStickyCta";
@@ -37,7 +36,7 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
   const formRef = useRef<HTMLFormElement>(null);
   const max = Math.min(20, remaining);
 
-  const totals = useMemo(() => splitTheatreTicketTotalGrosze(unitPriceGrosze, quantity), [unitPriceGrosze, quantity]);
+  const totalGrosze = unitPriceGrosze * quantity;
 
   const fieldClass = (key: CheckoutFieldKey) =>
     `mt-1.5 w-full min-h-11 rounded-xl border bg-zinc-900/80 px-3 py-2.5 text-base text-white transition placeholder:text-zinc-600 disabled:opacity-50 sm:min-h-10 sm:py-2 sm:text-sm ${fieldBorder(Boolean(fieldErrors[key]))}`;
@@ -227,19 +226,11 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-poet-gold/75">{t("summaryTitle")}</p>
         <dl className="mt-2 space-y-1.5 text-zinc-300">
           <div className="flex justify-between gap-3">
-            <dt>{t("bruttoLabel")}</dt>
-            <dd className="font-medium text-poet-gold-bright">{formatPlnFromGrosze(totals.grossGrosze)}</dd>
-          </div>
-          <div className="flex justify-between gap-3 text-zinc-400">
-            <dt>{t("nettoLabel")}</dt>
-            <dd>{formatPlnFromGrosze(totals.netGrosze)}</dd>
-          </div>
-          <div className="flex justify-between gap-3 text-zinc-400">
-            <dt>{t("vatLabel")}</dt>
-            <dd>{formatPlnFromGrosze(totals.vatGrosze)}</dd>
+            <dt>{t("totalLabel")}</dt>
+            <dd className="font-medium text-poet-gold-bright">{formatPlnFromGrosze(totalGrosze)}</dd>
           </div>
         </dl>
-        <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">{t("vatLegalNote")}</p>
+        <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">{t("taxExemptionNote")}</p>
       </div>
 
       {error ? (

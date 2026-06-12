@@ -14,8 +14,8 @@ export type TicketEmailStrings = {
   tagline: string;
   /** Jak wejść: QR z załącznika/telefonu + krótki numer (bez technicznego żargonu). */
   backupIdNote: string;
-  /** Cena końcowa / podatek w cenie — prosto dla kupującego. */
-  vatConsumerNote: string;
+  /** Informacja o zwolnieniu sprzedawcy z VAT. */
+  taxExemptionNote: string;
 };
 
 const COPY: Record<AppLocale, TicketEmailStrings> = {
@@ -30,8 +30,8 @@ const COPY: Record<AppLocale, TicketEmailStrings> = {
     tagline: "PopularTickets · bilety na wydarzenia w Polsce",
     backupIdNote:
       "Na wejściu pokaż kod QR z załącznika albo z ekranu telefonu — to wystarczy. Krótki numer biletu przyda się obsłudze, jeśli zapyta.",
-    vatConsumerNote:
-      "Cena, którą widziałeś/aś przy zakupie, jest już końcowa — zawiera podatek (dla kultury w Polsce stosujemy 8% VAT).",
+    taxExemptionNote:
+      "Podstawa prawna zwolnienia od podatku VAT: art. 43 ust. 1 ustawy o VAT.",
   },
   uk: {
     subjectPrefix: "Ваші квитки:",
@@ -44,8 +44,8 @@ const COPY: Record<AppLocale, TicketEmailStrings> = {
     tagline: "PopularTickets · квитки на події в Польщі",
     backupIdNote:
       "На вході покажіть QR з вкладення або з екрана телефона — цього достатньо. Короткий номер стоїть поруч, якщо персонал попросить.",
-    vatConsumerNote:
-      "Сума при оплаті вже фінальна — податки враховані (для культурних подій у Польщі застосовуємо ПДВ 8%).",
+    taxExemptionNote:
+      "Правова підстава звільнення від VAT: art. 43 ust. 1 ustawy o VAT.",
   },
   ru: {
     subjectPrefix: "Ваши билеты:",
@@ -58,8 +58,8 @@ const COPY: Record<AppLocale, TicketEmailStrings> = {
     tagline: "PopularTickets · билеты на события в Польше",
     backupIdNote:
       "На входе покажите QR из вложения или с экрана телефона — этого достаточно. Короткий номер рядом, если попросят на контроле.",
-    vatConsumerNote:
-      "Сумма при оплате уже итоговая — налоги включены (для культурных событий в Польше действует ставка НДС 8%).",
+    taxExemptionNote:
+      "Правовое основание освобождения от VAT: art. 43 ust. 1 ustawy o VAT.",
   },
 };
 

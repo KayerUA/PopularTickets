@@ -1,6 +1,6 @@
 # Backlog: доверие, контент, SEO, юридические страницы (PopularTickets / Popular Poet)
 
-Фаза 1 (код): см. реализацию в репозитории — контакты с fallback email, футер/firma, архив события без «wolnych miejsc», VAT в `<details>`, минимум длины описания при published/unlisted, дата/время админки в Europe/Warsaw + Vitest, футер P24 при `CHECKOUT_BYPASS_PAYMENT`. Прошедшие пробные (`listing_kind = trial`) скрываются в списках на popularpoet.pl и на странице события PopularTickets.
+Фаза 1 (код): см. реализацию в репозитории — контакты с fallback email, футер/firma, архив события без «wolnych miejsc», информация об освобождении от VAT, минимум длины описания при published/unlisted, дата/время админки в Europe/Warsaw + Vitest, футер P24 при `CHECKOUT_BYPASS_PAYMENT`. Прошедшие пробные (`listing_kind = trial`) скрываются в списках на popularpoet.pl и на странице события PopularTickets.
 
 Легенда статусов:
 
@@ -38,7 +38,7 @@
 | 13 | Запрет слишком общих названий событий; slug не `sale-14` | `content` + `planned` (правила) | tickets |
 | 14 | Slug с датой для SEO; 301 со старых URL | `planned` | tickets |
 | 16 | Форма чекаута: label на поле, ошибки у полей, a11y | `planned` | tickets |
-| 17 | VAT/netto в раскрываемом блоке на странице события | `done` | tickets |
+| 17 | Информация об освобождении от VAT на странице события и при оплате | `done` | tickets |
 | 18 | Блок доверия у покупки (команда, фото, отзывы) | `planned` + `content` | tickets |
 
 ## P2 — SEO / AI
@@ -102,7 +102,7 @@
 
 16. Форма покупки «склеена» — семантика, поля, ошибки.
 
-17. VAT блок слишком заметен — кратко + details.
+17. Информация об освобождении от VAT показана кратко, без расчёта налога.
 
 18. Нет человеческого доверия у покупки — медиа, отзывы, FAQ.
 

@@ -5,7 +5,6 @@ import { fetchPublishedEventBySlug } from "@/lib/supabase/fetchPublishedEventByS
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { SupabaseQueryErrorPanel } from "@/components/SupabaseQueryErrorPanel";
 import { formatPlnFromGrosze, formatEventDateTime, formatEventDateShortForTitle } from "@/lib/format";
-import { splitTheatreTicketGrossGrosze } from "@/lib/plVatTheatreTicket";
 import { EventCheckoutForm } from "@/components/EventCheckoutForm";
 import { EventMobileStickyCta } from "@/components/EventMobileStickyCta";
 import { getTranslations } from "next-intl/server";
@@ -165,7 +164,6 @@ export default async function EventPage({
       : null;
 
   const soldOut = remaining <= 0 || marketingStatus === "sold_out";
-  const ticketVat = splitTheatreTicketGrossGrosze(event.price_grosze);
   const hasDayOfEventIncrease =
     typeof event.day_of_event_price_grosze === "number" &&
     event.day_of_event_price_grosze > event.regular_price_grosze;
@@ -363,28 +361,7 @@ export default async function EventPage({
                     : t("bookEarlyPrice", { price: formatPlnFromGrosze(event.day_of_event_price_grosze!) })}
                 </p>
               ) : null}
-              <details className="mt-2 group">
-                <summary className="cursor-pointer list-none text-xs font-medium text-poet-gold/85 marker:hidden [&::-webkit-details-marker]:hidden">
-                  <span className="underline decoration-poet-gold/30 underline-offset-2 group-open:text-poet-gold-bright">
-                    {t("priceDetailsSummary")}
-                  </span>
-                </summary>
-                <dl className="mt-2 space-y-0.5 border-t border-poet-gold/10 pt-2 text-xs text-zinc-400">
-                  <div className="flex gap-4">
-                    <dt>{t("bruttoLabel")}</dt>
-                    <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.grossGrosze)}</dd>
-                  </div>
-                  <div className="flex gap-4">
-                    <dt>{t("nettoLabel")}</dt>
-                    <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.netGrosze)}</dd>
-                  </div>
-                  <div className="flex gap-4">
-                    <dt>{t("vatLabel")}</dt>
-                    <dd className="text-zinc-400">{formatPlnFromGrosze(ticketVat.vatGrosze)}</dd>
-                  </div>
-                </dl>
-                <p className="mt-2 max-w-md text-[11px] leading-relaxed text-zinc-500">{t("vatLegalNote")}</p>
-              </details>
+              <p className="mt-2 max-w-md text-[11px] leading-relaxed text-zinc-500">{t("taxExemptionNote")}</p>
             </div>
             {!isPast ? (
               <div>

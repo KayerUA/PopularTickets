@@ -112,7 +112,7 @@ export function ticketEmailHtml(params: {
                         </tr>
                         <tr>
                           <td style="padding:0 18px 16px 20px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:12px;line-height:1.55;color:#8a8580;">
-                            ${esc(str.vatConsumerNote)}
+                            ${esc(str.taxExemptionNote)}
                           </td>
                         </tr>
                       </table>
