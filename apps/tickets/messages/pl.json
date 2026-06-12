@@ -157,7 +157,7 @@
     "eventEndedTitle": "Wydarzenie zakończone.",
     "archiveCheckoutHint": "Sprzedaż biletów na ten termin jest zamknięta.",
     "eventEndedCta": "Zobacz najbliższe wydarzenia",
-    "taxExemptionNote": "Podstawa prawna zwolnienia od podatku VAT: art. 43 ust. 1 ustawy o VAT.",
+    "taxExemptionNote": "Podstawa prawna zwolnienia od podatku VAT: art. 113 ust. 1 ustawy o VAT.",
     "prePurchaseNote": "Po płatności dostaniesz bilet elektroniczny na e-mail — bez kosztów dostawy i bez drukowania. Sprzedawca: {seller}, NIP {nip}. Pełne zasady: „Dane sprzedawcy” i Regulamin.",
     "prePurchaseNoteBypass": "Po wysłaniu formularza zarezerwujemy miejsce i wyślemy bilet na e-mail. Sprzedawca: {seller}, NIP {nip}. Pełne zasady: „Dane sprzedawcy” i Regulamin.",
     "trialReturnTitle": "To zajęcia z kalendarza Popular Poet",
@@ -384,7 +384,7 @@
     "marketingEmailConsent": "Chcę otrzymywać na e-mail informacje i nowości Popular Poet (kursy, afiszę, wydarzenia). To opcjonalne; w każdej chwili możesz zrezygnować. Szczegóły — w <privacy>polityce prywatności</privacy>.",
     "summaryTitle": "Podsumowanie",
     "totalLabel": "Do zapłaty",
-    "taxExemptionNote": "Podstawa prawna zwolnienia od podatku VAT: art. 43 ust. 1 ustawy o VAT."
+    "taxExemptionNote": "Podstawa prawna zwolnienia od podatku VAT: art. 113 ust. 1 ustawy o VAT."
   },
   "GiftPage": {
     "backHome": "← Afisz",
@@ -506,7 +506,7 @@
     "s3Title": "§3 Przedmiot usługi i zawarcie umowy",
     "s3Body": "Przedmiotem usługi świadczonej drogą elektroniczną jest umożliwienie Kupującemu złożenia zamówienia na bilet oraz obsługa procesu płatności i przekazania biletu elektronicznego, z zastrzeżeniem opisu konkretnego wydarzenia.\n\nUmowa sprzedaży biletu zostaje zawarta z chwilą skutecznego potwierdzenia płatności za zamówienie (status opłacenia), po uprzednim wyświetleniu Kupującemu istotnych informacji o wydarzeniu i cenie.\n\nSprzedawca może odmówić realizacji zamówienia w przypadku braku dostępności biletów lub innych okoliczności technicznych uniemożliwiających realizację; w takim przypadku Kupujący nie zostanie obciążony ceną lub otrzyma zwrot zgodnie z zasadami określonymi w dokumencie „Zwroty i reklamacje”.",
     "s4Title": "§4 Ceny i zamówienia",
-    "s4Body": "Ceny prezentowane w Serwisie podawane są w złotych polskich (PLN) i są cenami końcowymi. Podstawa prawna zwolnienia od podatku VAT: art. 43 ust. 1 ustawy o VAT.\n\nZamówienie składa się poprzez formularz zamówienia; Kupujący odpowiada za prawdziwość podanych danych, w szczególności adresu e-mail, na który zostaną wysłane bilety.\n\nLiczba dostępnych biletów jest ograniczona; brak możliwości realizacji zamówienia z przyczyn wyczerpania puli biletów skutkuje niewykonaniem umowy po stronie Sprzedawcy i zwrotem zapłaconej ceny, o ile płatność została pobrana.",
+    "s4Body": "Ceny prezentowane w Serwisie podawane są w złotych polskich (PLN) i są cenami końcowymi. Podstawa prawna zwolnienia od podatku VAT: art. 113 ust. 1 ustawy o VAT.\n\nZamówienie składa się poprzez formularz zamówienia; Kupujący odpowiada za prawdziwość podanych danych, w szczególności adresu e-mail, na który zostaną wysłane bilety.\n\nLiczba dostępnych biletów jest ograniczona; brak możliwości realizacji zamówienia z przyczyn wyczerpania puli biletów skutkuje niewykonaniem umowy po stronie Sprzedawcy i zwrotem zapłaconej ceny, o ile płatność została pobrana.",
     "s5Title": "§5 Płatności (Przelewy24)",
     "s5Body": "Dostawcą systemu płatności internetowych w Serwisie jest Przelewy24 (marka PayPro S.A.). Korzystanie z usług płatniczych podlega regulaminowi i polityce prywatności Przelewy24: https://www.przelewy24.pl/\n\nOperatorem kart płatniczych jest PayPro SA Agent Rozliczeniowy, ul. Pastelowa 8, 60-198 Poznań, wpisany do Rejestru Przedsiębiorców Krajowego Rejestru Sądowego prowadzonego przez Sąd Rejonowy Poznań Nowe Miasto i Wilda w Poznaniu, VIII Wydział Gospodarczy Krajowego Rejestru Sądowego pod numerem KRS 0000347935, NIP 7792369887, REGON 301345068.\n\nSprzedawca nie przechowuje pełnych danych płatniczych Kupującego (np. numeru karty); dane te przetwarza wyłącznie operator płatności zgodnie z własnymi dokumentami.",
     "s6Title": "§6 Bilety elektroniczne i check-in",

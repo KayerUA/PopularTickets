@@ -31,7 +31,7 @@ const COPY: Record<AppLocale, TicketEmailStrings> = {
     backupIdNote:
       "Na wejściu pokaż kod QR z załącznika albo z ekranu telefonu — to wystarczy. Krótki numer biletu przyda się obsłudze, jeśli zapyta.",
     taxExemptionNote:
-      "Podstawa prawna zwolnienia od podatku VAT: art. 43 ust. 1 ustawy o VAT.",
+      "Podstawa prawna zwolnienia od podatku VAT: art. 113 ust. 1 ustawy o VAT.",
   },
   uk: {
     subjectPrefix: "Ваші квитки:",
@@ -45,7 +45,7 @@ const COPY: Record<AppLocale, TicketEmailStrings> = {
     backupIdNote:
       "На вході покажіть QR з вкладення або з екрана телефона — цього достатньо. Короткий номер стоїть поруч, якщо персонал попросить.",
     taxExemptionNote:
-      "Правова підстава звільнення від VAT: art. 43 ust. 1 ustawy o VAT.",
+      "Правова підстава звільнення від VAT: art. 113 ust. 1 ustawy o VAT.",
   },
   ru: {
     subjectPrefix: "Ваши билеты:",
@@ -59,7 +59,7 @@ const COPY: Record<AppLocale, TicketEmailStrings> = {
     backupIdNote:
       "На входе покажите QR из вложения или с экрана телефона — этого достаточно. Короткий номер рядом, если попросят на контроле.",
     taxExemptionNote:
-      "Правовое основание освобождения от VAT: art. 43 ust. 1 ustawy o VAT.",
+      "Правовое основание освобождения от VAT: art. 113 ust. 1 ustawy o VAT.",
   },
 };
 
