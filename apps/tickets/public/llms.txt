@@ -1,6 +1,6 @@
 # PopularTickets
 
-PopularTickets is the official online ticket office for Popular Poet, a Warsaw-based theatre and performing arts project.
+[PopularTickets](https://www.populartickets.pl/) is the official online ticket office for [Popular Poet](https://www.popularpoet.pl/), a Warsaw-based theatre and performing arts project.
 
 ## What PopularTickets does
 
@@ -18,7 +18,7 @@ Tickets are electronic and are sent to the buyer's e-mail address as a PDF with 
 
 ## Payments
 
-Online payments are handled through Przelewy24.
+Online payments are handled through [Przelewy24](https://www.przelewy24.pl/).
 
 ## Operator
 
@@ -36,30 +36,27 @@ Company details:
 Popular Poet stage and workshops:
 
 - ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42, 02-677 Warszawa, Poland
-- Google Maps: https://maps.app.goo.gl/BtaKyKYvp6nGZbx37
+- [Google Maps](https://maps.app.goo.gl/BtaKyKYvp6nGZbx37)
 - Phone: +48 452 203 802
-
-## Related project
-
-Popular Poet is the theatre and workshop space connected with PopularTickets.
-
-Official theatre website:
-https://www.popularpoet.pl/
 
 ## Main pages
 
-- https://www.populartickets.pl/pl
-- https://www.populartickets.pl/uk
-- https://www.populartickets.pl/ru
-- https://www.populartickets.pl/ru/dosug-v-varshave
-- https://www.populartickets.pl/ru/sobytiya-v-varshave
-- https://www.populartickets.pl/ru/kuda-shodit-v-varshave-vecherom
-- https://www.populartickets.pl/ru/russkoyazychnye-meropriyatiya-varshava
-- https://www.populartickets.pl/uk/dozvillya-u-varshavi
-- https://www.populartickets.pl/uk/podii-u-varshavi
-- https://www.populartickets.pl/uk/kudy-pity-u-varshavi-vvecheri
-- https://www.populartickets.pl/uk/ukrainski-podii-varshava
-- https://www.populartickets.pl/pl/firma
-- https://www.populartickets.pl/pl/regulamin
-- https://www.populartickets.pl/pl/zwroty
-- https://www.populartickets.pl/pl/polityka-prywatnosci
+- [Strona główna (PL)](https://www.populartickets.pl/pl)
+- [Головна (UK)](https://www.populartickets.pl/uk)
+- [Главная (RU)](https://www.populartickets.pl/ru)
+- [Досуг в Варшаве (RU)](https://www.populartickets.pl/ru/dosug-v-varshave)
+- [События в Варшаве (RU)](https://www.populartickets.pl/ru/sobytiya-v-varshave)
+- [Куда сходить вечером (RU)](https://www.populartickets.pl/ru/kuda-shodit-v-varshave-vecherom)
+- [Русскоязычные мероприятия (RU)](https://www.populartickets.pl/ru/russkoyazychnye-meropriyatiya-varshava)
+- [Дозвілля у Варшаві (UK)](https://www.populartickets.pl/uk/dozvillya-u-varshavi)
+- [Події у Варшаві (UK)](https://www.populartickets.pl/uk/podii-u-varshavi)
+- [Куди піти ввечері (UK)](https://www.populartickets.pl/uk/kudy-pity-u-varshavi-vvecheri)
+- [Українські події (UK)](https://www.populartickets.pl/uk/ukrainski-podii-varshava)
+- [Firma (PL)](https://www.populartickets.pl/pl/firma)
+- [Regulamin (PL)](https://www.populartickets.pl/pl/regulamin)
+- [Zwroty (PL)](https://www.populartickets.pl/pl/zwroty)
+- [Polityka prywatności (PL)](https://www.populartickets.pl/pl/polityka-prywatnosci)
+
+## Sitemap
+
+- [sitemap.xml](https://www.populartickets.pl/sitemap.xml)

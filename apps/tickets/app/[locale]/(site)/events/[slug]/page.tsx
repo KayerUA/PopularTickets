@@ -6,6 +6,7 @@ import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { SupabaseQueryErrorPanel } from "@/components/SupabaseQueryErrorPanel";
 import { formatPlnFromGrosze, formatEventDateTime, formatEventDateShortForTitle } from "@/lib/format";
 import { EventCheckoutForm } from "@/components/EventCheckoutForm";
+import { EventDateTimeDisplay } from "@/components/EventDateTimeDisplay";
 import { EventMobileStickyCta } from "@/components/EventMobileStickyCta";
 import { getTranslations } from "next-intl/server";
 import type { AppLocale } from "@/i18n/routing";
@@ -147,7 +148,6 @@ export default async function EventPage({
     venue: event.venue,
     listing_kind: listingKind,
   });
-  const whenStr = formatEventDateTime(event.starts_at, locale);
   const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "";
   const homePath = canonicalPath(locale, "/");
   const homeUrl = base ? `${base}${homePath}` : "";
@@ -278,7 +278,9 @@ export default async function EventPage({
                 <EventStatusBadge status={marketingStatus} listingKind={listingKind} />
               </div>
             ) : null}
-            <p className="mt-2 break-words text-sm text-zinc-400 sm:text-base">{whenStr}</p>
+            <div className="mt-2">
+              <EventDateTimeDisplay iso={event.starts_at} locale={locale} size="page" />
+            </div>
             <p className="mt-1 text-sm font-medium text-poet-gold-bright/90 sm:text-base">
               {t("languageLabel")}: {eventLanguageLabel(eventLanguage, locale)}
             </p>

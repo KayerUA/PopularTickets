@@ -2,10 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { formatPlnFromGrosze, formatEventDateTime } from "@/lib/format";
+import { formatPlnFromGrosze } from "@/lib/format";
 import type { AppLocale } from "@/i18n/routing";
 import type { EventMarketingStatus, EventListingKind } from "@/lib/eventMarketingStatus";
 import { EventStatusBadge } from "@/components/EventStatusBadge";
+import { EventDateTimeDisplay } from "@/components/EventDateTimeDisplay";
 import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { eventLanguageLabel, normalizeEventLanguage, type EventLanguage } from "@/lib/eventLanguage";
@@ -78,12 +79,12 @@ export function EventCard(e: EventCardProps) {
               {e.title}
             </h2>
             <div className="space-y-2 text-sm">
-              <p className="flex items-start gap-2.5 rounded-xl border border-poet-gold/15 bg-black/25 px-3 py-2.5 font-medium leading-snug text-zinc-200">
-                <svg aria-hidden viewBox="0 0 24 24" className="mt-0.5 h-4 w-4 shrink-0 fill-none stroke-poet-gold" strokeWidth="1.8">
+              <div className="flex items-start gap-2.5 rounded-xl border border-poet-gold/15 bg-black/25 px-3 py-2.5">
+                <svg aria-hidden viewBox="0 0 24 24" className="mt-1 h-4 w-4 shrink-0 fill-none stroke-poet-gold" strokeWidth="1.8">
                   <path d="M7 3v3m10-3v3M4.5 9.5h15M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
                 </svg>
-                {formatEventDateTime(e.startsAt, e.locale)}
-              </p>
+                <EventDateTimeDisplay iso={e.startsAt} locale={e.locale} size="card" />
+              </div>
               <p className="flex items-start gap-2.5 px-3 text-sm leading-snug text-zinc-400 [overflow-wrap:anywhere]">
                 <svg aria-hidden viewBox="0 0 24 24" className="mt-0.5 h-4 w-4 shrink-0 fill-none stroke-zinc-500" strokeWidth="1.8">
                   <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
