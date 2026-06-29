@@ -233,9 +233,10 @@ function resolveVenueFromFormData(formData: FormData): { venue: string; mapsUrl:
 function effectiveSlugFromFormData(formData: FormData): string {
   const raw = String(formData.get("slug") ?? "").trim();
   if (raw !== "") return raw;
+  const titlePl = String(formData.get("titlePl") ?? "").trim();
   const title = String(formData.get("title") ?? "");
   const startsAt = String(formData.get("startsAt") ?? "");
-  return buildEventSlugFromTitleAndDate(title, startsAt);
+  return buildEventSlugFromTitleAndDate(titlePl || title, startsAt);
 }
 
 async function allocateUniqueEventSlugForInsert(

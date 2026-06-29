@@ -69,6 +69,8 @@ const SLUG_STOP_WORDS = new Set<string>([
 export const MAX_SLUG_LENGTH = 80;
 /** Длина суффикса даты "-YYYY-MM-DD". */
 const DATE_SUFFIX_LENGTH = 11;
+/** Макс. число значащих слов в slug — короткие URL ранжируются лучше. */
+export const MAX_SLUG_WORDS = 5;
 
 /** Обрезает slug до maxLen по границе слова (не режет посередине токена). */
 function truncateSlugAtWordBoundary(slug: string, maxLen: number): string {
@@ -80,12 +82,22 @@ function truncateSlugAtWordBoundary(slug: string, maxLen: number): string {
 }
 
 /**
+ * Отрезает бренд-хвост заголовка после тире: «… в Варшаве — театр «Популярный поэт»».
+ * Бренд есть в каждом заголовке и только удлиняет URL (домен уже брендирует сайт).
+ */
+function stripBrandSuffix(title: string): string {
+  const parts = title.split(/\s*[—–]\s*/);
+  if (parts.length > 1 && parts[0]!.trim().length >= 3) return parts[0]!.trim();
+  return title;
+}
+
+/**
  * Человекочитаемый slug для события: латиница, цифры, дефисы.
- * Стоп-слова удаляются (SEO). Пустая строка — если из названия нельзя собрать
- * ни одного допустимого символа.
+ * Бренд-хвост отрезается, стоп-слова удаляются, число слов ограничено (SEO).
+ * Пустая строка — если из названия нельзя собрать ни одного допустимого символа.
  */
 export function slugifyEventTitle(input: string): string {
-  const lower = input.trim().toLowerCase();
+  const lower = stripBrandSuffix(input.trim()).toLowerCase();
   let out = "";
   for (const ch of lower) {
     const cyr = CYRILLIC_LATIN[ch];
@@ -117,7 +129,7 @@ export function slugifyEventTitle(input: string): string {
 
   const meaningful = tokens.filter((t) => !SLUG_STOP_WORDS.has(t));
   // Если после фильтра ничего не осталось (заголовок из одних стоп-слов) — берём исходные токены.
-  const finalTokens = meaningful.length > 0 ? meaningful : tokens;
+  const finalTokens = (meaningful.length > 0 ? meaningful : tokens).slice(0, MAX_SLUG_WORDS);
   return finalTokens.join("-").slice(0, MAX_SLUG_LENGTH);
 }
 

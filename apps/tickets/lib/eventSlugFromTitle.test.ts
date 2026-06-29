@@ -29,6 +29,15 @@ describe("buildEventSlugFromTitleAndDate", () => {
     expect(slug.endsWith("-2026-05-21")).toBe(true);
     expect(slug).not.toMatch(/-$/);
   });
+
+  it("uses polish title and drops the brand suffix", () => {
+    expect(
+      buildEventSlugFromTitleAndDate(
+        "Zajęcia próbne z improwizacji w Warszawie — Teatr „Popularny Poeta”",
+        "2026-05-21T19:00",
+      ),
+    ).toBe("zajecia-probne-improwizacji-warszawie-2026-05-21");
+  });
 });
 
 describe("slugifyEventTitle", () => {
@@ -38,5 +47,15 @@ describe("slugifyEventTitle", () => {
 
   it("falls back to original tokens when all are stop words", () => {
     expect(slugifyEventTitle("в и на")).toBe("v-i-na");
+  });
+
+  it("caps slug to at most 5 meaningful words", () => {
+    const slug = slugifyEventTitle("Premiera spektakl komedia improwizacja muzyka taniec teatr");
+    expect(slug.split("-")).toHaveLength(5);
+    expect(slug).toBe("premiera-spektakl-komedia-improwizacja-muzyka");
+  });
+
+  it("strips the brand block after the dash", () => {
+    expect(slugifyEventTitle("Wieczór improwizacji — Teatr Popularny Poeta")).toBe("wieczor-improwizacji");
   });
 });

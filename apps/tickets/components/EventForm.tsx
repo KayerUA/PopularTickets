@@ -182,10 +182,13 @@ export function EventForm({
     if (event) return;
     const slugEl = document.getElementById("admin-event-slug") as HTMLInputElement | null;
     const titleEl = document.getElementById("admin-event-title") as HTMLInputElement | null;
+    const titlePlEl = document.querySelector<HTMLInputElement>('input[name="titlePl"]');
     const startsEl = document.querySelector<HTMLInputElement>('input[name="startsAt"]');
     if (!slugEl || !titleEl) return;
     if (slugEl.value.trim() !== "") return;
-    slugEl.value = buildEventSlugFromTitleAndDate(titleEl.value, startsEl?.value ?? "");
+    // Польский заголовок — приоритет (домены .pl); если пуст, берём основной.
+    const source = titlePlEl?.value.trim() || titleEl.value;
+    slugEl.value = buildEventSlugFromTitleAndDate(source, startsEl?.value ?? "");
   };
 
   return (

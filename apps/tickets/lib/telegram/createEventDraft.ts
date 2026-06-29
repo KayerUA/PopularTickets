@@ -66,7 +66,9 @@ export async function createEventFromParsed(
 ): Promise<CreatedEventDraft> {
   const visibility = opts.visibility ?? "published";
   const image = opts.image;
-  const fromTitle = buildEventSlugFromTitleAndDate(parsed.title, parsed.startsAtWarsaw);
+  // Польский заголовок — приоритет для slug: домены .pl, аудитория ищет по-польски.
+  const slugSourceTitle = parsed.titlePl.trim() || parsed.title;
+  const fromTitle = buildEventSlugFromTitleAndDate(slugSourceTitle, parsed.startsAtWarsaw);
   const baseSlug = fromTitle.length >= 2 ? fromTitle : fallbackEventSlug();
   const slug = await allocateUniqueEventSlug(supabase, baseSlug);
   const startsAtIso = parseStartsAtFromAdminForm(parsed.startsAtWarsaw);
