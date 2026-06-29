@@ -134,6 +134,44 @@ export async function getActiveDraftForChat(
   return memId ? (mem().drafts.get(memId) ?? null) : null;
 }
 
+/**
+ * Атомарно «захватывает» черновик для публикации: переводит preview → published
+ * только если он всё ещё в preview. Защита от двойного тапа по кнопке «Опубликовать»
+ * (два webhook-обновления в разных waitUntil создавали бы события дважды).
+ * Возвращает строку, если захват удался (с прежним parsed для создания событий),
+ * иначе null — значит другой процесс уже публикует/опубликовал.
+ */
+export async function claimDraftForPublish(
+  supabase: SupabaseClient,
+  id: string,
+): Promise<TelegramEventDraftRow | null> {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .update({ status: "published" })
+    .eq("id", id)
+    .eq("status", "preview")
+    .select("*")
+    .maybeSingle();
+
+  if (error) {
+    if (!isMissingTableError(error.message)) throw new Error(error.message);
+    const cached = mem().drafts.get(id);
+    if (cached && cached.status === "preview") {
+      const claimed: TelegramEventDraftRow = { ...cached, status: "published" };
+      rememberDraft(claimed);
+      return claimed;
+    }
+    return null;
+  }
+
+  if (data) {
+    const row = data as TelegramEventDraftRow;
+    rememberDraft(row);
+    return row;
+  }
+  return null;
+}
+
 export async function cancelActiveDraftForChat(supabase: SupabaseClient, chatId: number): Promise<void> {
   const active = await getActiveDraftForChat(supabase, chatId);
   if (active) await updateTelegramDraftStatus(supabase, active.id, "cancelled");

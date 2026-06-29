@@ -29,12 +29,16 @@ export async function POST(req: NextRequest, context: RouteContext): Promise<Nex
   if (update.callback_query?.id) {
     const data = update.callback_query.data ?? "";
     const hint = data.startsWith("pub:")
-      ? "Публикую…"
-      : data.startsWith("cancel:")
-        ? "Отменяю…"
-        : data.startsWith("bcast:")
-          ? "Рассылаю…"
-          : undefined;
+      ? "Создаю черновик…"
+      : data.startsWith("show:")
+        ? "Публикую на сайт…"
+        : data.startsWith("del:")
+          ? "Удаляю…"
+          : data.startsWith("cancel:")
+            ? "Отменяю…"
+            : data.startsWith("bcast:")
+              ? "Рассылаю…"
+              : undefined;
     ackCallbackQueryImmediate(update.callback_query.id, hint);
   }
 

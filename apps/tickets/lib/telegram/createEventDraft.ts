@@ -172,5 +172,111 @@ export async function createEventFromParsed(
   };
 }
 
+async function revalidateEventPaths(slug: string): Promise<void> {
+  for (const loc of routing.locales) {
+    revalidatePath(`/${loc}`);
+    revalidatePath(`/${loc}/events`);
+    revalidatePath(`/${loc}/events/${slug}`);
+  }
+  revalidatePath("/admin");
+}
+
+export type RevealEventResult = {
+  slug: string;
+  title: string;
+  startsAtIso: string;
+  alreadyLive: boolean;
+  discovery: EventDiscoveryResult;
+};
+
+/**
+ * Переводит ранее созданное (unlisted) событие в published и запускает discovery
+ * (IndexNow + GBP). Idempotent: если уже published — discovery не повторяет.
+ */
+export async function revealEventOnSite(
+  supabase: SupabaseClient,
+  eventId: string,
+): Promise<RevealEventResult | null> {
+  const { data, error } = await supabase
+    .from("events")
+    .select(
+      "slug,title,description,venue,starts_at,price_grosze,listing_kind,maps_url,image_url,visibility",
+    )
+    .eq("id", eventId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+
+  const row = data as {
+    slug: string;
+    title: string;
+    description: string;
+    venue: string;
+    starts_at: string;
+    price_grosze: number;
+    listing_kind: string | null;
+    maps_url: string | null;
+    image_url: string | null;
+    visibility: string;
+  };
+
+  if (row.visibility === "published") {
+    return {
+      slug: row.slug,
+      title: row.title,
+      startsAtIso: row.starts_at,
+      alreadyLive: true,
+      discovery: { indexNow: "skipped", gbp: "skipped" },
+    };
+  }
+
+  const upd = await supabase.from("events").update({ visibility: "published" }).eq("id", eventId);
+  if (upd.error) throw new Error(upd.error.message);
+
+  const discovery = await runEventDiscovery(
+    {
+      slug: row.slug,
+      title: row.title,
+      description: row.description,
+      venue: row.venue,
+      starts_at: row.starts_at,
+      price_grosze: row.price_grosze,
+      listing_kind: row.listing_kind,
+      maps_url: row.maps_url,
+      visibility: "published",
+      image_url: row.image_url,
+    },
+    { source: "telegram" },
+  );
+
+  await revalidateEventPaths(row.slug);
+
+  return {
+    slug: row.slug,
+    title: row.title,
+    startsAtIso: row.starts_at,
+    alreadyLive: false,
+    discovery,
+  };
+}
+
+/** Скрывает событие с сайта (visibility=inactive): убирает с афиши, закрывает чекаут. */
+export async function hideEventFromSite(
+  supabase: SupabaseClient,
+  eventId: string,
+): Promise<{ slug: string } | null> {
+  const { data, error } = await supabase
+    .from("events")
+    .update({ visibility: "inactive" })
+    .eq("id", eventId)
+    .select("slug")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  const slug = (data as { slug: string }).slug;
+  await revalidateEventPaths(slug);
+  return { slug };
+}
+
 /** @deprecated alias */
 export const createEventDraftFromParsed = createEventFromParsed;

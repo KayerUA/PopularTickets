@@ -8,11 +8,15 @@ import { IMAGE_FILE_IDS_KEY, storedImageFileIds } from "@/lib/telegram/parseEven
 import { sendTelegramMessage, sendTelegramPhoto } from "@/lib/telegram/telegramBotApi";
 
 export const PUBLISHED_EVENTS_KEY = "_publishedEvents";
+/** Флаг: события из черновика уже показаны на сайте (visibility=published). */
+export const ON_SITE_KEY = "_onSite";
 
 export type PublishedEventInfo = {
   title: string;
   slug: string;
   startsAtIso: string;
+  /** id события в БД — для смены видимости (показать/скрыть на сайте). */
+  id?: string;
 };
 
 function eventPublicUrlRu(base: string, slug: string): string {
@@ -29,7 +33,7 @@ function eventCaption(base: string, event: PublishedEventInfo): string {
   return [`📌 ${event.title}`, `📅 ${when} (Warsaw)`, "", `🎫 ${eventPublicUrlRu(base, event.slug)}`].join("\n");
 }
 
-function readPublishedEvents(parsed: Record<string, unknown>): PublishedEventInfo[] {
+export function readPublishedEvents(parsed: Record<string, unknown>): PublishedEventInfo[] {
   const raw = parsed[PUBLISHED_EVENTS_KEY];
   if (!Array.isArray(raw)) return [];
   return raw.filter(
@@ -40,6 +44,10 @@ function readPublishedEvents(parsed: Record<string, unknown>): PublishedEventInf
       typeof (item as PublishedEventInfo).slug === "string" &&
       typeof (item as PublishedEventInfo).startsAtIso === "string",
   );
+}
+
+export function isDraftOnSite(parsed: Record<string, unknown>): boolean {
+  return parsed[ON_SITE_KEY] === true;
 }
 
 export async function broadcastDraftToGroups(

@@ -7,9 +7,14 @@ import { getTelegramAdminUserIds, getTelegramBroadcastChatIds, isTelegramAutoBro
 import { formatDiscoveryStatusForTelegram } from "@/lib/eventDiscovery/formatDiscoveryStatus";
 import { formatGbpManualTelegramMessage } from "@/lib/googleBusinessProfile/gbpManualFallback";
 import type { EventDiscoveryResult } from "@/lib/eventDiscovery/notifyEventPublished";
-import { createEventFromParsed } from "@/lib/telegram/createEventDraft";
+import {
+  createEventFromParsed,
+  hideEventFromSite,
+  revealEventOnSite,
+} from "@/lib/telegram/createEventDraft";
 import {
   cancelActiveDraftForChat,
+  claimDraftForPublish,
   getActiveDraftForChat,
   getTelegramDraft,
   saveTelegramDraft,
@@ -46,10 +51,14 @@ import {
   downloadTelegramFile,
   editTelegramMessage,
   sendTelegramMessage,
+  type InlineKeyboardButton,
 } from "@/lib/telegram/telegramBotApi";
 import {
   broadcastDraftToGroups,
+  isDraftOnSite,
   mergePublishedIntoParsed,
+  ON_SITE_KEY,
+  readPublishedEvents,
   type PublishedEventInfo,
 } from "@/lib/telegram/broadcastToGroups";
 
@@ -164,7 +173,7 @@ function previewTextSingle(parsed: ParsedTelegramEvent, imageCount: number, prev
     ? `💰 ${parsed.pricePln} PLN заранее · ${parsed.dayOfEventPricePln} PLN в день события · ${parsed.totalTickets} мест`
     : `💰 ${parsed.pricePln} PLN · ${parsed.totalTickets} мест`;
   return [
-    "📋 Превью — проверьте и опубликуйте:",
+    "📋 Превью. Создам скрытый черновик — потом проверите и опубликуете на сайт:",
     "",
     `📌 ${parsed.title}`,
     `📅 ${formatWarsawLocal(parsed.startsAtWarsaw)} (Warsaw)`,
@@ -194,7 +203,7 @@ function previewTextBatch(
   });
 
   return [
-    `📋 Превью — ${events.length} событий. Проверьте и опубликуйте все:`,
+    `📋 Превью — ${events.length} событий. Создам скрытые черновики, потом опубликуете на сайт:`,
     "",
     ...lines,
     "",
@@ -236,6 +245,77 @@ function publishedTextBatch(base: string, events: PublishedEventInfoLocal[]): st
   return [`✅ Опубликовано ${events.length} событий`, "", ...blocks].join("\n\n");
 }
 
+/** Кнопки после создания скрытого черновика: показать на сайте / удалить. */
+function revealKeyboard(draftId: string): InlineKeyboardButton[][] {
+  return [
+    [{ text: "🌍 Опубликовать на сайте", callback_data: `show:${draftId}` }],
+    [{ text: "🗑 Удалить", callback_data: `del:${draftId}` }],
+  ];
+}
+
+function createdHiddenTextSingle(base: string, event: PublishedEventInfoLocal): string {
+  const dt = DateTime.fromISO(event.startsAtIso, { zone: "utc" }).setZone(EVENT_ADMIN_TIMEZONE);
+  const when = dt.isValid ? dt.setLocale("ru").toFormat("d MMMM yyyy, HH:mm") : event.startsAtIso;
+  return [
+    "💾 Черновик создан — пока скрыт от поиска и не в афише.",
+    "",
+    `📌 ${event.title}`,
+    `📅 ${when} (Warsaw)`,
+    "",
+    `👀 Предпросмотр (по ссылке, не на сайте):`,
+    eventPublicUrlRu(base, event.slug),
+    "",
+    "Проверьте страницу и нажмите «Опубликовать на сайте» — тогда событие попадёт в афишу и в поиск (IndexNow + Google).",
+  ].join("\n");
+}
+
+function createdHiddenTextBatch(base: string, events: PublishedEventInfoLocal[]): string {
+  const blocks = events.map((event, i) => {
+    const dt = DateTime.fromISO(event.startsAtIso, { zone: "utc" }).setZone(EVENT_ADMIN_TIMEZONE);
+    const when = dt.isValid ? dt.setLocale("ru").toFormat("d MMMM yyyy, HH:mm") : event.startsAtIso;
+    return `${i + 1}. ${event.title}\n   📅 ${when}\n   👀 ${eventPublicUrlRu(base, event.slug)}`;
+  });
+  return [
+    `💾 Создано ${events.length} черновиков — пока скрыты от поиска и не в афише.`,
+    "",
+    ...blocks,
+    "",
+    "Проверьте страницы и нажмите «Опубликовать на сайте» — все попадут в афишу и в поиск.",
+  ].join("\n");
+}
+
+/** Кнопки для уточнения: быстрый выбор цены/мест + переключатели типа и языка. */
+function clarificationKeyboard(draftId: string, fields: ClarificationField[]): InlineKeyboardButton[][] {
+  const rows: InlineKeyboardButton[][] = [];
+  if (fields.includes("pricePln")) {
+    rows.push([50, 70, 100, 150].map((v) => ({ text: `${v} zł`, callback_data: `set:p:${v}:${draftId}` })));
+  }
+  if (fields.includes("totalTickets")) {
+    rows.push([20, 30, 50, 100].map((v) => ({ text: `${v} мест`, callback_data: `set:s:${v}:${draftId}` })));
+  }
+  rows.push([
+    { text: "🎭 Шоу", callback_data: `set:k:performance:${draftId}` },
+    { text: "🎓 Пробное", callback_data: `set:k:trial:${draftId}` },
+  ]);
+  rows.push([
+    { text: "RU", callback_data: `set:l:ru:${draftId}` },
+    { text: "UK", callback_data: `set:l:uk:${draftId}` },
+    { text: "RU+UK", callback_data: `set:l:ru_uk:${draftId}` },
+    { text: "PL", callback_data: `set:l:pl:${draftId}` },
+  ]);
+  return rows;
+}
+
+function clarificationKeyboardHint(fields: ClarificationField[]): string {
+  const quick = fields.includes("pricePln") || fields.includes("totalTickets");
+  if (fields.includes("startsAtWarsaw")) {
+    return quick
+      ? "\n\nДату/время — текстом (например 23.05 19:00). Цену и места можно кнопкой ниже или текстом."
+      : "\n\nДату/время — текстом (например 23.05 19:00). Тип/язык можно поправить кнопкой.";
+  }
+  return "\n\nНажмите кнопку ниже или ответьте текстом (например «70, 30»).";
+}
+
 async function showPreview(
   chatId: number,
   draftId: string,
@@ -248,7 +328,7 @@ async function showPreview(
   const text = batch
     ? previewTextBatch(events, imageCount, previewNote)
     : previewTextSingle(finalizeParsed(events[0]!), imageCount, previewNote);
-  const publishLabel = batch ? `✅ Опубликовать все (${events.length})` : "✅ Опубликовать";
+  const publishLabel = batch ? `💾 Создать (${events.length}, скрыто)` : "💾 Создать (скрыто)";
 
   await sendTelegramMessage(chatId, text, {
     inlineKeyboard: [
@@ -294,10 +374,11 @@ async function runGeminiForAfisha(
       parsed: parsedPayload,
       missing_fields: missing,
     });
-    const question = clarificationQuestion(missing, events.length);
+    const question = clarificationQuestion(missing, events.length) + clarificationKeyboardHint(missing);
     await sendTelegramMessage(
       chatId,
       previewNote ? `${previewNote}\n\n${question}` : question,
+      { inlineKeyboard: clarificationKeyboard(draftId, missing) },
     );
     return;
   }
@@ -355,8 +436,12 @@ async function applyDraftFieldsFromReply(
       missing_fields: stillMissing,
       status: "awaiting_clarification",
     });
-    const question = `Не удалось разобрать ответ. ${clarificationQuestion(stillMissing, mergedEvents.length)}`;
-    await sendTelegramMessage(chatId, previewNote ? `${previewNote}\n\n${question}` : question);
+    const question =
+      `Не удалось разобрать ответ. ${clarificationQuestion(stillMissing, mergedEvents.length)}` +
+      clarificationKeyboardHint(stillMissing);
+    await sendTelegramMessage(chatId, previewNote ? `${previewNote}\n\n${question}` : question, {
+      inlineKeyboard: clarificationKeyboard(active.id, stillMissing),
+    });
     return;
   }
 
@@ -380,6 +465,87 @@ async function processClarificationReply(chatId: number, userId: number, replyTe
 
   const fields = active.missing_fields as ClarificationField[];
   await applyDraftFieldsFromReply(chatId, userId, active, replyText, fields);
+}
+
+type SetField = "p" | "s" | "k" | "l";
+
+const SET_LANGUAGES = new Set(["ru", "uk", "ru_uk", "pl", "en", "mixed"]);
+
+/** Применяет одно поле к черновику по нажатию инлайн-кнопки уточнения. */
+async function applySingleFieldToDraft(
+  chatId: number,
+  userId: number,
+  draftId: string,
+  field: SetField,
+  value: string,
+  callbackQueryId?: string,
+): Promise<void> {
+  const supabase = requireServiceSupabase();
+  const draft = await getTelegramDraft(supabase, draftId);
+  if (!draft || draft.telegram_user_id !== userId) {
+    if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Черновик не найден");
+    return;
+  }
+  if (draft.status !== "awaiting_clarification" && draft.status !== "preview") {
+    if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Черновик уже закрыт");
+    return;
+  }
+
+  const events = sortEventsByDate(parseStoredEvents(draft.parsed));
+  let ack = "Готово";
+  for (const ev of events) {
+    if (field === "p") {
+      const n = Math.round(Number(value));
+      if (Number.isFinite(n) && n > 0) ev.pricePln = n;
+      ack = `Цена: ${value} zł`;
+    } else if (field === "s") {
+      const n = Math.round(Number(value));
+      if (Number.isFinite(n) && n > 0) ev.totalTickets = n;
+      ack = `Мест: ${value}`;
+    } else if (field === "k") {
+      ev.listingKind = value === "trial" ? "trial" : "performance";
+      if (ev.listingKind === "performance") delete ev.poetCourseSlug;
+      ack = ev.listingKind === "trial" ? "Тип: пробное" : "Тип: шоу";
+    } else if (field === "l" && SET_LANGUAGES.has(value)) {
+      ev.eventLanguage = value as RawParsedEvent["eventLanguage"];
+      ack = `Язык: ${value.toUpperCase()}`;
+    }
+  }
+
+  const datePolicy = applyDatePolicyBatch(events);
+  let missing = missingClarificationFieldsBatch(events);
+  if (datePolicy.forceDateClarification && !missing.includes("startsAtWarsaw")) {
+    missing = ["startsAtWarsaw", ...missing];
+  }
+  const previewNote = datePolicy.previewNote ?? previewNoteFromDraft(draft.parsed);
+  const imageFileIds = storedImageFileIds(draft.parsed, draft.image_file_id);
+  const isBatch = events.length > 1;
+
+  if (callbackQueryId) await answerCallbackQuery(callbackQueryId, ack);
+
+  if (missing.length > 0) {
+    await saveTelegramDraft(supabase, {
+      ...draft,
+      telegram_user_id: userId,
+      parsed: draftParsedPayload(events, previewNote, isBatch, imageFileIds),
+      missing_fields: missing,
+      status: "awaiting_clarification",
+    });
+    const question = clarificationQuestion(missing, events.length) + clarificationKeyboardHint(missing);
+    await sendTelegramMessage(chatId, previewNote ? `${previewNote}\n\n${question}` : question, {
+      inlineKeyboard: clarificationKeyboard(draftId, missing),
+    });
+    return;
+  }
+
+  await saveTelegramDraft(supabase, {
+    ...draft,
+    telegram_user_id: userId,
+    parsed: draftParsedPayload(events, previewNote, isBatch, imageFileIds),
+    missing_fields: [],
+    status: "preview",
+  });
+  await showPreview(chatId, draftId, events, imageFileIds.length, previewNote, isBatch);
 }
 
 async function processPreviewCorrection(
@@ -627,77 +793,195 @@ async function publishDraft(
     return false;
   }
 
+  // Атомарный захват: защищает от двойного тапа «Опубликовать» (две гонки → дубли событий).
+  const claimed = await claimDraftForPublish(supabase, draft.id);
+  if (!claimed) {
+    if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Уже публикуется…");
+    return false;
+  }
+  draft = claimed;
+  draftId = draft.id;
+
   const storedEvents = sortEventsByDate(parseStoredEvents(draft.parsed));
   const imageFileIds = storedImageFileIds(draft.parsed, draft.image_file_id);
-  draftId = draft.id;
 
   const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "https://www.populartickets.pl";
   const published: PublishedEventInfoLocal[] = [];
 
-  for (let i = 0; i < storedEvents.length; i++) {
-    const raw = storedEvents[i]!;
-    const parsed = finalizeParsed(raw);
-    const fileId = imageFileIds[i];
+  try {
+    for (let i = 0; i < storedEvents.length; i++) {
+      const raw = storedEvents[i]!;
+      const parsed = finalizeParsed(raw);
+      const fileId = imageFileIds[i];
 
-    let imageUpload: { buffer: Buffer; mimeType: string } | undefined;
-    if (fileId) {
-      imageUpload = await downloadTelegramFile(fileId);
+      let imageUpload: { buffer: Buffer; mimeType: string } | undefined;
+      if (fileId) {
+        imageUpload = await downloadTelegramFile(fileId);
+      }
+
+      // Создаём СКРЫТО (unlisted): страница доступна по ссылке для проверки,
+      // но не в афише и не пингуем поиск. Публикация на сайт — отдельной кнопкой.
+      const event = await createEventFromParsed(supabase, parsed, {
+        visibility: "unlisted",
+        image: imageUpload,
+      });
+
+      published.push({
+        id: event.id,
+        title: event.title,
+        slug: event.slug,
+        startsAtIso: event.startsAtIso,
+      });
     }
+  } catch (e) {
+    // Создание событий сорвалось — возвращаем черновик в preview, чтобы можно было повторить.
+    if (published.length === 0) {
+      await updateTelegramDraftStatus(supabase, draftId, "preview");
+    }
+    throw e;
+  }
 
-    const event = await createEventFromParsed(supabase, parsed, {
-      visibility: "published",
-      image: imageUpload,
-    });
+  await updateTelegramDraftStatus(supabase, draftId, "published", {
+    ...mergePublishedIntoParsed(draft.parsed, published),
+    [ON_SITE_KEY]: false,
+  });
 
-    published.push({
-      title: event.title,
-      slug: event.slug,
-      startsAtIso: event.startsAtIso,
-      discovery: event.discovery,
+  const text =
+    published.length === 1
+      ? createdHiddenTextSingle(base, published[0]!)
+      : createdHiddenTextBatch(base, published);
+  await sendTelegramMessage(chatId, text, { inlineKeyboard: revealKeyboard(draftId) });
+
+  return true;
+}
+
+async function offerBroadcast(chatId: number, draftId: string): Promise<void> {
+  const broadcastChats = getTelegramBroadcastChatIds();
+  if (broadcastChats.length === 0) return;
+
+  if (isTelegramAutoBroadcast()) {
+    try {
+      const supabase = requireServiceSupabase();
+      const result = await broadcastDraftToGroups(supabase, draftId);
+      await sendTelegramMessage(
+        chatId,
+        `📢 Разослано в ${result.chats} групп(ы): ${result.sent} сообщ.${result.failed ? `, ошибок: ${result.failed}` : ""}`,
+      );
+    } catch (e) {
+      const err = e instanceof Error ? e.message : "unknown";
+      await sendTelegramMessage(chatId, `⚠️ Рассылка в группы не удалась: ${err}`);
+    }
+    return;
+  }
+
+  await sendTelegramMessage(chatId, "Разослать афишу в Telegram-группы?", {
+    inlineKeyboard: [[{ text: "📢 В группы", callback_data: `bcast:${draftId}` }]],
+  });
+}
+
+/** Кнопка «Опубликовать на сайте»: unlisted → published + discovery (IndexNow/GBP) + рассылка. */
+async function revealDraftOnSite(
+  chatId: number,
+  userId: number,
+  draftId: string,
+  callbackQueryId?: string,
+): Promise<boolean> {
+  const supabase = requireServiceSupabase();
+  const draft = await getTelegramDraft(supabase, draftId);
+
+  if (!draft || draft.telegram_user_id !== userId) {
+    if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Черновик не найден");
+    return false;
+  }
+  if (draft.status === "cancelled") {
+    if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Черновик удалён");
+    return false;
+  }
+  if (isDraftOnSite(draft.parsed)) {
+    if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Уже на сайте");
+    return false;
+  }
+
+  const published = readPublishedEvents(draft.parsed);
+  if (published.length === 0) {
+    if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Нет созданных событий");
+    await sendTelegramMessage(chatId, "Сначала создайте черновик из афиши, затем публикуйте.");
+    return false;
+  }
+
+  const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "https://www.populartickets.pl";
+  const revealed: PublishedEventInfoLocal[] = [];
+
+  for (const ev of published) {
+    if (!ev.id) {
+      revealed.push(ev);
+      continue;
+    }
+    const result = await revealEventOnSite(supabase, ev.id);
+    revealed.push({
+      ...ev,
+      startsAtIso: result?.startsAtIso ?? ev.startsAtIso,
+      discovery: result?.discovery,
     });
   }
 
-  for (const item of published) {
+  await updateTelegramDraftStatus(supabase, draftId, "published", {
+    ...draft.parsed,
+    [ON_SITE_KEY]: true,
+  });
+
+  for (const item of revealed) {
     const manual = item.discovery?.gbpManual;
     if (manual && item.discovery?.gbp !== "created") {
       await sendTelegramMessage(chatId, formatGbpManualTelegramMessage(manual));
     }
   }
 
-  await updateTelegramDraftStatus(
-    supabase,
-    draftId,
-    "published",
-    mergePublishedIntoParsed(draft.parsed, published),
+  await sendTelegramMessage(
+    chatId,
+    revealed.length === 1
+      ? publishedTextSingle(base, revealed[0]!)
+      : publishedTextBatch(base, revealed),
   );
 
-  if (published.length === 1) {
-    await sendTelegramMessage(chatId, publishedTextSingle(base, published[0]!));
-  } else {
-    await sendTelegramMessage(chatId, publishedTextBatch(base, published));
+  await offerBroadcast(chatId, draftId);
+  return true;
+}
+
+/** Кнопка «Удалить»: скрывает созданные события с сайта (visibility=inactive). */
+async function deleteDraftEvents(
+  chatId: number,
+  userId: number,
+  draftId: string,
+  callbackQueryId?: string,
+): Promise<void> {
+  const supabase = requireServiceSupabase();
+  const draft = await getTelegramDraft(supabase, draftId);
+  if (!draft || draft.telegram_user_id !== userId) {
+    if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Черновик не найден");
+    return;
   }
 
-  const broadcastChats = getTelegramBroadcastChatIds();
-  if (broadcastChats.length > 0) {
-    if (isTelegramAutoBroadcast()) {
-      try {
-        const result = await broadcastDraftToGroups(supabase, draftId);
-        await sendTelegramMessage(
-          chatId,
-          `📢 Разослано в ${result.chats} групп(ы): ${result.sent} сообщ.${result.failed ? `, ошибок: ${result.failed}` : ""}`,
-        );
-      } catch (e) {
-        const err = e instanceof Error ? e.message : "unknown";
-        await sendTelegramMessage(chatId, `⚠️ Рассылка в группы не удалась: ${err}`);
-      }
-    } else {
-      await sendTelegramMessage(chatId, "Разослать афишу в Telegram-группы?", {
-        inlineKeyboard: [[{ text: "📢 В группы", callback_data: `bcast:${draftId}` }]],
-      });
+  const published = readPublishedEvents(draft.parsed);
+  let hidden = 0;
+  for (const ev of published) {
+    if (!ev.id) continue;
+    try {
+      const r = await hideEventFromSite(supabase, ev.id);
+      if (r) hidden += 1;
+    } catch (e) {
+      console.error("[telegram bot] hide event", ev.id, e);
     }
   }
 
-  return true;
+  await updateTelegramDraftStatus(supabase, draftId, "cancelled");
+  if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Удалено");
+  await sendTelegramMessage(
+    chatId,
+    hidden > 0
+      ? `🗑 Скрыто с сайта (${hidden}). Можно прислать афишу заново.`
+      : "🗑 Удалено. Можно прислать афишу заново.",
+  );
 }
 
 async function cancelDraft(chatId: number, userId: number, draftId: string, callbackQueryId?: string): Promise<void> {
@@ -705,6 +989,14 @@ async function cancelDraft(chatId: number, userId: number, draftId: string, call
   const draft = await getTelegramDraft(supabase, draftId);
   if (!draft || draft.telegram_user_id !== userId) {
     if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Черновик не найден");
+    return;
+  }
+  if (draft.status === "published") {
+    if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Уже опубликовано");
+    return;
+  }
+  if (draft.status === "cancelled") {
+    if (callbackQueryId) await answerCallbackQuery(callbackQueryId, "Уже отменено");
     return;
   }
   await updateTelegramDraftStatus(supabase, draftId, "cancelled");
@@ -766,9 +1058,39 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         const ok = await publishDraft(chatId, userId, data.slice(4), cq.id);
         if (ok && cq.message?.message_id) {
           try {
-            await editTelegramMessage(chatId, cq.message.message_id, "✅ Опубликовано — см. сообщение ниже.");
+            await editTelegramMessage(chatId, cq.message.message_id, "💾 Черновик создан — см. кнопки ниже.");
           } catch {
             /* inline keyboard исчезает после edit — ок */
+          }
+        }
+        return {};
+      }
+      if (data.startsWith("set:")) {
+        const [field, value, ...idParts] = data.slice(4).split(":");
+        const draftId = idParts.join(":");
+        if (field && value && draftId) {
+          await applySingleFieldToDraft(chatId, userId, draftId, field as SetField, value, cq.id);
+        }
+        return {};
+      }
+      if (data.startsWith("show:")) {
+        const ok = await revealDraftOnSite(chatId, userId, data.slice(5), cq.id);
+        if (ok && cq.message?.message_id) {
+          try {
+            await editTelegramMessage(chatId, cq.message.message_id, "🌍 Опубликовано на сайте — см. сообщение ниже.");
+          } catch {
+            /* ignore */
+          }
+        }
+        return {};
+      }
+      if (data.startsWith("del:")) {
+        await deleteDraftEvents(chatId, userId, data.slice(4), cq.id);
+        if (cq.message?.message_id) {
+          try {
+            await editTelegramMessage(chatId, cq.message.message_id, "🗑 Удалено.");
+          } catch {
+            /* ignore */
           }
         }
         return {};
@@ -828,12 +1150,36 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
   if (text === "/start" || text === "/help") {
     await cancelAfishaBuffer(chatId);
     const broadcastHint = getTelegramBroadcastChatIds().length
-      ? "\n\n📢 После публикации — кнопка «В группы» (или авто при TELEGRAM_AUTO_BROADCAST=1).\n/chatid — id чата (добавьте бота в группу как админа, затем id в TELEGRAM_BROADCAST_CHAT_IDS)."
-      : "\n\n/chatid — узнать id чата для TELEGRAM_BROADCAST_CHAT_IDS (бот должен быть админом группы).";
+      ? "\n\n📢 После публикации на сайт — кнопка «В группы» (или авто при TELEGRAM_AUTO_BROADCAST=1).\n/chatid — id чата (бот должен быть админом группы)."
+      : "\n\n/chatid — узнать id чата для рассылки в группы (бот должен быть админом группы).";
     await sendTelegramMessage(
       chatId,
-      `Popular Poet → публикация события\n\n1. Фото и текст — в любом порядке (альбом + текст отдельным сообщением — ок)\n2. Проверьте превью\n3. Нажмите «Опубликовать»\n\nНесколько дат → несколько событий.\nНесколько фото → по порядку на события (от ближайшей даты).\nСсылки после публикации — только /ru/.${broadcastHint}`,
+      [
+        "Popular Poet → публикация события",
+        "",
+        "1. Пришлите фото и текст афиши (в любом порядке; альбом + текст отдельным сообщением — ок).",
+        "2. Проверьте превью. Если чего-то не хватает — нажмите кнопку (цена/места/тип/язык) или ответьте текстом.",
+        "3. «💾 Создать (скрыто)» — событие появится по ссылке для проверки, но НЕ в афише и НЕ в поиске.",
+        "4. Откройте ссылку, проверьте страницу.",
+        "5. «🌍 Опубликовать на сайте» — только теперь событие в афише и уходит в поиск. Или «🗑 Удалить».",
+        "",
+        "Несколько дат → несколько событий. Несколько фото → по порядку дат.",
+        "Команды: /cancel — отменить текущий черновик.",
+      ].join("\n") + broadcastHint,
     );
+    return {};
+  }
+
+  if (text === "/cancel") {
+    const supabase = requireServiceSupabase();
+    await cancelAfishaBuffer(chatId);
+    const active = await getActiveDraftForChat(supabase, chatId);
+    if (active) {
+      await cancelActiveDraftForChat(supabase, chatId);
+      await sendTelegramMessage(chatId, "❌ Текущий черновик отменён. Пришлите афишу заново.");
+    } else {
+      await sendTelegramMessage(chatId, "Активного черновика нет. Пришлите афишу — начнём заново.");
+    }
     return {};
   }
 

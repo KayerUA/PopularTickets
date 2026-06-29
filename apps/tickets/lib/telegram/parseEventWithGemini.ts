@@ -181,11 +181,9 @@ function rejectDateLeakage(o: Record<string, unknown>): void {
   const dt = DateTime.fromFormat(starts, "yyyy-MM-dd'T'HH:mm", { zone: EVENT_ADMIN_TIMEZONE });
   if (!dt.isValid) return;
   const day = dt.day;
-  const hour = dt.hour;
-  const minute = dt.minute;
   for (const key of ["pricePln", "dayOfEventPricePln", "totalTickets"] as const) {
     const v = o[key];
-    if (typeof v === "number" && (v === day || v === hour || v === minute)) {
+    if (typeof v === "number" && v === day) {
       o[key] = null;
     }
   }
@@ -581,9 +579,9 @@ export function applyClarificationReplyBatch(
     const merged = applyClarificationReply(events[0]!, replyText, fields);
     return events.map((ev) => ({
       ...ev,
-      ...(merged.pricePln != null ? { pricePln: merged.pricePln } : {}),
-      ...(merged.totalTickets != null ? { totalTickets: merged.totalTickets } : {}),
-      ...(merged.startsAtWarsaw && fields.includes("startsAtWarsaw")
+      ...(merged.pricePln != null && ev.pricePln == null ? { pricePln: merged.pricePln } : {}),
+      ...(merged.totalTickets != null && ev.totalTickets == null ? { totalTickets: merged.totalTickets } : {}),
+      ...(merged.startsAtWarsaw && fields.includes("startsAtWarsaw") && !ev.startsAtWarsaw
         ? { startsAtWarsaw: merged.startsAtWarsaw }
         : {}),
     }));
