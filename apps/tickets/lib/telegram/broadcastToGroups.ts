@@ -1,6 +1,6 @@
-import { DateTime } from "luxon";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
+import { resolveAbsoluteAssetUrl } from "@/lib/safePublicUrl";
 import { resolveBroadcastChatIds } from "@/lib/telegram/broadcastChatStore";
 import {
   buildGroupBroadcastContent,
@@ -48,7 +48,7 @@ async function sendEventBroadcastToChat(
   supabase: SupabaseClient,
   targetChatId: number,
   event: PublishedEventInfo,
-  fileId: string | undefined,
+  image: { fileId?: string; imageUrl?: string | null },
   base: string,
 ): Promise<void> {
   const details =
@@ -56,8 +56,13 @@ async function sendEventBroadcastToChat(
   const { photoCaption, previewMessage, ticketUrl } = buildGroupBroadcastContent(base, details);
   const keyboard = ticketButton(ticketUrl);
 
-  if (fileId) {
-    const photoMsgId = await sendTelegramPhoto(targetChatId, fileId, photoCaption, {
+  const photoUrl = image.imageUrl
+    ? resolveAbsoluteAssetUrl(image.imageUrl, base)
+    : null;
+  const photoSource = image.fileId ?? photoUrl ?? undefined;
+
+  if (photoSource) {
+    const photoMsgId = await sendTelegramPhoto(targetChatId, photoSource, photoCaption, {
       inlineKeyboard: keyboard,
     });
     await sendTelegramMessage(targetChatId, previewMessage, {
@@ -69,6 +74,49 @@ async function sendEventBroadcastToChat(
 
   const text = `${photoCaption}\n\n${previewMessage}`.slice(0, 4096);
   await sendTelegramMessage(targetChatId, text, { inlineKeyboard: keyboard });
+}
+
+export async function broadcastEventToGroups(
+  supabase: SupabaseClient,
+  eventId: string,
+): Promise<{ sent: number; failed: number; chats: number }> {
+  const chatIds = await resolveBroadcastChatIds(supabase);
+  if (!chatIds.length) {
+    throw new Error("Нет групп для рассылки. Добавьте бота админом в группу или /subscribe в группе.");
+  }
+
+  const { data, error } = await supabase
+    .from("events")
+    .select("id,slug,title,starts_at,image_url,visibility")
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data || data.visibility === "inactive") throw new Error("Событие не найдено");
+
+  const event: PublishedEventInfo = {
+    id: String(data.id),
+    slug: String(data.slug),
+    title: String(data.title),
+    startsAtIso: String(data.starts_at),
+  };
+  const imageUrl = typeof data.image_url === "string" ? data.image_url : null;
+  const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "https://www.populartickets.pl";
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const targetChatId of chatIds) {
+    try {
+      await sendEventBroadcastToChat(supabase, targetChatId, event, { imageUrl }, base);
+      sent++;
+    } catch (e) {
+      failed++;
+      console.error("[telegram rebroadcast]", targetChatId, event.slug, e);
+    }
+  }
+
+  return { sent, failed, chats: chatIds.length };
 }
 
 export async function broadcastDraftToGroups(
@@ -96,10 +144,15 @@ export async function broadcastDraftToGroups(
   for (const targetChatId of chatIds) {
     for (let i = 0; i < published.length; i++) {
       const event = published[i]!;
-      const fileId = imageFileIds[i];
 
       try {
-        await sendEventBroadcastToChat(supabase, targetChatId, event, fileId, base);
+        await sendEventBroadcastToChat(
+          supabase,
+          targetChatId,
+          event,
+          { fileId: imageFileIds[i] },
+          base,
+        );
         sent++;
       } catch (e) {
         failed++;

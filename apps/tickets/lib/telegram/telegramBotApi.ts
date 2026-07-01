@@ -116,12 +116,20 @@ export function ackCallbackQueryImmediate(callbackQueryId: string, text?: string
   }).catch(() => {});
 }
 
-export async function editTelegramMessage(chatId: number, messageId: number, text: string): Promise<void> {
+export async function editTelegramMessage(
+  chatId: number,
+  messageId: number,
+  text: string,
+  opts?: { inlineKeyboard?: InlineKeyboardButton[][] },
+): Promise<void> {
   await telegramApi("editMessageText", {
     chat_id: chatId,
     message_id: messageId,
     text,
     disable_web_page_preview: false,
+    ...(opts?.inlineKeyboard?.length
+      ? { reply_markup: { inline_keyboard: opts.inlineKeyboard } }
+      : {}),
   });
 }
 

@@ -66,12 +66,18 @@ import {
 } from "@/lib/telegram/telegramBotApi";
 import {
   broadcastDraftToGroups,
+  broadcastEventToGroups,
   isDraftOnSite,
   mergePublishedIntoParsed,
   ON_SITE_KEY,
   readPublishedEvents,
   type PublishedEventInfo,
 } from "@/lib/telegram/broadcastToGroups";
+import {
+  fetchUpcomingEventsForBot,
+  formatUpcomingEventsMessage,
+  upcomingEventsKeyboard,
+} from "@/lib/telegram/upcomingEventsBot";
 import { getDraftImageFocals } from "@/lib/telegram/draftImageFocal";
 import { telegramFocalWebAppUrl } from "@/lib/telegram/telegramFocalWebAppUrl";
 import {
@@ -942,6 +948,35 @@ async function publishDraft(
   return true;
 }
 
+function isUpcomingEventsCommand(text: string): boolean {
+  return (
+    text === "/events" ||
+    text.startsWith("/events@") ||
+    text === "/upcoming" ||
+    text.startsWith("/upcoming@") ||
+    text === "/афиша" ||
+    text.startsWith("/афиша@")
+  );
+}
+
+async function sendUpcomingEventsList(
+  chatId: number,
+  page = 0,
+  editMessageId?: number,
+): Promise<void> {
+  const supabase = requireServiceSupabase();
+  const events = await fetchUpcomingEventsForBot(supabase);
+  const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "https://www.populartickets.pl";
+  const text = formatUpcomingEventsMessage(events, page, base);
+  const keyboard = upcomingEventsKeyboard(events, page);
+
+  if (editMessageId) {
+    await editTelegramMessage(chatId, editMessageId, text, { inlineKeyboard: keyboard });
+    return;
+  }
+  await sendTelegramMessage(chatId, text, { inlineKeyboard: keyboard });
+}
+
 function isGroupChatType(type: string): boolean {
   return type === "group" || type === "supergroup";
 }
@@ -1252,6 +1287,38 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
     }
 
     try {
+      if (data.startsWith("rebcast:")) {
+        const eventId = data.slice(8);
+        if (!eventId) return {};
+        if (cq.id) await answerCallbackQuery(cq.id, "Рассылаю…");
+        try {
+          const supabase = requireServiceSupabase();
+          const result = await broadcastEventToGroups(supabase, eventId);
+          await sendTelegramMessage(
+            chatId,
+            `📢 Готово: событие разослано в ${result.sent} из ${result.chats} групп${result.failed ? `, ошибок: ${result.failed}` : ""}.`,
+          );
+        } catch (e) {
+          const err = e instanceof Error ? e.message : "unknown error";
+          await sendTelegramMessage(chatId, `❌ Рассылка: ${err}`);
+        }
+        return {};
+      }
+      if (data.startsWith("evpage:")) {
+        const page = Math.max(0, Number(data.slice(7)) || 0);
+        if (cq.id) await answerCallbackQuery(cq.id);
+        try {
+          if (cq.message?.message_id) {
+            await sendUpcomingEventsList(chatId, page, cq.message.message_id);
+          } else {
+            await sendUpcomingEventsList(chatId, page);
+          }
+        } catch (e) {
+          const err = e instanceof Error ? e.message : "unknown error";
+          await sendTelegramMessage(chatId, `❌ ${err}`);
+        }
+        return {};
+      }
       if (data.startsWith("bcast:")) {
         const draftId = data.slice(6);
         if (cq.id) await answerCallbackQuery(cq.id, "Рассылаю…");
@@ -1471,7 +1538,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         "5. «🌍 Опубликовать на сайте» — только теперь событие в афише и уходит в поиск. Или «🗑 Удалить».",
         "",
         "Несколько дат → несколько событий. Несколько фото → по порядку дат.",
-        "Команды: /cancel — отменить черновик · /myid — ваш Telegram ID.",
+        "Команды: /cancel — отменить черновик · /myid — ваш Telegram ID · /events — предстоящие и повторная рассылка.",
         "📢 /broadcast — разослать произвольный пост во все группы (не афишу события).",
         "🖼 На превью — «Точка фокуса»: мини-приложение для обрезки обложки на сайте.",
         isOwner(userId)
@@ -1497,6 +1564,16 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
       await sendTelegramMessage(chatId, "❌ Режим рассылки отменён.");
     } else {
       await sendTelegramMessage(chatId, "Активного черновика нет. Пришлите афишу — начнём заново.");
+    }
+    return {};
+  }
+
+  if (isUpcomingEventsCommand(text)) {
+    try {
+      await sendUpcomingEventsList(chatId, 0);
+    } catch (e) {
+      const err = e instanceof Error ? e.message : "unknown error";
+      await sendTelegramMessage(chatId, `❌ Не удалось загрузить события:\n${err}`);
     }
     return {};
   }
