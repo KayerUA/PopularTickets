@@ -28,7 +28,7 @@
 ```env
 TELEGRAM_BOT_TOKEN=...
 TELEGRAM_WEBHOOK_SECRET=<случайная строка>
-TELEGRAM_ADMIN_USER_IDS=<telegram user id через запятую>
+TELEGRAM_ADMIN_USER_IDS=<telegram user id владельца через запятую>
 GEMINI_API_KEY=...
 ```
 
@@ -56,7 +56,8 @@ GOOGLE_GBP_MANUAL_PANEL_URL=https://business.google.com/
 2. `supabase/telegram-event-drafts.sql` — черновики бота
 3. `supabase/telegram-message-buffers.sql` — буферы альбомов (serverless)
 4. `supabase/telegram-broadcast-chats.sql` — группы для рассылки афиши
-5. `supabase/add-events-day-of-event-price.sql` — цена в день события
+5. `supabase/telegram-bot-admins.sql` — редакторы бота (назначаются через /addadmin)
+6. `supabase/add-events-day-of-event-price.sql` — цена в день события
 
 ### 3. Регистрация webhook
 
@@ -84,6 +85,15 @@ URL: `https://www.populartickets.pl/api/telegram/webhook/<TELEGRAM_WEBHOOK_SECRE
 4. `TELEGRAM_BROADCAST_CHAT_IDS` в env — опциональный fallback для старых настроек.
 
 Slug события строится по **языку аудитории** (`event_language`): ru/ru_uk → русский заголовок, uk → украинский, pl → польский.
+
+### Редакторы бота (делегирование)
+
+- **Владельцы** — `TELEGRAM_ADMIN_USER_IDS` в Vercel (нельзя удалить через бота).
+- **Редакторы** — назначаются владельцем в личке бота:
+  - `/addadmin 123456789` или ответ `/addadmin` на сообщение человека
+  - `/removeadmin 123456789` — снять доступ
+  - `/listadmins` — список владельцев и редакторов
+  - `/myid` — узнать свой Telegram ID (доступно всем)
 
 ### 5. Известные ограничения
 

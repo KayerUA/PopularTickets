@@ -14,8 +14,8 @@ export function getGeminiApiKey(): string | undefined {
   return (process.env.GEMINI_API_KEY ?? "").trim() || undefined;
 }
 
-/** Whitelist Telegram user id (числа через запятую). */
-export function getTelegramAdminUserIds(): Set<number> {
+/** Владельцы бота из env — полный доступ, включая /addadmin и /removeadmin. */
+export function getTelegramOwnerUserIds(): Set<number> {
   const raw = (process.env.TELEGRAM_ADMIN_USER_IDS ?? "").trim();
   if (!raw) return new Set();
   const ids = raw
@@ -23,6 +23,11 @@ export function getTelegramAdminUserIds(): Set<number> {
     .map((s) => Number(s.trim()))
     .filter((n) => Number.isFinite(n) && n > 0);
   return new Set(ids);
+}
+
+/** @deprecated alias — владельцы из TELEGRAM_ADMIN_USER_IDS */
+export function getTelegramAdminUserIds(): Set<number> {
+  return getTelegramOwnerUserIds();
 }
 
 /** Chat id групп для рассылки афиши (через запятую, отрицательные для supergroup). */

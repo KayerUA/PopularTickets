@@ -3,7 +3,13 @@ import { DateTime } from "luxon";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { EVENT_ADMIN_TIMEZONE } from "@/lib/warsawEventDatetime";
-import { getTelegramAdminUserIds, isTelegramAutoBroadcast } from "@/lib/telegram/config";
+import { getTelegramOwnerUserIds, isTelegramAutoBroadcast } from "@/lib/telegram/config";
+import {
+  addBotAdmin,
+  listBotAdmins,
+  removeBotAdmin,
+  resolveBotOperatorIds,
+} from "@/lib/telegram/botAdminStore";
 import {
   registerBroadcastChat,
   resolveBroadcastChatIds,
@@ -67,7 +73,7 @@ import {
   type PublishedEventInfo,
 } from "@/lib/telegram/broadcastToGroups";
 
-type TelegramUser = { id: number; username?: string };
+type TelegramUser = { id: number; username?: string; first_name?: string; is_bot?: boolean };
 type TelegramPhotoSize = { file_id: string; width: number; height: number };
 type TelegramMessage = {
   message_id: number;
@@ -78,6 +84,8 @@ type TelegramMessage = {
   photo?: TelegramPhotoSize[];
   media_group_id?: string;
   document?: { file_id: string; mime_type?: string; file_name?: string };
+  reply_to_message?: TelegramMessage;
+  forward_from?: TelegramUser;
 };
 
 type TelegramCallbackQuery = {
@@ -885,6 +893,95 @@ function isGroupChatType(type: string): boolean {
   return type === "group" || type === "supergroup";
 }
 
+function userLabel(user: TelegramUser): string {
+  if (user.username) return `@${user.username}`;
+  if (user.first_name) return user.first_name;
+  return String(user.id);
+}
+
+function parseAdminTargetFromMessage(msg: TelegramMessage, text: string): TelegramUser | null {
+  const replyFrom = msg.reply_to_message?.from;
+  if (replyFrom?.id && !replyFrom.is_bot) return replyFrom;
+  if (msg.forward_from?.id && !msg.forward_from.is_bot) return msg.forward_from;
+
+  const idMatch = text.match(/^\/(?:add|remove)admin(?:@\w+)?\s+(\d+)\s*$/i);
+  if (idMatch) {
+    return { id: Number(idMatch[1]), username: undefined, first_name: idMatch[1] };
+  }
+  return null;
+}
+
+async function handleOwnerAdminCommands(
+  chatId: number,
+  ownerId: number,
+  msg: TelegramMessage,
+  text: string,
+): Promise<boolean> {
+  const supabase = requireServiceSupabase();
+
+  if (text === "/listadmins" || text.startsWith("/listadmins@")) {
+    const owners = getTelegramOwnerUserIds();
+    const delegated = await listBotAdmins(supabase);
+    const ownerLines = [...owners].map((id) => `👑 ${id} (владелец)`);
+    const editorLines = delegated.map((row) => {
+      const name = row.username ? `@${row.username}` : row.display_name ?? String(row.telegram_user_id);
+      return `✏️ ${name} · id ${row.telegram_user_id}`;
+    });
+    await sendTelegramMessage(
+      chatId,
+      ["Редакторы бота:", "", ...ownerLines, ...editorLines].join("\n") || "Список пуст.",
+    );
+    return true;
+  }
+
+  if (text.startsWith("/addadmin")) {
+    const target = parseAdminTargetFromMessage(msg, text);
+    if (!target) {
+      await sendTelegramMessage(
+        chatId,
+        "Как добавить редактора:\n• ответьте /addadmin на его сообщение\n• или /addadmin 123456789 (Telegram user id)\n\n/myid — узнать свой id",
+      );
+      return true;
+    }
+    if (getTelegramOwnerUserIds().has(target.id)) {
+      await sendTelegramMessage(chatId, "Этот пользователь уже владелец (TELEGRAM_ADMIN_USER_IDS).");
+      return true;
+    }
+    await addBotAdmin(supabase, target.id, {
+      username: target.username,
+      displayName: target.first_name,
+      addedBy: ownerId,
+    });
+    await sendTelegramMessage(
+      chatId,
+      `✅ Редактор добавлен: ${userLabel(target)} (id ${target.id}).\nМожет создавать и публиковать события.`,
+    );
+    return true;
+  }
+
+  if (text.startsWith("/removeadmin")) {
+    const target = parseAdminTargetFromMessage(msg, text);
+    if (!target) {
+      await sendTelegramMessage(chatId, "Ответьте /removeadmin на сообщение человека или: /removeadmin 123456789");
+      return true;
+    }
+    if (getTelegramOwnerUserIds().has(target.id)) {
+      await sendTelegramMessage(chatId, "Владельца из env нельзя удалить через бота.");
+      return true;
+    }
+    const removed = await removeBotAdmin(supabase, target.id);
+    await sendTelegramMessage(
+      chatId,
+      removed
+        ? `🗑 Редактор удалён: ${userLabel(target)} (id ${target.id}).`
+        : `Редактор id ${target.id} не найден.`,
+    );
+    return true;
+  }
+
+  return false;
+}
+
 function isBotAdminStatus(status: TelegramChatMemberStatus): boolean {
   return status === "administrator" || status === "creator";
 }
@@ -1047,7 +1144,16 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
     if (oldest != null) seenUpdateIds.delete(oldest);
   }
 
-  const admins = getTelegramAdminUserIds();
+  const owners = getTelegramOwnerUserIds();
+  let operators = owners;
+  try {
+    const supabase = requireServiceSupabase();
+    operators = await resolveBotOperatorIds(supabase);
+  } catch {
+    /* локально без Supabase — только владельцы из env */
+  }
+  const isOperator = (id: number) => operators.has(id);
+  const isOwner = (id: number) => owners.has(id);
 
   if (update.my_chat_member) {
     const mcm = update.my_chat_member;
@@ -1060,7 +1166,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
 
         if (isAdmin && !wasAdmin) {
           await registerBroadcastChat(supabase, chat.id, chat.title ?? "", chat.type);
-          if (admins.has(mcm.from.id)) {
+          if (isOperator(mcm.from.id)) {
             await sendTelegramMessage(
               chat.id,
               "📢 Группа подключена к рассылке афиш.\n/unsubscribe — отключить.",
@@ -1082,7 +1188,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
     const chatId = cq.message?.chat.id;
     const data = cq.data ?? "";
 
-    if (!admins.has(userId)) {
+    if (!isOperator(userId)) {
       await answerCallbackQuery(cq.id, "Нет доступа");
       return {};
     }
@@ -1190,7 +1296,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
   // В группах бот молчит — только команды админа (рассылка, /chatid).
   if (!isPrivateTelegramChat(msg.chat)) {
     const text = messageBody(msg);
-    if (!admins.has(userId)) return {};
+    if (!isOperator(userId)) return {};
 
     if (text === "/subscribe" || text.startsWith("/subscribe@")) {
       try {
@@ -1229,14 +1335,44 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
     return {};
   }
 
-  if (!admins.has(userId)) {
-    await sendTelegramMessage(chatId, "Нет доступа. Добавьте ваш Telegram user id в TELEGRAM_ADMIN_USER_IDS.");
+  const textEarly = messageBody(msg);
+  if (textEarly === "/myid" || textEarly.startsWith("/myid@")) {
+    await sendTelegramMessage(chatId, `Ваш Telegram ID: \`${userId}\``, { parseMode: "Markdown" });
+    return {};
+  }
+
+  if (!isOperator(userId)) {
+    await sendTelegramMessage(
+      chatId,
+      [
+        "Нет доступа к боту.",
+        "",
+        `Ваш Telegram ID: \`${userId}\``,
+        "",
+        "Попросите владельца бота добавить вас:",
+        `/addadmin ${userId}`,
+      ].join("\n"),
+      { parseMode: "Markdown" },
+    );
     return {};
   }
 
   const text = messageBody(msg);
   const fileId = photoFileId(msg);
   const fileIds = fileId ? [fileId] : [];
+
+  if (isOwner(userId)) {
+    const handled = await handleOwnerAdminCommands(chatId, userId, msg, text);
+    if (handled) return {};
+  } else if (
+    text.startsWith("/addadmin") ||
+    text.startsWith("/removeadmin") ||
+    text === "/listadmins" ||
+    text.startsWith("/listadmins@")
+  ) {
+    await sendTelegramMessage(chatId, "Только владелец бота может управлять редакторами (/addadmin, /removeadmin).");
+    return {};
+  }
 
   if (text === "/start" || text === "/help") {
     await cancelAfishaBuffer(chatId);
@@ -1257,8 +1393,13 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         "5. «🌍 Опубликовать на сайте» — только теперь событие в афише и уходит в поиск. Или «🗑 Удалить».",
         "",
         "Несколько дат → несколько событий. Несколько фото → по порядку дат.",
-        "Команды: /cancel — отменить текущий черновик.",
-      ].join("\n") + broadcastHint,
+        "Команды: /cancel — отменить черновик · /myid — ваш Telegram ID.",
+        isOwner(userId)
+          ? "\nВладелец: /addadmin · /removeadmin · /listadmins — редакторы бота."
+          : "",
+      ]
+        .filter(Boolean)
+        .join("\n") + broadcastHint,
     );
     return {};
   }
