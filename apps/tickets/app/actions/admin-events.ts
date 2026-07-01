@@ -13,7 +13,7 @@ import {
   isEventsLanguageUnavailable,
 } from "@/lib/supabase/eventsPoetCourseColumn";
 import { contentVisibilitySchema } from "@/lib/contentVisibility";
-import { buildEventSlugFromTitleAndDate } from "@/lib/eventSlugFromTitle";
+import { buildEventSlug } from "@/lib/eventSlugFromTitle";
 import { parseStartsAtFromAdminForm } from "@/lib/warsawEventDatetime";
 import { DEFAULT_EVENT_LANGUAGE, normalizeEventLanguage } from "@/lib/eventLanguage";
 import { resolveEventMapsUrlForSave } from "@/lib/theatreVenueDefaults";
@@ -233,10 +233,12 @@ function resolveVenueFromFormData(formData: FormData): { venue: string; mapsUrl:
 function effectiveSlugFromFormData(formData: FormData): string {
   const raw = String(formData.get("slug") ?? "").trim();
   if (raw !== "") return raw;
-  const titlePl = String(formData.get("titlePl") ?? "").trim();
   const title = String(formData.get("title") ?? "");
+  const titlePl = String(formData.get("titlePl") ?? "");
+  const titleUk = String(formData.get("titleUk") ?? "");
+  const eventLanguage = String(formData.get("eventLanguage") ?? "ru_uk");
   const startsAt = String(formData.get("startsAt") ?? "");
-  return buildEventSlugFromTitleAndDate(titlePl || title, startsAt);
+  return buildEventSlug({ title, titlePl, titleUk, eventLanguage, startsAt });
 }
 
 async function allocateUniqueEventSlugForInsert(

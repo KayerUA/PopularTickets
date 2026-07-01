@@ -3,7 +3,12 @@ import { DateTime } from "luxon";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { EVENT_ADMIN_TIMEZONE } from "@/lib/warsawEventDatetime";
-import { getTelegramAdminUserIds, getTelegramBroadcastChatIds, isTelegramAutoBroadcast } from "@/lib/telegram/config";
+import { getTelegramAdminUserIds, isTelegramAutoBroadcast } from "@/lib/telegram/config";
+import {
+  registerBroadcastChat,
+  resolveBroadcastChatIds,
+  unregisterBroadcastChat,
+} from "@/lib/telegram/broadcastChatStore";
 import { formatDiscoveryStatusForTelegram } from "@/lib/eventDiscovery/formatDiscoveryStatus";
 import { formatGbpManualTelegramMessage } from "@/lib/googleBusinessProfile/gbpManualFallback";
 import type { EventDiscoveryResult } from "@/lib/eventDiscovery/notifyEventPublished";
@@ -66,7 +71,7 @@ type TelegramUser = { id: number; username?: string };
 type TelegramPhotoSize = { file_id: string; width: number; height: number };
 type TelegramMessage = {
   message_id: number;
-  chat: { id: number; type: string };
+  chat: { id: number; type: string; title?: string };
   from?: TelegramUser;
   text?: string;
   caption?: string;
@@ -82,10 +87,31 @@ type TelegramCallbackQuery = {
   data?: string;
 };
 
+type TelegramChatMemberStatus =
+  | "creator"
+  | "administrator"
+  | "member"
+  | "restricted"
+  | "left"
+  | "kicked";
+
+type TelegramChatMember = {
+  user: { id: number; is_bot?: boolean };
+  status: TelegramChatMemberStatus;
+};
+
+type TelegramMyChatMember = {
+  chat: { id: number; type: string; title?: string };
+  from: TelegramUser;
+  old_chat_member: TelegramChatMember;
+  new_chat_member: TelegramChatMember;
+};
+
 export type TelegramUpdate = {
   update_id: number;
   message?: TelegramMessage;
   callback_query?: TelegramCallbackQuery;
+  my_chat_member?: TelegramMyChatMember;
 };
 
 function isPrivateTelegramChat(chat: { type: string }): boolean {
@@ -855,8 +881,17 @@ async function publishDraft(
   return true;
 }
 
+function isGroupChatType(type: string): boolean {
+  return type === "group" || type === "supergroup";
+}
+
+function isBotAdminStatus(status: TelegramChatMemberStatus): boolean {
+  return status === "administrator" || status === "creator";
+}
+
 async function offerBroadcast(chatId: number, draftId: string): Promise<void> {
-  const broadcastChats = getTelegramBroadcastChatIds();
+  const supabase = requireServiceSupabase();
+  const broadcastChats = await resolveBroadcastChatIds(supabase);
   if (broadcastChats.length === 0) return;
 
   if (isTelegramAutoBroadcast()) {
@@ -1014,6 +1049,33 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
 
   const admins = getTelegramAdminUserIds();
 
+  if (update.my_chat_member) {
+    const mcm = update.my_chat_member;
+    const chat = mcm.chat;
+    if (isGroupChatType(chat.type) && mcm.new_chat_member.user.is_bot) {
+      try {
+        const supabase = requireServiceSupabase();
+        const wasAdmin = isBotAdminStatus(mcm.old_chat_member.status);
+        const isAdmin = isBotAdminStatus(mcm.new_chat_member.status);
+
+        if (isAdmin && !wasAdmin) {
+          await registerBroadcastChat(supabase, chat.id, chat.title ?? "", chat.type);
+          if (admins.has(mcm.from.id)) {
+            await sendTelegramMessage(
+              chat.id,
+              "📢 Группа подключена к рассылке афиш.\n/unsubscribe — отключить.",
+            );
+          }
+        } else if (!isAdmin && wasAdmin) {
+          await unregisterBroadcastChat(supabase, chat.id);
+        }
+      } catch (e) {
+        console.error("[telegram bot] my_chat_member", e);
+      }
+    }
+    return {};
+  }
+
   if (update.callback_query) {
     const cq = update.callback_query;
     const userId = cq.from.id;
@@ -1125,13 +1187,42 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
   const chatId = msg.chat.id;
   const userId = msg.from.id;
 
-  // В группах бот молчит — только /chatid для админа (настройка TELEGRAM_BROADCAST_CHAT_IDS).
+  // В группах бот молчит — только команды админа (рассылка, /chatid).
   if (!isPrivateTelegramChat(msg.chat)) {
     const text = messageBody(msg);
-    if (admins.has(userId) && (text === "/chatid" || text.startsWith("/chatid@"))) {
+    if (!admins.has(userId)) return {};
+
+    if (text === "/subscribe" || text.startsWith("/subscribe@")) {
+      try {
+        const supabase = requireServiceSupabase();
+        await registerBroadcastChat(supabase, chatId, msg.chat.title ?? "", msg.chat.type);
+        await sendTelegramMessage(
+          chatId,
+          "📢 Группа подключена к рассылке афиш.\n/unsubscribe — отключить.",
+        );
+      } catch (e) {
+        const err = e instanceof Error ? e.message : "unknown";
+        await sendTelegramMessage(chatId, `❌ Не удалось подключить: ${err}`);
+      }
+      return {};
+    }
+
+    if (text === "/unsubscribe" || text.startsWith("/unsubscribe@")) {
+      try {
+        const supabase = requireServiceSupabase();
+        await unregisterBroadcastChat(supabase, chatId);
+        await sendTelegramMessage(chatId, "🔕 Рассылка в эту группу отключена.");
+      } catch (e) {
+        const err = e instanceof Error ? e.message : "unknown";
+        await sendTelegramMessage(chatId, `❌ Ошибка: ${err}`);
+      }
+      return {};
+    }
+
+    if (text === "/chatid" || text.startsWith("/chatid@")) {
       await sendTelegramMessage(
         chatId,
-        `Chat ID: \`${chatId}\`\n\nДобавьте в TELEGRAM_BROADCAST_CHAT_IDS на Vercel (бот должен быть админом группы).`,
+        `Chat ID: \`${chatId}\`\n\nБот подключает рассылку автоматически при назначении админом.\n/subscribe — вручную · /unsubscribe — отключить`,
         { parseMode: "Markdown" },
       );
     }
@@ -1149,9 +1240,11 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
 
   if (text === "/start" || text === "/help") {
     await cancelAfishaBuffer(chatId);
-    const broadcastHint = getTelegramBroadcastChatIds().length
-      ? "\n\n📢 После публикации на сайт — кнопка «В группы» (или авто при TELEGRAM_AUTO_BROADCAST=1).\n/chatid — id чата (бот должен быть админом группы)."
-      : "\n\n/chatid — узнать id чата для рассылки в группы (бот должен быть админом группы).";
+    const supabase = requireServiceSupabase();
+    const hasBroadcast = (await resolveBroadcastChatIds(supabase)).length > 0;
+    const broadcastHint = hasBroadcast
+      ? "\n\n📢 После публикации на сайт — кнопка «В группы» (или авто при TELEGRAM_AUTO_BROADCAST=1)."
+      : "\n\n📢 Рассылка в группы: добавьте бота админом в группу (подключится автоматически) или /subscribe в группе.";
     await sendTelegramMessage(
       chatId,
       [

@@ -2,7 +2,7 @@ import { DateTime } from "luxon";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { EVENT_ADMIN_TIMEZONE } from "@/lib/warsawEventDatetime";
-import { getTelegramBroadcastChatIds } from "@/lib/telegram/config";
+import { resolveBroadcastChatIds } from "@/lib/telegram/broadcastChatStore";
 import { getTelegramDraft } from "@/lib/telegram/draftStore";
 import { IMAGE_FILE_IDS_KEY, storedImageFileIds } from "@/lib/telegram/parseEventWithGemini";
 import { sendTelegramMessage, sendTelegramPhoto } from "@/lib/telegram/telegramBotApi";
@@ -54,9 +54,9 @@ export async function broadcastDraftToGroups(
   supabase: SupabaseClient,
   draftId: string,
 ): Promise<{ sent: number; failed: number; chats: number }> {
-  const chatIds = getTelegramBroadcastChatIds();
+  const chatIds = await resolveBroadcastChatIds(supabase);
   if (!chatIds.length) {
-    throw new Error("TELEGRAM_BROADCAST_CHAT_IDS не задан");
+    throw new Error("Нет групп для рассылки. Добавьте бота админом в группу или /subscribe в группе.");
   }
 
   const draft = await getTelegramDraft(supabase, draftId);

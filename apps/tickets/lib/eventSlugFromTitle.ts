@@ -146,6 +146,38 @@ export function dateSuffixFromAdminStartsAt(startsAt: string): string | null {
 }
 
 /**
+ * Выбирает заголовок для slug по языку события.
+ * Аудитория — эмигранты (ru/uk); польский — только если eventLanguage=pl.
+ */
+export function pickSlugSourceTitle(opts: {
+  title: string;
+  titlePl?: string;
+  titleUk?: string;
+  eventLanguage?: string;
+}): string {
+  const ru = opts.title.trim();
+  const pl = (opts.titlePl ?? "").trim();
+  const uk = (opts.titleUk ?? "").trim();
+  const lang = opts.eventLanguage ?? "ru_uk";
+
+  if (lang === "uk") return uk.length >= 2 ? uk : ru;
+  if (lang === "pl") return pl.length >= 2 ? pl : ru;
+  // ru, ru_uk, mixed, en — русский заголовок (основной для эмигрантской аудитории)
+  return ru;
+}
+
+/** Slug с учётом языка события и даты. */
+export function buildEventSlug(opts: {
+  title: string;
+  titlePl?: string;
+  titleUk?: string;
+  eventLanguage?: string;
+  startsAt: string;
+}): string {
+  return buildEventSlugFromTitleAndDate(pickSlugSourceTitle(opts), opts.startsAt);
+}
+
+/**
  * Slug для SEO: translit названия без стоп-слов + дата события,
  * напр. improvizatsiya-2026-05-21. Дата всегда сохраняется (база обрезается
  * по границе слова с резервом под суффикс даты).

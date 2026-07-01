@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildEventSlug,
   buildEventSlugFromTitleAndDate,
   dateSuffixFromAdminStartsAt,
+  pickSlugSourceTitle,
   slugifyEventTitle,
 } from "@/lib/eventSlugFromTitle";
 
@@ -30,13 +32,50 @@ describe("buildEventSlugFromTitleAndDate", () => {
     expect(slug).not.toMatch(/-$/);
   });
 
-  it("uses polish title and drops the brand suffix", () => {
+  it("uses polish title only when event language is pl", () => {
     expect(
-      buildEventSlugFromTitleAndDate(
-        "Zajęcia próbne z improwizacji w Warszawie — Teatr „Popularny Poeta”",
-        "2026-05-21T19:00",
-      ),
+      buildEventSlug({
+        title: "Пробное занятие по импровизации в Варшаве",
+        titlePl: "Zajęcia próbne z improwizacji w Warszawie — Teatr „Popularny Poeta”",
+        eventLanguage: "pl",
+        startsAt: "2026-05-21T19:00",
+      }),
     ).toBe("zajecia-probne-improwizacji-warszawie-2026-05-21");
+  });
+
+  it("uses russian title for ru_uk audience by default", () => {
+    expect(
+      buildEventSlug({
+        title: "Пробное занятие по импровизации в Варшаве",
+        titlePl: "Zajęcia próbne z improwizacji w Warszawie",
+        titleUk: "Пробне заняття з імпровізації у Варшаві",
+        eventLanguage: "ru_uk",
+        startsAt: "2026-05-21T19:00",
+      }),
+    ).toBe("probnoe-zanyatie-improvizatsii-varshave-2026-05-21");
+  });
+
+  it("uses ukrainian title when event language is uk", () => {
+    expect(
+      buildEventSlug({
+        title: "Пробное занятие",
+        titleUk: "Пробне заняття з імпровізації у Варшаві",
+        eventLanguage: "uk",
+        startsAt: "2026-05-21T19:00",
+      }),
+    ).toBe("probne-zanyattya-improvizatsiyi-varshavi-2026-05-21");
+  });
+});
+
+describe("pickSlugSourceTitle", () => {
+  it("prefers uk title for uk events", () => {
+    expect(
+      pickSlugSourceTitle({
+        title: "RU title",
+        titleUk: "Пробне заняття",
+        eventLanguage: "uk",
+      }),
+    ).toBe("Пробне заняття");
   });
 });
 

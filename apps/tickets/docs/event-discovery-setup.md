@@ -35,8 +35,8 @@ GEMINI_API_KEY=...
 Опциональные:
 
 ```env
-TELEGRAM_BROADCAST_CHAT_IDS=-100...,-100...
 TELEGRAM_AUTO_BROADCAST=1
+# TELEGRAM_BROADCAST_CHAT_IDS — устарело: группы регистрируются автоматически (см. ниже)
 INDEXNOW_KEY=<openssl rand -hex 16>
 INDEXNOW_HOST=www.populartickets.pl
 GOOGLE_GBP_ACCOUNT_ID=...
@@ -55,7 +55,8 @@ GOOGLE_GBP_MANUAL_PANEL_URL=https://business.google.com/
 1. `supabase/add-content-visibility.sql` — колонка `visibility` (published/unlisted/inactive)
 2. `supabase/telegram-event-drafts.sql` — черновики бота
 3. `supabase/telegram-message-buffers.sql` — буферы альбомов (serverless)
-4. `supabase/add-events-day-of-event-price.sql` — цена в день события
+4. `supabase/telegram-broadcast-chats.sql` — группы для рассылки афиши
+5. `supabase/add-events-day-of-event-price.sql` — цена в день события
 
 ### 3. Регистрация webhook
 
@@ -70,7 +71,19 @@ URL: `https://www.populartickets.pl/api/telegram/webhook/<TELEGRAM_WEBHOOK_SECRE
 1. `/start` в личке бота — инструкция отображается.
 2. Переслать тестовую афишу → превью → «Создать (скрыто)» → ссылка открывается, события **нет** в афише.
 3. «Опубликовать на сайте» → событие в афише, в ответе статус IndexNow/GBP.
-4. `/chatid` в группе — получить id для `TELEGRAM_BROADCAST_CHAT_IDS`.
+4. Добавить бота **админом** в Telegram-группу → рассылка подключится автоматически (`/subscribe` вручную, `/unsubscribe` отключить).
+5. Перерегистрировать webhook после деплоя: `node scripts/set-telegram-webhook.mjs` (нужен `my_chat_member`).
+
+### Рассылка в Telegram-группы
+
+Без хардкода chat id в Vercel:
+
+1. Добавьте бота в группу и назначьте **администратором** — группа сохранится в `telegram_broadcast_chats`.
+2. Или отправьте `/subscribe` в группе (от имени пользователя из `TELEGRAM_ADMIN_USER_IDS`).
+3. `/unsubscribe` — отключить рассылку в эту группу.
+4. `TELEGRAM_BROADCAST_CHAT_IDS` в env — опциональный fallback для старых настроек.
+
+Slug события строится по **языку аудитории** (`event_language`): ru/ru_uk → русский заголовок, uk → украинский, pl → польский.
 
 ### 5. Известные ограничения
 

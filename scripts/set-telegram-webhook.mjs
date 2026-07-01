@@ -56,7 +56,7 @@ const body = deleteMode
   ? {}
   : {
       url: webhookUrl,
-      allowed_updates: ["message", "callback_query"],
+      allowed_updates: ["message", "callback_query", "my_chat_member"],
       drop_pending_updates: true,
     };
 

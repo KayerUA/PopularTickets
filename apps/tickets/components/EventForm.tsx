@@ -9,7 +9,7 @@ import {
   defaultMapsUrlForEvent,
   POPULAR_POET_TRIAL_VENUE_PL,
 } from "@/lib/theatreVenueDefaults";
-import { buildEventSlugFromTitleAndDate } from "@/lib/eventSlugFromTitle";
+import { buildEventSlug } from "@/lib/eventSlugFromTitle";
 import { AdminEventVenueFields } from "@/components/AdminEventVenueFields";
 import type { ContentVisibility } from "@/lib/contentVisibility";
 import { EventCoverFocalControls } from "@/components/EventCoverFocalControls";
@@ -183,12 +183,18 @@ export function EventForm({
     const slugEl = document.getElementById("admin-event-slug") as HTMLInputElement | null;
     const titleEl = document.getElementById("admin-event-title") as HTMLInputElement | null;
     const titlePlEl = document.querySelector<HTMLInputElement>('input[name="titlePl"]');
+    const titleUkEl = document.querySelector<HTMLInputElement>('input[name="titleUk"]');
+    const langEl = document.querySelector<HTMLSelectElement>('select[name="eventLanguage"]');
     const startsEl = document.querySelector<HTMLInputElement>('input[name="startsAt"]');
     if (!slugEl || !titleEl) return;
     if (slugEl.value.trim() !== "") return;
-    // Польский заголовок — приоритет (домены .pl); если пуст, берём основной.
-    const source = titlePlEl?.value.trim() || titleEl.value;
-    slugEl.value = buildEventSlugFromTitleAndDate(source, startsEl?.value ?? "");
+    slugEl.value = buildEventSlug({
+      title: titleEl.value,
+      titlePl: titlePlEl?.value,
+      titleUk: titleUkEl?.value,
+      eventLanguage: langEl?.value,
+      startsAt: startsEl?.value ?? "",
+    });
   };
 
   return (

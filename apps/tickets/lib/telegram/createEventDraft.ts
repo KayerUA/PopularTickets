@@ -8,7 +8,7 @@ import {
   isEventsLanguageUnavailable,
   isEventsPoetCourseIdUnavailable,
 } from "@/lib/supabase/eventsPoetCourseColumn";
-import { buildEventSlugFromTitleAndDate, fallbackEventSlug } from "@/lib/eventSlugFromTitle";
+import { buildEventSlug, fallbackEventSlug } from "@/lib/eventSlugFromTitle";
 import { parseStartsAtFromAdminForm } from "@/lib/warsawEventDatetime";
 import { defaultMapsUrlForEvent } from "@/lib/theatreVenueDefaults";
 import { runEventDiscovery, type EventDiscoveryResult } from "@/lib/eventDiscovery/notifyEventPublished";
@@ -66,9 +66,13 @@ export async function createEventFromParsed(
 ): Promise<CreatedEventDraft> {
   const visibility = opts.visibility ?? "published";
   const image = opts.image;
-  // Польский заголовок — приоритет для slug: домены .pl, аудитория ищет по-польски.
-  const slugSourceTitle = parsed.titlePl.trim() || parsed.title;
-  const fromTitle = buildEventSlugFromTitleAndDate(slugSourceTitle, parsed.startsAtWarsaw);
+  const fromTitle = buildEventSlug({
+    title: parsed.title,
+    titlePl: parsed.titlePl,
+    titleUk: parsed.titleUk,
+    eventLanguage: parsed.eventLanguage,
+    startsAt: parsed.startsAtWarsaw,
+  });
   const baseSlug = fromTitle.length >= 2 ? fromTitle : fallbackEventSlug();
   const slug = await allocateUniqueEventSlug(supabase, baseSlug);
   const startsAtIso = parseStartsAtFromAdminForm(parsed.startsAtWarsaw);
