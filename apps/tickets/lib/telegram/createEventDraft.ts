@@ -13,6 +13,8 @@ import { parseStartsAtFromAdminForm } from "@/lib/warsawEventDatetime";
 import { defaultMapsUrlForEvent } from "@/lib/theatreVenueDefaults";
 import { runEventDiscovery, type EventDiscoveryResult } from "@/lib/eventDiscovery/notifyEventPublished";
 import type { ContentVisibility } from "@/lib/contentVisibility";
+import { clampEventImageFocal } from "@/lib/eventCoverFocal";
+import type { ImageFocal } from "@/lib/telegram/draftImageFocal";
 import type { ParsedTelegramEvent } from "@/lib/telegram/parseEventWithGemini";
 
 async function allocateUniqueEventSlug(supabase: SupabaseClient, baseSlug: string): Promise<string> {
@@ -62,10 +64,12 @@ export async function createEventFromParsed(
   opts: {
     visibility?: ContentVisibility;
     image?: { buffer: Buffer; mimeType: string };
+    imageFocal?: ImageFocal;
   } = {},
 ): Promise<CreatedEventDraft> {
   const visibility = opts.visibility ?? "published";
   const image = opts.image;
+  const focal = opts.imageFocal ?? { x: 50, y: 50 };
   const fromTitle = buildEventSlug({
     title: parsed.title,
     titlePl: parsed.titlePl,
@@ -110,8 +114,8 @@ export async function createEventFromParsed(
     listing_kind: parsed.listingKind,
     event_language: parsed.eventLanguage,
     poet_course_id: poetCourseId,
-    image_focal_x: 50,
-    image_focal_y: 50,
+    image_focal_x: clampEventImageFocal(focal.x),
+    image_focal_y: clampEventImageFocal(focal.y),
   };
 
   let ins = await supabase.from("events").insert(payload).select("id").single();

@@ -72,6 +72,8 @@ import {
   readPublishedEvents,
   type PublishedEventInfo,
 } from "@/lib/telegram/broadcastToGroups";
+import { getDraftImageFocals } from "@/lib/telegram/draftImageFocal";
+import { telegramFocalWebAppUrl } from "@/lib/telegram/telegramFocalWebAppUrl";
 import {
   clearAwaitingBroadcastPost,
   confirmBroadcastPost,
@@ -294,11 +296,27 @@ function publishedTextBatch(base: string, events: PublishedEventInfoLocal[]): st
 }
 
 /** Кнопки после создания скрытого черновика: показать на сайте / удалить. */
-function revealKeyboard(draftId: string): InlineKeyboardButton[][] {
-  return [
+function revealKeyboard(
+  draftId: string,
+  opts?: { hasImage?: boolean; eventId?: string },
+): InlineKeyboardButton[][] {
+  const rows: InlineKeyboardButton[][] = [
     [{ text: "🌍 Опубликовать на сайте", callback_data: `show:${draftId}` }],
-    [{ text: "🗑 Удалить", callback_data: `del:${draftId}` }],
   ];
+  if (opts?.hasImage) {
+    rows.push([
+      {
+        text: "🖼 Точка фокуса",
+        web_app: {
+          url: telegramFocalWebAppUrl(
+            opts.eventId ? { eventId: opts.eventId } : { draftId },
+          ),
+        },
+      },
+    ]);
+  }
+  rows.push([{ text: "🗑 Удалить", callback_data: `del:${draftId}` }]);
+  return rows;
 }
 
 function createdHiddenTextSingle(base: string, event: PublishedEventInfoLocal): string {
@@ -384,14 +402,22 @@ async function showPreview(
     : previewTextSingle(finalizeParsed(events[0]!), imageCount, previewNote);
   const publishLabel = batch ? `💾 Создать (${events.length}, скрыто)` : "💾 Создать (скрыто)";
 
-  await sendTelegramMessage(chatId, text, {
-    inlineKeyboard: [
-      [
-        { text: publishLabel, callback_data: `pub:${draftId}` },
-        { text: "❌ Отмена", callback_data: `cancel:${draftId}` },
-      ],
+  const keyboard: InlineKeyboardButton[][] = [
+    [
+      { text: publishLabel, callback_data: `pub:${draftId}` },
+      { text: "❌ Отмена", callback_data: `cancel:${draftId}` },
     ],
-  });
+  ];
+  if (imageCount > 0) {
+    keyboard.push([
+      {
+        text: batch ? "🖼 Обложки" : "🖼 Точка фокуса",
+        web_app: { url: telegramFocalWebAppUrl({ draftId }) },
+      },
+    ]);
+  }
+
+  await sendTelegramMessage(chatId, text, { inlineKeyboard: keyboard });
 }
 
 async function runGeminiForAfisha(
@@ -858,6 +884,7 @@ async function publishDraft(
 
   const storedEvents = sortEventsByDate(parseStoredEvents(draft.parsed));
   const imageFileIds = storedImageFileIds(draft.parsed, draft.image_file_id);
+  const focals = getDraftImageFocals(draft.parsed, storedEvents.length);
 
   const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "https://www.populartickets.pl";
   const published: PublishedEventInfoLocal[] = [];
@@ -878,6 +905,7 @@ async function publishDraft(
       const event = await createEventFromParsed(supabase, parsed, {
         visibility: "unlisted",
         image: imageUpload,
+        imageFocal: focals[i],
       });
 
       published.push({
@@ -904,7 +932,12 @@ async function publishDraft(
     published.length === 1
       ? createdHiddenTextSingle(base, published[0]!)
       : createdHiddenTextBatch(base, published);
-  await sendTelegramMessage(chatId, text, { inlineKeyboard: revealKeyboard(draftId) });
+  await sendTelegramMessage(chatId, text, {
+    inlineKeyboard: revealKeyboard(draftId, {
+      hasImage: imageFileIds.some(Boolean),
+      eventId: published.length === 1 ? published[0]!.id : undefined,
+    }),
+  });
 
   return true;
 }
@@ -1440,6 +1473,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         "Несколько дат → несколько событий. Несколько фото → по порядку дат.",
         "Команды: /cancel — отменить черновик · /myid — ваш Telegram ID.",
         "📢 /broadcast — разослать произвольный пост во все группы (не афишу события).",
+        "🖼 На превью — «Точка фокуса»: мини-приложение для обрезки обложки на сайте.",
         isOwner(userId)
           ? "\nВладелец: /addadmin · /removeadmin · /listadmins — редакторы бота."
           : "",

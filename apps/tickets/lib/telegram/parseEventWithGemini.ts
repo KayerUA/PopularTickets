@@ -8,6 +8,7 @@ import {
 import { POPULAR_POET_TRIAL_VENUE_PL } from "@/lib/theatreVenueDefaults";
 import { EVENT_ADMIN_TIMEZONE } from "@/lib/warsawEventDatetime";
 import { normalizeEventLanguage } from "@/lib/eventLanguage";
+import { IMAGE_FOCALS_KEY } from "@/lib/telegram/draftImageFocal";
 
 const MIN_DESCRIPTION_CHARS = MIN_EVENT_DESCRIPTION_CHARS;
 
@@ -764,6 +765,7 @@ export function parseStoredEvents(parsed: Record<string, unknown>): RawParsedEve
     [BATCH_FLAG_KEY]: _batch,
     [EVENTS_KEY]: events,
     [IMAGE_FILE_IDS_KEY]: _imgs,
+    [IMAGE_FOCALS_KEY]: _focals,
     ...rest
   } = parsed;
   if (Array.isArray(events)) {

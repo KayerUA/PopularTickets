@@ -67,6 +67,10 @@ export async function middleware(req: NextRequest) {
     return nextWithDefaultLocale(req);
   }
 
+  if (pathname.startsWith("/telegram")) {
+    return nextWithDefaultLocale(req);
+  }
+
   /** IndexNow key file — не отдавать как `[locale]`. */
   if (/^\/[a-f0-9]{32}\.txt$/.test(pathname)) {
     return NextResponse.next();

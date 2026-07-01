@@ -6,6 +6,7 @@ export type InlineKeyboardButton = {
   text: string;
   callback_data?: string;
   url?: string;
+  web_app?: { url: string };
 };
 
 async function telegramApi<T>(method: string, body: Record<string, unknown>): Promise<T> {
