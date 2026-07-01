@@ -72,6 +72,15 @@ import {
   readPublishedEvents,
   type PublishedEventInfo,
 } from "@/lib/telegram/broadcastToGroups";
+import {
+  clearAwaitingBroadcastPost,
+  confirmBroadcastPost,
+  handleBroadcastPostInput,
+  isAwaitingBroadcastPost,
+  isBroadcastPostCommand,
+  offerBroadcastPostConfirm,
+  startBroadcastPostFlow,
+} from "@/lib/telegram/broadcastPostHandlers";
 
 type TelegramUser = { id: number; username?: string; first_name?: string; is_bot?: boolean };
 type TelegramPhotoSize = { file_id: string; width: number; height: number };
@@ -84,6 +93,11 @@ type TelegramMessage = {
   photo?: TelegramPhotoSize[];
   media_group_id?: string;
   document?: { file_id: string; mime_type?: string; file_name?: string };
+  video?: { file_id: string };
+  animation?: { file_id: string };
+  voice?: { file_id: string };
+  audio?: { file_id: string };
+  sticker?: { file_id: string };
   reply_to_message?: TelegramMessage;
   forward_from?: TelegramUser;
 };
@@ -319,13 +333,19 @@ function createdHiddenTextBatch(base: string, events: PublishedEventInfoLocal[])
 }
 
 /** Кнопки для уточнения: быстрый выбор цены/мест + переключатели типа и языка. */
-function clarificationKeyboard(draftId: string, fields: ClarificationField[]): InlineKeyboardButton[][] {
+function clarificationKeyboard(
+  draftId: string,
+  fields: ClarificationField[],
+  events: RawParsedEvent[] = [],
+): InlineKeyboardButton[][] {
   const rows: InlineKeyboardButton[][] = [];
   if (fields.includes("pricePln")) {
     rows.push([50, 70, 100, 150].map((v) => ({ text: `${v} zł`, callback_data: `set:p:${v}:${draftId}` })));
   }
   if (fields.includes("totalTickets")) {
-    rows.push([20, 30, 50, 100].map((v) => ({ text: `${v} мест`, callback_data: `set:s:${v}:${draftId}` })));
+    const isTrial = events.some((e) => e.listingKind === "trial");
+    const seatOptions = isTrial ? [12, 20, 30, 50, 100] : [20, 30, 50, 100];
+    rows.push(seatOptions.map((v) => ({ text: `${v} мест`, callback_data: `set:s:${v}:${draftId}` })));
   }
   rows.push([
     { text: "🎭 Шоу", callback_data: `set:k:performance:${draftId}` },
@@ -412,7 +432,7 @@ async function runGeminiForAfisha(
     await sendTelegramMessage(
       chatId,
       previewNote ? `${previewNote}\n\n${question}` : question,
-      { inlineKeyboard: clarificationKeyboard(draftId, missing) },
+      { inlineKeyboard: clarificationKeyboard(draftId, missing, events) },
     );
     return;
   }
@@ -474,7 +494,7 @@ async function applyDraftFieldsFromReply(
       `Не удалось разобрать ответ. ${clarificationQuestion(stillMissing, mergedEvents.length)}` +
       clarificationKeyboardHint(stillMissing);
     await sendTelegramMessage(chatId, previewNote ? `${previewNote}\n\n${question}` : question, {
-      inlineKeyboard: clarificationKeyboard(active.id, stillMissing),
+      inlineKeyboard: clarificationKeyboard(active.id, stillMissing, mergedEvents),
     });
     return;
   }
@@ -567,7 +587,7 @@ async function applySingleFieldToDraft(
     });
     const question = clarificationQuestion(missing, events.length) + clarificationKeyboardHint(missing);
     await sendTelegramMessage(chatId, previewNote ? `${previewNote}\n\n${question}` : question, {
-      inlineKeyboard: clarificationKeyboard(draftId, missing),
+      inlineKeyboard: clarificationKeyboard(draftId, missing, events),
     });
     return;
   }
@@ -1222,6 +1242,31 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         }
         return {};
       }
+      if (data === "postcast:cancel") {
+        clearAwaitingBroadcastPost(chatId);
+        if (cq.id) await answerCallbackQuery(cq.id, "Отменено");
+        await sendTelegramMessage(chatId, "❌ Рассылка поста отменена.");
+        return {};
+      }
+      if (data.startsWith("postcast:")) {
+        const token = data.slice(9);
+        if (!token) return {};
+        if (cq.id) await answerCallbackQuery(cq.id, "Рассылаю…");
+        try {
+          await confirmBroadcastPost(chatId, userId, token);
+          if (cq.message?.message_id) {
+            try {
+              await editTelegramMessage(chatId, cq.message.message_id, "📢 Пост разослан в группы.");
+            } catch {
+              /* ignore */
+            }
+          }
+        } catch (e) {
+          const err = e instanceof Error ? e.message : "unknown error";
+          await sendTelegramMessage(chatId, `❌ Рассылка: ${err}`);
+        }
+        return {};
+      }
       if (data.startsWith("pub:")) {
         const ok = await publishDraft(chatId, userId, data.slice(4), cq.id);
         if (ok && cq.message?.message_id) {
@@ -1394,6 +1439,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         "",
         "Несколько дат → несколько событий. Несколько фото → по порядку дат.",
         "Команды: /cancel — отменить черновик · /myid — ваш Telegram ID.",
+        "📢 /broadcast — разослать произвольный пост во все группы (не афишу события).",
         isOwner(userId)
           ? "\nВладелец: /addadmin · /removeadmin · /listadmins — редакторы бота."
           : "",
@@ -1407,12 +1453,41 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
   if (text === "/cancel") {
     const supabase = requireServiceSupabase();
     await cancelAfishaBuffer(chatId);
+    const wasAwaitingBroadcast = isAwaitingBroadcastPost(chatId, userId);
+    clearAwaitingBroadcastPost(chatId);
     const active = await getActiveDraftForChat(supabase, chatId);
     if (active) {
       await cancelActiveDraftForChat(supabase, chatId);
       await sendTelegramMessage(chatId, "❌ Текущий черновик отменён. Пришлите афишу заново.");
+    } else if (wasAwaitingBroadcast) {
+      await sendTelegramMessage(chatId, "❌ Режим рассылки отменён.");
     } else {
       await sendTelegramMessage(chatId, "Активного черновика нет. Пришлите афишу — начнём заново.");
+    }
+    return {};
+  }
+
+  if (isBroadcastPostCommand(text)) {
+    if (msg.reply_to_message) {
+      const reply = msg.reply_to_message;
+      try {
+        await offerBroadcastPostConfirm(chatId, userId, chatId, [reply.message_id], messageBody(reply));
+      } catch (e) {
+        const err = e instanceof Error ? e.message : "unknown error";
+        await sendTelegramMessage(chatId, `❌ Рассылка: ${err}`);
+      }
+      return {};
+    }
+    await startBroadcastPostFlow(chatId, userId);
+    return {};
+  }
+
+  if (isAwaitingBroadcastPost(chatId, userId)) {
+    try {
+      await handleBroadcastPostInput(chatId, userId, msg, msg.media_group_id);
+    } catch (e) {
+      const err = e instanceof Error ? e.message : "unknown error";
+      await sendTelegramMessage(chatId, `❌ Рассылка: ${err}`);
     }
     return {};
   }

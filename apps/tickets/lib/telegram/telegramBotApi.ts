@@ -4,7 +4,8 @@ type TelegramApiResponse<T> = { ok: true; result: T } | { ok: false; description
 
 export type InlineKeyboardButton = {
   text: string;
-  callback_data: string;
+  callback_data?: string;
+  url?: string;
 };
 
 async function telegramApi<T>(method: string, body: Record<string, unknown>): Promise<T> {
@@ -30,13 +31,16 @@ export async function sendTelegramMessage(
   opts?: {
     parseMode?: "HTML" | "Markdown";
     inlineKeyboard?: InlineKeyboardButton[][];
+    disableWebPagePreview?: boolean;
+    replyToMessageId?: number;
   },
 ): Promise<number | undefined> {
   const result = await telegramApi<{ message_id?: number }>("sendMessage", {
     chat_id: chatId,
     text,
     parse_mode: opts?.parseMode,
-    disable_web_page_preview: false,
+    disable_web_page_preview: opts?.disableWebPagePreview ?? false,
+    ...(opts?.replyToMessageId ? { reply_to_message_id: opts.replyToMessageId } : {}),
     ...(opts?.inlineKeyboard?.length
       ? { reply_markup: { inline_keyboard: opts.inlineKeyboard } }
       : {}),
@@ -48,13 +52,41 @@ export async function sendTelegramPhoto(
   chatId: number,
   photoFileId: string,
   caption: string,
-  opts?: { parseMode?: "HTML" | "Markdown" },
-): Promise<void> {
-  await telegramApi("sendPhoto", {
+  opts?: {
+    parseMode?: "HTML" | "Markdown";
+    inlineKeyboard?: InlineKeyboardButton[][];
+  },
+): Promise<number | undefined> {
+  const result = await telegramApi<{ message_id?: number }>("sendPhoto", {
     chat_id: chatId,
     photo: photoFileId,
     caption: caption.slice(0, 1024),
     parse_mode: opts?.parseMode,
+    ...(opts?.inlineKeyboard?.length
+      ? { reply_markup: { inline_keyboard: opts.inlineKeyboard } }
+      : {}),
+  });
+  return result.message_id;
+}
+
+export async function copyTelegramMessages(
+  toChatId: number,
+  fromChatId: number,
+  messageIds: number[],
+): Promise<void> {
+  if (!messageIds.length) throw new Error("messageIds пуст");
+  if (messageIds.length === 1) {
+    await telegramApi("copyMessage", {
+      chat_id: toChatId,
+      from_chat_id: fromChatId,
+      message_id: messageIds[0],
+    });
+    return;
+  }
+  await telegramApi("copyMessages", {
+    chat_id: toChatId,
+    from_chat_id: fromChatId,
+    message_ids: messageIds,
   });
 }
 

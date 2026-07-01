@@ -17,7 +17,7 @@
    - опционально рассылка в Telegram-группы.
 5. Кнопка **«Удалить»** скрывает черновик (`inactive`) — событие пропадает с сайта.
 
-Команды: `/start` — инструкция; `/cancel` — отменить текущий черновик до создания.
+Команды: `/start` — инструкция; `/cancel` — отменить текущий черновик до создания; `/broadcast` — разослать произвольный пост во все Telegram-группы.
 
 ## Release checklist (перед передачей бота пользователю)
 
@@ -50,7 +50,15 @@ GOOGLE_GBP_MANUAL_PANEL_URL=https://business.google.com/
 
 ### 2. SQL-миграции в Supabase
 
-Выполнить в SQL Editor (порядок важен), затем **Settings → API → Reload schema cache**:
+Выполнить в SQL Editor (порядок важен). После `CREATE TABLE` обычно ничего больше не нужно — Supabase подхватывает схему сам.
+
+Если бот/API пишет, что таблица «не найдена», в том же SQL Editor выполните:
+
+```sql
+NOTIFY pgrst, 'reload schema';
+```
+
+(Результат: `Success. No rows returned` — это нормально.)
 
 1. `supabase/add-content-visibility.sql` — колонка `visibility` (published/unlisted/inactive)
 2. `supabase/telegram-event-drafts.sql` — черновики бота
@@ -83,6 +91,15 @@ URL: `https://www.populartickets.pl/api/telegram/webhook/<TELEGRAM_WEBHOOK_SECRE
 2. Или отправьте `/subscribe` в группе (от имени пользователя из `TELEGRAM_ADMIN_USER_IDS`).
 3. `/unsubscribe` — отключить рассылку в эту группу.
 4. `TELEGRAM_BROADCAST_CHAT_IDS` в env — опциональный fallback для старых настроек.
+
+**Афиша события** — кнопка «В группы» после публикации на сайте (или авто при `TELEGRAM_AUTO_BROADCAST=1`).
+
+**Произвольный пост** — `/broadcast` в личке бота (владелец или редактор):
+1. `/broadcast` → пришлите текст, фото, видео или альбом → подтвердите «Разослать».
+2. Или ответьте `/broadcast` на уже отправленное сообщение.
+3. `/post` — то же самое. `/cancel` — выйти из режима рассылки.
+
+Бот копирует сообщение в каждую группу без пометки «переслано» (Telegram `copyMessage` / `copyMessages`).
 
 Slug события строится по **языку аудитории** (`event_language`): ru/ru_uk → русский заголовок, uk → украинский, pl → польский.
 

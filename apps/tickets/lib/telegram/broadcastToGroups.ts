@@ -1,8 +1,12 @@
 import { DateTime } from "luxon";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
-import { EVENT_ADMIN_TIMEZONE } from "@/lib/warsawEventDatetime";
 import { resolveBroadcastChatIds } from "@/lib/telegram/broadcastChatStore";
+import {
+  buildGroupBroadcastContent,
+  fallbackBroadcastDetails,
+  fetchEventBroadcastDetails,
+} from "@/lib/telegram/buildGroupBroadcastMessage";
 import { getTelegramDraft } from "@/lib/telegram/draftStore";
 import { IMAGE_FILE_IDS_KEY, storedImageFileIds } from "@/lib/telegram/parseEventWithGemini";
 import { sendTelegramMessage, sendTelegramPhoto } from "@/lib/telegram/telegramBotApi";
@@ -19,18 +23,8 @@ export type PublishedEventInfo = {
   id?: string;
 };
 
-function eventPublicUrlRu(base: string, slug: string): string {
-  return `${base}/ru/events/${slug}`;
-}
-
-function formatWhen(startsAtIso: string): string {
-  const dt = DateTime.fromISO(startsAtIso, { zone: "utc" }).setZone(EVENT_ADMIN_TIMEZONE);
-  return dt.isValid ? dt.setLocale("ru").toFormat("d MMMM yyyy, HH:mm") : startsAtIso;
-}
-
-function eventCaption(base: string, event: PublishedEventInfo): string {
-  const when = formatWhen(event.startsAtIso);
-  return [`📌 ${event.title}`, `📅 ${when} (Warsaw)`, "", `🎫 ${eventPublicUrlRu(base, event.slug)}`].join("\n");
+function ticketButton(ticketUrl: string) {
+  return [[{ text: "🎫 Билеты", url: ticketUrl }]];
 }
 
 export function readPublishedEvents(parsed: Record<string, unknown>): PublishedEventInfo[] {
@@ -48,6 +42,33 @@ export function readPublishedEvents(parsed: Record<string, unknown>): PublishedE
 
 export function isDraftOnSite(parsed: Record<string, unknown>): boolean {
   return parsed[ON_SITE_KEY] === true;
+}
+
+async function sendEventBroadcastToChat(
+  supabase: SupabaseClient,
+  targetChatId: number,
+  event: PublishedEventInfo,
+  fileId: string | undefined,
+  base: string,
+): Promise<void> {
+  const details =
+    (await fetchEventBroadcastDetails(supabase, event)) ?? fallbackBroadcastDetails(event);
+  const { photoCaption, previewMessage, ticketUrl } = buildGroupBroadcastContent(base, details);
+  const keyboard = ticketButton(ticketUrl);
+
+  if (fileId) {
+    const photoMsgId = await sendTelegramPhoto(targetChatId, fileId, photoCaption, {
+      inlineKeyboard: keyboard,
+    });
+    await sendTelegramMessage(targetChatId, previewMessage, {
+      replyToMessageId: photoMsgId,
+      inlineKeyboard: keyboard,
+    });
+    return;
+  }
+
+  const text = `${photoCaption}\n\n${previewMessage}`.slice(0, 4096);
+  await sendTelegramMessage(targetChatId, text, { inlineKeyboard: keyboard });
 }
 
 export async function broadcastDraftToGroups(
@@ -75,15 +96,10 @@ export async function broadcastDraftToGroups(
   for (const targetChatId of chatIds) {
     for (let i = 0; i < published.length; i++) {
       const event = published[i]!;
-      const caption = eventCaption(base, event);
       const fileId = imageFileIds[i];
 
       try {
-        if (fileId) {
-          await sendTelegramPhoto(targetChatId, fileId, caption);
-        } else {
-          await sendTelegramMessage(targetChatId, caption);
-        }
+        await sendEventBroadcastToChat(supabase, targetChatId, event, fileId, base);
         sent++;
       } catch (e) {
         failed++;
