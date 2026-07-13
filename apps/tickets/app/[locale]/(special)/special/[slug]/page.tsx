@@ -82,6 +82,9 @@ export default async function SpecialEventPage({
     venue: event.venue,
     listing_kind: "special",
   });
+  const collaboration = slug === "popular-impro-next-mode-2026-08-15"
+    ? { name: "P!MPRO × Next Mode", tagline: "зрители берут управление" }
+    : null;
 
   return (
     <div className="poet-safe-x relative mx-auto w-full max-w-3xl py-8 sm:py-14">
@@ -109,6 +112,13 @@ export default async function SpecialEventPage({
         <div className="space-y-5 p-4 sm:p-8">
           <div>
             <h1 className="font-display text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">{copy?.title ?? event.title}</h1>
+            {collaboration ? (
+              <p className="mt-3 text-sm font-semibold leading-snug sm:text-base">
+                <span className="text-cyan-100">{collaboration.name}</span>
+                <span className="text-zinc-400"> · </span>
+                <span className="text-fuchsia-200">{collaboration.tagline}</span>
+              </p>
+            ) : null}
             <p className="mt-3 text-sm text-zinc-300 sm:text-base">{formatEventDateTime(event.starts_at, locale)} · {language}</p>
             <p className="mt-1 text-sm text-zinc-400 sm:text-base">{event.venue}</p>
             {mapsHref ? <a href={mapsHref} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex text-sm text-poet-gold-bright underline decoration-poet-gold/40 underline-offset-2 hover:text-poet-gold">Открыть карту ↗</a> : null}
