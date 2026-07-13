@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import type { AppLocale } from "@/i18n/routing";
 import { getServiceSupabase } from "@/lib/supabase/admin";
@@ -21,6 +21,9 @@ import { resolveEventCopy } from "@/lib/contentI18n";
 import { resolveEventMapsUrl } from "@/lib/mapsUrl";
 
 export const dynamic = "force-dynamic";
+
+const LEGACY_NEXT_MODE_SLUG = "popular-impro-next-mode-2026-08-15";
+const NEXT_MODE_SLUG = "next-mode-2026-08-15";
 
 export async function generateMetadata({
   params,
@@ -49,6 +52,9 @@ export default async function SpecialEventPage({
 }) {
   const { locale, slug } = await params;
   const { promo: promoRaw } = await searchParams;
+  if (slug === LEGACY_NEXT_MODE_SLUG) {
+    permanentRedirect(`/${locale}/special/${NEXT_MODE_SLUG}${promoRaw ? `?promo=${encodeURIComponent(promoRaw)}` : ""}`);
+  }
   const supabase = getServiceSupabase();
   if (!supabase) notFound();
   const { data: event } = await fetchPublishedEventBySlug(supabase, slug);
@@ -82,7 +88,7 @@ export default async function SpecialEventPage({
     venue: event.venue,
     listing_kind: "special",
   });
-  const collaboration = slug === "popular-impro-next-mode-2026-08-15"
+  const collaboration = slug === NEXT_MODE_SLUG
     ? { name: "P!MPRO × Next Mode", tagline: "зрители берут управление" }
     : null;
 
