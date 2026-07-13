@@ -1,10 +1,10 @@
 export type EventMarketingStatus = "past" | "sold_out" | "last_tickets" | "starting_soon" | "this_week" | null;
 
 /** Афиша (спектакль/шоу) или пробное/вводное занятие — влияет на CTA и текст бейджей. */
-export type EventListingKind = "performance" | "trial";
+export type EventListingKind = "performance" | "trial" | "special";
 
 export function normalizeEventListingKind(raw: string | null | undefined): EventListingKind {
-  return raw === "trial" ? "trial" : "performance";
+  return raw === "trial" || raw === "special" ? raw : "performance";
 }
 
 const MS_HOUR = 60 * 60 * 1000;

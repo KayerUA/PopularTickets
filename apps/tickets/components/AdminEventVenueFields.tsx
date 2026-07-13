@@ -11,7 +11,7 @@ import {
 type Props = {
   initialVenue: string;
   initialMapsUrl: string;
-  listingKind: "performance" | "trial";
+  listingKind: "performance" | "trial" | "special";
 };
 
 export function AdminEventVenueFields({ initialVenue, initialMapsUrl, listingKind }: Props) {

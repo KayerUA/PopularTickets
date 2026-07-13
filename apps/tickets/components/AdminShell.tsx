@@ -43,6 +43,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </Link>
             <Link
               className="inline-flex min-h-10 items-center rounded-lg px-2 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright"
+              href="/admin/promo-codes"
+            >
+              Промокоды
+            </Link>
+            <Link
+              className="inline-flex min-h-10 items-center rounded-lg px-2 transition hover:bg-poet-gold/5 hover:text-poet-gold-bright"
               href="/pl"
             >
               На сайт

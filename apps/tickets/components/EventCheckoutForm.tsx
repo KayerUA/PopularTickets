@@ -14,6 +14,7 @@ import {
   validateCheckoutFormData,
   type CheckoutFieldKey,
 } from "@/lib/checkoutFormValidation";
+import { previewPromoCode } from "@/app/actions/promo-codes";
 
 type Props = {
   eventSlug: string;
@@ -21,22 +22,55 @@ type Props = {
   locale: AppLocale;
   unitPriceGrosze: number;
   bypassPayment?: boolean;
+  compact?: boolean;
+  initialPromoCode?: string;
+  initialPromoDiscountPercent?: number;
 };
 
 function fieldBorder(hasError: boolean): string {
   return hasError ? "border-red-400/70 focus:border-red-400/90" : "border-poet-gold/20";
 }
 
-export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosze, bypassPayment }: Props) {
+export function EventCheckoutForm({
+  eventSlug,
+  remaining,
+  locale,
+  unitPriceGrosze,
+  bypassPayment,
+  compact = false,
+  initialPromoCode = "",
+  initialPromoDiscountPercent = 0,
+}: Props) {
   const t = useTranslations("CheckoutForm");
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<CheckoutFieldKey, string>>>({});
   const [pending, setPending] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [promoCode, setPromoCode] = useState(initialPromoCode);
+  const [promoDiscountPercent, setPromoDiscountPercent] = useState(initialPromoDiscountPercent);
+  const [promoMessage, setPromoMessage] = useState<string | null>(
+    initialPromoDiscountPercent > 0 ? `Промокод применён: −${initialPromoDiscountPercent}%` : null,
+  );
   const formRef = useRef<HTMLFormElement>(null);
   const max = Math.min(20, remaining);
 
-  const totalGrosze = unitPriceGrosze * quantity;
+  const discountedUnitPriceGrosze = Math.round(unitPriceGrosze * (1 - promoDiscountPercent / 100));
+  const totalGrosze = discountedUnitPriceGrosze * quantity;
+
+  const applyPromoCode = async () => {
+    const result = await previewPromoCode({ code: promoCode, eventSlug, unitPriceGrosze });
+    if (!result) {
+      setPromoDiscountPercent(0);
+      setPromoMessage(null);
+    } else if ("error" in result) {
+      setPromoDiscountPercent(0);
+      setPromoMessage(result.error);
+    } else {
+      setPromoCode(result.code);
+      setPromoDiscountPercent(result.discountPercent);
+      setPromoMessage(`Промокод применён: −${result.discountPercent}%`);
+    }
+  };
 
   const fieldClass = (key: CheckoutFieldKey) =>
     `mt-1.5 w-full min-h-11 rounded-xl border bg-zinc-900/80 px-3 py-2.5 text-base text-white transition placeholder:text-zinc-600 disabled:opacity-50 sm:min-h-10 sm:py-2 sm:text-sm ${fieldBorder(Boolean(fieldErrors[key]))}`;
@@ -60,7 +94,7 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
   };
 
   const runClientValidation = (formData: FormData): boolean => {
-    const errors = validateCheckoutFormData(formData, max, validationMessages);
+    const errors = validateCheckoutFormData(formData, max, validationMessages, { phoneRequired: !compact });
     setFieldErrors(errors);
     const first = firstCheckoutFieldError(errors);
     if (first) {
@@ -92,7 +126,7 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
       ref={formRef}
       id={CHECKOUT_FORM_ID}
       noValidate
-      className="relative mt-6 space-y-4 rounded-2xl border border-poet-gold/25 bg-gradient-to-b from-[#1a0c12]/90 via-poet-bg/85 to-zinc-950/90 p-4 shadow-[0_0_0_1px_rgba(197,160,89,0.12),inset_0_1px_0_rgba(255,230,200,0.06)] sm:p-5"
+      className={`relative mt-6 space-y-4 rounded-2xl border border-poet-gold/25 bg-gradient-to-b from-[#1a0c12]/90 via-poet-bg/85 to-zinc-950/90 p-4 shadow-[0_0_0_1px_rgba(197,160,89,0.12),inset_0_1px_0_rgba(255,230,200,0.06)] sm:p-5${compact ? " mt-4" : ""}`}
       onSubmit={async (e) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
@@ -158,7 +192,7 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
             </p>
           ) : null}
         </div>
-        <div className="block text-sm" data-checkout-field="phone">
+        {!compact ? <div className="block text-sm" data-checkout-field="phone">
           <label htmlFor="checkout-phone" className="text-zinc-400">
             {t("phone")}
             <span className="ml-1 text-red-400/90" aria-hidden>
@@ -190,7 +224,7 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
           <span id="checkout-phone-hint" className="mt-1 block text-[11px] leading-snug text-zinc-500">
             {t("phoneHint")}
           </span>
-        </div>
+        </div> : null}
         <div className="block text-sm" data-checkout-field="quantity">
           <label htmlFor="checkout-quantity" className="text-zinc-400">
             {t("quantity")}
@@ -220,6 +254,25 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
             </p>
           ) : null}
         </div>
+        <div className="block text-sm" data-checkout-field="promoCode">
+          <label htmlFor="checkout-promoCode" className="text-zinc-400">Промокод</label>
+          <input
+            id="checkout-promoCode"
+            name="promoCode"
+            value={promoCode}
+            disabled={pending}
+            onChange={(e) => {
+              setPromoCode(e.target.value.toUpperCase());
+              setPromoDiscountPercent(0);
+              setPromoMessage(null);
+            }}
+            onBlur={() => void applyPromoCode()}
+            className={fieldClass("quantity")}
+            autoComplete="off"
+            placeholder="PARTNER15"
+          />
+          {promoMessage ? <p className={`mt-1.5 text-xs ${promoDiscountPercent ? "text-emerald-300" : "text-red-400"}`}>{promoMessage}</p> : null}
+        </div>
       </div>
 
       <div className="rounded-xl border border-poet-gold/15 bg-black/25 px-3 py-3 text-sm sm:px-4">
@@ -229,6 +282,12 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
             <dt>{t("totalLabel")}</dt>
             <dd className="font-medium text-poet-gold-bright">{formatPlnFromGrosze(totalGrosze)}</dd>
           </div>
+          {promoDiscountPercent > 0 ? (
+            <div className="flex justify-between gap-3 text-xs text-zinc-500">
+              <dt>Без промокода</dt>
+              <dd className="line-through">{formatPlnFromGrosze(unitPriceGrosze * quantity)}</dd>
+            </div>
+          ) : null}
         </dl>
         <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">{t("taxExemptionNote")}</p>
       </div>
@@ -273,7 +332,7 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
           </p>
         ) : null}
       </div>
-      <label className="flex cursor-pointer items-start gap-3 text-sm text-zinc-400">
+      {!compact ? <label className="flex cursor-pointer items-start gap-3 text-sm text-zinc-400">
         <input
           type="checkbox"
           name="marketingEmailOptIn"
@@ -290,9 +349,9 @@ export function EventCheckoutForm({ eventSlug, remaining, locale, unitPriceGrosz
             ),
           })}
         </span>
-      </label>
-      <p className="text-xs leading-relaxed text-zinc-500 sm:mt-1">{bypassPayment ? t("hintBypass") : t("hint")}</p>
-      {!bypassPayment ? (
+      </label> : null}
+      {!compact ? <p className="text-xs leading-relaxed text-zinc-500 sm:mt-1">{bypassPayment ? t("hintBypass") : t("hint")}</p> : null}
+      {!compact && !bypassPayment ? (
         <div className="flex items-start gap-3 rounded-xl border border-poet-gold/15 bg-black/25 px-3 py-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element -- lokalne SVG z public/ */}
           <img

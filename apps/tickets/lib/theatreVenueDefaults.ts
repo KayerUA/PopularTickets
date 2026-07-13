@@ -21,7 +21,7 @@ export function isPopularPoetTheatreVenue(venue: string | null | undefined): boo
   return v.includes("domaniewska") && v.includes("37");
 }
 
-export type EventListingKind = "performance" | "trial";
+export type EventListingKind = "performance" | "trial" | "special";
 
 /** Дефолтная ссылка на карту для нового события (пустая строка — если не применимо). */
 export function defaultMapsUrlForEvent(

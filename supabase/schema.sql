@@ -35,10 +35,14 @@ alter table public.events add column if not exists maps_url text;
 
 alter table public.events
   add column if not exists listing_kind text not null default 'performance'
-  check (listing_kind in ('performance', 'trial'));
+  check (listing_kind in ('performance', 'trial', 'special'));
 
 comment on column public.events.listing_kind is
-  'performance = афіша виступів на PopularTickets; trial = пробний слот на popularpoet.pl (оплата на тій же події).';
+  'performance = афіша виступів на PopularTickets; trial = пробний слот на popularpoet.pl; special = продаж лише за прямим посиланням.';
+
+alter table public.events
+  add column if not exists discount_periods jsonb not null default '[]'::jsonb
+  check (jsonb_typeof(discount_periods) = 'array');
 
 alter table public.events
   add column if not exists image_focal_x double precision not null default 50;

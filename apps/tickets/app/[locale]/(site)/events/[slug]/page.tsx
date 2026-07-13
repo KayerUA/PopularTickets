@@ -32,6 +32,8 @@ import { fetchRelatedEvents } from "@/lib/fetchRelatedEvents";
 import { eventContextLinks } from "@/lib/eventContextLinks";
 import { RelatedEventsSection } from "@/components/RelatedEventsSection";
 import { eventRobotsMeta } from "@/lib/eventSeoPolicy";
+import { resolveApplicablePromoCode } from "@/lib/promoCodes";
+import { PromoVisitTracker } from "@/components/PromoVisitTracker";
 
 /** Server Actions + ISR: закэшированная страница после деплоя даёт «Server Action … was not found». */
 export const dynamic = "force-dynamic";
@@ -104,10 +106,13 @@ export async function generateMetadata({
 
 export default async function EventPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: AppLocale; slug: string }>;
+  searchParams: Promise<{ promo?: string }>;
 }) {
   const { slug, locale } = await params;
+  const { promo: promoRaw } = await searchParams;
   const legacyRedirect = legacyEventRedirectPath(locale, slug);
   if (legacyRedirect) permanentRedirect(legacyRedirect);
 
@@ -142,6 +147,9 @@ export default async function EventPage({
     totalTickets: event.total_tickets,
   });
   const listingKind = normalizeEventListingKind(event.listing_kind);
+  if (listingKind === "special") {
+    permanentRedirect(`/${locale}/special/${event.slug}${promoRaw ? `?promo=${encodeURIComponent(promoRaw)}` : ""}`);
+  }
   const mapsHref = resolveEventMapsUrl({
     maps_url: event.maps_url,
     description: copy.description,
@@ -200,11 +208,13 @@ export default async function EventPage({
     title: copy.title,
     description: copy.description,
   });
+  const promo = await resolveApplicablePromoCode(supabase, promoRaw, { id: event.id, listingKind: event.listing_kind });
 
   return (
     <div
       className={`poet-safe-x mx-auto max-w-3xl py-8 sm:py-14${showCheckout ? " pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:pb-14" : ""}`}
     >
+      {promo ? <PromoVisitTracker promoCodeId={promo.id} eventId={event.id} /> : null}
       {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
       <JsonLd data={faqLd} />
       <nav className="mb-6 text-sm text-zinc-500" aria-label={t("breadcrumbAria")}>
@@ -398,6 +408,8 @@ export default async function EventPage({
                 locale={locale}
                 unitPriceGrosze={event.price_grosze}
                 bypassPayment={isCheckoutBypassPayment()}
+                initialPromoCode={promo?.code}
+                initialPromoDiscountPercent={promo?.discountPercent}
               />
             </section>
           ) : (

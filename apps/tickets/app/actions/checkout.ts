@@ -23,6 +23,7 @@ import { requirePublicAppUrlForP24 } from "@/lib/publicAppUrl";
 import { buildCheckoutReturnPath } from "@/lib/orderReceiptToken";
 import { allowsPublicEventByVisibility } from "@/lib/contentVisibility";
 import { effectiveEventPriceGrosze } from "@/lib/eventPrice";
+import { normalizePromoCode, promoDiscountGrosze, resolveApplicablePromoCode } from "@/lib/promoCodes";
 
 function p24UiLanguage(locale: AppLocale): string {
   if (locale === "pl") return "pl";
@@ -45,12 +46,7 @@ export async function createPendingOrder(
     eventSlug: z.string().min(1),
     buyerName: z.string().trim().min(2).max(120),
     email: z.string().trim().email({ message: tc("emailInvalid") }).max(254),
-    phone: z
-      .string()
-      .trim()
-      .min(1, { message: tc("phoneRequired") })
-      .max(40)
-      .refine((s) => s.replace(/\D/g, "").length >= 7, { message: tc("phoneInvalid") }),
+    phone: z.string().trim().max(40),
     quantity: z.coerce.number().int().min(1).max(20),
     locale: z.enum(["pl", "uk", "ru"]),
   });
@@ -80,12 +76,16 @@ export async function createPendingOrder(
   const supabase = requireServiceSupabase();
   const { data: event, error: evErr } = await supabase
     .from("events")
-    .select("id,slug,price_grosze,day_of_event_price_grosze,total_tickets,visibility,starts_at")
+    .select("id,slug,price_grosze,day_of_event_price_grosze,total_tickets,visibility,starts_at,listing_kind,discount_periods")
     .eq("slug", eventSlug)
     .maybeSingle();
 
   if (evErr || !event || !allowsPublicEventByVisibility(String(event.visibility ?? ""))) {
     throw new Error(t("eventNotFound"));
+  }
+  const isSpecialEvent = event.listing_kind === "special";
+  if (!isSpecialEvent && (!phone || phone.replace(/\D/g, "").length < 7)) {
+    throw new Error(!phone ? tc("phoneRequired") : tc("phoneInvalid"));
   }
 
   const startMs = new Date(event.starts_at as string).getTime();
@@ -106,11 +106,19 @@ export async function createPendingOrder(
   }
 
   const orderId = crypto.randomUUID();
-  const amountGrosze = effectiveEventPriceGrosze({
+  const baseAmountGrosze = effectiveEventPriceGrosze({
     starts_at: event.starts_at as string,
     price_grosze: event.price_grosze as number,
     day_of_event_price_grosze: event.day_of_event_price_grosze as number | null,
+    listing_kind: event.listing_kind as string | null,
+    discount_periods: (event as { discount_periods?: unknown }).discount_periods,
   }) * quantity;
+  const promo = await resolveApplicablePromoCode(supabase, formData.get("promoCode")?.toString(), {
+    id: event.id as string,
+    listingKind: event.listing_kind as string | null,
+  });
+  const promoDiscount = promo ? promoDiscountGrosze(baseAmountGrosze, promo.discountPercent) : 0;
+  const amountGrosze = baseAmountGrosze - promoDiscount;
 
   const marketingEmailOptIn = formData.get("marketingEmailOptIn") === "on";
 
@@ -119,7 +127,7 @@ export async function createPendingOrder(
     event_id: event.id,
     buyer_name: buyerName,
     email,
-    phone: phone.trim(),
+    phone: phone.trim() || null,
     quantity,
     amount_grosze: amountGrosze,
     currency: "PLN",
@@ -127,6 +135,9 @@ export async function createPendingOrder(
     p24_session_id: orderId,
     locale: parsed.data.locale,
     marketing_email_opt_in: marketingEmailOptIn,
+    promo_code_id: promo?.id ?? null,
+    promo_code: promo?.code ?? (normalizePromoCode(formData.get("promoCode")?.toString()) || null),
+    promo_discount_grosze: promoDiscount,
   };
 
   let { error: insErr } = await supabase.from("orders").insert(orderInsert);

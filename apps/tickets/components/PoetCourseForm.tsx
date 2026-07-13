@@ -44,14 +44,21 @@ export function PoetCourseForm({
   const [state, formAction, pending] = useActionState(upsertPoetCourse, initialState);
   const router = useRouter();
   const defaultVisibility: ContentVisibility = course?.visibility ?? "inactive";
+  const courseId = course?.id;
+  const courseTitlePl = course?.title_pl ?? "";
+  const courseBodyPl = course?.body_pl ?? "";
+  const courseTitleUk = course?.title_uk ?? "";
+  const courseBodyUk = course?.body_uk ?? "";
+  const courseCardTagPl = course?.card_tag_pl ?? "";
+  const courseCardTagUk = course?.card_tag_uk ?? "";
 
   const [locales, setLocales] = useState<LocaleFields>({
-    title_pl: course?.title_pl ?? "",
-    body_pl: course?.body_pl ?? "",
-    title_uk: course?.title_uk ?? "",
-    body_uk: course?.body_uk ?? "",
-    card_tag_pl: course?.card_tag_pl ?? "",
-    card_tag_uk: course?.card_tag_uk ?? "",
+    title_pl: courseTitlePl,
+    body_pl: courseBodyPl,
+    title_uk: courseTitleUk,
+    body_uk: courseBodyUk,
+    card_tag_pl: courseCardTagPl,
+    card_tag_uk: courseCardTagUk,
   });
 
   useEffect(() => {
@@ -59,16 +66,16 @@ export function PoetCourseForm({
   }, [state?.redirectTo, router]);
 
   useEffect(() => {
-    if (!course) return;
+    if (!courseId) return;
     setLocales({
-      title_pl: course.title_pl ?? "",
-      body_pl: course.body_pl ?? "",
-      title_uk: course.title_uk ?? "",
-      body_uk: course.body_uk ?? "",
-      card_tag_pl: course.card_tag_pl ?? "",
-      card_tag_uk: course.card_tag_uk ?? "",
+      title_pl: courseTitlePl,
+      body_pl: courseBodyPl,
+      title_uk: courseTitleUk,
+      body_uk: courseBodyUk,
+      card_tag_pl: courseCardTagPl,
+      card_tag_uk: courseCardTagUk,
     });
-  }, [course?.id]);
+  }, [courseId, courseTitlePl, courseBodyPl, courseTitleUk, courseBodyUk, courseCardTagPl, courseCardTagUk]);
 
   return (
     <form action={formAction} className="max-w-2xl space-y-5">

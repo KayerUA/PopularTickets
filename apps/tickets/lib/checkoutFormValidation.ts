@@ -13,6 +13,7 @@ export function validateCheckoutFormData(
   formData: FormData,
   maxQuantity: number,
   messages: CheckoutValidationMessages,
+  options: { phoneRequired?: boolean } = {},
 ): Partial<Record<CheckoutFieldKey, string>> {
   const errors: Partial<Record<CheckoutFieldKey, string>> = {};
 
@@ -25,9 +26,9 @@ export function validateCheckoutFormData(
   }
 
   const phone = String(formData.get("phone") ?? "").trim();
-  if (!phone) {
+  if (options.phoneRequired !== false && !phone) {
     errors.phone = messages.phoneRequired;
-  } else if (phone.replace(/\D/g, "").length < 7) {
+  } else if (phone && phone.replace(/\D/g, "").length < 7) {
     errors.phone = messages.phoneInvalid;
   }
 

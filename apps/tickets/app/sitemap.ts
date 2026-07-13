@@ -17,7 +17,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = getServiceSupabase();
   let eventRows: { slug: string; updated_at: string; starts_at: string }[] = [];
   if (supabase) {
-    const { data } = await supabase.from("events").select("slug,updated_at,starts_at").eq("visibility", "published");
+    const { data } = await supabase
+      .from("events")
+      .select("slug,updated_at,starts_at")
+      .eq("visibility", "published")
+      .neq("listing_kind", "special");
     eventRows = (data ?? []) as { slug: string; updated_at: string; starts_at: string }[];
   }
 

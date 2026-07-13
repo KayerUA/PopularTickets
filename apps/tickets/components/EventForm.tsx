@@ -23,6 +23,7 @@ import {
   formatEventCoverBytes,
 } from "@/lib/eventCoverImageLimits";
 import { compressEventCoverFile, shouldCompressEventCoverClient } from "@/lib/compressEventCoverClient";
+import { normalizeDiscountPeriods } from "@/lib/specialDiscounts";
 
 import { AdminTranslateLocalesButton, type LocaleFields } from "@/components/AdminTranslateLocalesButton";
 
@@ -45,7 +46,8 @@ export type AdminEventRow = {
   day_of_event_price_grosze?: number | null;
   total_tickets: number;
   visibility: ContentVisibility;
-  listing_kind: "performance" | "trial";
+  listing_kind: "performance" | "trial" | "special";
+  discount_periods?: unknown;
   event_language?: EventLanguage | null;
   poet_course_id?: string | null;
 };
@@ -71,13 +73,14 @@ function mergeRetryDefaults(
   dayOfEventPricePln: string;
   totalTickets: string;
   visibility: ContentVisibility;
-  listingKind: "performance" | "trial";
+  listingKind: "performance" | "trial" | "special";
+  discountPeriods: string;
   eventLanguage: EventLanguage;
   poetCourseId: string;
   imageFocalX: string;
   imageFocalY: string;
 } {
-  const lk = (fields?.listingKind ?? event?.listing_kind ?? "performance") as "performance" | "trial";
+  const lk = (fields?.listingKind ?? event?.listing_kind ?? "performance") as "performance" | "trial" | "special";
   const venue =
     fields?.venue ??
     event?.venue ??
@@ -104,6 +107,9 @@ function mergeRetryDefaults(
     totalTickets: fields?.totalTickets ?? String(event?.total_tickets ?? 100),
     visibility: (fields?.visibility ?? event?.visibility ?? "inactive") as ContentVisibility,
     listingKind: lk,
+    discountPeriods:
+      fields?.discountPeriods ??
+      JSON.stringify(normalizeDiscountPeriods(event?.discount_periods), null, 0),
     eventLanguage: normalizeEventLanguage(fields?.eventLanguage ?? event?.event_language ?? DEFAULT_EVENT_LANGUAGE),
     poetCourseId: fields?.poetCourseId ?? event?.poet_course_id ?? "",
     imageFocalX: fields?.imageFocalX ?? String(event?.image_focal_x ?? 50),
@@ -132,7 +138,7 @@ export function EventForm({
   const [state, formAction, pending] = useActionState(upsertEvent, initialUpsertState);
   const router = useRouter();
   const d = mergeRetryDefaults(event, state?.fields);
-  const [listingKind, setListingKind] = useState<"performance" | "trial">(d.listingKind);
+  const [listingKind, setListingKind] = useState<"performance" | "trial" | "special">(d.listingKind);
   const [locales, setLocales] = useState<LocaleFields>({
     title_pl: d.titlePl,
     body_pl: d.descriptionPl,
@@ -262,14 +268,15 @@ export function EventForm({
             <select
               name="listingKind"
               defaultValue={d.listingKind}
-              onChange={(e) => setListingKind(e.target.value === "trial" ? "trial" : "performance")}
+              onChange={(e) => setListingKind(e.target.value === "trial" || e.target.value === "special" ? e.target.value : "performance")}
               className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
             >
               <option value="performance">Спектакль / шоу — афиша PopularTickets</option>
               <option value="trial">Пробный урок — календарь на popularpoet.pl</option>
+              <option value="special">Специальное — только по прямой ссылке</option>
             </select>
             <p className="mt-1 text-xs text-zinc-500">
-              Пробные не на главной PopularTickets. Слот на popularpoet.pl — при типе «Пробный» и видимости «Опубликован».
+              Специальное событие всегда доступно только по прямой ссылке: не попадает в афишу и sitemap.
             </p>
           </label>
           <label className="block text-sm text-zinc-300 sm:col-span-2">
@@ -311,6 +318,20 @@ export function EventForm({
                 ))}
               </select>
               <p className="mt-1 text-xs text-zinc-500">Необязательно: ссылка на курс в календаре. Занятие всё равно по адресу ниже.</p>
+            </label>
+          ) : null}
+          {listingKind === "special" ? (
+            <label className="block text-sm text-zinc-300 sm:col-span-2">
+              Скидочные периоды (JSON)
+              <textarea
+                name="discountPeriods"
+                rows={4}
+                required
+                defaultValue={d.discountPeriods}
+                className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 font-mono text-xs text-white"
+                placeholder={'[{"name":"Super Early Bird","until":"2026-07-17","percent":15}]'}
+              />
+              <p className="mt-1 text-xs text-zinc-500">Дата until включительна по Варшаве. Полная цена задаётся ниже; скидка применяется автоматически.</p>
             </label>
           ) : null}
         </AdminFormSection>
@@ -507,7 +528,7 @@ export function EventForm({
               className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"
             />
           </label>
-          <label className="block text-sm text-zinc-300">
+          {listingKind !== "special" ? <label className="block text-sm text-zinc-300">
             Цена в день мероприятия, PLN
             <input
               name="dayOfEventPricePln"
@@ -522,7 +543,7 @@ export function EventForm({
             <span className="mt-1 block text-xs text-zinc-500">
               Необязательно. Включается с 00:00 в день события по времени Варшавы.
             </span>
-          </label>
+          </label> : <input type="hidden" name="dayOfEventPricePln" value="" />}
           <label className="block text-sm text-zinc-300 sm:col-span-2">
             Всего билетов
             <input

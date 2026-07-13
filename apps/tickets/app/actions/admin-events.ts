@@ -22,6 +22,7 @@ import {
   type EventVenuePresetId,
 } from "@/lib/eventVenues";
 import { runEventDiscovery } from "@/lib/eventDiscovery/notifyEventPublished";
+import { parseDiscountPeriodsJson } from "@/lib/specialDiscounts";
 
 const MIN_EVENT_DESCRIPTION_PUBLISH_CHARS = 300;
 
@@ -41,7 +42,8 @@ export type UpsertEventRetryFields = {
   dayOfEventPricePln: string;
   totalTickets: string;
   visibility: string;
-  listingKind: "performance" | "trial";
+  listingKind: "performance" | "trial" | "special";
+  discountPeriods: string;
   eventLanguage: string;
   poetCourseId: string;
   imageFocalX: string;
@@ -79,7 +81,8 @@ function formRetryFromFormData(formData: FormData): UpsertEventRetryFields {
     dayOfEventPricePln: String(formData.get("dayOfEventPricePln") ?? ""),
     totalTickets: String(formData.get("totalTickets") ?? ""),
     visibility: String(formData.get("visibility") ?? "inactive"),
-    listingKind: lk === "trial" ? "trial" : "performance",
+    listingKind: lk === "trial" || lk === "special" ? lk : "performance",
+    discountPeriods: String(formData.get("discountPeriods") ?? ""),
     eventLanguage: String(formData.get("eventLanguage") ?? DEFAULT_EVENT_LANGUAGE),
     poetCourseId: String(formData.get("poetCourseId") ?? ""),
     imageFocalX: String(formData.get("imageFocalX") ?? "50"),
@@ -114,6 +117,7 @@ function formRetryFromParsed(
     totalTickets: String(v.totalTickets),
     visibility: v.visibility,
     listingKind: v.listingKind,
+    discountPeriods: v.discountPeriods,
     eventLanguage: v.eventLanguage,
     poetCourseId: v.poetCourseId ?? "",
     imageFocalX: String(v.imageFocalX),
@@ -160,7 +164,8 @@ const EventSchema = z.object({
   ),
   totalTickets: z.coerce.number().int().min(1).max(5000),
   visibility: contentVisibilitySchema.default("inactive"),
-  listingKind: z.enum(["performance", "trial"]).default("performance"),
+  listingKind: z.enum(["performance", "trial", "special"]).default("performance"),
+  discountPeriods: z.string().max(5000).optional().default(""),
   eventLanguage: z
     .enum(["ru", "uk", "ru_uk", "pl", "en", "mixed"])
     .default(DEFAULT_EVENT_LANGUAGE),
@@ -185,7 +190,17 @@ const EventSchema = z.object({
         path: ["dayOfEventPricePln"],
       });
     }
-    if (data.visibility === "published" || data.visibility === "unlisted") {
+    if (data.listingKind === "special") {
+      const periods = parseDiscountPeriodsJson(data.discountPeriods);
+      if (!periods?.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Для специального события укажите непустой JSON скидочных периодов.",
+          path: ["discountPeriods"],
+        });
+      }
+    }
+    if ((data.visibility === "published" || data.visibility === "unlisted") && data.listingKind !== "special") {
       const len = data.description.trim().length;
       if (len < MIN_EVENT_DESCRIPTION_PUBLISH_CHARS) {
         ctx.addIssue({
@@ -221,7 +236,8 @@ function resolveVenueFromFormData(formData: FormData): { venue: string; mapsUrl:
   const presetRaw = String(formData.get("venuePresetId") ?? "popular-poet-theatre");
   const presetId: EventVenuePresetId =
     presetRaw === "swietlica-wolnosci" || presetRaw === "custom" ? presetRaw : "popular-poet-theatre";
-  const listingKind = String(formData.get("listingKind") ?? "performance") === "trial" ? "trial" : "performance";
+  const rawListingKind = String(formData.get("listingKind") ?? "performance");
+  const listingKind = rawListingKind === "trial" || rawListingKind === "special" ? rawListingKind : "performance";
   return resolveVenueFieldsFromPreset(
     presetId,
     String(formData.get("venue") ?? ""),
@@ -279,6 +295,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       startsAt: formData.get("startsAt"),
       pricePln: formData.get("pricePln"),
       dayOfEventPricePln: formData.get("dayOfEventPricePln"),
+      discountPeriods: formData.get("discountPeriods") || "",
       totalTickets: formData.get("totalTickets"),
       visibility: formData.get("visibility") || "inactive",
       listingKind: formData.get("listingKind") || "performance",
@@ -305,6 +322,7 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
 
     const priceGrosze = groszeFromPln(v.pricePln);
     const dayOfEventPriceGrosze = v.dayOfEventPricePln == null ? null : groszeFromPln(v.dayOfEventPricePln);
+    const discountPeriods = v.listingKind === "special" ? parseDiscountPeriodsJson(v.discountPeriods)! : [];
 
     let startsAtIso: string;
     try {
@@ -343,8 +361,9 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       price_grosze: priceGrosze,
       day_of_event_price_grosze: dayOfEventPriceGrosze,
       total_tickets: v.totalTickets,
-      visibility: v.visibility,
+      visibility: v.listingKind === "special" ? "unlisted" : v.visibility,
       listing_kind: v.listingKind,
+      discount_periods: discountPeriods,
       event_language: v.eventLanguage,
       poet_course_id: v.listingKind === "trial" && v.poetCourseId ? v.poetCourseId : null,
       image_focal_x: v.imageFocalX,

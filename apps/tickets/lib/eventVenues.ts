@@ -56,7 +56,7 @@ export function resolveVenueFieldsFromPreset(
   presetId: EventVenuePresetId,
   customVenue: string,
   customMapsUrl: string,
-  listingKind: "performance" | "trial",
+  listingKind: "performance" | "trial" | "special",
 ): { venue: string; mapsUrl: string } {
   if (presetId === "custom") {
     const venue = customVenue.trim();

@@ -1,9 +1,13 @@
+import { discountedPriceGrosze, resolveActiveDiscount, type ActiveDiscount } from "@/lib/specialDiscounts";
+
 const EVENT_TIME_ZONE = "Europe/Warsaw";
 
 type EventPriceInput = {
   starts_at: string;
   price_grosze: number;
   day_of_event_price_grosze?: number | null;
+  listing_kind?: string | null;
+  discount_periods?: unknown;
 };
 
 export type EventPriceDetails = {
@@ -12,6 +16,7 @@ export type EventPriceDetails = {
   dayOfEventPriceGrosze: number | null;
   hasDayOfEventIncrease: boolean;
   isEventDay: boolean;
+  activeDiscount: ActiveDiscount | null;
 };
 
 function dateKeyInWarsaw(value: Date): string {
@@ -37,12 +42,19 @@ export function eventPriceDetails(event: EventPriceInput, now = new Date()): Eve
   const validDates = Number.isFinite(startsAt.getTime()) && Number.isFinite(now.getTime());
   const hasDayOfEventIncrease = typeof dayPrice === "number" && dayPrice > event.price_grosze;
   const isEventDay = validDates && dateKeyInWarsaw(now) === dateKeyInWarsaw(startsAt);
+  // Для special скидка всегда важнее стандартной цены «в день события».
+  const activeDiscount = event.listing_kind === "special" ? resolveActiveDiscount(event.discount_periods, now) : null;
 
   return {
-    effectivePriceGrosze: hasDayOfEventIncrease && isEventDay ? dayPrice : event.price_grosze,
+    effectivePriceGrosze: activeDiscount
+      ? discountedPriceGrosze(event.price_grosze, activeDiscount)
+      : hasDayOfEventIncrease && isEventDay
+        ? dayPrice
+        : event.price_grosze,
     regularPriceGrosze: event.price_grosze,
     dayOfEventPriceGrosze: hasDayOfEventIncrease ? dayPrice : null,
     hasDayOfEventIncrease,
     isEventDay,
+    activeDiscount,
   };
 }

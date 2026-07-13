@@ -33,4 +33,19 @@ describe("effectiveEventPriceGrosze", () => {
       isEventDay: false,
     });
   });
+
+  it("applies the active special discount through the end of its Warsaw date", () => {
+    const special = {
+      ...event,
+      listing_kind: "special",
+      discount_periods: [
+        { name: "Super Early Bird", until: "2026-06-07", percent: 15 },
+        { name: "Early Bird", until: "2026-06-14", percent: 10 },
+      ],
+    };
+    const details = eventPriceDetails(special, new Date("2026-06-07T21:59:00.000Z"));
+    expect(details.effectivePriceGrosze).toBe(4250);
+    expect(details.activeDiscount).toMatchObject({ name: "Super Early Bird", percent: 15 });
+    expect(effectiveEventPriceGrosze(special, new Date("2026-06-07T22:00:00.000Z"))).toBe(4500);
+  });
 });
