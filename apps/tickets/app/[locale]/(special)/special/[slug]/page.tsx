@@ -87,7 +87,7 @@ export default async function SpecialEventPage({
     <div className="poet-safe-x relative mx-auto w-full max-w-3xl py-8 sm:py-14">
       <section className="overflow-hidden rounded-2xl border border-poet-gold/25 bg-poet-surface/60 shadow-gold backdrop-blur-md sm:rounded-3xl">
         {promo ? <PromoVisitTracker promoCodeId={promo.id} eventId={event.id} /> : null}
-        <div className="relative aspect-[4/5] overflow-hidden bg-zinc-950 sm:aspect-[16/10]">
+          <div className="relative aspect-[4/5] overflow-hidden bg-zinc-950 sm:aspect-[16/10]">
           {event.image_url ? (
             <MediaCoverBlurred
               src={event.image_url}
@@ -101,9 +101,9 @@ export default async function SpecialEventPage({
           ) : <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-800/50 via-poet-bg to-cyan-950/50" />}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-poet-bg via-poet-bg/10 to-transparent" />
           <div className="absolute left-4 top-4 flex flex-wrap items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] sm:left-6 sm:top-6">
-            <a href="https://www.instagram.com/next.mode.show/" className="rounded-full border border-fuchsia-200/40 bg-zinc-950/75 px-3 py-1.5 text-fuchsia-100 backdrop-blur hover:text-white">Next Mode</a>
+            <a href="https://next-mode.com/" target="_blank" rel="noopener noreferrer" className="rounded-full border border-fuchsia-200/40 bg-zinc-950/75 px-3 py-1.5 text-fuchsia-100 backdrop-blur hover:text-white">Next Mode</a>
             <span className="text-cyan-200">×</span>
-            <a href="https://www.instagram.com/popular_poet_theatre/" className="rounded-full border border-cyan-100/30 bg-zinc-950/75 px-3 py-1.5 text-cyan-100 backdrop-blur hover:text-white">Popular Poet</a>
+            <a href="https://www.popularpoet.pl/ru" target="_blank" rel="noopener noreferrer" className="rounded-full border border-cyan-100/30 bg-zinc-950/75 px-3 py-1.5 text-cyan-100 backdrop-blur hover:text-white">Popular Poet</a>
           </div>
         </div>
         <div className="space-y-5 p-4 sm:p-8">
@@ -115,6 +115,25 @@ export default async function SpecialEventPage({
           </div>
 
           {copy?.description.trim() ? <p className="whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-zinc-300 sm:text-base">{copy.description}</p> : null}
+
+          <section className="overflow-hidden rounded-2xl border border-fuchsia-200/25 bg-zinc-950/60" aria-label="Как работает интерактив">
+            <div className="grid sm:grid-cols-[1.15fr_1fr]">
+              <div className="border-b border-fuchsia-200/15 px-4 py-4 sm:border-b-0 sm:border-r sm:px-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-fuchsia-200">Next Mode inside</p>
+                <p className="mt-2 font-display text-xl font-semibold leading-tight text-zinc-50">Ты выбираешь задание.<br />Мы играем его.</p>
+              </div>
+              <ol className="grid grid-cols-3 divide-x divide-cyan-100/10 text-center text-xs text-zinc-300">
+                <li className="px-2 py-4"><span className="block text-lg text-cyan-200">01</span><span className="mt-1 block">открываешь<br />телефон</span></li>
+                <li className="px-2 py-4"><span className="block text-lg text-fuchsia-200">02</span><span className="mt-1 block">выбираешь<br />задание</span></li>
+                <li className="px-2 py-4"><span className="block text-lg text-cyan-200">03</span><span className="mt-1 block">смотришь,<br />что будет</span></li>
+              </ol>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 border-t border-cyan-100/10 px-4 py-3 text-xs sm:px-5">
+              <a href="https://next-mode.com/" target="_blank" rel="noopener noreferrer" className="text-fuchsia-200 underline decoration-fuchsia-200/40 underline-offset-2 hover:text-white">next-mode.com ↗</a>
+              <a href="https://www.instagram.com/next.mode.show/" target="_blank" rel="noopener noreferrer" className="text-fuchsia-200 underline decoration-fuchsia-200/40 underline-offset-2 hover:text-white">@next.mode.show ↗</a>
+              <a href="https://www.instagram.com/popular_poet_theatre/" target="_blank" rel="noopener noreferrer" className="text-cyan-100 underline decoration-cyan-100/40 underline-offset-2 hover:text-white">@popular_poet_theatre ↗</a>
+            </div>
+          </section>
 
           <div className="rounded-2xl border border-fuchsia-200/25 bg-black/30 px-4 py-3.5">
           {price.activeDiscount ? (
