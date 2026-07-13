@@ -114,7 +114,15 @@ export default async function SpecialEventPage({
             {mapsHref ? <a href={mapsHref} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex text-sm text-poet-gold-bright underline decoration-poet-gold/40 underline-offset-2 hover:text-poet-gold">Открыть карту ↗</a> : null}
           </div>
 
-          {copy?.description.trim() ? <p className="whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-zinc-300 sm:text-base">{copy.description}</p> : null}
+          {copy?.description.trim() ? (
+            <details className="group rounded-2xl border border-zinc-700/60 bg-black/20">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 text-sm font-semibold text-zinc-100 marker:hidden hover:text-fuchsia-100 sm:px-5">
+                Что будет на шоу?
+                <span aria-hidden="true" className="text-lg leading-none text-fuchsia-200 transition-transform group-open:rotate-45">+</span>
+              </summary>
+              <p className="whitespace-pre-wrap border-t border-zinc-700/60 px-4 py-4 text-[0.9375rem] leading-relaxed text-zinc-300 sm:px-5 sm:text-base">{copy.description}</p>
+            </details>
+          ) : null}
 
           <section className="overflow-hidden rounded-2xl border border-fuchsia-200/25 bg-zinc-950/60" aria-label="Как работает интерактив">
             <div className="grid sm:grid-cols-[1.15fr_1fr]">
