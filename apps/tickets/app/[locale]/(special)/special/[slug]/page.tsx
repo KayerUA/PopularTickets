@@ -11,7 +11,7 @@ import { eventLanguageLabel, normalizeEventLanguage } from "@/lib/eventLanguage"
 import { EventCheckoutForm } from "@/components/EventCheckoutForm";
 import { SpecialDiscountCountdown } from "@/components/SpecialDiscountCountdown";
 import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
-import { buildPublicPageMetadata } from "@/lib/seo";
+import { buildPublicPageMetadata, truncateMetaDescription } from "@/lib/seo";
 import { resolveApplicablePromoCode } from "@/lib/promoCodes";
 import { PromoVisitTracker } from "@/components/PromoVisitTracker";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
@@ -19,6 +19,8 @@ import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
 import { isOptimizableEventImage } from "@/lib/imageOptimization";
 import { resolveEventCopy } from "@/lib/contentI18n";
 import { resolveEventMapsUrl } from "@/lib/mapsUrl";
+import { getPublicAppUrl } from "@/lib/publicAppUrl";
+import { resolveAbsoluteAssetUrl } from "@/lib/safePublicUrl";
 
 export const dynamic = "force-dynamic";
 
@@ -33,12 +35,21 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const supabase = getServiceSupabase();
   const { data: event } = supabase ? await fetchPublishedEventBySlug(supabase, slug) : { data: null };
-  const title = event?.title ?? "Билеты";
+  const copy = event ? resolveEventCopy(event, locale) : null;
+  const isNextModeEvent = slug === NEXT_MODE_SLUG;
+  const title = isNextModeEvent ? "Next Mode Comedy — P!MPRO × Next Mode" : (copy?.title ?? event?.title ?? "Билеты");
+  const description = isNextModeEvent
+    ? "Интерактивное комедийное шоу P!MPRO × Next Mode в Варшаве: зрители выбирают задания для актёров прямо с телефона."
+    : truncateMetaDescription(copy?.description);
+  const ogImage = resolveAbsoluteAssetUrl(event?.image_url, getPublicAppUrl());
   return buildPublicPageMetadata({
     locale,
     path: `/special/${slug}`,
     title,
-    description: title,
+    description: description || title,
+    keywords: isNextModeEvent ? ["Next Mode Comedy", "P!MPRO", "импровизация", "комедийное шоу", "Варшава"] : undefined,
+    ogType: "article",
+    ogImages: ogImage ? [{ url: ogImage, alt: title }] : undefined,
     robots: { index: false, follow: false, googleBot: { index: false, follow: false, noimageindex: true } },
   });
 }
