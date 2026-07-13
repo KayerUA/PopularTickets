@@ -83,8 +83,7 @@ export async function createPendingOrder(
   if (evErr || !event || !allowsPublicEventByVisibility(String(event.visibility ?? ""))) {
     throw new Error(t("eventNotFound"));
   }
-  const isSpecialEvent = event.listing_kind === "special";
-  if (!isSpecialEvent && (!phone || phone.replace(/\D/g, "").length < 7)) {
+  if (!phone || phone.replace(/\D/g, "").length < 7) {
     throw new Error(!phone ? tc("phoneRequired") : tc("phoneInvalid"));
   }
 

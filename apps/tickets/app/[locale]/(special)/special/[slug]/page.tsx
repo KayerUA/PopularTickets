@@ -66,7 +66,7 @@ export default async function SpecialEventPage({
   });
   const price = eventPriceDetails({
     starts_at: event.starts_at,
-    price_grosze: event.price_grosze,
+    price_grosze: event.regular_price_grosze,
     day_of_event_price_grosze: event.day_of_event_price_grosze,
     listing_kind: event.listing_kind,
     discount_periods: event.discount_periods,
@@ -180,6 +180,7 @@ export default async function SpecialEventPage({
               unitPriceGrosze={price.effectivePriceGrosze}
               bypassPayment={isCheckoutBypassPayment()}
               compact
+              phoneRequired
               initialPromoCode={promo?.code}
               initialPromoDiscountPercent={promo?.discountPercent}
             />

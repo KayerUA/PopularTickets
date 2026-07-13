@@ -23,6 +23,7 @@ type Props = {
   unitPriceGrosze: number;
   bypassPayment?: boolean;
   compact?: boolean;
+  phoneRequired?: boolean;
   initialPromoCode?: string;
   initialPromoDiscountPercent?: number;
 };
@@ -38,6 +39,7 @@ export function EventCheckoutForm({
   unitPriceGrosze,
   bypassPayment,
   compact = false,
+  phoneRequired = !compact,
   initialPromoCode = "",
   initialPromoDiscountPercent = 0,
 }: Props) {
@@ -94,7 +96,7 @@ export function EventCheckoutForm({
   };
 
   const runClientValidation = (formData: FormData): boolean => {
-    const errors = validateCheckoutFormData(formData, max, validationMessages, { phoneRequired: !compact });
+    const errors = validateCheckoutFormData(formData, max, validationMessages, { phoneRequired });
     setFieldErrors(errors);
     const first = firstCheckoutFieldError(errors);
     if (first) {
@@ -192,7 +194,7 @@ export function EventCheckoutForm({
             </p>
           ) : null}
         </div>
-        {!compact ? <div className="block text-sm" data-checkout-field="phone">
+        {phoneRequired ? <div className="block text-sm" data-checkout-field="phone">
           <label htmlFor="checkout-phone" className="text-zinc-400">
             {t("phone")}
             <span className="ml-1 text-red-400/90" aria-hidden>
