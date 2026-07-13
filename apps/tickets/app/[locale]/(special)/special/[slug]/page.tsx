@@ -11,7 +11,7 @@ import { eventLanguageLabel, normalizeEventLanguage } from "@/lib/eventLanguage"
 import { EventCheckoutForm } from "@/components/EventCheckoutForm";
 import { SpecialDiscountCountdown } from "@/components/SpecialDiscountCountdown";
 import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
-import { buildPublicPageMetadata, truncateMetaDescription } from "@/lib/seo";
+import { buildPublicPageMetadata, eventOgImageUrl, truncateMetaDescription } from "@/lib/seo";
 import { resolveApplicablePromoCode } from "@/lib/promoCodes";
 import { PromoVisitTracker } from "@/components/PromoVisitTracker";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
@@ -19,8 +19,6 @@ import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
 import { isOptimizableEventImage } from "@/lib/imageOptimization";
 import { resolveEventCopy } from "@/lib/contentI18n";
 import { resolveEventMapsUrl } from "@/lib/mapsUrl";
-import { getPublicAppUrl } from "@/lib/publicAppUrl";
-import { resolveAbsoluteAssetUrl } from "@/lib/safePublicUrl";
 
 export const dynamic = "force-dynamic";
 
@@ -37,11 +35,11 @@ export async function generateMetadata({
   const { data: event } = supabase ? await fetchPublishedEventBySlug(supabase, slug) : { data: null };
   const copy = event ? resolveEventCopy(event, locale) : null;
   const isNextModeEvent = slug === NEXT_MODE_SLUG;
-  const title = isNextModeEvent ? "Next Mode Comedy — P!MPRO × Next Mode" : (copy?.title ?? event?.title ?? "Билеты");
+  const title = isNextModeEvent ? "Next Mode Comedy — зрители управляют шоу" : (copy?.title ?? event?.title ?? "Билеты");
   const description = isNextModeEvent
-    ? "Интерактивное комедийное шоу P!MPRO × Next Mode в Варшаве: зрители выбирают задания для актёров прямо с телефона."
+    ? "15 августа, 19:00, Варшава. Интерактивное импров-шоу P!MPRO × Next Mode: выбирай задания с телефона и смотри, как актёры выкручиваются вживую."
     : truncateMetaDescription(copy?.description);
-  const ogImage = resolveAbsoluteAssetUrl(event?.image_url, getPublicAppUrl());
+  const ogImage = event ? eventOgImageUrl(event.slug) : null;
   return buildPublicPageMetadata({
     locale,
     path: `/special/${slug}`,
@@ -49,7 +47,7 @@ export async function generateMetadata({
     description: description || title,
     keywords: isNextModeEvent ? ["Next Mode Comedy", "P!MPRO", "импровизация", "комедийное шоу", "Варшава"] : undefined,
     ogType: "article",
-    ogImages: ogImage ? [{ url: ogImage, alt: title }] : undefined,
+    ogImages: ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: title }] : undefined,
     robots: { index: false, follow: false, googleBot: { index: false, follow: false, noimageindex: true } },
   });
 }

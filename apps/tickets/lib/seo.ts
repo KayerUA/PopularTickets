@@ -53,6 +53,12 @@ function hreflangLanguages(path: string): Record<string, string> | undefined {
 
 /** Путь к дефолтному OG-изображению (1200×630) на public. */
 export const DEFAULT_TICKETS_OG_IMAGE_PATH = "/courses/theatre-photo.jpg";
+export const EVENT_OG_IMAGE_VERSION = "20260713-1";
+
+export function eventOgImageUrl(slug: string, base = getPublicAppUrl()): string | null {
+  if (!base) return null;
+  return `${base.replace(/\/$/, "")}/api/og/event/${encodeURIComponent(slug)}?v=${EVENT_OG_IMAGE_VERSION}`;
+}
 
 export function defaultTicketsOgImages(base: string | undefined): { url: string; width: number; height: number; alt: string }[] | undefined {
   if (!base) return undefined;

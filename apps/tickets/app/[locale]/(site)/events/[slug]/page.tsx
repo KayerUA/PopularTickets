@@ -14,7 +14,7 @@ import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
 import { resolveEventMapsUrl } from "@/lib/mapsUrl";
 import { resolveEventMarketingStatus, normalizeEventListingKind } from "@/lib/eventMarketingStatus";
 import { EventStatusBadge } from "@/components/EventStatusBadge";
-import { buildPublicPageMetadata, truncateMetaDescription, canonicalPath, hreflangLanguagesForPublishedEvent } from "@/lib/seo";
+import { buildPublicPageMetadata, truncateMetaDescription, canonicalPath, eventOgImageUrl, hreflangLanguagesForPublishedEvent } from "@/lib/seo";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { JsonLd } from "@/components/JsonLd";
 import { buildEventJsonLd, buildBreadcrumbListJsonLd, buildFaqPageJsonLd } from "@/lib/seo/eventJsonLd";
@@ -26,7 +26,7 @@ import { resolveEventCopy } from "@/lib/contentI18n";
 import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
 import { eventLanguageLabel, normalizeEventLanguage } from "@/lib/eventLanguage";
 import { isOptimizableEventImage } from "@/lib/imageOptimization";
-import { isRenderableImageSrc, resolveAbsoluteAssetUrl } from "@/lib/safePublicUrl";
+import { isRenderableImageSrc } from "@/lib/safePublicUrl";
 import { legacyEventRedirectPath } from "@/lib/legacyEventRedirects";
 import { fetchRelatedEvents } from "@/lib/fetchRelatedEvents";
 import { eventContextLinks } from "@/lib/eventContextLinks";
@@ -76,9 +76,8 @@ export async function generateMetadata({
   const eventLanguage = normalizeEventLanguage(event.event_language);
   const title = `${copy.title} — ${tMeta("eventListingLine")}, ${short}`;
   const desc = `${tMeta("eventDescriptionBuy")} ${formatEventDateTime(event.starts_at, locale)}. ${event.venue}. ${eventLanguageLabel(eventLanguage, locale)}. ${truncateMetaDescription(copy.description)}`;
-  const base = getPublicAppUrl()?.replace(/\/$/, "");
   let ogImages: { url: string; width: number; height: number; alt: string }[] | undefined;
-  const ogImageAbs = resolveAbsoluteAssetUrl(event.image_url, base);
+  const ogImageAbs = eventOgImageUrl(event.slug);
   if (ogImageAbs) {
     ogImages = [{ url: ogImageAbs, width: 1200, height: 630, alt: copy.title }];
   }
