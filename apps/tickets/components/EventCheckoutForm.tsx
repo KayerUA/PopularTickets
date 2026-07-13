@@ -211,9 +211,7 @@ export function EventCheckoutForm({
             inputMode="tel"
             placeholder="+48 …"
             aria-invalid={fieldErrors.phone ? true : undefined}
-            aria-describedby={
-              fieldErrors.phone ? "checkout-phone-error checkout-phone-hint" : "checkout-phone-hint"
-            }
+            aria-describedby={fieldErrors.phone ? "checkout-phone-error" : undefined}
             onChange={() => {
               if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }));
             }}
@@ -223,9 +221,6 @@ export function EventCheckoutForm({
               {fieldErrors.phone}
             </p>
           ) : null}
-          <span id="checkout-phone-hint" className="mt-1 block text-[11px] leading-snug text-zinc-500">
-            {t("phoneHint")}
-          </span>
         </div> : null}
         <div className="block text-sm" data-checkout-field="quantity">
           <label htmlFor="checkout-quantity" className="text-zinc-400">
@@ -291,7 +286,7 @@ export function EventCheckoutForm({
             </div>
           ) : null}
         </dl>
-        <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">{t("taxExemptionNote")}</p>
+        {!compact ? <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">{t("taxExemptionNote")}</p> : null}
       </div>
 
       {error ? (

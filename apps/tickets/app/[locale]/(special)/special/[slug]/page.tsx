@@ -118,12 +118,12 @@ export default async function SpecialEventPage({
               coverObjectPosition={eventCoverObjectPosition(event.image_focal_x, event.image_focal_y)}
               frameClassName="absolute inset-0"
             />
-          ) : <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-800/50 via-poet-bg to-cyan-950/50" />}
+          ) : <div className="absolute inset-0 bg-gradient-to-br from-violet-800/55 via-poet-bg to-amber-950/45" />}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-poet-bg via-poet-bg/10 to-transparent" />
           <div className="absolute left-4 top-4 flex flex-wrap items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] sm:left-6 sm:top-6">
-            <span className="rounded-full border border-fuchsia-200/40 bg-zinc-950/75 px-3 py-1.5 text-fuchsia-100 backdrop-blur">Next Mode</span>
-            <span className="text-cyan-200">×</span>
-            <a href="https://www.popularpoet.pl/ru" target="_blank" rel="noopener noreferrer" className="rounded-full border border-cyan-100/30 bg-zinc-950/75 px-3 py-1.5 text-cyan-100 backdrop-blur hover:text-white">Popular Poet</a>
+            <span className="rounded-full border border-violet-400/60 bg-violet-950/80 px-3 py-1.5 text-violet-100 backdrop-blur">Next Mode</span>
+            <span className="text-poet-gold-bright">×</span>
+            <a href="https://www.popularpoet.pl/ru" target="_blank" rel="noopener noreferrer" className="rounded-full border border-poet-gold/55 bg-zinc-950/80 px-3 py-1.5 text-poet-gold-bright backdrop-blur hover:border-poet-gold-bright hover:text-white">Popular Poet</a>
           </div>
         </div>
         <div className="space-y-5 p-4 sm:p-8">
@@ -131,9 +131,9 @@ export default async function SpecialEventPage({
             <h1 className="font-display text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">{copy?.title ?? event.title}</h1>
             {collaboration ? (
               <p className="mt-3 text-sm font-semibold leading-snug sm:text-base">
-                <span className="text-cyan-100">{collaboration.name}</span>
+                <span className="text-violet-300">{collaboration.name}</span>
                 <span className="text-zinc-400"> · </span>
-                <span className="text-fuchsia-200">{collaboration.tagline}</span>
+                <span className="text-poet-gold-bright">{collaboration.tagline}</span>
               </p>
             ) : null}
             <p className="mt-3 text-sm text-zinc-300 sm:text-base">{formatEventDateTime(event.starts_at, locale)} · {language}</p>
@@ -143,33 +143,33 @@ export default async function SpecialEventPage({
 
           {copy?.description.trim() ? (
             <details className="group rounded-2xl border border-zinc-700/60 bg-black/20">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 text-sm font-semibold text-zinc-100 marker:hidden hover:text-fuchsia-100 sm:px-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 text-sm font-semibold text-zinc-100 marker:hidden hover:text-poet-gold-bright sm:px-5">
                 Что будет на шоу?
-                <span aria-hidden="true" className="text-lg leading-none text-fuchsia-200 transition-transform group-open:rotate-45">+</span>
+                <span aria-hidden="true" className="text-lg leading-none text-poet-gold transition-transform group-open:rotate-45">+</span>
               </summary>
               <p className="whitespace-pre-wrap border-t border-zinc-700/60 px-4 py-4 text-[0.9375rem] leading-relaxed text-zinc-300 sm:px-5 sm:text-base">{copy.description}</p>
             </details>
           ) : null}
 
-          <section className="overflow-hidden rounded-2xl border border-fuchsia-200/25 bg-zinc-950/60" aria-label="Как работает интерактив">
+          <section className="overflow-hidden rounded-2xl border border-violet-400/35 bg-gradient-to-br from-violet-950/55 via-zinc-950/80 to-black" aria-label="Как работает интерактив">
             <div className="grid sm:grid-cols-[1.15fr_1fr]">
-              <div className="border-b border-fuchsia-200/15 px-4 py-4 sm:border-b-0 sm:border-r sm:px-5">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-fuchsia-200">Next Mode inside</p>
+              <div className="border-b border-violet-400/25 px-4 py-4 sm:border-b-0 sm:border-r sm:px-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-violet-300">Next Mode inside</p>
                 <p className="mt-2 font-display text-xl font-semibold leading-tight text-zinc-50">Ты выбираешь задание.<br />Мы играем его.</p>
               </div>
-              <ol className="grid grid-cols-3 divide-x divide-cyan-100/10 text-center text-xs text-zinc-300">
-                <li className="px-2 py-4"><span className="block text-lg text-cyan-200">01</span><span className="mt-1 block">открываешь<br />телефон</span></li>
-                <li className="px-2 py-4"><span className="block text-lg text-fuchsia-200">02</span><span className="mt-1 block">выбираешь<br />задание</span></li>
-                <li className="px-2 py-4"><span className="block text-lg text-cyan-200">03</span><span className="mt-1 block">смотришь,<br />что будет</span></li>
+              <ol className="grid grid-cols-3 divide-x divide-white/10 text-center text-xs text-zinc-300">
+                <li className="px-2 py-4"><span className="block text-lg font-semibold text-violet-300">01</span><span className="mt-1 block">открываешь<br />телефон</span></li>
+                <li className="px-2 py-4"><span className="block text-lg font-semibold text-violet-300">02</span><span className="mt-1 block">выбираешь<br />задание</span></li>
+                <li className="px-2 py-4"><span className="block text-lg font-semibold text-violet-300">03</span><span className="mt-1 block">смотришь,<br />что будет</span></li>
               </ol>
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-2 border-t border-cyan-100/10 px-4 py-3 text-xs sm:px-5">
-              <a href="https://www.instagram.com/next.mode.show/" target="_blank" rel="noopener noreferrer" className="text-fuchsia-200 underline decoration-fuchsia-200/40 underline-offset-2 hover:text-white">@next.mode.show ↗</a>
-              <a href="https://www.instagram.com/popular_poet_theatre/" target="_blank" rel="noopener noreferrer" className="text-cyan-100 underline decoration-cyan-100/40 underline-offset-2 hover:text-white">@popular_poet_theatre ↗</a>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 border-t border-white/10 px-4 py-3 text-xs sm:px-5">
+              <a href="https://www.instagram.com/next.mode.show/" target="_blank" rel="noopener noreferrer" className="text-violet-300 underline decoration-violet-300/40 underline-offset-2 hover:text-white">@next.mode.show ↗</a>
+              <a href="https://www.instagram.com/popular_poet_theatre/" target="_blank" rel="noopener noreferrer" className="text-poet-gold-bright underline decoration-poet-gold/45 underline-offset-2 hover:text-white">@popular_poet_theatre ↗</a>
             </div>
           </section>
 
-          <div className="rounded-2xl border border-fuchsia-200/25 bg-black/30 px-4 py-3.5">
+          <div className="rounded-2xl border border-poet-gold/50 bg-poet-gold/[0.06] px-4 py-3.5">
           {price.activeDiscount ? (
             <>
               <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
@@ -178,14 +178,14 @@ export default async function SpecialEventPage({
                   <span className="mt-1 block text-lg text-zinc-500 line-through">{formatPlnFromGrosze(price.regularPriceGrosze)}</span>
                 </div>
                 <div className="text-left sm:text-right">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-fuchsia-200">Финальная цена · −{price.activeDiscount.percent}%</p>
-                  <span className="mt-1 block text-3xl font-semibold text-fuchsia-100">{formatPlnFromGrosze(price.effectivePriceGrosze)}</span>
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-poet-gold-bright">Финальная цена · −{price.activeDiscount.percent}%</p>
+                  <span className="mt-1 block text-3xl font-semibold text-poet-gold-bright">{formatPlnFromGrosze(price.effectivePriceGrosze)}</span>
                 </div>
               </div>
               <SpecialDiscountCountdown name={price.activeDiscount.name} expiresAt={price.activeDiscount.expiresAt} />
             </>
           ) : (
-            <><p className="text-xs text-zinc-400">Цена билета</p><span className="mt-1 block text-3xl font-semibold text-fuchsia-100">{formatPlnFromGrosze(price.effectivePriceGrosze)}</span></>
+            <><p className="text-xs text-zinc-400">Цена билета</p><span className="mt-1 block text-3xl font-semibold text-poet-gold-bright">{formatPlnFromGrosze(price.effectivePriceGrosze)}</span></>
           )}
           </div>
 

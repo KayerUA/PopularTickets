@@ -30,8 +30,8 @@ export function SpecialDiscountCountdown({ name, expiresAt }: { name: string; ex
 
   if (!remaining) return null;
   return (
-    <p className="mt-2 text-xs font-medium text-rose-200/90">
-      {name} заканчивается через {remaining.days} д. {remaining.hours} ч. {remaining.minutes} мин.
+    <p className="mt-2 text-xs font-medium text-poet-gold-bright/90">
+      {name} скидка заканчивается через {remaining.days} д. {remaining.hours} ч. {remaining.minutes} мин.
     </p>
   );
 }
