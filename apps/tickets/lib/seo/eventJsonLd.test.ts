@@ -39,6 +39,10 @@ describe("buildEventJsonLd", () => {
     expect(ld.endDate).toBe("2026-06-06T20:30:00+00:00");
     expect(ld.eventStatus).toBe("https://schema.org/EventScheduled");
     expect(ld.eventAttendanceMode).toBe("https://schema.org/OfflineEventAttendanceMode");
+    expect(ld.image).toEqual([
+      "https://www.populartickets.pl/events/test.png",
+      "https://www.populartickets.pl/api/og/event/improv-2026-06-06?v=20260713-1",
+    ]);
 
     const location = ld.location as Record<string, unknown>;
     expect(location["@type"]).toBe("Place");
@@ -67,6 +71,18 @@ describe("buildEventJsonLd", () => {
     expect(seller["@type"]).toBe("Organization");
     expect(seller.legalName).toBeTruthy();
     expect(seller.taxID).toBeTruthy();
+  });
+
+  it("uses the generated event preview when the event has no image", () => {
+    const ld = buildEventJsonLd({ ...baseEvent, image_url: null }, "ru", {
+      remaining: 49,
+      soldOut: false,
+      mapsUrl: null,
+    }) as Record<string, unknown>;
+
+    expect(ld.image).toEqual([
+      "https://www.populartickets.pl/api/og/event/improv-2026-06-06?v=20260713-1",
+    ]);
   });
 
   it("includes maximumAttendeeCapacity when total_tickets set", () => {

@@ -1,5 +1,5 @@
 import type { AppLocale } from "@/i18n/routing";
-import { canonicalPath } from "@/lib/seo";
+import { canonicalPath, eventOgImageUrl } from "@/lib/seo";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { resolveAbsoluteAssetUrl } from "@/lib/safePublicUrl";
 import { COMPANY } from "@/lib/company";
@@ -103,6 +103,8 @@ export function buildEventJsonLd(
   const images: string[] = [];
   const imageAbs = resolveAbsoluteAssetUrl(event.image_url, base);
   if (imageAbs) images.push(imageAbs);
+  const generatedOgImage = eventOgImageUrl(event.slug, base);
+  if (generatedOgImage && !images.includes(generatedOgImage)) images.push(generatedOgImage);
 
   const rawDesc = typeof event.description === "string" ? event.description : "";
   const desc = rawDesc.replace(/\s+/g, " ").trim().slice(0, 2000);
