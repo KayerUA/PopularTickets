@@ -104,7 +104,7 @@ export default async function SpecialEventPage({
           ) : <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-800/50 via-poet-bg to-cyan-950/50" />}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-poet-bg via-poet-bg/10 to-transparent" />
           <div className="absolute left-4 top-4 flex flex-wrap items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] sm:left-6 sm:top-6">
-            <a href="https://next-mode.com/" target="_blank" rel="noopener noreferrer" className="rounded-full border border-fuchsia-200/40 bg-zinc-950/75 px-3 py-1.5 text-fuchsia-100 backdrop-blur hover:text-white">Next Mode</a>
+            <span className="rounded-full border border-fuchsia-200/40 bg-zinc-950/75 px-3 py-1.5 text-fuchsia-100 backdrop-blur">Next Mode</span>
             <span className="text-cyan-200">×</span>
             <a href="https://www.popularpoet.pl/ru" target="_blank" rel="noopener noreferrer" className="rounded-full border border-cyan-100/30 bg-zinc-950/75 px-3 py-1.5 text-cyan-100 backdrop-blur hover:text-white">Popular Poet</a>
           </div>
@@ -147,7 +147,6 @@ export default async function SpecialEventPage({
               </ol>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-2 border-t border-cyan-100/10 px-4 py-3 text-xs sm:px-5">
-              <a href="https://next-mode.com/" target="_blank" rel="noopener noreferrer" className="text-fuchsia-200 underline decoration-fuchsia-200/40 underline-offset-2 hover:text-white">next-mode.com ↗</a>
               <a href="https://www.instagram.com/next.mode.show/" target="_blank" rel="noopener noreferrer" className="text-fuchsia-200 underline decoration-fuchsia-200/40 underline-offset-2 hover:text-white">@next.mode.show ↗</a>
               <a href="https://www.instagram.com/popular_poet_theatre/" target="_blank" rel="noopener noreferrer" className="text-cyan-100 underline decoration-cyan-100/40 underline-offset-2 hover:text-white">@popular_poet_theatre ↗</a>
             </div>
@@ -156,15 +155,20 @@ export default async function SpecialEventPage({
           <div className="rounded-2xl border border-fuchsia-200/25 bg-black/30 px-4 py-3.5">
           {price.activeDiscount ? (
             <>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-fuchsia-200">−{price.activeDiscount.percent}%</p>
-              <div className="mt-1 flex items-baseline gap-2.5">
-                <span className="text-3xl font-semibold text-fuchsia-100">{formatPlnFromGrosze(price.effectivePriceGrosze)}</span>
-                <span className="text-base text-zinc-500 line-through">{formatPlnFromGrosze(price.regularPriceGrosze)}</span>
+              <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+                <div>
+                  <p className="text-xs text-zinc-400">Базовая цена</p>
+                  <span className="mt-1 block text-lg text-zinc-500 line-through">{formatPlnFromGrosze(price.regularPriceGrosze)}</span>
+                </div>
+                <div className="text-left sm:text-right">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-fuchsia-200">Финальная цена · −{price.activeDiscount.percent}%</p>
+                  <span className="mt-1 block text-3xl font-semibold text-fuchsia-100">{formatPlnFromGrosze(price.effectivePriceGrosze)}</span>
+                </div>
               </div>
               <SpecialDiscountCountdown name={price.activeDiscount.name} expiresAt={price.activeDiscount.expiresAt} />
             </>
           ) : (
-            <span className="text-3xl font-semibold text-fuchsia-100">{formatPlnFromGrosze(price.effectivePriceGrosze)}</span>
+            <><p className="text-xs text-zinc-400">Цена билета</p><span className="mt-1 block text-3xl font-semibold text-fuchsia-100">{formatPlnFromGrosze(price.effectivePriceGrosze)}</span></>
           )}
           </div>
 
