@@ -54,9 +54,14 @@ function hreflangLanguages(path: string): Record<string, string> | undefined {
 /** Путь к дефолтному OG-изображению (1200×630) на public. */
 export const DEFAULT_TICKETS_OG_IMAGE_PATH = "/courses/theatre-photo.jpg";
 export const EVENT_OG_IMAGE_VERSION = "20260713-1";
+const STATIC_EVENT_OG_IMAGES: Readonly<Record<string, string>> = {
+  "next-mode-2026-08-15": "/og/next-mode-comedy-2026-08-15-v2.jpg",
+};
 
 export function eventOgImageUrl(slug: string, base = getPublicAppUrl()): string | null {
   if (!base) return null;
+  const staticPath = STATIC_EVENT_OG_IMAGES[slug];
+  if (staticPath) return `${base.replace(/\/$/, "")}${staticPath}`;
   return `${base.replace(/\/$/, "")}/api/og/event/${encodeURIComponent(slug)}?v=${EVENT_OG_IMAGE_VERSION}`;
 }
 
