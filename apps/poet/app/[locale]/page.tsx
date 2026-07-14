@@ -117,18 +117,18 @@ export default async function HomePage() {
         </div>
       </div>
 
+      <section id="kursy" className="mt-12 scroll-mt-32 sm:mt-16 sm:scroll-mt-28">
+        <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("coursesTitle")}</h2>
+        <p className="mt-2 max-w-2xl text-sm text-zinc-500">{t("coursesIntro")}</p>
+        <PoetCourseShowcase dbCourses={dbCourses} locale={locale} />
+      </section>
+
       {tickets ? (
         <NextModeChoiceWidget
           eventHref={`${tickets}/${locale}/special/next-mode-2026-08-15`}
           imageUrl="/og/next-mode-comedy-2026-08-15-v2.jpg"
         />
       ) : null}
-
-      <section id="kursy" className="mt-12 scroll-mt-32 sm:mt-16 sm:scroll-mt-28">
-        <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("coursesTitle")}</h2>
-        <p className="mt-2 max-w-2xl text-sm text-zinc-500">{t("coursesIntro")}</p>
-        <PoetCourseShowcase dbCourses={dbCourses} locale={locale} />
-      </section>
 
       <section id="schedule" className="mt-14 scroll-mt-32 sm:mt-20 sm:scroll-mt-28">
         <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("calendarTitle")}</h2>
