@@ -9,6 +9,7 @@ import { resolveEventCopy } from "@/lib/contentI18n";
 import { eventPriceDetails } from "@/lib/eventPrice";
 import type { AppLocale } from "@/i18n/routing";
 import { routing } from "@/i18n/routing";
+import { Link } from "@/i18n/navigation";
 import { buildPublicPageMetadata, canonicalPath } from "@/lib/seo";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { JsonLd } from "@/components/JsonLd";
@@ -18,12 +19,23 @@ import {
   intentClusterForSlug,
   intentListingKindFilter,
   nextModeIntentPromoForCluster,
+  TICKETS_INTENT_CLUSTER_SLUGS,
   ticketsIntentHreflangUrls,
 } from "@/lib/ticketsIntentRoutes";
+import type { IntentClusterKey } from "@/lib/ticketsIntentRoutes";
 import { intentFaqTranslationKeys } from "@/lib/ticketsIntentFaq";
 import { NextModeIntentWidget } from "@/components/NextModeIntentWidget";
 
 const FEATURED_SPECIAL_SLUG = "next-mode-2026-08-15";
+const EDITORIAL_DATE = "2026-07-15";
+const EDITORIAL_CLUSTERS = ["leisure", "improv", "russian", "afisha"] as const;
+const EDITORIAL_SECTION_NUMBERS = [1, 2, 3, 4] as const;
+
+type EditorialCluster = (typeof EDITORIAL_CLUSTERS)[number];
+
+function isEditorialCluster(cluster: IntentClusterKey): cluster is EditorialCluster {
+  return (EDITORIAL_CLUSTERS as readonly IntentClusterKey[]).includes(cluster);
+}
 
 export const revalidate = 120;
 
@@ -41,6 +53,7 @@ export async function generateMetadata({
     path: `/${intentSlug}`,
     title: t(`${cluster}MetaTitle`),
     description: t(`${cluster}MetaDescription`),
+    ogType: locale === "ru" && isEditorialCluster(cluster) ? "article" : "website",
     hreflangAlternateUrls: ticketsIntentHreflangUrls(locale, intentSlug),
   });
 }
@@ -59,6 +72,7 @@ export default async function IntentDiscoverPage({
   const listingFilter = intentListingKindFilter(cluster);
   const includeNextMode = locale === "ru" && listingFilter !== "trial";
   const nextModePromo = includeNextMode ? nextModeIntentPromoForCluster(cluster) : null;
+  const editorialCluster = locale === "ru" && isEditorialCluster(cluster) ? cluster : null;
   const supabase = getServiceSupabase();
   let list: EventCardProps[] = [];
   let jsonLdEntries: EventItemListEntry[] = [];
@@ -219,19 +233,55 @@ export default async function IntentDiscoverPage({
   );
   const answerKey = `${cluster}Answer`;
   const answer = t.has(answerKey) ? t(answerKey) : null;
+  const editorialSections = editorialCluster
+    ? EDITORIAL_SECTION_NUMBERS.map((number) => ({
+        title: t(`${editorialCluster}Section${number}Title`),
+        body: t(`${editorialCluster}Section${number}Body`),
+      }))
+    : [];
+  const relatedEditorialPages = editorialCluster
+    ? EDITORIAL_CLUSTERS.filter((relatedCluster) => relatedCluster !== editorialCluster).flatMap((relatedCluster) => {
+        const slug = TICKETS_INTENT_CLUSTER_SLUGS[relatedCluster].ru;
+        return slug ? [{ href: `/${slug}`, label: t(`${relatedCluster}H1`) }] : [];
+      })
+    : [];
+  const editorialArticleLd =
+    editorialCluster && pageUrl
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: t(`${editorialCluster}H1`),
+          description: t(`${editorialCluster}MetaDescription`),
+          inLanguage: "ru-RU",
+          datePublished: EDITORIAL_DATE,
+          dateModified: EDITORIAL_DATE,
+          mainEntityOfPage: { "@type": "WebPage", "@id": pageUrl },
+          author: {
+            "@type": "Organization",
+            name: t("editorialAuthor"),
+            url: base ? `${base}${canonicalPath("ru", "/o-populartickets")}` : undefined,
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "PopularTickets",
+            url: base ? `${base}${canonicalPath("ru", "/")}` : undefined,
+          },
+        }
+      : null;
 
   return (
     <div className="poet-safe-x mx-auto max-w-5xl py-10 sm:py-14">
       {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
       {eventsListLd ? <JsonLd data={eventsListLd} /> : null}
       {faqLd ? <JsonLd data={faqLd} /> : null}
-      <article className="max-w-3xl">
+      {editorialArticleLd ? <JsonLd data={editorialArticleLd} /> : null}
+      <header className="max-w-3xl">
         <h1 className="font-display text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
           <span className="text-gradient-gold">{t(`${cluster}H1`)}</span>
         </h1>
         {answer ? <p className="mt-4 text-base font-semibold leading-relaxed text-zinc-100">{answer}</p> : null}
         <p className="mt-3 whitespace-pre-line text-base leading-relaxed text-zinc-300">{t(`${cluster}Intro`)}</p>
-      </article>
+      </header>
 
       {nextModePromo ? (
         <NextModeIntentWidget
@@ -239,6 +289,51 @@ export default async function IntentDiscoverPage({
           initialFormat={nextModePromo.initialFormat}
           variant={nextModePromo.variant}
         />
+      ) : null}
+
+      {editorialCluster ? (
+        <section className="mt-10 max-w-4xl" aria-labelledby="intent-guide-heading">
+          <div className="border-l-2 border-poet-gold/35 pl-4 sm:pl-5">
+            <h2 id="intent-guide-heading" className="font-display text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">
+              {t(`${editorialCluster}GuideTitle`)}
+            </h2>
+            <p className="mt-3 max-w-3xl text-base leading-relaxed text-zinc-300">
+              {t(`${editorialCluster}GuideIntro`)}
+            </p>
+            <p className="mt-3 text-xs text-zinc-500">
+              <time dateTime={EDITORIAL_DATE}>{t("editorialUpdated")}</time>
+              <span aria-hidden> · </span>
+              {t("editorialAuthor")}
+            </p>
+          </div>
+
+          <div className="mt-7 grid gap-4 sm:grid-cols-2">
+            {editorialSections.map((section) => (
+              <section key={section.title} className="rounded-2xl border border-poet-gold/15 bg-poet-surface/25 p-4 sm:p-5">
+                <h3 className="font-display text-lg font-semibold leading-snug text-zinc-100">{section.title}</h3>
+                <p className="mt-2.5 text-sm leading-relaxed text-zinc-400">{section.body}</p>
+              </section>
+            ))}
+          </div>
+
+          <nav className="mt-7 rounded-2xl border border-poet-gold/12 bg-black/20 p-4 sm:p-5" aria-label={t("editorialRelatedTitle")}>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-poet-gold/75">
+              {t("editorialRelatedTitle")}
+            </p>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {relatedEditorialPages.map((page) => (
+                <li key={page.href}>
+                  <Link
+                    href={page.href}
+                    className="inline-flex min-h-10 items-center rounded-full border border-poet-gold/20 bg-poet-gold/5 px-3.5 py-2 text-xs font-semibold text-zinc-300 transition hover:border-poet-gold/45 hover:bg-poet-gold/10 hover:text-poet-gold-bright"
+                  >
+                    {page.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </section>
       ) : null}
 
       {faqPairs.length ? (
