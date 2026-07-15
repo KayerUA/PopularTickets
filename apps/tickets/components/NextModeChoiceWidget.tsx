@@ -83,19 +83,19 @@ export function NextModeChoiceWidget({ eventHref, imageUrl }: NextModeChoiceWidg
               {t("onSale")}
             </span>
           </div>
-          <h2 className="mt-4 max-w-xl font-display text-[1.7rem] font-semibold leading-[1.03] tracking-tight text-white sm:mt-5 sm:text-4xl">
+          <h2 className="mt-4 max-w-xl text-pretty font-display text-[1.7rem] font-semibold leading-[1.03] tracking-tight text-white sm:mt-5 sm:text-4xl">
             {t("title")}
           </h2>
-          <p className="mt-3 max-w-lg text-sm leading-relaxed text-zinc-300 sm:mt-4 sm:text-base">{t("lead")}</p>
+          <p className="mt-3 max-w-lg text-pretty text-sm leading-relaxed text-zinc-300 sm:mt-4 sm:text-base">{t("lead")}</p>
 
           <div className="mt-4 rounded-2xl border border-white/10 bg-black/45 p-3.5 backdrop-blur-sm sm:mt-6 sm:p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-300">{t("scenarioLabel")}</p>
-            <p className="mt-2 min-h-[3rem] text-base font-semibold leading-snug text-white sm:min-h-0 sm:text-lg" aria-live="polite">
+            <p className="mt-2 min-h-[3rem] text-pretty text-base font-semibold leading-snug text-white sm:min-h-0 sm:text-lg" aria-live="polite">
               <span key={revision} className="animate-fade-up block">{scenario}</span>
             </p>
           </div>
 
-          <p className="mt-3 text-[11px] leading-relaxed text-zinc-400 sm:mt-4 sm:text-xs">{t("hint")}</p>
+          <p className="mt-3 text-pretty text-[11px] leading-relaxed text-zinc-400 sm:mt-4 sm:text-xs">{t("hint")}</p>
         </div>
 
         <div className="next-mode-widget__controls rounded-[1.35rem] border border-violet-300/20 bg-black/55 p-3 backdrop-blur-md sm:rounded-2xl sm:p-5">
@@ -147,10 +147,10 @@ export function NextModeChoiceWidget({ eventHref, imageUrl }: NextModeChoiceWidg
             </button>
             <a
               href={eventHref}
-              className="poet-shine inline-flex min-h-12 min-w-0 flex-1 items-center justify-center rounded-xl border border-fuchsia-300/70 bg-gradient-to-r from-fuchsia-600 to-violet-600 px-3 py-2.5 text-center text-xs font-bold leading-tight text-white shadow-[0_0_28px_-10px_rgba(217,70,239,0.9)] transition duration-300 active:scale-[0.98] hover:-translate-y-0.5 hover:border-white hover:text-white sm:min-h-11 sm:px-4 sm:text-sm"
+              className="poet-shine flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl border border-fuchsia-300/70 bg-gradient-to-r from-fuchsia-600 to-violet-600 px-3 py-2.5 text-center text-xs font-bold leading-tight text-white shadow-[0_0_28px_-10px_rgba(217,70,239,0.9)] transition duration-300 active:scale-[0.98] hover:-translate-y-0.5 hover:border-white hover:text-white sm:min-h-11 sm:flex-row sm:gap-2 sm:px-4 sm:text-sm sm:whitespace-nowrap"
             >
-              <span>{t("cta")}</span>
-              <span aria-hidden className="next-mode-widget__arrow ml-2 shrink-0">→</span>
+              <span className="block max-w-full">{t("cta")}</span>
+              <span aria-hidden className="next-mode-widget__arrow shrink-0 sm:ml-2">→</span>
             </a>
           </div>
         </div>
