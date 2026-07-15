@@ -8,6 +8,9 @@ import type { AppLocale } from "@/i18n/routing";
 import { eventSitemapTier } from "@/lib/eventSeoPolicy";
 
 const STATIC_PATHS = ["", "/events", "/firma", "/regulamin", "/zwroty", "/polityka-prywatnosci", "/podarok"] as const;
+const INDEXABLE_SPECIAL_PATHS_BY_LOCALE: Partial<Record<AppLocale, readonly string[]>> = {
+  ru: ["/special/next-mode-2026-08-15"],
+};
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getPublicAppUrl()?.replace(/\/$/, "");
@@ -33,6 +36,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(),
         changeFrequency: p === "" ? "daily" : "monthly",
         priority: p === "" ? 1 : 0.6,
+      });
+    }
+    for (const path of INDEXABLE_SPECIAL_PATHS_BY_LOCALE[locale as AppLocale] ?? []) {
+      out.push({
+        url: `${base}/${locale}${path}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly",
+        priority: 0.8,
       });
     }
     const factsPath = ticketsFactsPathForLocale(locale as AppLocale);
