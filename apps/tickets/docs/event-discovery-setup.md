@@ -151,24 +151,19 @@ Slug события строится по **языку аудитории** (`ev
 На своём Mac (один раз):
 
 ```bash
-# Установить google-auth-oauthlib или использовать OAuth Playground:
+GOOGLE_GBP_CLIENT_ID=... GOOGLE_GBP_CLIENT_SECRET=... node scripts/gbp-oauth.mjs
+```
+
+Скрипт откроет браузер, примет callback на `http://localhost:8080/oauth2callback`
+и выведет `GOOGLE_GBP_REFRESH_TOKEN`. Если переменные уже записаны в корневой
+`.env.local`, достаточно запустить `node scripts/gbp-oauth.mjs`.
+
+Альтернатива — OAuth Playground:
+
+```bash
 # https://developers.google.com/oauthplayground/
 # Scope: https://www.googleapis.com/auth/business.manage
 # Use your own OAuth credentials → Authorize → Exchange → refresh_token
-```
-
-Или Python:
-
-```bash
-pip install google-auth-oauthlib
-# credentials.json из Desktop OAuth client
-python -c "
-from google_auth_oauthlib.flow import InstalledAppFlow
-SCOPES = ['https://www.googleapis.com/auth/business.manage']
-flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-creds = flow.run_local_server(port=8080, access_type='offline', prompt='consent')
-print('refresh_token:', creds.refresh_token)
-"
 ```
 
 ### 3. accountId и locationId

@@ -17,9 +17,13 @@ import type { EventItemListEntry } from "@/lib/seo/eventJsonLd";
 import {
   intentClusterForSlug,
   intentListingKindFilter,
+  nextModeIntentPromoForCluster,
   ticketsIntentHreflangUrls,
 } from "@/lib/ticketsIntentRoutes";
 import { intentFaqTranslationKeys } from "@/lib/ticketsIntentFaq";
+import { NextModeIntentWidget } from "@/components/NextModeIntentWidget";
+
+const FEATURED_SPECIAL_SLUG = "next-mode-2026-08-15";
 
 export const revalidate = 120;
 
@@ -53,17 +57,24 @@ export default async function IntentDiscoverPage({
 
   const t = await getTranslations({ locale, namespace: "IntentDiscover" });
   const listingFilter = intentListingKindFilter(cluster);
+  const includeNextMode = locale === "ru" && listingFilter !== "trial";
+  const nextModePromo = includeNextMode ? nextModeIntentPromoForCluster(cluster) : null;
   const supabase = getServiceSupabase();
   let list: EventCardProps[] = [];
   let jsonLdEntries: EventItemListEntry[] = [];
   if (supabase) {
     let query = supabase
       .from("events")
-      .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language")
-      .eq("visibility", "published")
+      .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language,visibility")
       .order("starts_at", { ascending: true });
 
-    if (listingFilter !== "all") {
+    if (includeNextMode) {
+      query = query.in("visibility", ["published", "unlisted"]).in("listing_kind", ["performance", "special"]);
+    } else {
+      query = query.eq("visibility", "published");
+    }
+
+    if (!includeNextMode && listingFilter !== "all") {
       query = query.eq("listing_kind", listingFilter);
     }
 
@@ -73,10 +84,16 @@ export default async function IntentDiscoverPage({
     if (error?.code === "42703") {
       let fallbackQuery = supabase
         .from("events")
-        .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind")
-        .eq("visibility", "published")
+        .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,visibility")
         .order("starts_at", { ascending: true });
-      if (listingFilter !== "all") {
+      if (includeNextMode) {
+        fallbackQuery = fallbackQuery
+          .in("visibility", ["published", "unlisted"])
+          .in("listing_kind", ["performance", "special"]);
+      } else {
+        fallbackQuery = fallbackQuery.eq("visibility", "published");
+      }
+      if (!includeNextMode && listingFilter !== "all") {
         fallbackQuery = fallbackQuery.eq("listing_kind", listingFilter);
       }
       const fallback = await fallbackQuery;
@@ -87,6 +104,14 @@ export default async function IntentDiscoverPage({
     } else {
       rows = events ?? [];
     }
+
+    rows = rows.filter((ev) => {
+      if (!includeNextMode) return true;
+      const slug = ev.slug as string;
+      const visibility = String((ev as { visibility?: unknown }).visibility ?? "");
+      const kind = normalizeEventListingKind((ev as { listing_kind?: string | null }).listing_kind);
+      return (visibility === "published" && kind === "performance") || slug === FEATURED_SPECIAL_SLUG;
+    });
 
     const ids = rows.map((ev) => ev.id as string);
     const soldMap = new Map<string, number>();
@@ -192,6 +217,8 @@ export default async function IntentDiscoverPage({
     pageUrl ? `${pageUrl}#afisha` : undefined,
     jsonLdEntries,
   );
+  const answerKey = `${cluster}Answer`;
+  const answer = t.has(answerKey) ? t(answerKey) : null;
 
   return (
     <div className="poet-safe-x mx-auto max-w-5xl py-10 sm:py-14">
@@ -202,9 +229,17 @@ export default async function IntentDiscoverPage({
         <h1 className="font-display text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
           <span className="text-gradient-gold">{t(`${cluster}H1`)}</span>
         </h1>
-        <p className="mt-4 text-base font-semibold leading-relaxed text-zinc-100">{t(`${cluster}Answer`)}</p>
+        {answer ? <p className="mt-4 text-base font-semibold leading-relaxed text-zinc-100">{answer}</p> : null}
         <p className="mt-3 whitespace-pre-line text-base leading-relaxed text-zinc-300">{t(`${cluster}Intro`)}</p>
       </article>
+
+      {nextModePromo ? (
+        <NextModeIntentWidget
+          eventHref={`/special/${FEATURED_SPECIAL_SLUG}`}
+          initialFormat={nextModePromo.initialFormat}
+          variant={nextModePromo.variant}
+        />
+      ) : null}
 
       {faqPairs.length ? (
         <section className="mt-10 max-w-3xl" aria-labelledby="intent-faq-heading">

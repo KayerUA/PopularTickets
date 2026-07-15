@@ -2,6 +2,7 @@ import type { AppLocale } from "@/i18n/routing";
 import { routing } from "@/i18n/routing";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { canonicalPath } from "@/lib/seo";
+import type { NextModeFormatId, NextModeIntentVariant } from "@/components/NextModeIntentWidget";
 
 /** Кластер темы → ключи в namespace IntentDiscover (messages). */
 export type IntentClusterKey =
@@ -143,6 +144,26 @@ export function ticketsIntentHreflangUrls(
 export function intentListingKindFilter(cluster: IntentClusterKey): "performance" | "trial" | "all" {
   if (cluster === "trial") return "trial";
   return "performance";
+}
+
+const NEXT_MODE_INTENT_PROMOS: Partial<
+  Record<IntentClusterKey, { variant: NextModeIntentVariant; initialFormat: NextModeFormatId }>
+> = {
+  evening: { variant: "social", initialFormat: "dates" },
+  theatre: { variant: "theatre", initialFormat: "court" },
+  improv: { variant: "improv", initialFormat: "infection" },
+  chamber: { variant: "theatre", initialFormat: "twins" },
+  adults: { variant: "social", initialFormat: "dates" },
+  russian: { variant: "language", initialFormat: "teleshop" },
+  leisure: { variant: "general", initialFormat: "options" },
+  events: { variant: "general", initialFormat: "sports" },
+  afisha: { variant: "general", initialFormat: "talents" },
+  community: { variant: "social", initialFormat: "dates" },
+  playback: { variant: "theatre", initialFormat: "twins" },
+};
+
+export function nextModeIntentPromoForCluster(cluster: IntentClusterKey) {
+  return NEXT_MODE_INTENT_PROMOS[cluster] ?? null;
 }
 
 export function allIntentSlugs(): { locale: AppLocale; slug: string }[] {
