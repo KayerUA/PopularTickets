@@ -409,6 +409,7 @@ export default async function EventPage({
                 bypassPayment={isCheckoutBypassPayment()}
                 initialPromoCode={promo?.code}
                 initialPromoDiscountPercent={promo?.discountPercent}
+                initialPromoDiscountFixedGrosze={promo?.discountFixedGrosze}
               />
             </section>
           ) : (

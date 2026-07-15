@@ -227,6 +227,7 @@ export default async function SpecialEventPage({
               phoneRequired
               initialPromoCode={promo?.code}
               initialPromoDiscountPercent={promo?.discountPercent}
+              initialPromoDiscountFixedGrosze={promo?.discountFixedGrosze}
             />
           ) : <p className="rounded-xl border border-poet-gold/20 bg-black/25 px-4 py-3 text-sm text-zinc-300">{status === "past" ? "Продажа билетов завершена." : "Билеты закончились."}</p>}
           {isOpen ? <p className="text-center text-[11px] text-zinc-500">{t("taxExemptionNote")}</p> : null}

@@ -25,7 +25,8 @@ type Props = {
   compact?: boolean;
   phoneRequired?: boolean;
   initialPromoCode?: string;
-  initialPromoDiscountPercent?: number;
+  initialPromoDiscountPercent?: number | null;
+  initialPromoDiscountFixedGrosze?: number | null;
 };
 
 function fieldBorder(hasError: boolean): string {
@@ -42,6 +43,7 @@ export function EventCheckoutForm({
   phoneRequired = !compact,
   initialPromoCode = "",
   initialPromoDiscountPercent = 0,
+  initialPromoDiscountFixedGrosze = null,
 }: Props) {
   const t = useTranslations("CheckoutForm");
   const [error, setError] = useState<string | null>(null);
@@ -49,9 +51,15 @@ export function EventCheckoutForm({
   const [pending, setPending] = useState(false);
   const [quantityInput, setQuantityInput] = useState("1");
   const [promoCode, setPromoCode] = useState(initialPromoCode);
-  const [promoDiscountPercent, setPromoDiscountPercent] = useState(initialPromoDiscountPercent);
+  const initialPromoDiscountPerTicketGrosze = initialPromoDiscountFixedGrosze
+    ?? Math.round(unitPriceGrosze * ((initialPromoDiscountPercent ?? 0) / 100));
+  const [promoDiscountPerTicketGrosze, setPromoDiscountPerTicketGrosze] = useState(initialPromoDiscountPerTicketGrosze);
   const [promoMessage, setPromoMessage] = useState<string | null>(
-    initialPromoDiscountPercent > 0 ? `Промокод применён: −${initialPromoDiscountPercent}%` : null,
+    initialPromoDiscountFixedGrosze
+      ? `Промокод применён: −${formatPlnFromGrosze(initialPromoDiscountFixedGrosze)} за билет`
+      : (initialPromoDiscountPercent ?? 0) > 0
+        ? `Промокод применён: −${initialPromoDiscountPercent}%`
+        : null,
   );
   const formRef = useRef<HTMLFormElement>(null);
   const max = Math.min(20, remaining);
@@ -63,21 +71,25 @@ export function EventCheckoutForm({
     if (fieldErrors.quantity) setFieldErrors((prev) => ({ ...prev, quantity: undefined }));
   };
 
-  const discountedUnitPriceGrosze = Math.round(unitPriceGrosze * (1 - promoDiscountPercent / 100));
+  const discountedUnitPriceGrosze = Math.max(0, unitPriceGrosze - promoDiscountPerTicketGrosze);
   const totalGrosze = discountedUnitPriceGrosze * quantity;
 
   const applyPromoCode = async () => {
     const result = await previewPromoCode({ code: promoCode, eventSlug, unitPriceGrosze });
     if (!result) {
-      setPromoDiscountPercent(0);
+      setPromoDiscountPerTicketGrosze(0);
       setPromoMessage(null);
     } else if ("error" in result) {
-      setPromoDiscountPercent(0);
+      setPromoDiscountPerTicketGrosze(0);
       setPromoMessage(result.error);
     } else {
       setPromoCode(result.code);
-      setPromoDiscountPercent(result.discountPercent);
-      setPromoMessage(`Промокод применён: −${result.discountPercent}%`);
+      setPromoDiscountPerTicketGrosze(result.discountPerTicketGrosze);
+      setPromoMessage(
+        result.discountFixedGrosze
+          ? `Промокод применён: −${formatPlnFromGrosze(result.discountFixedGrosze)} за билет`
+          : `Промокод применён: −${result.discountPercent}%`,
+      );
     }
   };
 
@@ -291,7 +303,7 @@ export function EventCheckoutForm({
             disabled={pending}
             onChange={(e) => {
               setPromoCode(e.target.value.toUpperCase());
-              setPromoDiscountPercent(0);
+              setPromoDiscountPerTicketGrosze(0);
               setPromoMessage(null);
             }}
             onBlur={() => void applyPromoCode()}
@@ -299,7 +311,7 @@ export function EventCheckoutForm({
             autoComplete="off"
             placeholder="PARTNER15"
           />
-          {promoMessage ? <p className={`mt-1.5 text-xs ${promoDiscountPercent ? "text-emerald-300" : "text-red-400"}`}>{promoMessage}</p> : null}
+          {promoMessage ? <p className={`mt-1.5 text-xs ${promoDiscountPerTicketGrosze ? "text-emerald-300" : "text-red-400"}`}>{promoMessage}</p> : null}
         </div>
       </div>
 
@@ -310,7 +322,7 @@ export function EventCheckoutForm({
             <dt>{t("totalLabel")}</dt>
             <dd className="font-medium text-poet-gold-bright">{formatPlnFromGrosze(totalGrosze)}</dd>
           </div>
-          {promoDiscountPercent > 0 ? (
+          {promoDiscountPerTicketGrosze > 0 ? (
             <div className="flex justify-between gap-3 text-xs text-zinc-500">
               <dt>Без промокода</dt>
               <dd className="line-through">{formatPlnFromGrosze(unitPriceGrosze * quantity)}</dd>

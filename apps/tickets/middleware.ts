@@ -71,6 +71,14 @@ export async function middleware(req: NextRequest) {
     return nextWithDefaultLocale(req);
   }
 
+  /** Персональные ссылки кабинета всегда открываем на русском, независимо от Accept-Language. */
+  const ambassadorPath = pathname.match(/^\/ambassador\/([^/]+)$/);
+  if (ambassadorPath) {
+    const url = req.nextUrl.clone();
+    url.pathname = `/ru/ambassador/${ambassadorPath[1]}`;
+    return NextResponse.redirect(url, 308);
+  }
+
   /** IndexNow key file — не отдавать как `[locale]`. */
   if (/^\/[a-f0-9]{32}\.txt$/.test(pathname)) {
     return NextResponse.next();

@@ -14,6 +14,7 @@ function randomCode(): string {
 export function PromoCodeForm({ events }: { events: EventOption[] }) {
   const [state, action, pending] = useActionState(createPromoCode, initialState);
   const [scope, setScope] = useState<"all" | "special" | "event">("special");
+  const [discountType, setDiscountType] = useState<"percent" | "fixed">("fixed");
 
   return (
     <form action={action} className="grid gap-4 rounded-2xl border border-poet-gold/20 bg-zinc-950/35 p-4 sm:grid-cols-2 sm:p-5">
@@ -39,8 +40,32 @@ export function PromoCodeForm({ events }: { events: EventOption[] }) {
         <input name="partnerName" required className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white" placeholder="Имя / канал" />
       </label>
       <label className="block text-sm text-zinc-300">
-        Скидка, %
-        <input name="discountPercent" type="number" min="1" max="99" required defaultValue="10" className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white" />
+        Hash кабинета
+        <input name="ambassadorHash" className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 font-mono text-white" placeholder="elvira_mua" />
+      </label>
+      <label className="block text-sm text-zinc-300">
+        Тип скидки
+        <select name="discountType" value={discountType} onChange={(e) => setDiscountType(e.target.value as typeof discountType)} className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white">
+          <option value="fixed">Фиксированная, PLN за билет</option>
+          <option value="percent">Процент</option>
+        </select>
+      </label>
+      {discountType === "fixed" ? (
+        <label className="block text-sm text-zinc-300">
+          Скидка покупателю, PLN за билет
+          <input name="discountFixedPln" type="number" min="0.01" step="0.01" required defaultValue="10" className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white" />
+          <input name="discountPercent" type="hidden" value="" />
+        </label>
+      ) : (
+        <label className="block text-sm text-zinc-300">
+          Скидка покупателю, %
+          <input name="discountPercent" type="number" min="1" max="99" required defaultValue="10" className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white" />
+          <input name="discountFixedPln" type="hidden" value="" />
+        </label>
+      )}
+      <label className="block text-sm text-zinc-300">
+        Комиссия амбассадора, PLN за билет
+        <input name="commissionPln" type="number" min="0" step="0.01" required defaultValue="10" className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white" />
       </label>
       <label className="block text-sm text-zinc-300">
         Применимость
@@ -63,6 +88,10 @@ export function PromoCodeForm({ events }: { events: EventOption[] }) {
           <option value="">— выбрать позднее —</option>
           {events.map((event) => <option key={event.id} value={event.id}>{event.title} · {event.slug}</option>)}
         </select>
+      </label>
+      <label className="block text-sm text-zinc-300 sm:col-span-2">
+        Ссылка на маркетинговые материалы
+        <input name="marketingMaterialsUrl" type="url" className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white" placeholder="https://drive.google.com/..." />
       </label>
       <label className="block text-sm text-zinc-300">
         Лимит использований

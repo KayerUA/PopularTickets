@@ -105,18 +105,19 @@ export async function createPendingOrder(
   }
 
   const orderId = crypto.randomUUID();
-  const baseAmountGrosze = effectiveEventPriceGrosze({
+  const effectiveUnitPriceGrosze = effectiveEventPriceGrosze({
     starts_at: event.starts_at as string,
     price_grosze: event.price_grosze as number,
     day_of_event_price_grosze: event.day_of_event_price_grosze as number | null,
     listing_kind: event.listing_kind as string | null,
     discount_periods: (event as { discount_periods?: unknown }).discount_periods,
-  }) * quantity;
+  });
+  const baseAmountGrosze = effectiveUnitPriceGrosze * quantity;
   const promo = await resolveApplicablePromoCode(supabase, formData.get("promoCode")?.toString(), {
     id: event.id as string,
     listingKind: event.listing_kind as string | null,
   });
-  const promoDiscount = promo ? promoDiscountGrosze(baseAmountGrosze, promo.discountPercent) : 0;
+  const promoDiscount = promo ? promoDiscountGrosze(effectiveUnitPriceGrosze, quantity, promo) : 0;
   const amountGrosze = baseAmountGrosze - promoDiscount;
 
   const marketingEmailOptIn = formData.get("marketingEmailOptIn") === "on";
@@ -137,12 +138,22 @@ export async function createPendingOrder(
     promo_code_id: promo?.id ?? null,
     promo_code: promo?.code ?? (normalizePromoCode(formData.get("promoCode")?.toString()) || null),
     promo_discount_grosze: promoDiscount,
+    ambassador_commission_grosze: promo ? promo.commissionPerTicketGrosze * quantity : 0,
   };
 
   let { error: insErr } = await supabase.from("orders").insert(orderInsert);
 
+  if (insErr && insErr.code === "PGRST204" && /ambassador_commission_grosze/i.test(insErr.message ?? "")) {
+    const { ambassador_commission_grosze: _ambassadorCommission, ...legacyOrderInsert } = orderInsert;
+    console.warn(
+      "[PopularTickets][checkout] orders.ambassador_commission_grosze is missing; creating order without frozen commission"
+    );
+    const retry = await supabase.from("orders").insert(legacyOrderInsert);
+    insErr = retry.error;
+  }
+
   if (insErr && insErr.code === "PGRST204" && /marketing_email_opt_in/i.test(insErr.message ?? "")) {
-    const { marketing_email_opt_in: _marketingEmailOptIn, ...legacyOrderInsert } = orderInsert;
+    const { marketing_email_opt_in: _marketingEmailOptIn, ambassador_commission_grosze: _ambassadorCommission, ...legacyOrderInsert } = orderInsert;
     console.warn(
       "[PopularTickets][checkout] orders.marketing_email_opt_in is missing in Supabase schema cache; creating order without marketing opt-in"
     );
