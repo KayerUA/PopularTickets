@@ -19,6 +19,8 @@ import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
 import { isOptimizableEventImage } from "@/lib/imageOptimization";
 import { resolveEventCopy } from "@/lib/contentI18n";
 import { resolveEventMapsUrl } from "@/lib/mapsUrl";
+import { JsonLd } from "@/components/JsonLd";
+import { buildEventJsonLd } from "@/lib/seo/eventJsonLd";
 
 export const dynamic = "force-dynamic";
 
@@ -91,7 +93,8 @@ export default async function SpecialEventPage({
   });
   const t = await getTranslations({ locale, namespace: "CheckoutForm" });
   const isOpen = status !== "past" && remaining > 0;
-  const language = eventLanguageLabel(normalizeEventLanguage(event.event_language), locale);
+  const eventLanguage = normalizeEventLanguage(event.event_language);
+  const language = eventLanguageLabel(eventLanguage, locale);
   const promo = await resolveApplicablePromoCode(supabase, promoRaw, { id: event.id, listingKind: event.listing_kind });
   const copy = resolveEventCopy(event, locale);
   const mapsHref = resolveEventMapsUrl({
@@ -106,6 +109,29 @@ export default async function SpecialEventPage({
 
   return (
     <div className="poet-safe-x relative mx-auto w-full max-w-3xl py-8 sm:py-14">
+      <JsonLd
+        data={buildEventJsonLd(
+          {
+            title: copy?.title ?? event.title,
+            description: copy?.description ?? event.description,
+            venue: event.venue,
+            starts_at: event.starts_at,
+            image_url: event.image_url,
+            price_grosze: price.effectivePriceGrosze,
+            slug: event.slug,
+            listing_kind: event.listing_kind,
+            event_language: eventLanguage,
+            total_tickets: event.total_tickets,
+          },
+          locale,
+          {
+            remaining,
+            soldOut: remaining <= 0 || status === "sold_out",
+            mapsUrl: mapsHref,
+            pagePath: `/special/${event.slug}`,
+          },
+        )}
+      />
       <section className="overflow-hidden rounded-2xl border border-poet-gold/25 bg-poet-surface/60 shadow-gold backdrop-blur-md sm:rounded-3xl">
         {promo ? <PromoVisitTracker promoCodeId={promo.id} eventId={event.id} /> : null}
           <div className="relative aspect-[4/5] overflow-hidden bg-zinc-950 sm:aspect-[16/10]">

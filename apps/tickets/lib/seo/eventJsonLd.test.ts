@@ -85,6 +85,19 @@ describe("buildEventJsonLd", () => {
     ]);
   });
 
+  it("supports a special-page canonical URL", () => {
+    const ld = buildEventJsonLd(baseEvent, "ru", {
+      remaining: 49,
+      soldOut: false,
+      mapsUrl: null,
+      pagePath: `/special/${baseEvent.slug}`,
+    }) as Record<string, unknown>;
+
+    expect(ld.url).toBe("https://www.populartickets.pl/ru/special/improv-2026-06-06");
+    const offers = ld.offers as Record<string, unknown>;
+    expect(offers.url).toBe("https://www.populartickets.pl/ru/special/improv-2026-06-06");
+  });
+
   it("includes maximumAttendeeCapacity when total_tickets set", () => {
     const ld = buildEventJsonLd({ ...baseEvent, total_tickets: 50 }, "ru", {
       remaining: 49,

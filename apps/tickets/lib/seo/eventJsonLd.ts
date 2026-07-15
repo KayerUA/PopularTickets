@@ -91,10 +91,10 @@ function normalizeVenueAddress(venue: string): {
 export function buildEventJsonLd(
   event: EventRow,
   locale: AppLocale,
-  opts: { remaining: number; soldOut: boolean; mapsUrl?: string | null },
+  opts: { remaining: number; soldOut: boolean; mapsUrl?: string | null; pagePath?: string },
 ): object {
   const base = getPublicAppUrl()?.replace(/\/$/, "");
-  const path = `/events/${event.slug}`;
+  const path = opts.pagePath ?? `/events/${event.slug}`;
   const eventUrl = base ? `${base}${canonicalPath(locale, path)}` : undefined;
   const orgUrl = base ? `${base}${canonicalPath(locale, "/firma")}` : undefined;
   const operatorId = orgUrl ? `${orgUrl}#operator` : undefined;
