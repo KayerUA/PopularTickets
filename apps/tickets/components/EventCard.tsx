@@ -35,7 +35,7 @@ export function EventCard(e: EventCardProps) {
   const t = useTranslations("EventCard");
   const listingKind = e.listingKind ?? "performance";
   const language = normalizeEventLanguage(e.eventLanguage);
-  const href = `/events/${e.slug}`;
+  const href = listingKind === "special" ? `/special/${e.slug}` : `/events/${e.slug}`;
   const cta =
     e.status === "past"
       ? t("ctaPast")

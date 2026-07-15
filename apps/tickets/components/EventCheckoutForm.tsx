@@ -47,7 +47,7 @@ export function EventCheckoutForm({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<CheckoutFieldKey, string>>>({});
   const [pending, setPending] = useState(false);
-  const [quantity, setQuantity] = useState(1);
+  const [quantityInput, setQuantityInput] = useState("1");
   const [promoCode, setPromoCode] = useState(initialPromoCode);
   const [promoDiscountPercent, setPromoDiscountPercent] = useState(initialPromoDiscountPercent);
   const [promoMessage, setPromoMessage] = useState<string | null>(
@@ -55,6 +55,13 @@ export function EventCheckoutForm({
   );
   const formRef = useRef<HTMLFormElement>(null);
   const max = Math.min(20, remaining);
+  const parsedQuantity = Number.parseInt(quantityInput, 10);
+  const quantity = Number.isInteger(parsedQuantity) && parsedQuantity >= 1 && parsedQuantity <= max ? parsedQuantity : 1;
+
+  const updateQuantity = (next: number) => {
+    setQuantityInput(String(Math.min(max, Math.max(1, Math.floor(next)))));
+    if (fieldErrors.quantity) setFieldErrors((prev) => ({ ...prev, quantity: undefined }));
+  };
 
   const discountedUnitPriceGrosze = Math.round(unitPriceGrosze * (1 - promoDiscountPercent / 100));
   const totalGrosze = discountedUnitPriceGrosze * quantity;
@@ -226,25 +233,49 @@ export function EventCheckoutForm({
           <label htmlFor="checkout-quantity" className="text-zinc-400">
             {t("quantity")}
           </label>
-          <input
-            id="checkout-quantity"
-            name="quantity"
-            type="number"
-            min={1}
-            max={max}
-            value={quantity}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              if (Number.isNaN(v)) return;
-              setQuantity(Math.min(max, Math.max(1, Math.floor(v))));
-              if (fieldErrors.quantity) setFieldErrors((prev) => ({ ...prev, quantity: undefined }));
-            }}
-            disabled={pending}
-            className={fieldClass("quantity")}
-            inputMode="numeric"
-            aria-invalid={fieldErrors.quantity ? true : undefined}
-            aria-describedby={fieldErrors.quantity ? "checkout-quantity-error" : undefined}
-          />
+          <div
+            className={`mt-1.5 grid min-h-11 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] overflow-hidden rounded-xl border bg-zinc-900/80 transition sm:min-h-10 ${fieldBorder(Boolean(fieldErrors.quantity))}`}
+          >
+            <button
+              type="button"
+              aria-label={`${t("quantity")} −`}
+              disabled={pending || quantity <= 1}
+              onClick={() => updateQuantity(quantity - 1)}
+              className="inline-flex min-h-11 items-center justify-center border-r border-white/10 text-xl text-zinc-300 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 sm:min-h-10"
+            >
+              <span aria-hidden>−</span>
+            </button>
+            <input
+              id="checkout-quantity"
+              name="quantity"
+              type="text"
+              value={quantityInput}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "").slice(0, String(max).length);
+                setQuantityInput(digits);
+                if (fieldErrors.quantity) setFieldErrors((prev) => ({ ...prev, quantity: undefined }));
+              }}
+              onClick={(e) => e.currentTarget.select()}
+              onFocus={(e) => e.currentTarget.select()}
+              onBlur={() => updateQuantity(Number.parseInt(quantityInput, 10) || 1)}
+              disabled={pending}
+              className="min-h-11 min-w-0 bg-transparent px-2 py-2.5 text-center text-base font-semibold tabular-nums text-white outline-none disabled:opacity-50 sm:min-h-10 sm:py-2 sm:text-sm"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              autoComplete="off"
+              aria-invalid={fieldErrors.quantity ? true : undefined}
+              aria-describedby={fieldErrors.quantity ? "checkout-quantity-error" : undefined}
+            />
+            <button
+              type="button"
+              aria-label={`${t("quantity")} +`}
+              disabled={pending || quantity >= max}
+              onClick={() => updateQuantity(quantity + 1)}
+              className="inline-flex min-h-11 items-center justify-center border-l border-white/10 text-xl text-zinc-300 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 sm:min-h-10"
+            >
+              <span aria-hidden>+</span>
+            </button>
+          </div>
           {fieldErrors.quantity ? (
             <p id="checkout-quantity-error" className="mt-1.5 text-xs text-red-400" role="alert">
               {fieldErrors.quantity}

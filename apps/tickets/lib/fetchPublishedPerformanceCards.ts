@@ -6,6 +6,8 @@ import { resolveEventCopy } from "@/lib/contentI18n";
 import { resolveEventMarketingStatus, sortEventsForMarketing, normalizeEventListingKind } from "@/lib/eventMarketingStatus";
 import { eventPriceDetails } from "@/lib/eventPrice";
 
+const FEATURED_SPECIAL_SLUG = "next-mode-2026-08-15";
+
 export async function fetchPublishedPerformanceCards(
   supabase: SupabaseClient,
   locale: AppLocale,
@@ -13,20 +15,20 @@ export async function fetchPublishedPerformanceCards(
   let { data: events, error } = await supabase
     .from("events")
     .select(
-      "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language",
+      "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,discount_periods,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language,visibility",
     )
-    .eq("visibility", "published")
-    .eq("listing_kind", "performance")
+    .in("visibility", ["published", "unlisted"])
+    .in("listing_kind", ["performance", "special"])
     .order("starts_at", { ascending: true });
 
   if (error?.code === "42703") {
     const fallback = await supabase
       .from("events")
       .select(
-        "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind",
+        "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,discount_periods,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,visibility",
       )
-      .eq("visibility", "published")
-      .eq("listing_kind", "performance")
+      .in("visibility", ["published", "unlisted"])
+      .in("listing_kind", ["performance", "special"])
       .order("starts_at", { ascending: true });
     events = (fallback.data ?? []).map((ev) => ({ ...ev, event_language: null }));
     error = fallback.error;
@@ -46,6 +48,12 @@ export async function fetchPublishedPerformanceCards(
   }
 
   const cards: EventCardProps[] = eventRows.flatMap((ev) => {
+    const slug = ev.slug as string;
+    const listingKind = normalizeEventListingKind((ev as { listing_kind?: string | null }).listing_kind);
+    const visibility = String((ev as { visibility?: unknown }).visibility ?? "");
+    const isPublishedPerformance = visibility === "published" && listingKind === "performance";
+    if (!isPublishedPerformance && slug !== FEATURED_SPECIAL_SLUG) return [];
+
     const copy = resolveEventCopy(
       {
         title: ev.title as string,
@@ -70,10 +78,12 @@ export async function fetchPublishedPerformanceCards(
       starts_at: ev.starts_at as string,
       price_grosze: ev.price_grosze as number,
       day_of_event_price_grosze: ev.day_of_event_price_grosze as number | null,
+      listing_kind: listingKind,
+      discount_periods: (ev as { discount_periods?: unknown }).discount_periods,
     });
     return [
       {
-        slug: ev.slug as string,
+        slug,
         title: copy.title,
         venue: ev.venue as string,
         startsAt: ev.starts_at as string,
@@ -91,7 +101,7 @@ export async function fetchPublishedPerformanceCards(
             : null,
         locale,
         status,
-        listingKind: normalizeEventListingKind((ev as { listing_kind?: string | null }).listing_kind),
+        listingKind,
         eventLanguage: (ev as { event_language?: never }).event_language,
       },
     ];
