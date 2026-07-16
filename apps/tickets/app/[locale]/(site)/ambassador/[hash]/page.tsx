@@ -25,6 +25,7 @@ type PromoRow = {
   id: string;
   code: string;
   event_id: string | null;
+  landing_event_id?: string | null;
   ambassador_hash?: string | null;
   discount_fixed_grosze?: number | null;
   discount_percent?: number | null;
@@ -56,7 +57,7 @@ export default async function AmbassadorPage({
   const code = normalizePromoCode(profile.promoCode);
   const extendedPromo = await supabase
     .from("promo_codes")
-    .select("id,code,event_id,ambassador_hash,discount_percent,discount_fixed_grosze,commission_grosze,marketing_materials_url")
+    .select("id,code,event_id,landing_event_id,ambassador_hash,discount_percent,discount_fixed_grosze,commission_grosze,marketing_materials_url")
     .eq("code", code)
     .maybeSingle();
 
@@ -76,8 +77,8 @@ export default async function AmbassadorPage({
     .limit(1);
   const { data: event } = profile.showSlug
     ? await eventQuery.eq("slug", profile.showSlug).maybeSingle()
-    : promo?.event_id
-      ? await eventQuery.eq("id", promo.event_id).maybeSingle()
+    : promo?.landing_event_id || promo?.event_id
+      ? await eventQuery.eq("id", promo.landing_event_id ?? promo.event_id).maybeSingle()
       : { data: null };
 
   let paidOrders: PaidOrderRow[] = [];

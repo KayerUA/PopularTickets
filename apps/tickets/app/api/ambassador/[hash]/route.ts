@@ -24,12 +24,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ hash
   const code = normalizePromoCode(profile.promoCode);
   const extendedPromo = await supabase
     .from("promo_codes")
-    .select("id,event_id,discount_percent,discount_fixed_grosze,commission_grosze,marketing_materials_url")
+    .select("id,event_id,landing_event_id,discount_percent,discount_fixed_grosze,commission_grosze,marketing_materials_url")
     .eq("code", code)
     .maybeSingle();
   let promo = extendedPromo.data as {
     id: string;
     event_id: string | null;
+    landing_event_id?: string | null;
     discount_percent?: number | null;
     discount_fixed_grosze?: number | null;
     commission_grosze?: number | null;
@@ -50,8 +51,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ hash
     ? await eventQuery.eq("id", requestedShowId).maybeSingle()
     : profile.showSlug
       ? await eventQuery.eq("slug", profile.showSlug).maybeSingle()
-      : promo?.event_id
-        ? await eventQuery.eq("id", promo.event_id).maybeSingle()
+      : promo?.landing_event_id || promo?.event_id
+        ? await eventQuery.eq("id", promo.landing_event_id ?? promo.event_id).maybeSingle()
         : { data: null };
 
   let paidOrders: Array<{
