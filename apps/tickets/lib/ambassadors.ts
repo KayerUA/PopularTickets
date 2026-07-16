@@ -30,7 +30,7 @@ const AMBASSADOR_PROFILES: readonly AmbassadorProfileSeed[] = [
     discountFixedGrosze: 1_000,
     commissionPerTicketGrosze: 1_000,
     showSlug: "next-mode-2026-08-15",
-    marketingMaterialsUrl: null,
+    marketingMaterialsUrl: "https://drive.google.com/drive/folders/1rODhCk15OjAD68rcbaKhUeL3BJSYUgoi?usp=sharing",
   },
 ] as const;
 
