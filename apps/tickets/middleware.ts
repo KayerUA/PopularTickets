@@ -104,7 +104,11 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  return permanentRedirectIfTemporary(req, intlMiddleware(req));
+  const response = permanentRedirectIfTemporary(req, intlMiddleware(req));
+  if (/^\/(pl|uk|ru)\/special\/next-mode-2026-08-15\/stats\/?$/.test(pathname)) {
+    response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive, noimageindex");
+  }
+  return response;
 }
 
 export const config = {
