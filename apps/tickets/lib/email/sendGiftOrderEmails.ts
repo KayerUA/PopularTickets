@@ -2,8 +2,48 @@ import { Resend } from "resend";
 import { formatPlnFromGrosze } from "@/lib/format";
 import type { GiftProductCode } from "@/lib/giftProducts";
 import type { AppLocale } from "@/i18n/routing";
+import { getTelegramOwnerUserIds } from "@/lib/telegram/config";
+import { sendTelegramMessage } from "@/lib/telegram/telegramBotApi";
 
 const fromDefault = "PopularTickets <onboarding@resend.dev>";
+
+function senderAddress(): string {
+  return process.env.RESEND_FROM_EMAIL?.trim() || process.env.RESEND_FROM?.trim() || fromDefault;
+}
+
+function resendErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+    return error.message;
+  }
+  return "неизвестная ошибка Resend";
+}
+
+async function notifyTelegramAboutResendError(params: {
+  orderId: string;
+  recipient: "покупателю" | "администратору";
+  error: unknown;
+}): Promise<void> {
+  const chatIds = getTelegramOwnerUserIds();
+  if (!chatIds.size) return;
+
+  const text = [
+    "⚠️ Не отправилось письмо Resend",
+    `Сертификат: ${params.orderId}`,
+    `Получатель: ${params.recipient}`,
+    `Причина: ${resendErrorMessage(params.error).slice(0, 500)}`,
+  ].join("\n");
+
+  await Promise.all(
+    [...chatIds].map(async (chatId) => {
+      try {
+        await sendTelegramMessage(chatId, text);
+      } catch (telegramError) {
+        console.error("[sendGiftOrderEmails] Telegram alert", telegramError);
+      }
+    }),
+  );
+}
 
 function notifyRecipients(): string[] {
   const raw = process.env.ADMIN_SALE_NOTIFY_EMAIL?.trim();
@@ -58,14 +98,27 @@ export async function sendGiftOrderEmails(params: {
           : `Спасибо, ${params.buyerName}!\n\nОплата получена: ${product} (${amount}).\nМы свяжемся в течение 1–2 рабочих дней, чтобы передать сертификат${params.recipientName ? ` для ${params.recipientName}` : ""}.\n\nPopular Poet · PopularTickets`;
 
     try {
-      await resend.emails.send({
-        from: process.env.RESEND_FROM?.trim() || fromDefault,
+      const { error } = await resend.emails.send({
+        from: senderAddress(),
         to: params.email,
         subject: buyerSubject,
         text: buyerBody,
       });
+      if (error) {
+        console.error("[sendGiftOrderEmails] buyer Resend error", error);
+        await notifyTelegramAboutResendError({
+          orderId: params.orderId,
+          recipient: "покупателю",
+          error,
+        });
+      }
     } catch (e) {
       console.error("[sendGiftOrderEmails] buyer", e);
+      await notifyTelegramAboutResendError({
+        orderId: params.orderId,
+        recipient: "покупателю",
+        error: e,
+      });
     }
   }
 
@@ -85,14 +138,27 @@ export async function sendGiftOrderEmails(params: {
   ].filter(Boolean);
 
   try {
-    await resend.emails.send({
-      from: process.env.RESEND_FROM?.trim() || fromDefault,
+    const { error } = await resend.emails.send({
+      from: senderAddress(),
       to: adminTo,
       subject: `[Popular Poet] Сертификат · ${amount}`,
       text: lines.join("\n"),
     });
+    if (error) {
+      console.error("[sendGiftOrderEmails] admin Resend error", error);
+      await notifyTelegramAboutResendError({
+        orderId: params.orderId,
+        recipient: "администратору",
+        error,
+      });
+    }
   } catch (e) {
     console.error("[sendGiftOrderEmails] admin", e);
+    await notifyTelegramAboutResendError({
+      orderId: params.orderId,
+      recipient: "администратору",
+      error: e,
+    });
   }
 }
 
