@@ -3,7 +3,7 @@ import { DateTime } from "luxon";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { EVENT_ADMIN_TIMEZONE } from "@/lib/warsawEventDatetime";
-import { getTelegramOwnerUserIds, isTelegramAutoBroadcast } from "@/lib/telegram/config";
+import { getTelegramOwnerUserIds } from "@/lib/telegram/config";
 import {
   addBotAdmin,
   listBotAdmins,
@@ -12,17 +12,24 @@ import {
 } from "@/lib/telegram/botAdminStore";
 import {
   registerBroadcastChat,
+  listBroadcastChats,
   resolveBroadcastChatIds,
+  TELEGRAM_MASTER_GROUP,
   unregisterBroadcastChat,
 } from "@/lib/telegram/broadcastChatStore";
 import { formatDiscoveryStatusForTelegram } from "@/lib/eventDiscovery/formatDiscoveryStatus";
 import { formatGbpManualTelegramMessage } from "@/lib/googleBusinessProfile/gbpManualFallback";
 import type { EventDiscoveryResult } from "@/lib/eventDiscovery/notifyEventPublished";
 import {
+  attachTelegramImageToEvent,
   createEventFromParsed,
   hideEventFromSite,
   revealEventOnSite,
 } from "@/lib/telegram/createEventDraft";
+import {
+  createPendingEventImageAttachment,
+  takePendingEventImageAttachment,
+} from "@/lib/telegram/eventImageAttachmentStore";
 import {
   cancelActiveDraftForChat,
   claimDraftForPublish,
@@ -61,6 +68,7 @@ import {
   answerCallbackQuery,
   downloadTelegramFile,
   editTelegramMessage,
+  isTelegramBotAdministrator,
   sendTelegramMessage,
   type InlineKeyboardButton,
 } from "@/lib/telegram/telegramBotApi";
@@ -705,6 +713,66 @@ async function mergePhotosIntoPreviewDraft(
   return true;
 }
 
+type MissingImageEvent = {
+  id: string;
+  title: string;
+  starts_at: string;
+  visibility: string;
+};
+
+function imageAttachmentButtonLabel(event: MissingImageEvent): string {
+  const when = DateTime.fromISO(event.starts_at, { zone: "utc" })
+    .setZone(EVENT_ADMIN_TIMEZONE)
+    .setLocale("ru")
+    .toFormat("d MMM");
+  const title = event.title.length > 30 ? `${event.title.slice(0, 29)}…` : event.title;
+  return `🖼 ${when} · ${title}`.slice(0, 64);
+}
+
+/** Одиночное фото без активного черновика можно быстро прикрепить к уже созданному событию без обложки. */
+async function offerImageAttachment(chatId: number, userId: number, fileId: string): Promise<boolean> {
+  const supabase = requireServiceSupabase();
+  const { data, error } = await supabase
+    .from("events")
+    .select("id,title,starts_at,visibility")
+    .in("visibility", ["published", "unlisted"])
+    .is("image_url", null)
+    .gte("starts_at", new Date().toISOString())
+    .order("starts_at", { ascending: true })
+    .limit(8);
+  if (error) throw new Error(error.message);
+  const events = (data ?? []) as MissingImageEvent[];
+  if (!events.length) return false;
+
+  const token = await createPendingEventImageAttachment(userId, fileId);
+  const keyboard: InlineKeyboardButton[][] = events.map((event) => [
+    { text: imageAttachmentButtonLabel(event), callback_data: `attachimg:${token}:${event.id}` },
+  ]);
+  keyboard.push([{ text: "✖️ Не прикреплять", callback_data: "attachimg:cancel" }]);
+  await sendTelegramMessage(
+    chatId,
+    "🖼 Нашёл события без обложки. К какому прикрепить это фото?",
+    { inlineKeyboard: keyboard },
+  );
+  return true;
+}
+
+async function attachImageToEventFromTelegram(
+  chatId: number,
+  userId: number,
+  token: string,
+  eventId: string,
+): Promise<void> {
+  const pending = await takePendingEventImageAttachment(token, userId);
+  if (!pending) {
+    await sendTelegramMessage(chatId, "⌛ Выбор фото устарел. Пришлите фотографию ещё раз.");
+    return;
+  }
+  const image = await downloadTelegramFile(pending.fileId);
+  const event = await attachTelegramImageToEvent(requireServiceSupabase(), eventId, image);
+  await sendTelegramMessage(chatId, `✅ Обложка добавлена: ${event.title}.`);
+}
+
 export type TelegramUpdateHandleResult = {
   /** Gemini / тяжёлая работа после быстрого ответа webhook (несколько фото в одном пересыле). */
   background?: Promise<void>;
@@ -778,6 +846,11 @@ async function handleChatMessage(
   const supabase = requireServiceSupabase();
 
   const active = await getActiveDraftForChat(supabase, chatId);
+
+  if (fileIds.length > 0 && !text.trim() && !active) {
+    const offered = await offerImageAttachment(chatId, userId, fileIds[0]!);
+    if (offered) return;
+  }
 
   if (text && !text.startsWith("/") && fileIds.length === 0 && active) {
     if (active.status === "awaiting_clarification") {
@@ -959,6 +1032,80 @@ function isUpcomingEventsCommand(text: string): boolean {
   );
 }
 
+function mainMenuKeyboard(): InlineKeyboardButton[][] {
+  return [
+    [
+      { text: "🗓 Создать события", callback_data: "menu:events" },
+      { text: "📣 Отправить сообщение", callback_data: "menu:post" },
+    ],
+    [
+      { text: "📅 События", callback_data: "menu:upcoming" },
+      { text: "⚙️ Группы", callback_data: "menu:groups" },
+    ],
+    [{ text: "ℹ️ Как пользоваться", callback_data: "menu:help" }],
+  ];
+}
+
+function broadcastAudienceKeyboard(prefix: string, id: string, groups: number): InlineKeyboardButton[][] {
+  return [
+    [{ text: `🌐 Во все группы (${groups})`, callback_data: `${prefix}:all:${id}` }],
+    [{ text: `⭐ ${TELEGRAM_MASTER_GROUP.title}`, callback_data: `${prefix}:master:${id}` }],
+    [{ text: "‹ Главное меню", callback_data: "menu:home" }],
+  ];
+}
+
+async function sendBotHome(chatId: number, userId: number): Promise<void> {
+  const supabase = requireServiceSupabase();
+  const groups = (await resolveBroadcastChatIds(supabase)).length;
+  await sendTelegramMessage(
+    chatId,
+    [
+      "🎭 PopularEvents",
+      "",
+      "Создавайте события из афиши и рассылайте анонсы без лишних команд.",
+      "",
+      "Выберите действие кнопкой ниже.",
+      groups ? `Подключено групп: ${groups} · мастер: ${TELEGRAM_MASTER_GROUP.title}` : "Группы пока не подключены.",
+      getTelegramOwnerUserIds().has(userId) ? "\n👑 У владельца есть управление редакторами: /listadmins" : "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
+    { inlineKeyboard: mainMenuKeyboard() },
+  );
+}
+
+async function sendGroupsSettings(chatId: number): Promise<void> {
+  const supabase = requireServiceSupabase();
+  const groups = await listBroadcastChats(supabase);
+  const rows = groups.map((group) => {
+    const mark = group.chat_id === TELEGRAM_MASTER_GROUP.id ? "⭐ " : "• ";
+    return `${mark}${group.chat_title || group.chat_id} · ${group.chat_type}`;
+  });
+  await sendTelegramMessage(
+    chatId,
+    [
+      "⚙️ Группы рассылки",
+      "",
+      `Мастер-группа: ⭐ ${TELEGRAM_MASTER_GROUP.title}`,
+      rows.length ? `\nПодключены:\n${rows.join("\n")}` : "\nПока нет подключённых групп.",
+      "\nДобавьте бота администратором в группу — она подключится автоматически. В самой группе /unsubscribe отключает рассылку.",
+    ].join("\n"),
+    { inlineKeyboard: [[{ text: "🔄 Обновить", callback_data: "menu:groups" }], [{ text: "‹ Главное меню", callback_data: "menu:home" }]] },
+  );
+}
+
+async function offerEventBroadcast(chatId: number, eventId: string): Promise<void> {
+  const supabase = requireServiceSupabase();
+  const groups = await resolveBroadcastChatIds(supabase);
+  if (!groups.length) {
+    await sendTelegramMessage(chatId, "Нет подключённых групп. Добавьте бота администратором в нужную группу.");
+    return;
+  }
+  await sendTelegramMessage(chatId, "📢 Куда отправить событие?", {
+    inlineKeyboard: broadcastAudienceKeyboard("rebcast", eventId, groups.length),
+  });
+}
+
 async function sendUpcomingEventsList(
   chatId: number,
   page = 0,
@@ -1078,24 +1225,8 @@ async function offerBroadcast(chatId: number, draftId: string): Promise<void> {
   const supabase = requireServiceSupabase();
   const broadcastChats = await resolveBroadcastChatIds(supabase);
   if (broadcastChats.length === 0) return;
-
-  if (isTelegramAutoBroadcast()) {
-    try {
-      const supabase = requireServiceSupabase();
-      const result = await broadcastDraftToGroups(supabase, draftId);
-      await sendTelegramMessage(
-        chatId,
-        `📢 Разослано в ${result.chats} групп(ы): ${result.sent} сообщ.${result.failed ? `, ошибок: ${result.failed}` : ""}`,
-      );
-    } catch (e) {
-      const err = e instanceof Error ? e.message : "unknown";
-      await sendTelegramMessage(chatId, `⚠️ Рассылка в группы не удалась: ${err}`);
-    }
-    return;
-  }
-
-  await sendTelegramMessage(chatId, "Разослать афишу в Telegram-группы?", {
-    inlineKeyboard: [[{ text: "📢 В группы", callback_data: `bcast:${draftId}` }]],
+  await sendTelegramMessage(chatId, "📢 Событие опубликовано. Куда отправить анонс?", {
+    inlineKeyboard: broadcastAudienceKeyboard("bcast", draftId, broadcastChats.length),
   });
 }
 
@@ -1287,13 +1418,86 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
     }
 
     try {
+      if (data === "attachimg:cancel") {
+        if (cq.id) await answerCallbackQuery(cq.id, "Отменено");
+        await sendTelegramMessage(chatId, "Ок, фото не прикреплено.");
+        return {};
+      }
+      if (data.startsWith("attachimg:")) {
+        const [, token, eventId] = data.split(":", 3);
+        if (!token || !eventId) return {};
+        if (cq.id) await answerCallbackQuery(cq.id, "Добавляю обложку…");
+        await attachImageToEventFromTelegram(chatId, userId, token, eventId);
+        if (cq.message?.message_id) {
+          try {
+            await editTelegramMessage(chatId, cq.message.message_id, "🖼 Фото прикреплено к событию.");
+          } catch {
+            /* ignore */
+          }
+        }
+        return {};
+      }
+      if (data === "menu:home" || data === "menu:help") {
+        if (cq.id) await answerCallbackQuery(cq.id);
+        if (data === "menu:help") {
+          await sendTelegramMessage(
+            chatId,
+            [
+              "ℹ️ Как пользоваться",
+              "",
+              "1. «Создать события» — пришлите афишу с фото и текстом.",
+              "2. Проверьте превью и создайте скрытое событие.",
+              "3. После публикации на сайте выберите, куда отправить анонс: во все группы или только в мастер-группу.",
+              "4. «Отправить сообщение» — для обычного текста, фото, видео или альбома; контент сохранится без изменений.",
+              "",
+              "/cancel — отменить текущий шаг · /events — список событий · /broadcast — отправить сообщение.",
+            ].join("\n"),
+            { inlineKeyboard: [[{ text: "‹ Главное меню", callback_data: "menu:home" }]] },
+          );
+          return {};
+        }
+        await sendBotHome(chatId, userId);
+        return {};
+      }
+      if (data === "menu:events") {
+        if (cq.id) await answerCallbackQuery(cq.id);
+        await sendTelegramMessage(
+          chatId,
+          "🗓 Пришлите фото и текст афиши. Можно несколькими сообщениями и в любом порядке — бот соберёт их в одно событие.",
+          { inlineKeyboard: [[{ text: "‹ Главное меню", callback_data: "menu:home" }]] },
+        );
+        return {};
+      }
+      if (data === "menu:post") {
+        if (cq.id) await answerCallbackQuery(cq.id);
+        await startBroadcastPostFlow(chatId, userId);
+        return {};
+      }
+      if (data === "menu:upcoming") {
+        if (cq.id) await answerCallbackQuery(cq.id);
+        await sendUpcomingEventsList(chatId, 0);
+        return {};
+      }
+      if (data === "menu:groups") {
+        if (cq.id) await answerCallbackQuery(cq.id);
+        await sendGroupsSettings(chatId);
+        return {};
+      }
+      if (data.startsWith("rebcastpick:")) {
+        if (cq.id) await answerCallbackQuery(cq.id);
+        await offerEventBroadcast(chatId, data.slice("rebcastpick:".length));
+        return {};
+      }
       if (data.startsWith("rebcast:")) {
-        const eventId = data.slice(8);
-        if (!eventId) return {};
+        const [audienceRaw, eventId] = data.slice(8).split(":", 2);
+        if (!eventId || (audienceRaw !== "all" && audienceRaw !== "master")) {
+          await offerEventBroadcast(chatId, data.slice(8));
+          return {};
+        }
         if (cq.id) await answerCallbackQuery(cq.id, "Рассылаю…");
         try {
           const supabase = requireServiceSupabase();
-          const result = await broadcastEventToGroups(supabase, eventId);
+          const result = await broadcastEventToGroups(supabase, eventId, audienceRaw);
           await sendTelegramMessage(
             chatId,
             `📢 Готово: событие разослано в ${result.sent} из ${result.chats} групп${result.failed ? `, ошибок: ${result.failed}` : ""}.`,
@@ -1320,11 +1524,19 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         return {};
       }
       if (data.startsWith("bcast:")) {
-        const draftId = data.slice(6);
+        const [audienceRaw, draftId] = data.slice(6).split(":", 2);
+        if (!draftId || (audienceRaw !== "all" && audienceRaw !== "master")) {
+          const supabase = requireServiceSupabase();
+          const groups = await resolveBroadcastChatIds(supabase);
+          await sendTelegramMessage(chatId, "📢 Куда отправить анонс?", {
+            inlineKeyboard: broadcastAudienceKeyboard("bcast", data.slice(6), groups.length),
+          });
+          return {};
+        }
         if (cq.id) await answerCallbackQuery(cq.id, "Рассылаю…");
         try {
           const supabase = requireServiceSupabase();
-          const result = await broadcastDraftToGroups(supabase, draftId);
+          const result = await broadcastDraftToGroups(supabase, draftId, audienceRaw);
           await sendTelegramMessage(
             chatId,
             `📢 Готово: ${result.sent} сообщ. в ${result.chats} групп(ы)${result.failed ? `, ошибок: ${result.failed}` : ""}`,
@@ -1343,20 +1555,24 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         return {};
       }
       if (data === "postcast:cancel") {
-        clearAwaitingBroadcastPost(chatId);
+        await clearAwaitingBroadcastPost(chatId);
         if (cq.id) await answerCallbackQuery(cq.id, "Отменено");
         await sendTelegramMessage(chatId, "❌ Рассылка поста отменена.");
         return {};
       }
       if (data.startsWith("postcast:")) {
-        const token = data.slice(9);
-        if (!token) return {};
+        const [audienceRaw, token] = data.slice(9).split(":", 2);
+        if (!token || (audienceRaw !== "all" && audienceRaw !== "master")) return {};
         if (cq.id) await answerCallbackQuery(cq.id, "Рассылаю…");
         try {
-          await confirmBroadcastPost(chatId, userId, token);
+          const result = await confirmBroadcastPost(chatId, userId, token, audienceRaw);
           if (cq.message?.message_id) {
             try {
-              await editTelegramMessage(chatId, cq.message.message_id, "📢 Пост разослан в группы.");
+              await editTelegramMessage(
+                chatId,
+                cq.message.message_id,
+                result.chats ? `📢 Пост разослан в ${result.sent} из ${result.chats} групп.` : "⌛ Сессия рассылки устарела.",
+              );
             } catch {
               /* ignore */
             }
@@ -1445,6 +1661,10 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
 
     if (text === "/subscribe" || text.startsWith("/subscribe@")) {
       try {
+        if (!(await isTelegramBotAdministrator(chatId))) {
+          await sendTelegramMessage(chatId, "Сначала назначьте бота администратором — иначе он не сможет отправлять сообщения.");
+          return {};
+        }
         const supabase = requireServiceSupabase();
         await registerBroadcastChat(supabase, chatId, msg.chat.title ?? "", msg.chat.type);
         await sendTelegramMessage(
@@ -1521,41 +1741,16 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
 
   if (text === "/start" || text === "/help") {
     await cancelAfishaBuffer(chatId);
-    const supabase = requireServiceSupabase();
-    const hasBroadcast = (await resolveBroadcastChatIds(supabase)).length > 0;
-    const broadcastHint = hasBroadcast
-      ? "\n\n📢 После публикации на сайт — кнопка «В группы» (или авто при TELEGRAM_AUTO_BROADCAST=1)."
-      : "\n\n📢 Рассылка в группы: добавьте бота админом в группу (подключится автоматически) или /subscribe в группе.";
-    await sendTelegramMessage(
-      chatId,
-      [
-        "Popular Poet → публикация события",
-        "",
-        "1. Пришлите фото и текст афиши (в любом порядке; альбом + текст отдельным сообщением — ок).",
-        "2. Проверьте превью. Если чего-то не хватает — нажмите кнопку (цена/места/тип/язык) или ответьте текстом.",
-        "3. «💾 Создать (скрыто)» — событие появится по ссылке для проверки, но НЕ в афише и НЕ в поиске.",
-        "4. Откройте ссылку, проверьте страницу.",
-        "5. «🌍 Опубликовать на сайте» — только теперь событие в афише и уходит в поиск. Или «🗑 Удалить».",
-        "",
-        "Несколько дат → несколько событий. Несколько фото → по порядку дат.",
-        "Команды: /cancel — отменить черновик · /myid — ваш Telegram ID · /events — предстоящие и повторная рассылка.",
-        "📢 /broadcast — разослать произвольный пост во все группы (не афишу события).",
-        "🖼 На превью — «Точка фокуса»: мини-приложение для обрезки обложки на сайте.",
-        isOwner(userId)
-          ? "\nВладелец: /addadmin · /removeadmin · /listadmins — редакторы бота."
-          : "",
-      ]
-        .filter(Boolean)
-        .join("\n") + broadcastHint,
-    );
+    await clearAwaitingBroadcastPost(chatId);
+    await sendBotHome(chatId, userId);
     return {};
   }
 
   if (text === "/cancel") {
     const supabase = requireServiceSupabase();
     await cancelAfishaBuffer(chatId);
-    const wasAwaitingBroadcast = isAwaitingBroadcastPost(chatId, userId);
-    clearAwaitingBroadcastPost(chatId);
+    const wasAwaitingBroadcast = await isAwaitingBroadcastPost(chatId, userId);
+    await clearAwaitingBroadcastPost(chatId);
     const active = await getActiveDraftForChat(supabase, chatId);
     if (active) {
       await cancelActiveDraftForChat(supabase, chatId);
@@ -1593,7 +1788,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
     return {};
   }
 
-  if (isAwaitingBroadcastPost(chatId, userId)) {
+  if (await isAwaitingBroadcastPost(chatId, userId)) {
     try {
       await handleBroadcastPostInput(chatId, userId, msg, msg.media_group_id);
     } catch (e) {

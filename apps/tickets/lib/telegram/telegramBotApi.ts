@@ -1,6 +1,14 @@
 import { getTelegramBotToken } from "@/lib/telegram/config";
 
-type TelegramApiResponse<T> = { ok: true; result: T } | { ok: false; description?: string };
+type TelegramApiResponse<T> = {
+  ok: true;
+  result: T;
+} | {
+  ok: false;
+  description?: string;
+  error_code?: number;
+  parameters?: { retry_after?: number };
+};
 
 export type InlineKeyboardButton = {
   text: string;
@@ -19,11 +27,29 @@ async function telegramApi<T>(method: string, body: Record<string, unknown>): Pr
     body: JSON.stringify(body),
   });
 
-  const json = (await res.json()) as TelegramApiResponse<T>;
-  if (!json.ok) {
-    throw new Error(json.description ?? `Telegram API ${method} failed`);
+  const raw = await res.text();
+  let json: TelegramApiResponse<T> | null = null;
+  try {
+    json = JSON.parse(raw) as TelegramApiResponse<T>;
+  } catch {
+    throw new Error(`Telegram API ${method} returned HTTP ${res.status}`);
+  }
+  if (!res.ok || !json.ok) {
+    const retry = !json.ok ? json.parameters?.retry_after : undefined;
+    const suffix = retry ? `; повторите через ${retry} сек.` : "";
+    throw new Error((!json.ok ? json.description : undefined) ?? `Telegram API ${method} failed${suffix}`);
   }
   return json.result;
+}
+
+/** Проверка нужна для ручного /subscribe: иначе в базе остаётся группа, куда бот не может писать. */
+export async function isTelegramBotAdministrator(chatId: number): Promise<boolean> {
+  const me = await telegramApi<{ id: number }>("getMe", {});
+  const member = await telegramApi<{ status?: string }>("getChatMember", {
+    chat_id: chatId,
+    user_id: me.id,
+  });
+  return member.status === "administrator" || member.status === "creator";
 }
 
 export async function sendTelegramMessage(

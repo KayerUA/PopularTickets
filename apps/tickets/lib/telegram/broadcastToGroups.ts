@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { resolveAbsoluteAssetUrl } from "@/lib/safePublicUrl";
-import { resolveBroadcastChatIds } from "@/lib/telegram/broadcastChatStore";
+import { resolveBroadcastTargetIds, type BroadcastAudience } from "@/lib/telegram/broadcastChatStore";
 import {
   buildGroupBroadcastContent,
   fallbackBroadcastDetails,
@@ -79,8 +79,9 @@ async function sendEventBroadcastToChat(
 export async function broadcastEventToGroups(
   supabase: SupabaseClient,
   eventId: string,
+  audience: BroadcastAudience = "all",
 ): Promise<{ sent: number; failed: number; chats: number }> {
-  const chatIds = await resolveBroadcastChatIds(supabase);
+  const chatIds = await resolveBroadcastTargetIds(supabase, audience);
   if (!chatIds.length) {
     throw new Error("Нет групп для рассылки. Добавьте бота админом в группу или /subscribe в группе.");
   }
@@ -122,8 +123,9 @@ export async function broadcastEventToGroups(
 export async function broadcastDraftToGroups(
   supabase: SupabaseClient,
   draftId: string,
+  audience: BroadcastAudience = "all",
 ): Promise<{ sent: number; failed: number; chats: number }> {
-  const chatIds = await resolveBroadcastChatIds(supabase);
+  const chatIds = await resolveBroadcastTargetIds(supabase, audience);
   if (!chatIds.length) {
     throw new Error("Нет групп для рассылки. Добавьте бота админом в группу или /subscribe в группе.");
   }

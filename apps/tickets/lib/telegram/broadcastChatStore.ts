@@ -3,11 +3,19 @@ import { getTelegramBroadcastChatIds } from "@/lib/telegram/config";
 
 const TABLE = "telegram_broadcast_chats";
 
+/** Главная группа для быстрых анонсов из бота. Выбрана из уже подключённых групп. */
+export const TELEGRAM_MASTER_GROUP = {
+  id: -1003895335306,
+  title: "POPULAR IMPRO",
+} as const;
+
+export type BroadcastAudience = "all" | "master";
+
 function isMissingTableError(message: string): boolean {
   return /does not exist|schema cache|PGRST205|42P01/i.test(message);
 }
 
-type BroadcastChatRow = {
+export type BroadcastChatRow = {
   chat_id: number;
   chat_title: string;
   chat_type: string;
@@ -69,9 +77,35 @@ export async function listBroadcastChatIds(supabase: SupabaseClient): Promise<nu
   return ids;
 }
 
+export async function listBroadcastChats(supabase: SupabaseClient): Promise<BroadcastChatRow[]> {
+  const { data, error } = await supabase.from(TABLE).select("*").order("updated_at", { ascending: false });
+  if (error) {
+    if (isMissingTableError(error.message)) return [...memStore().values()];
+    throw new Error(error.message);
+  }
+
+  const rows = (data ?? []).map((row) => row as BroadcastChatRow);
+  for (const row of memStore().values()) {
+    if (!rows.some((item) => item.chat_id === row.chat_id)) rows.push(row);
+  }
+  return rows;
+}
+
 /** Env-список + зарегистрированные в БД группы (без дублей). */
 export async function resolveBroadcastChatIds(supabase: SupabaseClient): Promise<number[]> {
   const envIds = getTelegramBroadcastChatIds();
   const dbIds = await listBroadcastChatIds(supabase);
   return [...new Set([...envIds, ...dbIds])];
+}
+
+export async function resolveBroadcastTargetIds(
+  supabase: SupabaseClient,
+  audience: BroadcastAudience,
+): Promise<number[]> {
+  if (audience === "master") return [TELEGRAM_MASTER_GROUP.id];
+  return resolveBroadcastChatIds(supabase);
+}
+
+export function broadcastAudienceLabel(audience: BroadcastAudience): string {
+  return audience === "master" ? `⭐ ${TELEGRAM_MASTER_GROUP.title}` : "🌐 Все группы";
 }

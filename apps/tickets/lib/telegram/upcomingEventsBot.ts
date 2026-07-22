@@ -82,7 +82,7 @@ export function formatUpcomingEventsMessage(
     "",
     ...lines,
     "",
-    "Нажмите «📢» у события — повторная рассылка в группы.",
+    "Нажмите «📢» у события — затем выберите все группы или мастер-группу.",
   ].join("\n");
 }
 
@@ -97,7 +97,7 @@ export function upcomingEventsKeyboard(events: UpcomingEventRow[], page: number)
   const start = page * UPCOMING_EVENTS_PAGE_SIZE;
   const slice = events.slice(start, start + UPCOMING_EVENTS_PAGE_SIZE);
   const rows: InlineKeyboardButton[][] = slice.map((ev) => [
-    { text: rebcastButtonLabel(ev), callback_data: `rebcast:${ev.id}` },
+    { text: rebcastButtonLabel(ev), callback_data: `rebcastpick:${ev.id}` },
   ]);
 
   const totalPages = Math.ceil(events.length / UPCOMING_EVENTS_PAGE_SIZE);

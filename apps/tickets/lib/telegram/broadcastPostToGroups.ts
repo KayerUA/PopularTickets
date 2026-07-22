@@ -1,5 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { resolveBroadcastChatIds } from "@/lib/telegram/broadcastChatStore";
+import {
+  broadcastAudienceLabel,
+  resolveBroadcastTargetIds,
+  type BroadcastAudience,
+} from "@/lib/telegram/broadcastChatStore";
 import { copyTelegramMessages } from "@/lib/telegram/telegramBotApi";
 
 export type BroadcastPostResult = {
@@ -16,7 +20,7 @@ export function describeBroadcastPostPreview(messageIds: number[], bodyPreview?:
     ? bodyPreview.trim().slice(0, 180) + (bodyPreview.trim().length > 180 ? "…" : "")
     : "";
   const lines = [
-    "📢 Разослать этот пост во все подключённые группы?",
+    "📢 Готово к рассылке",
     "",
     `Тип: ${kind}`,
   ];
@@ -28,8 +32,9 @@ export async function broadcastPostToGroups(
   supabase: SupabaseClient,
   sourceChatId: number,
   messageIds: number[],
+  audience: BroadcastAudience = "all",
 ): Promise<BroadcastPostResult> {
-  const chatIds = await resolveBroadcastChatIds(supabase);
+  const chatIds = await resolveBroadcastTargetIds(supabase, audience);
   if (!chatIds.length) {
     throw new Error("Нет групп для рассылки. Добавьте бота админом в группу или /subscribe в группе.");
   }
@@ -51,3 +56,5 @@ export async function broadcastPostToGroups(
 
   return { sent, failed, chats: chatIds.length };
 }
+
+export { broadcastAudienceLabel };

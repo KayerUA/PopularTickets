@@ -4,7 +4,7 @@ import { describeBroadcastPostPreview } from "@/lib/telegram/broadcastPostToGrou
 describe("describeBroadcastPostPreview", () => {
   it("describes single text post with excerpt", () => {
     const text = describeBroadcastPostPreview([42], "Анонс вечера импровизации в субботу!");
-    expect(text).toContain("Разослать");
+    expect(text).toContain("Готово к рассылке");
     expect(text).toContain("Анонс вечера");
   });
 

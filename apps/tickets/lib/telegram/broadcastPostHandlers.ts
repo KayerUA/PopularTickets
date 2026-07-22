@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
-import { resolveBroadcastChatIds } from "@/lib/telegram/broadcastChatStore";
+import {
+  TELEGRAM_MASTER_GROUP,
+  resolveBroadcastChatIds,
+  type BroadcastAudience,
+} from "@/lib/telegram/broadcastChatStore";
 import {
   appendBroadcastAlbumPart,
   claimBroadcastAlbumBuffer,
@@ -48,12 +52,13 @@ function hasBroadcastableContent(msg: BroadcastSourceMessage): boolean {
   );
 }
 
-function confirmKeyboard(token: string): InlineKeyboardButton[][] {
+function confirmKeyboard(token: string, groups: number): InlineKeyboardButton[][] {
   return [
     [
-      { text: "📢 Разослать", callback_data: `postcast:${token}` },
-      { text: "❌ Отмена", callback_data: "postcast:cancel" },
+      { text: `🌐 Во все группы (${groups})`, callback_data: `postcast:all:${token}` },
     ],
+    [{ text: `⭐ ${TELEGRAM_MASTER_GROUP.title}`, callback_data: `postcast:master:${token}` }],
+    [{ text: "✖️ Отмена", callback_data: "postcast:cancel" }],
   ];
 }
 
@@ -72,19 +77,19 @@ export async function offerBroadcastPostConfirm(
   messageIds: number[],
   bodyPreview?: string,
 ): Promise<void> {
-  clearAwaitingBroadcastPost(chatId);
+  await clearAwaitingBroadcastPost(chatId);
   const supabase = requireServiceSupabase();
   const groups = await groupCountOrError(supabase);
-  const pending = createPendingBroadcastPost(userId, sourceChatId, messageIds);
+  const pending = await createPendingBroadcastPost(userId, sourceChatId, messageIds);
   await sendTelegramMessage(
     chatId,
-    `${describeBroadcastPostPreview(messageIds, bodyPreview)}\n\nГрупп: ${groups}`,
-    { inlineKeyboard: confirmKeyboard(pending.token) },
+    `${describeBroadcastPostPreview(messageIds, bodyPreview)}\n\nКуда отправить?`,
+    { inlineKeyboard: confirmKeyboard(pending.token, groups) },
   );
 }
 
 export async function startBroadcastPostFlow(chatId: number, userId: number): Promise<void> {
-  setAwaitingBroadcastPost(chatId, userId);
+  await setAwaitingBroadcastPost(chatId, userId);
   await sendTelegramMessage(
     chatId,
     [
@@ -129,18 +134,20 @@ export async function confirmBroadcastPost(
   chatId: number,
   userId: number,
   token: string,
-): Promise<void> {
-  const pending = takePendingBroadcastPost(token, userId);
+  audience: BroadcastAudience,
+): Promise<{ sent: number; failed: number; chats: number }> {
+  const pending = await takePendingBroadcastPost(token, userId);
   if (!pending) {
     await sendTelegramMessage(chatId, "Сессия рассылки устарела. Отправьте /broadcast заново.");
-    return;
+    return { sent: 0, failed: 0, chats: 0 };
   }
   const supabase = requireServiceSupabase();
-  const result = await broadcastPostToGroups(supabase, pending.sourceChatId, pending.messageIds);
+  const result = await broadcastPostToGroups(supabase, pending.sourceChatId, pending.messageIds, audience);
   await sendTelegramMessage(
     chatId,
     `📢 Готово: пост разослан в ${result.sent} из ${result.chats} групп${result.failed ? `, ошибок: ${result.failed}` : ""}.`,
   );
+  return result;
 }
 
 export function isBroadcastPostCommand(text: string): boolean {

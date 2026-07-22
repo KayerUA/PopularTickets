@@ -12,6 +12,9 @@ export type PendingBroadcastPost = {
 };
 
 const PENDING_TTL_MS = 30 * 60 * 1000;
+const AWAITING_TTL_MS = 15 * 60 * 1000;
+const SESSION_PREFIX = "postcast:session:";
+const PENDING_PREFIX = "postcast:pending:";
 
 function pendingStore(): Map<string, PendingBroadcastPost> {
   const g = globalThis as typeof globalThis & { __pendingBroadcastPosts?: Map<string, PendingBroadcastPost> };
@@ -19,8 +22,10 @@ function pendingStore(): Map<string, PendingBroadcastPost> {
   return g.__pendingBroadcastPosts;
 }
 
-function awaitingStore(): Map<number, number> {
-  const g = globalThis as typeof globalThis & { __awaitingBroadcastPost?: Map<number, number> };
+type AwaitingBroadcastPost = { userId: number; expiresAt: number };
+
+function awaitingStore(): Map<number, AwaitingBroadcastPost> {
+  const g = globalThis as typeof globalThis & { __awaitingBroadcastPost?: Map<number, AwaitingBroadcastPost> };
   if (!g.__awaitingBroadcastPost) g.__awaitingBroadcastPost = new Map();
   return g.__awaitingBroadcastPost;
 }
@@ -32,23 +37,105 @@ function pruneExpired(): void {
   }
 }
 
-export function setAwaitingBroadcastPost(chatId: number, userId: number): void {
-  awaitingStore().set(chatId, userId);
+function expiryIn(ms: number): number {
+  return Date.now() + ms;
 }
 
-export function clearAwaitingBroadcastPost(chatId: number): void {
+function isExpired(expiresAt: unknown): boolean {
+  return typeof expiresAt !== "number" || expiresAt <= Date.now();
+}
+
+async function sessionSupabase() {
+  try {
+    return requireServiceSupabase();
+  } catch {
+    return null;
+  }
+}
+
+async function saveSession(
+  id: string,
+  chatId: number,
+  userId: number,
+  flags: Record<string, unknown>,
+): Promise<void> {
+  const supabase = await sessionSupabase();
+  if (!supabase) return;
+  const { error } = await supabase.from("telegram_message_buffers").upsert({
+    id,
+    chat_id: chatId,
+    user_id: userId,
+    text_content: "",
+    file_ids: [],
+    flags,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw new Error(error.message);
+}
+
+async function takeSession(id: string, userId?: number): Promise<{ flags: Record<string, unknown>; userId: number } | null> {
+  const supabase = await sessionSupabase();
+  if (!supabase) return null;
+  let query = supabase.from("telegram_message_buffers").delete().eq("id", id);
+  if (userId != null) query = query.eq("user_id", userId);
+  const { data, error } = await query.select("user_id,flags").maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  return {
+    userId: Number(data.user_id),
+    flags: (data.flags as Record<string, unknown>) ?? {},
+  };
+}
+
+async function readSession(id: string): Promise<{ flags: Record<string, unknown>; userId: number } | null> {
+  const supabase = await sessionSupabase();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("telegram_message_buffers")
+    .select("user_id,flags")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  return {
+    userId: Number(data.user_id),
+    flags: (data.flags as Record<string, unknown>) ?? {},
+  };
+}
+
+export async function setAwaitingBroadcastPost(chatId: number, userId: number): Promise<void> {
+  const expiresAt = expiryIn(AWAITING_TTL_MS);
+  awaitingStore().set(chatId, { userId, expiresAt });
+  await saveSession(`${SESSION_PREFIX}${chatId}`, chatId, userId, {
+    kind: "awaiting-post",
+    expiresAt,
+  });
+}
+
+export async function clearAwaitingBroadcastPost(chatId: number): Promise<void> {
   awaitingStore().delete(chatId);
+  await takeSession(`${SESSION_PREFIX}${chatId}`);
 }
 
-export function isAwaitingBroadcastPost(chatId: number, userId: number): boolean {
-  return awaitingStore().get(chatId) === userId;
+export async function isAwaitingBroadcastPost(chatId: number, userId: number): Promise<boolean> {
+  const memory = awaitingStore().get(chatId);
+  if (memory?.userId === userId && !isExpired(memory.expiresAt)) return true;
+  if (memory) awaitingStore().delete(chatId);
+  const row = await readSession(`${SESSION_PREFIX}${chatId}`);
+  if (!row || row.userId !== userId || row.flags.kind !== "awaiting-post") return false;
+  if (isExpired(row.flags.expiresAt)) {
+    await takeSession(`${SESSION_PREFIX}${chatId}`, userId);
+    return false;
+  }
+  awaitingStore().set(chatId, { userId, expiresAt: Number(row.flags.expiresAt) });
+  return true;
 }
 
-export function createPendingBroadcastPost(
+export async function createPendingBroadcastPost(
   userId: number,
   sourceChatId: number,
   messageIds: number[],
-): PendingBroadcastPost {
+): Promise<PendingBroadcastPost> {
   pruneExpired();
   const token = randomBytes(6).toString("hex");
   const row: PendingBroadcastPost = {
@@ -59,11 +146,31 @@ export function createPendingBroadcastPost(
     createdAt: Date.now(),
   };
   pendingStore().set(token, row);
+  await saveSession(`${PENDING_PREFIX}${token}`, sourceChatId, userId, {
+    kind: "pending-post",
+    sourceChatId,
+    messageIds: row.messageIds,
+    expiresAt: expiryIn(PENDING_TTL_MS),
+  });
   return row;
 }
 
-export function takePendingBroadcastPost(token: string, userId: number): PendingBroadcastPost | null {
+export async function takePendingBroadcastPost(token: string, userId: number): Promise<PendingBroadcastPost | null> {
   pruneExpired();
+  const supabase = await sessionSupabase();
+  if (supabase) {
+    // В production именно delete в БД — атомарный «билет» на рассылку между инстансами Vercel.
+    const stored = await takeSession(`${PENDING_PREFIX}${token}`, userId);
+    if (!stored || stored.flags.kind !== "pending-post" || isExpired(stored.flags.expiresAt)) return null;
+    pendingStore().delete(token);
+    const sourceChatId = Number(stored.flags.sourceChatId);
+    const messageIds = Array.isArray(stored.flags.messageIds)
+      ? stored.flags.messageIds.map(Number).filter((id) => Number.isFinite(id) && id > 0)
+      : [];
+    if (!Number.isFinite(sourceChatId) || !messageIds.length) return null;
+    return { token, userId, sourceChatId, messageIds, createdAt: Date.now() };
+  }
+
   const row = pendingStore().get(token);
   if (!row || row.userId !== userId) return null;
   pendingStore().delete(token);

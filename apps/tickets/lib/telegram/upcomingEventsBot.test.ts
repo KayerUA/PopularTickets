@@ -21,7 +21,7 @@ describe("formatUpcomingEventsMessage", () => {
     expect(text).toContain("Предстоящие события");
     expect(text).toContain("Пробное занятие");
     expect(text).toContain("/ru/events/probnoe-improv");
-    expect(text).toContain("повторная рассылка");
+    expect(text).toContain("мастер-группу");
   });
 
   it("handles empty list", () => {

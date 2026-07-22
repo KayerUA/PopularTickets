@@ -40,12 +40,6 @@ export function getTelegramBroadcastChatIds(): number[] {
     .filter((n) => Number.isFinite(n) && n !== 0);
 }
 
-/** Авто-рассылка в группы сразу после публикации (без кнопки). */
-export function isTelegramAutoBroadcast(): boolean {
-  const v = (process.env.TELEGRAM_AUTO_BROADCAST ?? "").trim().toLowerCase();
-  return v === "1" || v === "true" || v === "on" || v === "yes";
-}
-
 export function isTelegramBotConfigured(): boolean {
   return Boolean(getTelegramBotToken() && getTelegramWebhookSecret() && getGeminiApiKey());
 }

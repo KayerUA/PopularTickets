@@ -45,6 +45,53 @@ export type CreatedEventDraft = {
   discovery: EventDiscoveryResult;
 };
 
+/** Прикрепляет присланную в Telegram обложку только к событию, у которого её ещё нет. */
+export async function attachTelegramImageToEvent(
+  supabase: SupabaseClient,
+  eventId: string,
+  image: { buffer: Buffer; mimeType: string },
+): Promise<{ title: string; slug: string }> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("id,title,slug,image_url")
+    .eq("id", eventId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Событие не найдено");
+  if (typeof data.image_url === "string" && data.image_url.trim()) {
+    throw new Error("У этого события уже есть обложка");
+  }
+
+  const slug = String(data.slug);
+  const imageUrl = await uploadEventCoverBuffer(supabase, image.buffer, image.mimeType, slug);
+  let update = await supabase
+    .from("events")
+    .update({ image_url: imageUrl, image_focal_x: 50, image_focal_y: 50 })
+    .eq("id", eventId)
+    .is("image_url", null)
+    .select("id")
+    .maybeSingle();
+  if (update.error && isEventsImageFocalUnavailable(update.error.message)) {
+    update = await supabase
+      .from("events")
+      .update({ image_url: imageUrl })
+      .eq("id", eventId)
+      .is("image_url", null)
+      .select("id")
+      .maybeSingle();
+  }
+  if (update.error) throw new Error(update.error.message);
+  if (!update.data) throw new Error("Пока выбирали событие, к нему уже добавили обложку");
+
+  for (const loc of routing.locales) {
+    revalidatePath(`/${loc}`);
+    revalidatePath(`/${loc}/events`);
+    revalidatePath(`/${loc}/events/${slug}`);
+  }
+  revalidatePath("/admin");
+  return { title: String(data.title), slug };
+}
+
 async function resolvePoetCourseId(
   supabase: SupabaseClient,
   slug: string | undefined,
