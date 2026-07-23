@@ -9,8 +9,12 @@ import {
   appendBroadcastAlbumPart,
   claimBroadcastAlbumBuffer,
   clearAwaitingBroadcastPost,
+  clearAiBroadcastRewrite,
   createPendingBroadcastPost,
   isAwaitingBroadcastPost,
+  readAiBroadcastRewrite,
+  saveAiBroadcastRewriteInstruction,
+  startAiBroadcastRewrite,
   setAwaitingBroadcastPost,
   takePendingBroadcastPost,
 } from "@/lib/telegram/broadcastPostStore";
@@ -22,6 +26,7 @@ import {
 import { saveBroadcastRetry } from "@/lib/telegram/broadcastReportStore";
 import { MEDIA_GROUP_DEBOUNCE_MS, sleepMs } from "@/lib/telegram/telegramMessageBuffer";
 import { sendTelegramMessage, type InlineKeyboardButton } from "@/lib/telegram/telegramBotApi";
+import { rewriteBroadcastWithGemini } from "@/lib/telegram/rewriteBroadcastWithGemini";
 
 export type BroadcastSourceMessage = {
   message_id: number;
@@ -125,6 +130,45 @@ export async function startBroadcastPostFlow(chatId: number, userId: number): Pr
   );
 }
 
+export async function offerBroadcastMode(chatId: number): Promise<void> {
+  await sendTelegramMessage(chatId, "📣 Что сделать с постом?", {
+    inlineKeyboard: [
+      [{ text: "📤 Отправить как есть", callback_data: "postmode:plain" }],
+      [{ text: "✨ Переписать с Gemini", callback_data: "postmode:rewrite" }],
+      [{ text: "✖️ Отмена", callback_data: "postcast:cancel" }],
+    ],
+  });
+}
+
+export async function startAiBroadcastRewriteFlow(chatId: number, userId: number): Promise<void> {
+  await startAiBroadcastRewrite(chatId, userId);
+  await sendTelegramMessage(
+    chatId,
+    "✨ Gemini-режим\n\n1. Пришлите старый текст анонса.\n2. Следующим сообщением напишите, что изменить — например: «сократи, сохрани дату и цену».\n\n/cancel — отменить",
+  );
+}
+
+/** Возвращает true, если сообщение было частью Gemini-сценария. */
+export async function handleAiBroadcastRewriteInput(chatId: number, userId: number, text: string): Promise<boolean> {
+  const session = await readAiBroadcastRewrite(chatId, userId);
+  if (!session) return false;
+  const value = text.trim();
+  if (!value) {
+    await sendTelegramMessage(chatId, session.stage === "source" ? "Пришлите текст старого анонса." : "Напишите инструкцию для Gemini.");
+    return true;
+  }
+  if (session.stage === "source") {
+    await saveAiBroadcastRewriteInstruction(chatId, userId, value);
+    await sendTelegramMessage(chatId, "✍️ Теперь напишите инструкцию для Gemini: что сократить или изменить. Даты, цены и ссылки сохраню.");
+    return true;
+  }
+  await clearAiBroadcastRewrite(chatId);
+  await sendTelegramMessage(chatId, "✨ Переписываю анонс, сохраняя факты…");
+  const rewritten = await rewriteBroadcastWithGemini(session.source ?? "", value);
+  await offerGeneratedBroadcastPost(chatId, userId, rewritten);
+  return true;
+}
+
 export async function handleBroadcastPostInput(
   chatId: number,
   userId: number,
@@ -140,7 +184,6 @@ export async function handleBroadcastPostInput(
     await appendBroadcastAlbumPart(chatId, userId, mediaGroupId, msg.message_id);
     await sleepMs(MEDIA_GROUP_DEBOUNCE_MS);
     let claimed = await claimBroadcastAlbumBuffer(chatId, mediaGroupId, MEDIA_GROUP_DEBOUNCE_MS - 400);
-    if (!claimed) return;
     if (!claimed) return;
     await offerBroadcastPostConfirm(chatId, claimed.userId, chatId, claimed.messageIds);
     return;
@@ -196,4 +239,4 @@ export function broadcastInstruction(text: string): string | undefined {
   return match?.[1]?.trim() || undefined;
 }
 
-export { isAwaitingBroadcastPost, clearAwaitingBroadcastPost };
+export { isAwaitingBroadcastPost, clearAwaitingBroadcastPost, clearAiBroadcastRewrite };

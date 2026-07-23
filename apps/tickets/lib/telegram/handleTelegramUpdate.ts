@@ -95,14 +95,18 @@ import { getDraftImageFocals } from "@/lib/telegram/draftImageFocal";
 import { telegramFocalWebAppUrl } from "@/lib/telegram/telegramFocalWebAppUrl";
 import {
   clearAwaitingBroadcastPost,
+  clearAiBroadcastRewrite,
   confirmBroadcastPost,
   broadcastInstruction,
   handleBroadcastPostInput,
+  handleAiBroadcastRewriteInput,
   isAwaitingBroadcastPost,
   isBroadcastPostCommand,
   offerBroadcastPostConfirm,
+  offerBroadcastMode,
   offerGeneratedBroadcastPost,
   startBroadcastPostFlow,
+  startAiBroadcastRewriteFlow,
 } from "@/lib/telegram/broadcastPostHandlers";
 import { rewriteBroadcastWithGemini } from "@/lib/telegram/rewriteBroadcastWithGemini";
 
@@ -1552,7 +1556,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
       }
       if (data === "menu:post") {
         if (cq.id) await answerCallbackQuery(cq.id);
-        await startBroadcastPostFlow(chatId, userId);
+        await offerBroadcastMode(chatId);
         return {};
       }
       if (data === "menu:upcoming") {
@@ -1702,8 +1706,19 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
       }
       if (data === "postcast:cancel") {
         await clearAwaitingBroadcastPost(chatId);
+        await clearAiBroadcastRewrite(chatId);
         if (cq.id) await answerCallbackQuery(cq.id, "Отменено");
         await sendTelegramMessage(chatId, "❌ Рассылка поста отменена.");
+        return {};
+      }
+      if (data === "postmode:plain") {
+        if (cq.id) await answerCallbackQuery(cq.id);
+        await startBroadcastPostFlow(chatId, userId);
+        return {};
+      }
+      if (data === "postmode:rewrite") {
+        if (cq.id) await answerCallbackQuery(cq.id);
+        await startAiBroadcastRewriteFlow(chatId, userId);
         return {};
       }
       if (data.startsWith("postcastpickgrp:")) {
@@ -1940,6 +1955,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
     await cancelAfishaBuffer(chatId);
     const wasAwaitingBroadcast = await isAwaitingBroadcastPost(chatId, userId);
     await clearAwaitingBroadcastPost(chatId);
+    await clearAiBroadcastRewrite(chatId);
     const active = await getActiveDraftForChat(supabase, chatId);
     if (active) {
       await cancelActiveDraftForChat(supabase, chatId);
@@ -1985,7 +2001,15 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
       }
       return {};
     }
-    await startBroadcastPostFlow(chatId, userId);
+    await offerBroadcastMode(chatId);
+    return {};
+  }
+
+  try {
+    if (await handleAiBroadcastRewriteInput(chatId, userId, text)) return {};
+  } catch (e) {
+    const err = e instanceof Error ? e.message : "unknown error";
+    await sendTelegramMessage(chatId, `❌ Gemini: ${err}`);
     return {};
   }
 

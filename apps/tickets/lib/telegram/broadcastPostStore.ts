@@ -16,6 +16,7 @@ const PENDING_TTL_MS = 30 * 60 * 1000;
 const AWAITING_TTL_MS = 15 * 60 * 1000;
 const SESSION_PREFIX = "postcast:session:";
 const PENDING_PREFIX = "postcast:pending:";
+const REWRITE_PREFIX = "postcast:rewrite:";
 
 function pendingStore(): Map<string, PendingBroadcastPost> {
   const g = globalThis as typeof globalThis & { __pendingBroadcastPosts?: Map<string, PendingBroadcastPost> };
@@ -116,6 +117,46 @@ export async function setAwaitingBroadcastPost(chatId: number, userId: number): 
 export async function clearAwaitingBroadcastPost(chatId: number): Promise<void> {
   awaitingStore().delete(chatId);
   await takeSession(`${SESSION_PREFIX}${chatId}`);
+}
+
+type RewriteSession = { stage: "source" | "instruction"; source?: string; expiresAt: number };
+
+export async function startAiBroadcastRewrite(chatId: number, userId: number): Promise<void> {
+  await clearAwaitingBroadcastPost(chatId);
+  await saveSession(`${REWRITE_PREFIX}${chatId}`, chatId, userId, {
+    kind: "ai-rewrite-post",
+    stage: "source",
+    expiresAt: expiryIn(AWAITING_TTL_MS),
+  });
+}
+
+export async function clearAiBroadcastRewrite(chatId: number): Promise<void> {
+  await takeSession(`${REWRITE_PREFIX}${chatId}`);
+}
+
+export async function readAiBroadcastRewrite(chatId: number, userId: number): Promise<RewriteSession | null> {
+  const row = await readSession(`${REWRITE_PREFIX}${chatId}`);
+  if (!row || row.userId !== userId || row.flags.kind !== "ai-rewrite-post") return null;
+  const stage = row.flags.stage;
+  const expiresAt = Number(row.flags.expiresAt);
+  if ((stage !== "source" && stage !== "instruction") || isExpired(expiresAt)) {
+    await clearAiBroadcastRewrite(chatId);
+    return null;
+  }
+  return {
+    stage,
+    source: typeof row.flags.source === "string" ? row.flags.source : undefined,
+    expiresAt,
+  };
+}
+
+export async function saveAiBroadcastRewriteInstruction(chatId: number, userId: number, source: string): Promise<void> {
+  await saveSession(`${REWRITE_PREFIX}${chatId}`, chatId, userId, {
+    kind: "ai-rewrite-post",
+    stage: "instruction",
+    source,
+    expiresAt: expiryIn(AWAITING_TTL_MS),
+  });
 }
 
 export async function isAwaitingBroadcastPost(chatId: number, userId: number): Promise<boolean> {
