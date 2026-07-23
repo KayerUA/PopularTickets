@@ -4,7 +4,7 @@ import {
   resolveBroadcastTargetIds,
   type BroadcastAudience,
 } from "@/lib/telegram/broadcastChatStore";
-import { copyTelegramMessages } from "@/lib/telegram/telegramBotApi";
+import { copyTelegramMessages, sendTelegramMessage, sendTelegramPhoto } from "@/lib/telegram/telegramBotApi";
 
 export type BroadcastPostResult = {
   sent: number;
@@ -66,17 +66,23 @@ export async function broadcastTextToGroups(
   text: string,
   audience: BroadcastAudience = "all",
   targetChatIds?: number[],
+  photoFileId?: string,
 ): Promise<BroadcastPostResult> {
   const chatIds = targetChatIds?.length ? [...new Set(targetChatIds)] : await resolveBroadcastTargetIds(supabase, audience);
   if (!chatIds.length) throw new Error("Нет групп для рассылки. Добавьте бота админом в группу или /subscribe в группе.");
   const body = text.trim();
   if (!body) throw new Error("Нет текста для рассылки");
-  const { sendTelegramMessage } = await import("@/lib/telegram/telegramBotApi");
+  const link = body.match(/https?:\/\/[^\s<>]+/i)?.[0]?.replace(/[.,;!?]+$/, "");
+  const inlineKeyboard = link ? [[{ text: "🎟 Билеты", url: link }]] : undefined;
   let sent = 0;
   const failedChatIds: number[] = [];
   for (const chatId of chatIds) {
     try {
-      await sendTelegramMessage(chatId, body);
+      if (photoFileId) {
+        await sendTelegramPhoto(chatId, photoFileId, body.slice(0, 1024), { inlineKeyboard });
+      } else {
+        await sendTelegramMessage(chatId, body, { inlineKeyboard });
+      }
       sent++;
     } catch (error) {
       failedChatIds.push(chatId);

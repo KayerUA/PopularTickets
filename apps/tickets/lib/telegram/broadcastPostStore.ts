@@ -9,6 +9,7 @@ export type PendingBroadcastPost = {
   sourceChatId: number;
   messageIds: number[];
   generatedText?: string;
+  generatedPhotoFileId?: string;
   createdAt: number;
 };
 
@@ -119,7 +120,12 @@ export async function clearAwaitingBroadcastPost(chatId: number): Promise<void> 
   await takeSession(`${SESSION_PREFIX}${chatId}`);
 }
 
-type RewriteSession = { stage: "source" | "instruction"; source?: string; expiresAt: number };
+type RewriteSession = {
+  stage: "source" | "instruction";
+  source?: string;
+  sourcePhotoFileId?: string;
+  expiresAt: number;
+};
 
 export async function startAiBroadcastRewrite(chatId: number, userId: number): Promise<void> {
   await clearAwaitingBroadcastPost(chatId);
@@ -146,15 +152,22 @@ export async function readAiBroadcastRewrite(chatId: number, userId: number): Pr
   return {
     stage,
     source: typeof row.flags.source === "string" ? row.flags.source : undefined,
+    sourcePhotoFileId: typeof row.flags.sourcePhotoFileId === "string" ? row.flags.sourcePhotoFileId : undefined,
     expiresAt,
   };
 }
 
-export async function saveAiBroadcastRewriteInstruction(chatId: number, userId: number, source: string): Promise<void> {
+export async function saveAiBroadcastRewriteInstruction(
+  chatId: number,
+  userId: number,
+  source: string,
+  sourcePhotoFileId?: string,
+): Promise<void> {
   await saveSession(`${REWRITE_PREFIX}${chatId}`, chatId, userId, {
     kind: "ai-rewrite-post",
     stage: "instruction",
     source,
+    sourcePhotoFileId,
     expiresAt: expiryIn(AWAITING_TTL_MS),
   });
 }
@@ -178,6 +191,7 @@ export async function createPendingBroadcastPost(
   sourceChatId: number,
   messageIds: number[],
   generatedText?: string,
+  generatedPhotoFileId?: string,
 ): Promise<PendingBroadcastPost> {
   pruneExpired();
   const token = randomBytes(6).toString("hex");
@@ -187,6 +201,7 @@ export async function createPendingBroadcastPost(
     sourceChatId,
     messageIds: [...new Set(messageIds)].sort((a, b) => a - b),
     generatedText: generatedText?.trim() || undefined,
+    generatedPhotoFileId: generatedPhotoFileId?.trim() || undefined,
     createdAt: Date.now(),
   };
   pendingStore().set(token, row);
@@ -195,6 +210,7 @@ export async function createPendingBroadcastPost(
     sourceChatId,
     messageIds: row.messageIds,
     generatedText: row.generatedText,
+    generatedPhotoFileId: row.generatedPhotoFileId,
     expiresAt: expiryIn(PENDING_TTL_MS),
   });
   return row;
@@ -213,8 +229,11 @@ export async function takePendingBroadcastPost(token: string, userId: number): P
       ? stored.flags.messageIds.map(Number).filter((id) => Number.isFinite(id) && id > 0)
       : [];
     const generatedText = typeof stored.flags.generatedText === "string" ? stored.flags.generatedText.trim() : undefined;
+    const generatedPhotoFileId = typeof stored.flags.generatedPhotoFileId === "string"
+      ? stored.flags.generatedPhotoFileId.trim()
+      : undefined;
     if (!Number.isFinite(sourceChatId) || (!messageIds.length && !generatedText)) return null;
-    return { token, userId, sourceChatId, messageIds, generatedText, createdAt: Date.now() };
+    return { token, userId, sourceChatId, messageIds, generatedText, generatedPhotoFileId, createdAt: Date.now() };
   }
 
   const row = pendingStore().get(token);

@@ -1991,7 +1991,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
           }
           await sendTelegramMessage(chatId, "✨ Переписываю анонс, сохраняя дату, стоимость и остальные факты…");
           const rewritten = await rewriteBroadcastWithGemini(source, instruction);
-          await offerGeneratedBroadcastPost(chatId, userId, rewritten);
+          await offerGeneratedBroadcastPost(chatId, userId, rewritten, photoFileId(reply));
           return {};
         }
         await offerBroadcastPostConfirm(chatId, userId, chatId, [reply.message_id], messageBody(reply));
@@ -2006,7 +2006,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
   }
 
   try {
-    if (await handleAiBroadcastRewriteInput(chatId, userId, text)) return {};
+    if (await handleAiBroadcastRewriteInput(chatId, userId, text, fileIds[0])) return {};
   } catch (e) {
     const err = e instanceof Error ? e.message : "unknown error";
     await sendTelegramMessage(chatId, `❌ Gemini: ${err}`);

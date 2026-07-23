@@ -7,7 +7,7 @@ const PREFIX = "tg:broadcast:";
 const TTL_MS = 24 * 60 * 60 * 1000;
 
 export type BroadcastReportPayload =
-  | { kind: "post"; audience: BroadcastAudience; sourceChatId: number; messageIds: number[]; generatedText?: string }
+  | { kind: "post"; audience: BroadcastAudience; sourceChatId: number; messageIds: number[]; generatedText?: string; generatedPhotoFileId?: string }
   | { kind: "event"; audience: BroadcastAudience; eventId: string }
   | { kind: "draft"; audience: BroadcastAudience; draftId: string };
 

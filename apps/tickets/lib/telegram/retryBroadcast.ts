@@ -19,7 +19,7 @@ export async function retryBroadcast(userId: number, token: string): Promise<Ret
 
   if (payload.kind === "post") {
     result = payload.generatedText
-      ? await broadcastTextToGroups(supabase, payload.generatedText, payload.audience, failedChatIds)
+      ? await broadcastTextToGroups(supabase, payload.generatedText, payload.audience, failedChatIds, payload.generatedPhotoFileId)
       : await broadcastPostToGroups(supabase, payload.sourceChatId, payload.messageIds, payload.audience, failedChatIds);
   } else if (payload.kind === "event") {
     result = await broadcastEventToGroups(supabase, payload.eventId, payload.audience, failedChatIds);

@@ -102,12 +102,13 @@ export async function offerGeneratedBroadcastPost(
   chatId: number,
   userId: number,
   text: string,
+  photoFileId?: string,
 ): Promise<void> {
   await clearAwaitingBroadcastPost(chatId);
   const supabase = requireServiceSupabase();
   const groups = await groupCountOrError(supabase);
   const master = await getMasterBroadcastChat(supabase);
-  const pending = await createPendingBroadcastPost(userId, chatId, [], text);
+  const pending = await createPendingBroadcastPost(userId, chatId, [], text, photoFileId);
   await sendTelegramMessage(
     chatId,
     `✨ Вариант для рассылки:\n\n${text}\n\nКуда отправить?`,
@@ -149,7 +150,12 @@ export async function startAiBroadcastRewriteFlow(chatId: number, userId: number
 }
 
 /** Возвращает true, если сообщение было частью Gemini-сценария. */
-export async function handleAiBroadcastRewriteInput(chatId: number, userId: number, text: string): Promise<boolean> {
+export async function handleAiBroadcastRewriteInput(
+  chatId: number,
+  userId: number,
+  text: string,
+  photoFileId?: string,
+): Promise<boolean> {
   const session = await readAiBroadcastRewrite(chatId, userId);
   if (!session) return false;
   const value = text.trim();
@@ -158,14 +164,14 @@ export async function handleAiBroadcastRewriteInput(chatId: number, userId: numb
     return true;
   }
   if (session.stage === "source") {
-    await saveAiBroadcastRewriteInstruction(chatId, userId, value);
+    await saveAiBroadcastRewriteInstruction(chatId, userId, value, photoFileId);
     await sendTelegramMessage(chatId, "✍️ Теперь напишите инструкцию для Gemini: что сократить или изменить. Даты, цены и ссылки сохраню.");
     return true;
   }
   await clearAiBroadcastRewrite(chatId);
   await sendTelegramMessage(chatId, "✨ Переписываю анонс, сохраняя факты…");
   const rewritten = await rewriteBroadcastWithGemini(session.source ?? "", value);
-  await offerGeneratedBroadcastPost(chatId, userId, rewritten);
+  await offerGeneratedBroadcastPost(chatId, userId, rewritten, session.sourcePhotoFileId);
   return true;
 }
 
@@ -206,7 +212,7 @@ export async function confirmBroadcastPost(
   }
   const supabase = requireServiceSupabase();
   const result = pending.generatedText
-    ? await broadcastTextToGroups(supabase, pending.generatedText, audience, targetChatIds)
+    ? await broadcastTextToGroups(supabase, pending.generatedText, audience, targetChatIds, pending.generatedPhotoFileId)
     : await broadcastPostToGroups(supabase, pending.sourceChatId, pending.messageIds, audience, targetChatIds);
   const retryToken = await saveBroadcastRetry(userId, {
     kind: "post",
@@ -214,6 +220,7 @@ export async function confirmBroadcastPost(
     sourceChatId: pending.sourceChatId,
     messageIds: pending.messageIds,
     generatedText: pending.generatedText,
+    generatedPhotoFileId: pending.generatedPhotoFileId,
   }, result.failedChatIds);
   await sendTelegramMessage(
     chatId,
