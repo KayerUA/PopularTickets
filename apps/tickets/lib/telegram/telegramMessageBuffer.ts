@@ -278,9 +278,9 @@ export async function peekAfishaBuffer(
   return { fileIds: row.file_ids, text: row.text_content };
 }
 
-// Ждём, пока Telegram доставит весь альбом. Меньшее окно давало нескольким
-// serverless-инстансам начать один и тот же Gemini-разбор параллельно.
-export const MEDIA_GROUP_DEBOUNCE_MS = 2800;
+// При пересылке Telegram иногда доставляет части альбома с разрывом до 5 секунд.
+// Ждём весь пакет, чтобы только последний worker запустил один Gemini-разбор.
+export const MEDIA_GROUP_DEBOUNCE_MS = 6000;
 
 export async function sleepMs(ms: number): Promise<void> {
   await new Promise((r) => setTimeout(r, ms));

@@ -630,17 +630,24 @@ async function callGeminiGenerate(parts: { text?: string; inline_data?: { mime_t
   let lastError = "Gemini API failed";
 
   for (const model of models) {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-      {
+    let res: Response;
+    try {
+      res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey },
         body: JSON.stringify({
           contents: [{ parts }],
           generationConfig: { temperature: 0.25, responseMimeType: "application/json" },
         }),
-      },
-    );
+          signal: AbortSignal.timeout(12_000),
+        },
+      );
+    } catch (error) {
+      lastError = `${model}: ${error instanceof Error ? error.message : "request failed"}`;
+      continue;
+    }
 
     if (res.ok) {
       const json = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
