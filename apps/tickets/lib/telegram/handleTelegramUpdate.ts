@@ -455,7 +455,10 @@ async function runGeminiForAfisha(
 
   let imageForGemini: { base64: string; mimeType: string } | undefined;
   const primaryFileId = fileIds[0];
-  if (primaryFileId) {
+  // Если расписание уже написано текстом, Gemini не нужен тяжёлый vision-ввод:
+  // это существенно сокращает время разбора альбома и исключает Vercel timeout.
+  const needsVision = text.trim().length < 40;
+  if (primaryFileId && needsVision) {
     const downloaded = await downloadTelegramFile(primaryFileId);
     imageForGemini = { base64: downloaded.buffer.toString("base64"), mimeType: downloaded.mimeType };
   }

@@ -278,9 +278,9 @@ export async function peekAfishaBuffer(
   return { fileIds: row.file_ids, text: row.text_content };
 }
 
-// Telegram доставляет элементы альбома подряд; 900 мс заметно быстрее для редактора,
-// а условное удаление выше защищает от поздно пришедшего последнего фото.
-export const MEDIA_GROUP_DEBOUNCE_MS = 900;
+// Ждём, пока Telegram доставит весь альбом. Меньшее окно давало нескольким
+// serverless-инстансам начать один и тот же Gemini-разбор параллельно.
+export const MEDIA_GROUP_DEBOUNCE_MS = 2800;
 
 export async function sleepMs(ms: number): Promise<void> {
   await new Promise((r) => setTimeout(r, ms));
