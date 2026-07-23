@@ -3,6 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getTelegramWebhookSecret } from "@/lib/telegram/config";
 import { ackCallbackQueryImmediate } from "@/lib/telegram/telegramBotApi";
 import { handleTelegramUpdate, type TelegramUpdate } from "@/lib/telegram/handleTelegramUpdate";
+import {
+  claimTelegramWebhookUpdate,
+  completeTelegramWebhookUpdate,
+  failTelegramWebhookUpdate,
+} from "@/lib/telegram/telegramWebhookUpdateStore";
 
 export const maxDuration = 60;
 
@@ -42,30 +47,25 @@ export async function POST(req: NextRequest, context: RouteContext): Promise<Nex
     ackCallbackQueryImmediate(update.callback_query.id, hint);
   }
 
-  const isMultiPhoto = Boolean(update.message?.media_group_id);
-
   try {
     if (process.env.NODE_ENV === "development") {
+      if (!(await claimTelegramWebhookUpdate(update))) return NextResponse.json({ ok: true, duplicate: true });
       const { background } = await handleTelegramUpdate(update);
       if (background) await background;
-    } else if (isMultiPhoto) {
-      // Несколько фото в одном пересыле: ~3 с debounce в запросе, Gemini — в фоне.
-      const { background } = await handleTelegramUpdate(update);
-      if (background) {
-        waitUntil(
-          background.catch((e) => {
-            console.error("[telegram webhook] background gemini", e);
-          }),
-        );
-      }
+      await completeTelegramWebhookUpdate(update.update_id);
     } else {
+      // Сначала сохраняем update_id: повторная доставка Telegram или второй Vercel-инстанс
+      // не создадут дубликаты. Ответ Telegram возвращается сразу даже для альбома/Gemini.
+      if (!(await claimTelegramWebhookUpdate(update))) return NextResponse.json({ ok: true, duplicate: true });
       waitUntil(
         handleTelegramUpdate(update)
           .then(async ({ background }) => {
             if (background) await background;
+            await completeTelegramWebhookUpdate(update.update_id);
           })
           .catch((e) => {
             console.error("[telegram webhook]", e);
+            return failTelegramWebhookUpdate(update.update_id, e);
           }),
       );
     }

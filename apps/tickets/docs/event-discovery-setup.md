@@ -66,6 +66,10 @@ NOTIFY pgrst, 'reload schema';
 5. `supabase/telegram-bot-admins.sql` — редакторы бота (назначаются через /addadmin)
 6. `supabase/add-events-day-of-event-price.sql` — цена в день события
 
+Для автоматического повтора временно сбойных webhook-обновлений задайте в Vercel `CRON_SECRET`.
+После следующего деплоя Vercel Cron вызывает `/api/telegram/retry` каждые 10 минут. Секрет должен
+совпадать со значением, которое Vercel передаёт в заголовке `Authorization` для Cron Jobs.
+
 ### 3. Регистрация webhook
 
 ```bash

@@ -10,6 +10,7 @@ export type BroadcastPostResult = {
   sent: number;
   failed: number;
   chats: number;
+  failedChatIds: number[];
 };
 
 export function describeBroadcastPostPreview(messageIds: number[], bodyPreview?: string): string {
@@ -33,8 +34,9 @@ export async function broadcastPostToGroups(
   sourceChatId: number,
   messageIds: number[],
   audience: BroadcastAudience = "all",
+  targetChatIds?: number[],
 ): Promise<BroadcastPostResult> {
-  const chatIds = await resolveBroadcastTargetIds(supabase, audience);
+  const chatIds = targetChatIds?.length ? [...new Set(targetChatIds)] : await resolveBroadcastTargetIds(supabase, audience);
   if (!chatIds.length) {
     throw new Error("Нет групп для рассылки. Добавьте бота админом в группу или /subscribe в группе.");
   }
@@ -43,6 +45,7 @@ export async function broadcastPostToGroups(
   const sortedIds = [...new Set(messageIds)].sort((a, b) => a - b);
   let sent = 0;
   let failed = 0;
+  const failedChatIds: number[] = [];
 
   for (const targetChatId of chatIds) {
     try {
@@ -50,11 +53,12 @@ export async function broadcastPostToGroups(
       sent++;
     } catch (e) {
       failed++;
+      failedChatIds.push(targetChatId);
       console.error("[telegram post broadcast]", targetChatId, sortedIds, e);
     }
   }
 
-  return { sent, failed, chats: chatIds.length };
+  return { sent, failed, chats: chatIds.length, failedChatIds };
 }
 
 export { broadcastAudienceLabel };

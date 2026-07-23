@@ -80,8 +80,9 @@ export async function broadcastEventToGroups(
   supabase: SupabaseClient,
   eventId: string,
   audience: BroadcastAudience = "all",
-): Promise<{ sent: number; failed: number; chats: number }> {
-  const chatIds = await resolveBroadcastTargetIds(supabase, audience);
+  targetChatIds?: number[],
+): Promise<{ sent: number; failed: number; chats: number; failedChatIds: number[] }> {
+  const chatIds = targetChatIds?.length ? [...new Set(targetChatIds)] : await resolveBroadcastTargetIds(supabase, audience);
   if (!chatIds.length) {
     throw new Error("Нет групп для рассылки. Добавьте бота админом в группу или /subscribe в группе.");
   }
@@ -106,6 +107,7 @@ export async function broadcastEventToGroups(
 
   let sent = 0;
   let failed = 0;
+  const failedChatIds: number[] = [];
 
   for (const targetChatId of chatIds) {
     try {
@@ -113,19 +115,21 @@ export async function broadcastEventToGroups(
       sent++;
     } catch (e) {
       failed++;
+      failedChatIds.push(targetChatId);
       console.error("[telegram rebroadcast]", targetChatId, event.slug, e);
     }
   }
 
-  return { sent, failed, chats: chatIds.length };
+  return { sent, failed, chats: chatIds.length, failedChatIds };
 }
 
 export async function broadcastDraftToGroups(
   supabase: SupabaseClient,
   draftId: string,
   audience: BroadcastAudience = "all",
-): Promise<{ sent: number; failed: number; chats: number }> {
-  const chatIds = await resolveBroadcastTargetIds(supabase, audience);
+  targetChatIds?: number[],
+): Promise<{ sent: number; failed: number; chats: number; failedChatIds: number[] }> {
+  const chatIds = targetChatIds?.length ? [...new Set(targetChatIds)] : await resolveBroadcastTargetIds(supabase, audience);
   if (!chatIds.length) {
     throw new Error("Нет групп для рассылки. Добавьте бота админом в группу или /subscribe в группе.");
   }
@@ -142,6 +146,7 @@ export async function broadcastDraftToGroups(
 
   let sent = 0;
   let failed = 0;
+  const failedChatIds = new Set<number>();
 
   for (const targetChatId of chatIds) {
     for (let i = 0; i < published.length; i++) {
@@ -158,12 +163,13 @@ export async function broadcastDraftToGroups(
         sent++;
       } catch (e) {
         failed++;
+        failedChatIds.add(targetChatId);
         console.error("[telegram broadcast]", targetChatId, event.slug, e);
       }
     }
   }
 
-  return { sent, failed, chats: chatIds.length };
+  return { sent, failed, chats: chatIds.length, failedChatIds: [...failedChatIds] };
 }
 
 export function publishedEventsPayload(events: PublishedEventInfo[]): Record<string, unknown> {

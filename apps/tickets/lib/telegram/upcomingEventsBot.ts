@@ -108,6 +108,9 @@ export function upcomingEventsKeyboard(events: UpcomingEventRow[], page: number)
     if (nav.length) rows.push(nav);
   }
 
-  rows.push([{ text: "🔄 Обновить список", callback_data: `evpage:${page}` }]);
+  rows.push([
+    { text: "🔄 Обновить", callback_data: `evpage:${page}` },
+    { text: "🏠 Пульт", callback_data: "menu:home" },
+  ]);
   return rows;
 }

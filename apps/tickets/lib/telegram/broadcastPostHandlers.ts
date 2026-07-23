@@ -18,6 +18,7 @@ import {
   broadcastPostToGroups,
   describeBroadcastPostPreview,
 } from "@/lib/telegram/broadcastPostToGroups";
+import { saveBroadcastRetry } from "@/lib/telegram/broadcastReportStore";
 import { MEDIA_GROUP_DEBOUNCE_MS, sleepMs } from "@/lib/telegram/telegramMessageBuffer";
 import { sendTelegramMessage, type InlineKeyboardButton } from "@/lib/telegram/telegramBotApi";
 
@@ -135,19 +136,28 @@ export async function confirmBroadcastPost(
   userId: number,
   token: string,
   audience: BroadcastAudience,
-): Promise<{ sent: number; failed: number; chats: number }> {
+): Promise<{ sent: number; failed: number; chats: number; retryToken?: string | null }> {
   const pending = await takePendingBroadcastPost(token, userId);
   if (!pending) {
     await sendTelegramMessage(chatId, "Сессия рассылки устарела. Отправьте /broadcast заново.");
-    return { sent: 0, failed: 0, chats: 0 };
+    return { sent: 0, failed: 0, chats: 0, retryToken: null };
   }
   const supabase = requireServiceSupabase();
   const result = await broadcastPostToGroups(supabase, pending.sourceChatId, pending.messageIds, audience);
+  const retryToken = await saveBroadcastRetry(userId, {
+    kind: "post",
+    audience,
+    sourceChatId: pending.sourceChatId,
+    messageIds: pending.messageIds,
+  }, result.failedChatIds);
   await sendTelegramMessage(
     chatId,
     `📢 Готово: пост разослан в ${result.sent} из ${result.chats} групп${result.failed ? `, ошибок: ${result.failed}` : ""}.`,
+    retryToken
+      ? { inlineKeyboard: [[{ text: `🔁 Повторить ошибки (${result.failed})`, callback_data: `retrycast:${retryToken}` }]] }
+      : undefined,
   );
-  return result;
+  return { ...result, retryToken };
 }
 
 export function isBroadcastPostCommand(text: string): boolean {

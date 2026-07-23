@@ -81,6 +81,8 @@ import {
   readPublishedEvents,
   type PublishedEventInfo,
 } from "@/lib/telegram/broadcastToGroups";
+import { saveBroadcastRetry } from "@/lib/telegram/broadcastReportStore";
+import { retryBroadcast } from "@/lib/telegram/retryBroadcast";
 import {
   fetchUpcomingEventsForBot,
   formatUpcomingEventsMessage,
@@ -158,7 +160,6 @@ function isPrivateTelegramChat(chat: { type: string }): boolean {
 
 /** Один апдейт на чат — иначе два параллельных Gemini дают «уточните» + превью с 19/19. */
 const chatLocks = new Map<number, Promise<void>>();
-const seenUpdateIds = new Set<number>();
 
 async function onAfishaBundleReady(payload: {
   chatId: number;
@@ -1035,14 +1036,17 @@ function isUpcomingEventsCommand(text: string): boolean {
 function mainMenuKeyboard(): InlineKeyboardButton[][] {
   return [
     [
-      { text: "🗓 Создать события", callback_data: "menu:events" },
-      { text: "📣 Отправить сообщение", callback_data: "menu:post" },
+      { text: "✨ Новое событие", callback_data: "menu:events" },
+      { text: "📣 Новая рассылка", callback_data: "menu:post" },
     ],
     [
-      { text: "📅 События", callback_data: "menu:upcoming" },
-      { text: "⚙️ Группы", callback_data: "menu:groups" },
+      { text: "📅 Афиша", callback_data: "menu:upcoming" },
+      { text: "🖼 Добавить обложку", callback_data: "menu:cover" },
     ],
-    [{ text: "ℹ️ Как пользоваться", callback_data: "menu:help" }],
+    [
+      { text: "⚙️ Группы", callback_data: "menu:groups" },
+      { text: "ℹ️ Помощь", callback_data: "menu:help" },
+    ],
   ];
 }
 
@@ -1054,18 +1058,26 @@ function broadcastAudienceKeyboard(prefix: string, id: string, groups: number): 
   ];
 }
 
+function retryBroadcastKeyboard(token: string, failed: number): InlineKeyboardButton[][] {
+  return [[{ text: `🔁 Повторить ошибки (${failed})`, callback_data: `retrycast:${token}` }]];
+}
+
 async function sendBotHome(chatId: number, userId: number): Promise<void> {
   const supabase = requireServiceSupabase();
   const groups = (await resolveBroadcastChatIds(supabase)).length;
   await sendTelegramMessage(
     chatId,
     [
-      "🎭 PopularEvents",
+      "🎭 PopularEvents · пульт редактора",
       "",
       "Создавайте события из афиши и рассылайте анонсы без лишних команд.",
       "",
-      "Выберите действие кнопкой ниже.",
-      groups ? `Подключено групп: ${groups} · мастер: ${TELEGRAM_MASTER_GROUP.title}` : "Группы пока не подключены.",
+      "✨ Событие — пришлите афишу: фото и текст в любом порядке.",
+      "📣 Рассылка — пришлите готовый текст, фото, видео или альбом.",
+      "",
+      groups
+        ? `🟢 Подключено групп: ${groups} · мастер: ⭐ ${TELEGRAM_MASTER_GROUP.title}`
+        : "🟠 Группы пока не подключены.",
       getTelegramOwnerUserIds().has(userId) ? "\n👑 У владельца есть управление редакторами: /listadmins" : "",
     ]
       .filter(Boolean)
@@ -1356,13 +1368,6 @@ async function cancelDraft(chatId: number, userId: number, draftId: string, call
 }
 
 export async function handleTelegramUpdate(update: TelegramUpdate): Promise<TelegramUpdateHandleResult> {
-  if (seenUpdateIds.has(update.update_id)) return {};
-  seenUpdateIds.add(update.update_id);
-  if (seenUpdateIds.size > 500) {
-    const oldest = seenUpdateIds.values().next().value;
-    if (oldest != null) seenUpdateIds.delete(oldest);
-  }
-
   const owners = getTelegramOwnerUserIds();
   let operators = owners;
   try {
@@ -1445,12 +1450,15 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
             [
               "ℹ️ Как пользоваться",
               "",
-              "1. «Создать события» — пришлите афишу с фото и текстом.",
-              "2. Проверьте превью и создайте скрытое событие.",
-              "3. После публикации на сайте выберите, куда отправить анонс: во все группы или только в мастер-группу.",
-              "4. «Отправить сообщение» — для обычного текста, фото, видео или альбома; контент сохранится без изменений.",
+              "1. ✨ «Новое событие» — пришлите афишу с фото и текстом; порядок не важен.",
+              "2. Проверьте превью, создайте событие и опубликуйте его на сайте.",
+              "3. Выберите аудиторию: 🌐 все группы или ⭐ мастер-группа POPULAR IMPRO.",
+              "4. 📣 «Новая рассылка» — для обычного текста, фото, видео или альбома; контент уйдёт без изменений.",
+              "5. 🖼 «Добавить обложку» — отправьте фото и выберите событие без обложки.",
               "",
-              "/cancel — отменить текущий шаг · /events — список событий · /broadcast — отправить сообщение.",
+              "Если Telegram временно не доставил сообщение, в отчёте появится кнопка «Повторить ошибки» — она отправит только в проблемные группы.",
+              "",
+              "/cancel — отменить текущий шаг · /events — список событий · /broadcast — отправить сообщение · /start — открыть пульт.",
             ].join("\n"),
             { inlineKeyboard: [[{ text: "‹ Главное меню", callback_data: "menu:home" }]] },
           );
@@ -1464,6 +1472,15 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         await sendTelegramMessage(
           chatId,
           "🗓 Пришлите фото и текст афиши. Можно несколькими сообщениями и в любом порядке — бот соберёт их в одно событие.",
+          { inlineKeyboard: [[{ text: "‹ Главное меню", callback_data: "menu:home" }]] },
+        );
+        return {};
+      }
+      if (data === "menu:cover") {
+        if (cq.id) await answerCallbackQuery(cq.id);
+        await sendTelegramMessage(
+          chatId,
+          "🖼 Пришлите одну фотографию без текста. Я покажу будущие события без обложки — выберите нужное кнопкой.",
           { inlineKeyboard: [[{ text: "‹ Главное меню", callback_data: "menu:home" }]] },
         );
         return {};
@@ -1498,9 +1515,15 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         try {
           const supabase = requireServiceSupabase();
           const result = await broadcastEventToGroups(supabase, eventId, audienceRaw);
+          const retryToken = await saveBroadcastRetry(userId, {
+            kind: "event",
+            audience: audienceRaw,
+            eventId,
+          }, result.failedChatIds);
           await sendTelegramMessage(
             chatId,
             `📢 Готово: событие разослано в ${result.sent} из ${result.chats} групп${result.failed ? `, ошибок: ${result.failed}` : ""}.`,
+            retryToken ? { inlineKeyboard: retryBroadcastKeyboard(retryToken, result.failed) } : undefined,
           );
         } catch (e) {
           const err = e instanceof Error ? e.message : "unknown error";
@@ -1537,9 +1560,15 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         try {
           const supabase = requireServiceSupabase();
           const result = await broadcastDraftToGroups(supabase, draftId, audienceRaw);
+          const retryToken = await saveBroadcastRetry(userId, {
+            kind: "draft",
+            audience: audienceRaw,
+            draftId,
+          }, result.failedChatIds);
           await sendTelegramMessage(
             chatId,
             `📢 Готово: ${result.sent} сообщ. в ${result.chats} групп(ы)${result.failed ? `, ошибок: ${result.failed}` : ""}`,
+            retryToken ? { inlineKeyboard: retryBroadcastKeyboard(retryToken, result.failed) } : undefined,
           );
           if (cq.message?.message_id) {
             try {
@@ -1581,6 +1610,20 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
           const err = e instanceof Error ? e.message : "unknown error";
           await sendTelegramMessage(chatId, `❌ Рассылка: ${err}`);
         }
+        return {};
+      }
+      if (data.startsWith("retrycast:")) {
+        if (cq.id) await answerCallbackQuery(cq.id, "Повторяю неудачные отправки…");
+        const result = await retryBroadcast(userId, data.slice("retrycast:".length));
+        if (!result) {
+          await sendTelegramMessage(chatId, "⌛ Кнопка повтора устарела. Запустите рассылку ещё раз.");
+          return {};
+        }
+        await sendTelegramMessage(
+          chatId,
+          `🔁 Повтор завершён: ${result.sent} из ${result.chats} групп${result.failed ? `, осталось ошибок: ${result.failed}` : ""}.`,
+          result.retryToken ? { inlineKeyboard: retryBroadcastKeyboard(result.retryToken, result.failed) } : undefined,
+        );
         return {};
       }
       if (data.startsWith("pub:")) {
