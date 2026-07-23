@@ -61,4 +61,29 @@ export async function broadcastPostToGroups(
   return { sent, failed, chats: chatIds.length, failedChatIds };
 }
 
+export async function broadcastTextToGroups(
+  supabase: SupabaseClient,
+  text: string,
+  audience: BroadcastAudience = "all",
+  targetChatIds?: number[],
+): Promise<BroadcastPostResult> {
+  const chatIds = targetChatIds?.length ? [...new Set(targetChatIds)] : await resolveBroadcastTargetIds(supabase, audience);
+  if (!chatIds.length) throw new Error("Нет групп для рассылки. Добавьте бота админом в группу или /subscribe в группе.");
+  const body = text.trim();
+  if (!body) throw new Error("Нет текста для рассылки");
+  const { sendTelegramMessage } = await import("@/lib/telegram/telegramBotApi");
+  let sent = 0;
+  const failedChatIds: number[] = [];
+  for (const chatId of chatIds) {
+    try {
+      await sendTelegramMessage(chatId, body);
+      sent++;
+    } catch (error) {
+      failedChatIds.push(chatId);
+      console.error("[telegram text broadcast]", chatId, error);
+    }
+  }
+  return { sent, failed: failedChatIds.length, chats: chatIds.length, failedChatIds };
+}
+
 export { broadcastAudienceLabel };

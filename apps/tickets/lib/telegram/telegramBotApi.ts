@@ -17,6 +17,8 @@ export type InlineKeyboardButton = {
   web_app?: { url: string };
 };
 
+export type TelegramBotCommand = { command: string; description: string };
+
 async function telegramApi<T>(method: string, body: Record<string, unknown>): Promise<T> {
   const token = getTelegramBotToken();
   if (!token) throw new Error("TELEGRAM_BOT_TOKEN не задан");
@@ -126,6 +128,11 @@ export async function answerCallbackQuery(callbackQueryId: string, text?: string
   } catch (e) {
     console.warn("[telegram] answerCallbackQuery:", e instanceof Error ? e.message : e);
   }
+}
+
+/** Команды появляются в нижнем меню Telegram вместо необходимости помнить синтаксис. */
+export async function setTelegramBotCommands(commands: TelegramBotCommand[]): Promise<void> {
+  await telegramApi("setMyCommands", { commands });
 }
 
 /** Мгновенный ack кнопки — вызывать до тяжёлой логики (компиляция Next.js ~5 сек). */

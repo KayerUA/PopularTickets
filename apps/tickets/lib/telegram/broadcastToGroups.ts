@@ -62,11 +62,8 @@ async function sendEventBroadcastToChat(
   const photoSource = image.fileId ?? photoUrl ?? undefined;
 
   if (photoSource) {
-    const photoMsgId = await sendTelegramPhoto(targetChatId, photoSource, photoCaption, {
-      inlineKeyboard: keyboard,
-    });
-    await sendTelegramMessage(targetChatId, previewMessage, {
-      replyToMessageId: photoMsgId,
+    // Один цельный анонс вместо фото + второго короткого сообщения-ответа.
+    await sendTelegramPhoto(targetChatId, photoSource, `${photoCaption}\n\n${previewMessage}`.slice(0, 1024), {
       inlineKeyboard: keyboard,
     });
     return;

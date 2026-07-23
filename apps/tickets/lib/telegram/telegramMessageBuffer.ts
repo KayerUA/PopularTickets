@@ -113,7 +113,23 @@ export async function claimTelegramBuffer(
   const age = Date.now() - new Date(row.updated_at).getTime();
   if (age < minAgeMs) return null;
 
-  const claimed = await deleteRow(supabase, id);
+  // Удаляем только именно ту версию, которую прочитали. Иначе фото, пришедшее
+  // между select и delete, могло потеряться при сборке альбома.
+  let claimed: TelegramBufferRow | null;
+  if (supabase) {
+    const { data, error } = await supabase
+      .from(TABLE)
+      .delete()
+      .eq("id", id)
+      .eq("updated_at", row.updated_at)
+      .select("*")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    claimed = data ? normalizeRow(data as Record<string, unknown>) : null;
+    if (claimed) memStore().delete(id);
+  } else {
+    claimed = await deleteRow(null, id);
+  }
   if (!claimed) return null;
 
   const claimedAge = Date.now() - new Date(claimed.updated_at).getTime();
@@ -262,7 +278,9 @@ export async function peekAfishaBuffer(
   return { fileIds: row.file_ids, text: row.text_content };
 }
 
-export const MEDIA_GROUP_DEBOUNCE_MS = 2800;
+// Telegram доставляет элементы альбома подряд; 900 мс заметно быстрее для редактора,
+// а условное удаление выше защищает от поздно пришедшего последнего фото.
+export const MEDIA_GROUP_DEBOUNCE_MS = 900;
 
 export async function sleepMs(ms: number): Promise<void> {
   await new Promise((r) => setTimeout(r, ms));

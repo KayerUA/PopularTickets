@@ -1,5 +1,5 @@
 import { requireServiceSupabase } from "@/lib/supabase/admin";
-import { broadcastPostToGroups, type BroadcastPostResult } from "@/lib/telegram/broadcastPostToGroups";
+import { broadcastPostToGroups, broadcastTextToGroups, type BroadcastPostResult } from "@/lib/telegram/broadcastPostToGroups";
 import { broadcastDraftToGroups, broadcastEventToGroups } from "@/lib/telegram/broadcastToGroups";
 import { saveBroadcastRetry, takeBroadcastRetry } from "@/lib/telegram/broadcastReportStore";
 
@@ -18,13 +18,9 @@ export async function retryBroadcast(userId: number, token: string): Promise<Ret
   const { payload, failedChatIds } = retry;
 
   if (payload.kind === "post") {
-    result = await broadcastPostToGroups(
-      supabase,
-      payload.sourceChatId,
-      payload.messageIds,
-      payload.audience,
-      failedChatIds,
-    );
+    result = payload.generatedText
+      ? await broadcastTextToGroups(supabase, payload.generatedText, payload.audience, failedChatIds)
+      : await broadcastPostToGroups(supabase, payload.sourceChatId, payload.messageIds, payload.audience, failedChatIds);
   } else if (payload.kind === "event") {
     result = await broadcastEventToGroups(supabase, payload.eventId, payload.audience, failedChatIds);
   } else {

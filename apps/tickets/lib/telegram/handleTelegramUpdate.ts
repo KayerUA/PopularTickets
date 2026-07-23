@@ -13,9 +13,11 @@ import {
 import {
   registerBroadcastChat,
   listBroadcastChats,
+  getMasterBroadcastChat,
+  setMasterBroadcastChat,
   resolveBroadcastChatIds,
-  TELEGRAM_MASTER_GROUP,
   unregisterBroadcastChat,
+  type MasterBroadcastChat,
 } from "@/lib/telegram/broadcastChatStore";
 import { formatDiscoveryStatusForTelegram } from "@/lib/eventDiscovery/formatDiscoveryStatus";
 import { formatGbpManualTelegramMessage } from "@/lib/googleBusinessProfile/gbpManualFallback";
@@ -70,6 +72,7 @@ import {
   editTelegramMessage,
   isTelegramBotAdministrator,
   sendTelegramMessage,
+  setTelegramBotCommands,
   type InlineKeyboardButton,
 } from "@/lib/telegram/telegramBotApi";
 import {
@@ -93,12 +96,15 @@ import { telegramFocalWebAppUrl } from "@/lib/telegram/telegramFocalWebAppUrl";
 import {
   clearAwaitingBroadcastPost,
   confirmBroadcastPost,
+  broadcastInstruction,
   handleBroadcastPostInput,
   isAwaitingBroadcastPost,
   isBroadcastPostCommand,
   offerBroadcastPostConfirm,
+  offerGeneratedBroadcastPost,
   startBroadcastPostFlow,
 } from "@/lib/telegram/broadcastPostHandlers";
+import { rewriteBroadcastWithGemini } from "@/lib/telegram/rewriteBroadcastWithGemini";
 
 type TelegramUser = { id: number; username?: string; first_name?: string; is_bot?: boolean };
 type TelegramPhotoSize = { file_id: string; width: number; height: number };
@@ -829,10 +835,7 @@ async function handleChatMessage(
 
     const bufferKey = mediaGroupBufferKey(chatId, mediaGroupId);
     let claimed = await claimTelegramBuffer(bufferKey, MEDIA_GROUP_DEBOUNCE_MS - 400);
-    if (!claimed) {
-      await sleepMs(1200);
-      claimed = await claimTelegramBuffer(bufferKey, 800);
-    }
+    if (!claimed) return;
     if (!claimed) {
       // Другой serverless-инстанс уже обрабатывает эти фото.
       return;
@@ -1050,10 +1053,26 @@ function mainMenuKeyboard(): InlineKeyboardButton[][] {
   ];
 }
 
-function broadcastAudienceKeyboard(prefix: string, id: string, groups: number): InlineKeyboardButton[][] {
+const TELEGRAM_EDITOR_COMMANDS = [
+  { command: "start", description: "Открыть пульт редактора" },
+  { command: "event", description: "Создать событие из афиши" },
+  { command: "broadcast", description: "Отправить пост в группы" },
+  { command: "events", description: "Предстоящие события" },
+  { command: "groups", description: "Группы и мастер-группа" },
+  { command: "cancel", description: "Отменить текущий шаг" },
+  { command: "help", description: "Как пользоваться ботом" },
+] as const;
+
+function broadcastAudienceKeyboard(
+  prefix: string,
+  id: string,
+  groups: number,
+  master: MasterBroadcastChat,
+): InlineKeyboardButton[][] {
   return [
     [{ text: `🌐 Во все группы (${groups})`, callback_data: `${prefix}:all:${id}` }],
-    [{ text: `⭐ ${TELEGRAM_MASTER_GROUP.title}`, callback_data: `${prefix}:master:${id}` }],
+    [{ text: `⭐ ${master.title}`, callback_data: `${prefix}:master:${id}` }],
+    [{ text: "🗂 Выбрать конкретную группу", callback_data: `${prefix}pickgrp:${id}:0` }],
     [{ text: "‹ Главное меню", callback_data: "menu:home" }],
   ];
 }
@@ -1062,9 +1081,44 @@ function retryBroadcastKeyboard(token: string, failed: number): InlineKeyboardBu
   return [[{ text: `🔁 Повторить ошибки (${failed})`, callback_data: `retrycast:${token}` }]];
 }
 
+function specificGroupLabel(group: { chat_id: number; chat_title: string }): string {
+  const title = group.chat_title?.trim() || String(group.chat_id);
+  return `📣 ${title}`.slice(0, 64);
+}
+
+async function offerSpecificBroadcastGroup(
+  chatId: number,
+  prefix: "rebcast" | "bcast" | "postcast",
+  operationId: string,
+  page = 0,
+): Promise<void> {
+  const groups = await listBroadcastChats(requireServiceSupabase());
+  const pageSize = 8;
+  const totalPages = Math.max(1, Math.ceil(groups.length / pageSize));
+  const safePage = Math.min(Math.max(0, page), totalPages - 1);
+  const slice = groups.slice(safePage * pageSize, safePage * pageSize + pageSize);
+  if (!slice.length) {
+    await sendTelegramMessage(chatId, "Нет подключённых групп. Добавьте бота администратором в нужную группу.");
+    return;
+  }
+  const keyboard: InlineKeyboardButton[][] = slice.map((group) => [
+    { text: specificGroupLabel(group), callback_data: `${prefix}group:${operationId}:${group.chat_id}` },
+  ]);
+  if (totalPages > 1) {
+    const nav: InlineKeyboardButton[] = [];
+    if (safePage > 0) nav.push({ text: "◀️", callback_data: `${prefix}pickgrp:${operationId}:${safePage - 1}` });
+    nav.push({ text: `${safePage + 1}/${totalPages}`, callback_data: "menu:groups" });
+    if (safePage + 1 < totalPages) nav.push({ text: "▶️", callback_data: `${prefix}pickgrp:${operationId}:${safePage + 1}` });
+    keyboard.push(nav);
+  }
+  keyboard.push([{ text: "🏠 Главное меню", callback_data: "menu:home" }]);
+  await sendTelegramMessage(chatId, "🗂 Выберите одну группу для отправки:", { inlineKeyboard: keyboard });
+}
+
 async function sendBotHome(chatId: number, userId: number): Promise<void> {
   const supabase = requireServiceSupabase();
   const groups = (await resolveBroadcastChatIds(supabase)).length;
+  const master = await getMasterBroadcastChat(supabase);
   await sendTelegramMessage(
     chatId,
     [
@@ -1076,7 +1130,7 @@ async function sendBotHome(chatId: number, userId: number): Promise<void> {
       "📣 Рассылка — пришлите готовый текст, фото, видео или альбом.",
       "",
       groups
-        ? `🟢 Подключено групп: ${groups} · мастер: ⭐ ${TELEGRAM_MASTER_GROUP.title}`
+        ? `🟢 Подключено групп: ${groups} · мастер: ⭐ ${master.title}`
         : "🟠 Группы пока не подключены.",
       getTelegramOwnerUserIds().has(userId) ? "\n👑 У владельца есть управление редакторами: /listadmins" : "",
     ]
@@ -1089,8 +1143,9 @@ async function sendBotHome(chatId: number, userId: number): Promise<void> {
 async function sendGroupsSettings(chatId: number): Promise<void> {
   const supabase = requireServiceSupabase();
   const groups = await listBroadcastChats(supabase);
+  const master = await getMasterBroadcastChat(supabase);
   const rows = groups.map((group) => {
-    const mark = group.chat_id === TELEGRAM_MASTER_GROUP.id ? "⭐ " : "• ";
+    const mark = group.chat_id === master.id ? "⭐ " : "• ";
     return `${mark}${group.chat_title || group.chat_id} · ${group.chat_type}`;
   });
   await sendTelegramMessage(
@@ -1098,23 +1153,32 @@ async function sendGroupsSettings(chatId: number): Promise<void> {
     [
       "⚙️ Группы рассылки",
       "",
-      `Мастер-группа: ⭐ ${TELEGRAM_MASTER_GROUP.title}`,
+      `Мастер-группа: ⭐ ${master.title}`,
       rows.length ? `\nПодключены:\n${rows.join("\n")}` : "\nПока нет подключённых групп.",
       "\nДобавьте бота администратором в группу — она подключится автоматически. В самой группе /unsubscribe отключает рассылку.",
     ].join("\n"),
-    { inlineKeyboard: [[{ text: "🔄 Обновить", callback_data: "menu:groups" }], [{ text: "‹ Главное меню", callback_data: "menu:home" }]] },
+    {
+      inlineKeyboard: [
+        ...groups.filter((group) => group.chat_id !== master.id).slice(0, 8).map((group) => [
+          { text: `⭐ Сделать мастер-группой: ${group.chat_title || group.chat_id}`.slice(0, 64), callback_data: `groupmaster:${group.chat_id}` },
+        ]),
+        [{ text: "🔄 Обновить", callback_data: "menu:groups" }],
+        [{ text: "‹ Главное меню", callback_data: "menu:home" }],
+      ],
+    },
   );
 }
 
 async function offerEventBroadcast(chatId: number, eventId: string): Promise<void> {
   const supabase = requireServiceSupabase();
   const groups = await resolveBroadcastChatIds(supabase);
+  const master = await getMasterBroadcastChat(supabase);
   if (!groups.length) {
     await sendTelegramMessage(chatId, "Нет подключённых групп. Добавьте бота администратором в нужную группу.");
     return;
   }
   await sendTelegramMessage(chatId, "📢 Куда отправить событие?", {
-    inlineKeyboard: broadcastAudienceKeyboard("rebcast", eventId, groups.length),
+    inlineKeyboard: broadcastAudienceKeyboard("rebcast", eventId, groups.length, master),
   });
 }
 
@@ -1237,8 +1301,9 @@ async function offerBroadcast(chatId: number, draftId: string): Promise<void> {
   const supabase = requireServiceSupabase();
   const broadcastChats = await resolveBroadcastChatIds(supabase);
   if (broadcastChats.length === 0) return;
+  const master = await getMasterBroadcastChat(supabase);
   await sendTelegramMessage(chatId, "📢 Событие опубликовано. Куда отправить анонс?", {
-    inlineKeyboard: broadcastAudienceKeyboard("bcast", draftId, broadcastChats.length),
+    inlineKeyboard: broadcastAudienceKeyboard("bcast", draftId, broadcastChats.length, master),
   });
 }
 
@@ -1500,6 +1565,38 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         await sendGroupsSettings(chatId);
         return {};
       }
+      if (data.startsWith("groupmaster:")) {
+        const groupId = Number(data.slice("groupmaster:".length));
+        const groups = await listBroadcastChats(requireServiceSupabase());
+        const group = groups.find((item) => item.chat_id === groupId);
+        if (!group) {
+          if (cq.id) await answerCallbackQuery(cq.id, "Группа больше не подключена");
+          return {};
+        }
+        await setMasterBroadcastChat(requireServiceSupabase(), group);
+        if (cq.id) await answerCallbackQuery(cq.id, "Мастер-группа обновлена");
+        await sendTelegramMessage(chatId, `⭐ Мастер-группа: ${group.chat_title || group.chat_id}.`);
+        return {};
+      }
+      if (data.startsWith("rebcastpickgrp:")) {
+        const [eventId, pageRaw] = data.slice("rebcastpickgrp:".length).split(":", 2);
+        await offerSpecificBroadcastGroup(chatId, "rebcast", eventId ?? "", Number(pageRaw) || 0);
+        return {};
+      }
+      if (data.startsWith("rebcastgroup:")) {
+        const [eventId, groupRaw] = data.slice("rebcastgroup:".length).split(":", 2);
+        const targetChatId = Number(groupRaw);
+        if (!eventId || !Number.isFinite(targetChatId)) return {};
+        if (cq.id) await answerCallbackQuery(cq.id, "Рассылаю…");
+        const result = await broadcastEventToGroups(requireServiceSupabase(), eventId, "all", [targetChatId]);
+        const retryToken = await saveBroadcastRetry(userId, { kind: "event", audience: "all", eventId }, result.failedChatIds);
+        await sendTelegramMessage(
+          chatId,
+          `📣 Готово: событие отправлено в ${result.sent} из ${result.chats} выбранной группы.`,
+          retryToken ? { inlineKeyboard: retryBroadcastKeyboard(retryToken, result.failed) } : undefined,
+        );
+        return {};
+      }
       if (data.startsWith("rebcastpick:")) {
         if (cq.id) await answerCallbackQuery(cq.id);
         await offerEventBroadcast(chatId, data.slice("rebcastpick:".length));
@@ -1551,8 +1648,9 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         if (!draftId || (audienceRaw !== "all" && audienceRaw !== "master")) {
           const supabase = requireServiceSupabase();
           const groups = await resolveBroadcastChatIds(supabase);
+          const master = await getMasterBroadcastChat(supabase);
           await sendTelegramMessage(chatId, "📢 Куда отправить анонс?", {
-            inlineKeyboard: broadcastAudienceKeyboard("bcast", data.slice(6), groups.length),
+            inlineKeyboard: broadcastAudienceKeyboard("bcast", data.slice(6), groups.length, master),
           });
           return {};
         }
@@ -1583,10 +1681,45 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
         }
         return {};
       }
+      if (data.startsWith("bcastpickgrp:")) {
+        const [draftId, pageRaw] = data.slice("bcastpickgrp:".length).split(":", 2);
+        await offerSpecificBroadcastGroup(chatId, "bcast", draftId ?? "", Number(pageRaw) || 0);
+        return {};
+      }
+      if (data.startsWith("bcastgroup:")) {
+        const [draftId, groupRaw] = data.slice("bcastgroup:".length).split(":", 2);
+        const targetChatId = Number(groupRaw);
+        if (!draftId || !Number.isFinite(targetChatId)) return {};
+        if (cq.id) await answerCallbackQuery(cq.id, "Рассылаю…");
+        const result = await broadcastDraftToGroups(requireServiceSupabase(), draftId, "all", [targetChatId]);
+        const retryToken = await saveBroadcastRetry(userId, { kind: "draft", audience: "all", draftId }, result.failedChatIds);
+        await sendTelegramMessage(
+          chatId,
+          `📣 Готово: ${result.sent} сообщ. в ${result.chats} выбранной группе.`,
+          retryToken ? { inlineKeyboard: retryBroadcastKeyboard(retryToken, result.failed) } : undefined,
+        );
+        return {};
+      }
       if (data === "postcast:cancel") {
         await clearAwaitingBroadcastPost(chatId);
         if (cq.id) await answerCallbackQuery(cq.id, "Отменено");
         await sendTelegramMessage(chatId, "❌ Рассылка поста отменена.");
+        return {};
+      }
+      if (data.startsWith("postcastpickgrp:")) {
+        const [token, pageRaw] = data.slice("postcastpickgrp:".length).split(":", 2);
+        await offerSpecificBroadcastGroup(chatId, "postcast", token ?? "", Number(pageRaw) || 0);
+        return {};
+      }
+      if (data.startsWith("postcastgroup:")) {
+        const [token, groupRaw] = data.slice("postcastgroup:".length).split(":", 2);
+        const targetChatId = Number(groupRaw);
+        if (!token || !Number.isFinite(targetChatId)) return {};
+        if (cq.id) await answerCallbackQuery(cq.id, "Рассылаю…");
+        const result = await confirmBroadcastPost(chatId, userId, token, "all", [targetChatId]);
+        if (cq.message?.message_id) {
+          await editTelegramMessage(chatId, cq.message.message_id, result.chats ? "📣 Отправлено в выбранную группу." : "⌛ Сессия рассылки устарела.");
+        }
         return {};
       }
       if (data.startsWith("postcast:")) {
@@ -1782,10 +1915,23 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
     return {};
   }
 
-  if (text === "/start" || text === "/help") {
+  if (text === "/start" || text.startsWith("/start@") || text === "/help" || text.startsWith("/help@")) {
+    void setTelegramBotCommands([...TELEGRAM_EDITOR_COMMANDS]).catch((error) =>
+      console.warn("[telegram commands]", error),
+    );
     await cancelAfishaBuffer(chatId);
     await clearAwaitingBroadcastPost(chatId);
     await sendBotHome(chatId, userId);
+    return {};
+  }
+
+  if (text === "/event" || text.startsWith("/event@")) {
+    await sendTelegramMessage(chatId, "✨ Пришлите фото и текст афиши. Можно несколькими сообщениями и в любом порядке.");
+    return {};
+  }
+
+  if (text === "/groups" || text.startsWith("/groups@")) {
+    await sendGroupsSettings(chatId);
     return {};
   }
 
@@ -1820,6 +1966,18 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<Tele
     if (msg.reply_to_message) {
       const reply = msg.reply_to_message;
       try {
+        const instruction = broadcastInstruction(text);
+        if (instruction) {
+          const source = messageBody(reply);
+          if (!source) {
+            await sendTelegramMessage(chatId, "Для переписывания ответьте командой на текстовое сообщение.");
+            return {};
+          }
+          await sendTelegramMessage(chatId, "✨ Переписываю анонс, сохраняя дату, стоимость и остальные факты…");
+          const rewritten = await rewriteBroadcastWithGemini(source, instruction);
+          await offerGeneratedBroadcastPost(chatId, userId, rewritten);
+          return {};
+        }
         await offerBroadcastPostConfirm(chatId, userId, chatId, [reply.message_id], messageBody(reply));
       } catch (e) {
         const err = e instanceof Error ? e.message : "unknown error";

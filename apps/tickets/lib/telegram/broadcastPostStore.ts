@@ -8,6 +8,7 @@ export type PendingBroadcastPost = {
   userId: number;
   sourceChatId: number;
   messageIds: number[];
+  generatedText?: string;
   createdAt: number;
 };
 
@@ -135,6 +136,7 @@ export async function createPendingBroadcastPost(
   userId: number,
   sourceChatId: number,
   messageIds: number[],
+  generatedText?: string,
 ): Promise<PendingBroadcastPost> {
   pruneExpired();
   const token = randomBytes(6).toString("hex");
@@ -143,6 +145,7 @@ export async function createPendingBroadcastPost(
     userId,
     sourceChatId,
     messageIds: [...new Set(messageIds)].sort((a, b) => a - b),
+    generatedText: generatedText?.trim() || undefined,
     createdAt: Date.now(),
   };
   pendingStore().set(token, row);
@@ -150,6 +153,7 @@ export async function createPendingBroadcastPost(
     kind: "pending-post",
     sourceChatId,
     messageIds: row.messageIds,
+    generatedText: row.generatedText,
     expiresAt: expiryIn(PENDING_TTL_MS),
   });
   return row;
@@ -167,8 +171,9 @@ export async function takePendingBroadcastPost(token: string, userId: number): P
     const messageIds = Array.isArray(stored.flags.messageIds)
       ? stored.flags.messageIds.map(Number).filter((id) => Number.isFinite(id) && id > 0)
       : [];
-    if (!Number.isFinite(sourceChatId) || !messageIds.length) return null;
-    return { token, userId, sourceChatId, messageIds, createdAt: Date.now() };
+    const generatedText = typeof stored.flags.generatedText === "string" ? stored.flags.generatedText.trim() : undefined;
+    if (!Number.isFinite(sourceChatId) || (!messageIds.length && !generatedText)) return null;
+    return { token, userId, sourceChatId, messageIds, generatedText, createdAt: Date.now() };
   }
 
   const row = pendingStore().get(token);
