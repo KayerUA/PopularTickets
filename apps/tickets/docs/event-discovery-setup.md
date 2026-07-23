@@ -67,7 +67,7 @@ NOTIFY pgrst, 'reload schema';
 6. `supabase/add-events-day-of-event-price.sql` — цена в день события
 
 Для автоматического повтора временно сбойных webhook-обновлений задайте в Vercel `CRON_SECRET`.
-После следующего деплоя Vercel Cron вызывает `/api/telegram/retry` каждые 10 минут. Секрет должен
+После следующего деплоя Vercel Cron вызывает `/api/telegram/retry` раз в сутки. Секрет должен
 совпадать со значением, которое Vercel передаёт в заголовке `Authorization` для Cron Jobs.
 
 ### 3. Регистрация webhook

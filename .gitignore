@@ -35,3 +35,4 @@ scripts/rewrite-marketing-copy-openai.py
 
 # Przelewy24: kopie „flagi_*” w katalogu głównym (źródło lokalne; w serwisie używamy public/payments/p24-metody-platnosci.png)
 /flagi_Przelewy24*.png
+.vercel
