@@ -11,6 +11,7 @@ import { sendTicketsEmail } from "@/lib/email/sendTickets";
 import { sendAdminSaleNotification } from "@/lib/email/sendAdminSaleNotification";
 import { formatEventDateTime } from "@/lib/format";
 import type { AppLocale } from "@/i18n/routing";
+import { sendCrmPaidWebhook } from "@/lib/crmCheckout";
 
 const NotifySchema = z.object({
   merchantId: z.number(),
@@ -180,6 +181,53 @@ export async function handleP24Notification(
   }
 
   const supabase = requireServiceSupabase();
+
+  // CRM package payments are deliberately independent of event tickets and gifts.
+  // Resolve this branch first so no ticket fulfillment is attempted for their P24 session.
+  const { data: crmOrder, error: crmErr } = await supabase
+    .from("crm_checkout_orders")
+    .select("id,crm_payment_id,amount_grosze,currency,status,p24_order_id,paid_at,webhook_url")
+    .eq("p24_session_id", n.sessionId)
+    .maybeSingle();
+
+  if (!crmErr && crmOrder) {
+    if (crmOrder.amount_grosze !== n.amount || crmOrder.currency !== n.currency) {
+      return { status: 409, body: "amount mismatch" };
+    }
+    try {
+      await p24Verify({
+        merchantId: getMerchantId(), posId: getPosId(), sessionId: n.sessionId,
+        amount: n.amount, currency: n.currency, orderId: n.orderId,
+        sign: signVerify({ sessionId: n.sessionId, orderId: n.orderId, amount: n.amount, currency: n.currency }),
+      });
+    } catch (e) {
+      console.error("p24 verify CRM checkout", e);
+      return { status: 502, body: "verify failed" };
+    }
+
+    const now = new Date().toISOString();
+    const { data: paidOrder, error: paidErr } = await supabase
+      .from("crm_checkout_orders")
+      .update({ status: "paid", p24_order_id: n.orderId, paid_at: crmOrder.paid_at ?? now })
+      .eq("id", crmOrder.id)
+      .in("status", ["pending", "paid"])
+      .select("id,crm_payment_id,amount_grosze,currency,p24_order_id,paid_at,webhook_url")
+      .maybeSingle();
+    if (paidErr || !paidOrder) {
+      console.error("[crm checkout] mark paid", paidErr);
+      return { status: 500, body: "payment update failed" };
+    }
+
+    const { data: delivered } = await supabase
+      .from("crm_checkout_webhook_attempts")
+      .select("id")
+      .eq("crm_checkout_order_id", crmOrder.id)
+      .not("delivered_at", "is", null)
+      .limit(1)
+      .maybeSingle();
+    if (!delivered) await sendCrmPaidWebhook(paidOrder);
+    return { status: 200, body: "ok" };
+  }
 
   const { data: giftOrder, error: giftErr } = await supabase
     .from("gift_orders")
