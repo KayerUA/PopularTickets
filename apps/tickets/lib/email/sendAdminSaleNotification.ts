@@ -122,18 +122,11 @@ export async function sendAdminSaleNotification(params: {
   forceRetry?: boolean;
 }): Promise<void> {
   const to = notifyRecipients();
-  if (!to.length) {
-    console.warn(
-      "[sendAdminSaleNotification] ADMIN_SALE_NOTIFY_EMAIL не задан — уведомление не отправлено",
-    );
-    return;
-  }
-
-  const key = process.env.RESEND_API_KEY;
-  if (!key) {
-    console.warn("[sendAdminSaleNotification] RESEND_API_KEY не задан — уведомление не отправлено");
-    return;
-  }
+  const key = (process.env.RESEND_API_KEY ?? "").trim();
+  const from =
+    (process.env.RESEND_FROM_EMAIL ?? "").trim() ||
+    (process.env.RESEND_FROM ?? "").trim() ||
+    fromDefault;
 
   const supabase = requireServiceSupabase();
 
@@ -187,31 +180,41 @@ export async function sendAdminSaleNotification(params: {
 
   const subject = `[PopularTickets] ${qtyLabel} · ${kind} · ${eventTitle} · осталось ${remaining}`;
 
-  const rows: [string, string][] = [
-    ["Событие", eventTitle],
-    ["Тип", kind],
-    ["Дата", startsAt],
-    ["Место", (event.venue as string) || "—"],
-    ["В этом заказе", String(qty)],
-    ["Сумма заказа", amount],
-    ["Продано всего", `${sold} / ${total}`],
-    ["Осталось мест", String(remaining)],
-    ["Покупатель", order.buyer_name as string],
-    ["Email", order.email as string],
-    ["Телефон", ((order.phone as string | null)?.trim() || "—") as string],
-    ["Рассылка", order.marketing_email_opt_in ? "да" : "—"],
-    ["Билеты", ticketList.join(", ")],
-    ["Заказ", order.id as string],
-  ];
+  let emailOk = false;
+  let emailSkipReason: string | null = null;
 
-  const tableHtml = rows
-    .map(
-      ([label, value]) =>
-        `<tr><td style="padding:6px 12px 6px 0;color:#71717a;vertical-align:top;white-space:nowrap">${escapeHtml(label)}</td><td style="padding:6px 0;color:#fafafa">${escapeHtml(value)}</td></tr>`,
-    )
-    .join("");
+  if (!to.length) {
+    emailSkipReason = "ADMIN_SALE_NOTIFY_EMAIL пустой";
+    console.warn(`[sendAdminSaleNotification] ${emailSkipReason}`);
+  } else if (!key) {
+    emailSkipReason = "RESEND_API_KEY пустой";
+    console.warn(`[sendAdminSaleNotification] ${emailSkipReason}`);
+  } else {
+    const rows: [string, string][] = [
+      ["Событие", eventTitle],
+      ["Тип", kind],
+      ["Дата", startsAt],
+      ["Место", (event.venue as string) || "—"],
+      ["В этом заказе", String(qty)],
+      ["Сумма заказа", amount],
+      ["Продано всего", `${sold} / ${total}`],
+      ["Осталось мест", String(remaining)],
+      ["Покупатель", order.buyer_name as string],
+      ["Email", order.email as string],
+      ["Телефон", ((order.phone as string | null)?.trim() || "—") as string],
+      ["Рассылка", order.marketing_email_opt_in ? "да" : "—"],
+      ["Билеты", ticketList.join(", ")],
+      ["Заказ", order.id as string],
+    ];
 
-  const html = `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;background:#09090b;color:#fafafa;padding:24px">
+    const tableHtml = rows
+      .map(
+        ([label, value]) =>
+          `<tr><td style="padding:6px 12px 6px 0;color:#71717a;vertical-align:top;white-space:nowrap">${escapeHtml(label)}</td><td style="padding:6px 0;color:#fafafa">${escapeHtml(value)}</td></tr>`,
+      )
+      .join("");
+
+    const html = `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;background:#09090b;color:#fafafa;padding:24px">
 <p style="margin:0 0 16px;font-size:18px;font-weight:600">${escapeHtml(qtyLabel)} · ${escapeHtml(kind)}</p>
 <table style="border-collapse:collapse;font-size:14px;line-height:1.4">${tableHtml}</table>
 ${
@@ -221,28 +224,28 @@ ${
 }
 </body></html>`;
 
-  const resend = new Resend(key);
-  const from = process.env.RESEND_FROM_EMAIL || fromDefault;
+    try {
+      const resend = new Resend(key);
+      const { error } = await resend.emails.send({
+        from,
+        to,
+        subject,
+        html,
+      });
 
-  let emailOk = false;
-  try {
-    const { error } = await resend.emails.send({
-      from,
-      to,
-      subject,
-      html,
-    });
-
-    if (error) {
-      console.error("[sendAdminSaleNotification] Resend error", error);
-    } else {
-      emailOk = true;
+      if (error) {
+        emailSkipReason = resendErrorMessage(error);
+        console.error("[sendAdminSaleNotification] Resend error", error);
+      } else {
+        emailOk = true;
+      }
+    } catch (e) {
+      emailSkipReason = e instanceof Error ? e.message : "Resend throw";
+      console.error("[sendAdminSaleNotification] Resend throw", e);
     }
-  } catch (e) {
-    console.error("[sendAdminSaleNotification] Resend throw", e);
   }
 
-  // Telegram владельцам всегда — почта часто в спаме, пробные иначе легко пропустить.
+  // Telegram владельцам всегда — даже если Resend/env пустые (типичная причина «раньше приходило — потом нет»).
   const ownerIds = getTelegramOwnerUserIds();
   if (ownerIds.size) {
     const tgText = emailOk
@@ -264,7 +267,8 @@ ${
           `✉️ ${order.email}`,
           order.phone?.trim() ? `📞 ${order.phone.trim()}` : null,
           `Заказ: ${order.id}`,
-          "Проверьте RESEND / ADMIN_SALE_NOTIFY_EMAIL",
+          emailSkipReason ? `Причина: ${emailSkipReason}` : null,
+          "Vercel Production: RESEND_API_KEY + RESEND_FROM_EMAIL + ADMIN_SALE_NOTIFY_EMAIL",
         ];
 
     await Promise.all(
@@ -291,4 +295,12 @@ ${
       console.warn("[sendAdminSaleNotification] audit insert skipped:", auditErr.message);
     }
   }
+}
+
+function resendErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+    return error.message;
+  }
+  return "ошибка Resend";
 }
