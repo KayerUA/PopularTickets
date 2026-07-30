@@ -2,6 +2,8 @@ import { Resend } from "resend";
 import { formatEventDateTime, formatPlnFromGrosze } from "@/lib/format";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
+import { getTelegramOwnerUserIds } from "@/lib/telegram/config";
+import { sendTelegramMessage } from "@/lib/telegram/telegramBotApi";
 
 const fromDefault = "PopularTickets <onboarding@resend.dev>";
 
@@ -22,12 +24,110 @@ function notifyRecipients(): string[] {
     .filter(Boolean);
 }
 
+function listingKindLabel(raw: string | null | undefined): string {
+  if (raw === "trial") return "пробное";
+  if (raw === "special") return "спец";
+  return "шоу";
+}
+
+type OrderRow = {
+  id: string;
+  created_at: string;
+  buyer_name: string;
+  email: string;
+  phone: string | null;
+  quantity: number;
+  amount_grosze: number;
+  status: string;
+  marketing_email_opt_in?: boolean | null;
+  event_id: string;
+};
+
+type EventRow = {
+  id: string;
+  title: string;
+  slug: string;
+  venue: string;
+  starts_at: string;
+  total_tickets: number;
+  listing_kind?: string | null;
+};
+
+async function loadOrder(orderId: string): Promise<OrderRow | null> {
+  const supabase = requireServiceSupabase();
+  const full = await supabase
+    .from("orders")
+    .select(
+      "id,created_at,buyer_name,email,phone,quantity,amount_grosze,status,marketing_email_opt_in,event_id",
+    )
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (!full.error && full.data) return full.data as OrderRow;
+
+  if (full.error && /marketing_email_opt_in|PGRST204|schema cache/i.test(full.error.message)) {
+    console.warn(
+      "[sendAdminSaleNotification] marketing_email_opt_in недоступен — грузим заказ без него",
+    );
+    const legacy = await supabase
+      .from("orders")
+      .select("id,created_at,buyer_name,email,phone,quantity,amount_grosze,status,event_id")
+      .eq("id", orderId)
+      .maybeSingle();
+    if (legacy.error || !legacy.data) {
+      console.error("[sendAdminSaleNotification] order load", legacy.error ?? full.error);
+      return null;
+    }
+    return { ...(legacy.data as OrderRow), marketing_email_opt_in: null };
+  }
+
+  console.error("[sendAdminSaleNotification] order load", full.error);
+  return null;
+}
+
+async function loadEvent(eventId: string): Promise<EventRow | null> {
+  const supabase = requireServiceSupabase();
+  const full = await supabase
+    .from("events")
+    .select("id,title,slug,venue,starts_at,total_tickets,listing_kind")
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (!full.error && full.data) return full.data as EventRow;
+
+  if (full.error && /listing_kind|PGRST204|schema cache/i.test(full.error.message)) {
+    const legacy = await supabase
+      .from("events")
+      .select("id,title,slug,venue,starts_at,total_tickets")
+      .eq("id", eventId)
+      .maybeSingle();
+    if (legacy.error || !legacy.data) {
+      console.error("[sendAdminSaleNotification] event load", legacy.error ?? full.error);
+      return null;
+    }
+    return { ...(legacy.data as EventRow), listing_kind: null };
+  }
+
+  console.error("[sendAdminSaleNotification] event load", full.error);
+  return null;
+}
+
 export async function sendAdminSaleNotification(params: {
   orderId: string;
   ticketNumbers: string[];
+  /**
+   * true = P24/bypass retry when tickets already existed.
+   * Шлём письмо только если ещё не фиксировали успешную admin-notify для заказа.
+   */
+  forceRetry?: boolean;
 }): Promise<void> {
   const to = notifyRecipients();
-  if (!to.length) return;
+  if (!to.length) {
+    console.warn(
+      "[sendAdminSaleNotification] ADMIN_SALE_NOTIFY_EMAIL не задан — уведомление не отправлено",
+    );
+    return;
+  }
 
   const key = process.env.RESEND_API_KEY;
   if (!key) {
@@ -37,30 +137,24 @@ export async function sendAdminSaleNotification(params: {
 
   const supabase = requireServiceSupabase();
 
-  const { data: order, error: oErr } = await supabase
-    .from("orders")
-    .select(
-      "id,created_at,buyer_name,email,phone,quantity,amount_grosze,status,marketing_email_opt_in,event_id",
-    )
-    .eq("id", params.orderId)
-    .maybeSingle();
-
-  if (oErr || !order) {
-    console.error("[sendAdminSaleNotification] order load", oErr);
-    return;
+  if (params.forceRetry) {
+    const { data: already } = await supabase
+      .from("payment_callbacks")
+      .select("id")
+      .eq("order_id", params.orderId)
+      .eq("status", "admin_notified")
+      .limit(1)
+      .maybeSingle();
+    if (already) return;
   }
 
-  const { data: event, error: eErr } = await supabase
-    .from("events")
-    .select("id,title,slug,venue,starts_at,total_tickets")
-    .eq("id", order.event_id)
-    .maybeSingle();
+  const order = await loadOrder(params.orderId);
+  if (!order) return;
 
-  if (eErr || !event) {
-    console.error("[sendAdminSaleNotification] event load", eErr);
-    return;
-  }
+  const event = await loadEvent(order.event_id);
+  if (!event) return;
 
+  let sold = 0;
   const { count: soldCount, error: cErr } = await supabase
     .from("tickets")
     .select("id", { count: "exact", head: true })
@@ -68,14 +162,15 @@ export async function sendAdminSaleNotification(params: {
 
   if (cErr) {
     console.error("[sendAdminSaleNotification] sold count", cErr);
-    return;
+  } else {
+    sold = soldCount ?? 0;
   }
 
-  const sold = soldCount ?? 0;
   const total = event.total_tickets as number;
   const remaining = Math.max(0, total - sold);
   const qty = order.quantity as number;
   const eventTitle = event.title as string;
+  const kind = listingKindLabel(event.listing_kind);
   const startsAt = formatEventDateTime(event.starts_at as string, "pl");
   const amount = formatPlnFromGrosze(order.amount_grosze as number);
   const appUrl = getPublicAppUrl();
@@ -90,14 +185,15 @@ export async function sendAdminSaleNotification(params: {
   const qtyLabel =
     qty === 1 ? "1 билет продан" : qty < 5 ? `${qty} билета продано` : `${qty} билетов продано`;
 
-  const subject = `[PopularTickets] ${qtyLabel} · ${eventTitle} · осталось ${remaining}`;
+  const subject = `[PopularTickets] ${qtyLabel} · ${kind} · ${eventTitle} · осталось ${remaining}`;
 
   const rows: [string, string][] = [
     ["Событие", eventTitle],
+    ["Тип", kind],
     ["Дата", startsAt],
     ["Место", (event.venue as string) || "—"],
     ["В этом заказе", String(qty)],
-    ["Сумма", `${amount} ×${qty}`],
+    ["Сумма заказа", amount],
     ["Продано всего", `${sold} / ${total}`],
     ["Осталось мест", String(remaining)],
     ["Покупатель", order.buyer_name as string],
@@ -116,7 +212,7 @@ export async function sendAdminSaleNotification(params: {
     .join("");
 
   const html = `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;background:#09090b;color:#fafafa;padding:24px">
-<p style="margin:0 0 16px;font-size:18px;font-weight:600">${escapeHtml(qtyLabel)}</p>
+<p style="margin:0 0 16px;font-size:18px;font-weight:600">${escapeHtml(qtyLabel)} · ${escapeHtml(kind)}</p>
 <table style="border-collapse:collapse;font-size:14px;line-height:1.4">${tableHtml}</table>
 ${
   adminOrdersUrl
@@ -128,14 +224,71 @@ ${
   const resend = new Resend(key);
   const from = process.env.RESEND_FROM_EMAIL || fromDefault;
 
-  const { error } = await resend.emails.send({
-    from,
-    to,
-    subject,
-    html,
-  });
+  let emailOk = false;
+  try {
+    const { error } = await resend.emails.send({
+      from,
+      to,
+      subject,
+      html,
+    });
 
-  if (error) {
-    console.error("[sendAdminSaleNotification] Resend error", error);
+    if (error) {
+      console.error("[sendAdminSaleNotification] Resend error", error);
+    } else {
+      emailOk = true;
+    }
+  } catch (e) {
+    console.error("[sendAdminSaleNotification] Resend throw", e);
+  }
+
+  // Telegram владельцам всегда — почта часто в спаме, пробные иначе легко пропустить.
+  const ownerIds = getTelegramOwnerUserIds();
+  if (ownerIds.size) {
+    const tgText = emailOk
+      ? [
+          "✅ Продажа",
+          `${kind}: ${eventTitle}`,
+          `📅 ${startsAt}`,
+          `💰 ${amount} · ${qty} шт. · осталось ${remaining}`,
+          `👤 ${order.buyer_name}`,
+          `✉️ ${order.email}`,
+          order.phone?.trim() ? `📞 ${order.phone.trim()}` : null,
+        ]
+      : [
+          "⚠️ Продажа — письмо админу НЕ ушло",
+          `${kind}: ${eventTitle}`,
+          `📅 ${startsAt}`,
+          `💰 ${amount} · ${qty} шт. · осталось ${remaining}`,
+          `👤 ${order.buyer_name}`,
+          `✉️ ${order.email}`,
+          order.phone?.trim() ? `📞 ${order.phone.trim()}` : null,
+          `Заказ: ${order.id}`,
+          "Проверьте RESEND / ADMIN_SALE_NOTIFY_EMAIL",
+        ];
+
+    await Promise.all(
+      [...ownerIds].map(async (chatId) => {
+        try {
+          await sendTelegramMessage(chatId, tgText.filter(Boolean).join("\n"));
+        } catch (telegramError) {
+          console.error("[sendAdminSaleNotification] Telegram sale ping", telegramError);
+        }
+      }),
+    );
+  }
+
+  if (emailOk) {
+    const { error: auditErr } = await supabase.from("payment_callbacks").insert({
+      provider: "admin_notify",
+      order_id: order.id,
+      provider_order_id: null,
+      session_id: `admin-notify-${order.id}`,
+      status: "admin_notified",
+      payload: { ticketNumbers: params.ticketNumbers, listingKind: event.listing_kind ?? null },
+    });
+    if (auditErr) {
+      console.warn("[sendAdminSaleNotification] audit insert skipped:", auditErr.message);
+    }
   }
 }

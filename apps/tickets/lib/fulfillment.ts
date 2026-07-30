@@ -63,11 +63,9 @@ async function ensureTicketsAndEmail(params: {
     throw new Error("no_capacity");
   }
   const createdTickets = allTickets.some((ticket) => ticket.created_now);
-  if (!createdTickets) {
-    return;
-  }
 
-  if (process.env.SKIP_ORDER_EMAIL !== "true") {
+  // Письмо покупателю — только при первом создании билетов (идемпотентность P24 retry).
+  if (createdTickets && process.env.SKIP_ORDER_EMAIL !== "true") {
     const { data: event, error: eErr } = await supabase
       .from("events")
       .select("title,venue,starts_at")
@@ -93,10 +91,13 @@ async function ensureTicketsAndEmail(params: {
     }
   }
 
+  // Админу — при первой продаже. Если билеты уже были, а письмо админу могло не уйти
+  // (падение после fulfill) — пробуем ещё раз идемпотентно через claim в sendAdminSaleNotification.
   try {
     await sendAdminSaleNotification({
       orderId: params.order.id,
       ticketNumbers: allTickets.map((t) => t.ticket_number),
+      forceRetry: !createdTickets,
     });
   } catch (e) {
     console.error("admin sale notify failed", e);
