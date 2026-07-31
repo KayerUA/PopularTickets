@@ -40,7 +40,9 @@ export async function GET(request: NextRequest) {
     .select(
       "id, slug, title, starts_at, venue, total_tickets, price_grosze, listing_kind, visibility",
     )
-    .eq("visibility", "published")
+    // published + unlisted: featured specials (e.g. Next Mode) are often unlisted
+    // but still sold on Tickets / shown on Poet.
+    .in("visibility", ["published", "unlisted"])
     .in("listing_kind", ["trial", "performance", "special"])
     .order("starts_at", { ascending: true })
     .limit(200);
