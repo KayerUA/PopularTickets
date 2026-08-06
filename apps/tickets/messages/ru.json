@@ -267,9 +267,9 @@
     "relatedPoetCta": "Курсы и занятия Popular Poet"
   },
   "TrialHub": {
-    "metaTitle": "{course} — запись на пробное занятие",
+    "metaTitle": "{course} — пробное занятие в Варшаве · выбрать дату",
     "metaTitleWithDate": "{course} — пробное занятие {date}",
-    "metaDescription": "Ближайшие даты пробного занятия «{course}» в Варшаве и оплата онлайн.",
+    "metaDescription": "Пробное занятие «{course}» в театре «Популярный поэт»: ближайшие даты, онлайн-запись и оплата. Без опыта, язык — русский.",
     "metaTitleFallback": "Пробное занятие — PopularTickets",
     "metaDescriptionFallback": "Запись на пробное занятие театра «Популярный поэт» в Варшаве.",
     "kicker": "Пробное занятие",

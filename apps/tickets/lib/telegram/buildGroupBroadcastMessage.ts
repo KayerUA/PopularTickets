@@ -2,6 +2,7 @@ import { DateTime } from "luxon";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { capitalizeWeekday, formatEventDateTimeParts, formatPlnFromGrosze } from "@/lib/format";
 import { eventPriceDetails } from "@/lib/eventPrice";
+import { TRIAL_HUB_SEGMENT } from "@/lib/trialCourseHub";
 import type { PublishedEventInfo } from "@/lib/telegram/broadcastToGroups";
 
 export type EventBroadcastDetails = {
@@ -13,13 +14,21 @@ export type EventBroadcastDetails = {
   priceGrosze: number;
   dayOfEventPriceGrosze: number | null;
   listingKind: string;
+  /** Курс пробного — для постоянной ссылки /probnoe/{slug}. */
+  poetCourseSlug: string | null;
+  /** Ближайшие даты того же курса (включая текущую), уже отсортированные. */
+  upcomingDates: string[];
 };
 
 const EVENT_SELECT =
+  "slug,title,description,venue,starts_at,price_grosze,day_of_event_price_grosze,listing_kind,poet_course_id" as const;
+
+const EVENT_SELECT_NO_COURSE =
   "slug,title,description,venue,starts_at,price_grosze,day_of_event_price_grosze,listing_kind" as const;
 
 const WARSAW = "Europe/Warsaw";
 const TRIAL_DURATION_HOURS = 2;
+const MAX_DATES_IN_CAPTION = 6;
 
 /** Короткий продающий абзац из описания — без SEO-хвоста и обрезка по предложению. */
 export function extractBroadcastTeaser(description: string, maxLen = 240): string {
@@ -49,90 +58,127 @@ function isTodayInWarsaw(iso: string): boolean {
   return d.isValid && d.hasSame(now, "day");
 }
 
-function trialSubjectLine(title: string, description: string): string {
-  const t = `${title} ${description}`.toLowerCase();
-  if (/импров|impro/.test(t)) return "ПРОБНОЕ ЗАНЯТИЕ ПО ИМПРОВИЗАЦИИ";
-  if (/актёр|актер|acting/.test(t)) return "ПРОБНОЕ ЗАНЯТИЕ ПО АКТЁРСКОМУ МАСТЕРСТВУ";
-  if (/playback|play-?back/.test(t)) return "ПРОБНОЕ ЗАНЯТИЕ PLAYBACK";
+type TrialKind = "improv" | "acting" | "playback" | "generic";
+
+function trialKind(details: Pick<EventBroadcastDetails, "title" | "description" | "poetCourseSlug">): TrialKind {
+  if (details.poetCourseSlug === "improv") return "improv";
+  if (details.poetCourseSlug === "acting") return "acting";
+  if (details.poetCourseSlug === "playback") return "playback";
+  const t = `${details.title} ${details.description}`.toLowerCase();
+  if (/актёр|актер|acting/.test(t)) return "acting";
+  if (/playback|play-?back/.test(t)) return "playback";
+  if (/импров|impro/.test(t)) return "improv";
+  return "generic";
+}
+
+function trialSubjectLine(kind: TrialKind): string {
+  if (kind === "acting") return "ПРОБНОЕ · АКТЁРСКОЕ МАСТЕРСТВО";
+  if (kind === "playback") return "ПРОБНОЕ · PLAYBACK";
+  if (kind === "improv") return "ПРОБНОЕ · ИМПРОВИЗАЦИЯ";
   return "ПРОБНОЕ ЗАНЯТИЕ";
 }
 
-function trialInviteLine(title: string, description: string): string {
-  const t = `${title} ${description}`.toLowerCase();
-  if (/актёр|актер|acting/.test(t)) return "Приходите на пробное занятие по актёрскому мастерству!";
-  if (/playback|play-?back/.test(t)) return "Приходите на пробное занятие по формату playback!";
-  return "Приходите на пробное занятие по театральной импровизации!";
+function trialPitch(kind: TrialKind): string {
+  if (kind === "acting") {
+    return "Открытое занятие: голос, тело, внимание и уверенность на сцене — без опыта, с поддержкой группы.";
+  }
+  if (kind === "playback") {
+    return "Открытое занятие в формате playback: ваши истории оживают на сцене здесь и сейчас.";
+  }
+  return "Открытое занятие по импровизации: быстрее реагировать, легче общаться и не бояться проявляться.";
 }
 
-function trialClosingLine(title: string, description: string): string {
-  const t = `${title} ${description}`.toLowerCase();
-  if (/актёр|актер|acting/.test(t)) return "Без опыта. Просто приходите и попробуйте себя на сцене ❤️";
-  if (/playback|play-?back/.test(t)) return "Без опыта. Приходите и попробуйте формат playback ❤️";
-  return "Без опыта. Просто приходите и попробуйте себя в импровизации ❤️";
+function trialBullets(kind: TrialKind): string[] {
+  if (kind === "acting") {
+    return [
+      "✨ Работа с голосом и телом",
+      "✨ Внимание, контакт и подача",
+      "✨ Безопасное пространство для пробы",
+      "✨ Знакомство с методикой театра",
+    ];
+  }
+  if (kind === "playback") {
+    return [
+      "✨ Истории зала → короткие сцены",
+      "✨ Эмпатия и живой контакт",
+      "✨ Без заученных текстов",
+      "✨ Атмосфера поддержки",
+    ];
+  }
+  return [
+    "✨ Быстрая реакция и чувство юмора",
+    "✨ Живой контакт без зажимов",
+    "✨ Комедийные форматы и много смеха",
+    "✨ Знакомство с методикой театра",
+  ];
 }
 
 function formatVenueForBroadcast(venue: string): string {
   const v = venue.trim();
   if (/популярн|popular\s*poet|domaniewska/i.test(v)) {
-    return "Театр «Популярный поэт» ul. Domaniewska 37";
+    return "Театр «Популярный поэт» · ul. Domaniewska 37";
   }
   return v;
 }
 
-function trialScheduleLine(startsAtIso: string): { urgency: string; when: string } {
+/** Одна строка даты для списка в посте. */
+export function formatTrialDateBullet(startsAtIso: string): string {
   const parts = formatEventDateTimeParts(startsAtIso, "ru");
   const start = DateTime.fromISO(startsAtIso, { zone: "utc" }).setZone(WARSAW);
-  if (!parts || !start.isValid) {
-    return { urgency: "СКОРО!", when: startsAtIso };
-  }
+  if (!parts || !start.isValid) return `• ${startsAtIso}`;
 
   const end = start.plus({ hours: TRIAL_DURATION_HOURS });
-  const timeRange = `${parts.time}-${end.toFormat("HH:mm")}`;
-  const dayPart = isTodayInWarsaw(startsAtIso)
-    ? "Сегодня"
-    : `${capitalizeWeekday(parts.weekday, "ru")}, ${parts.date}`;
-  const moon = start.hour >= 17 ? "🌕" : "☀️";
-  const urgency = isTodayInWarsaw(startsAtIso)
-    ? "СЕГОДНЯ!"
-    : `${capitalizeWeekday(parts.weekday, "ru").toUpperCase()}!`;
-
-  return {
-    urgency,
-    when: `${dayPart} ${moon}${timeRange}`,
-  };
+  const timeRange = `${parts.time}–${end.toFormat("HH:mm")}`;
+  if (isTodayInWarsaw(startsAtIso)) return `• Сегодня · ${timeRange}`;
+  return `• ${capitalizeWeekday(parts.weekday, "ru")}, ${parts.date} · ${timeRange}`;
 }
 
-function buildTrialBroadcastCaption(details: EventBroadcastDetails, ticketUrl: string): string {
-  const { urgency, when } = trialScheduleLine(details.startsAtIso);
-  const subject = trialSubjectLine(details.title, details.description);
+function trialHubUrl(base: string, courseSlug: string | null, eventSlug?: string): string {
+  const root = base.replace(/\/$/, "");
+  if (courseSlug) {
+    const hub = `${root}/ru/${TRIAL_HUB_SEGMENT}/${encodeURIComponent(courseSlug)}`;
+    // Постоянная ссылка без ?d= — дата выбирается на странице.
+    return hub;
+  }
+  return `${root}/ru/events/${encodeURIComponent(eventSlug ?? "")}`;
+}
+
+function buildTrialBroadcastCaption(details: EventBroadcastDetails, hubUrl: string): string {
+  const kind = trialKind(details);
   const pricing = eventPriceDetails({
     starts_at: details.startsAtIso,
     price_grosze: details.priceGrosze,
     day_of_event_price_grosze: details.dayOfEventPriceGrosze,
   });
   const price =
-    pricing.regularPriceGrosze > 0
-      ? formatPlnShort(pricing.regularPriceGrosze)
-      : "на сайте";
+    pricing.regularPriceGrosze > 0 ? formatPlnShort(pricing.regularPriceGrosze) : "на сайте";
+
+  const dates = (details.upcomingDates.length ? details.upcomingDates : [details.startsAtIso])
+    .slice(0, MAX_DATES_IN_CAPTION)
+    .map(formatTrialDateBullet);
+  const more =
+    details.upcomingDates.length > MAX_DATES_IN_CAPTION
+      ? `• и ещё ${details.upcomingDates.length - MAX_DATES_IN_CAPTION} на странице`
+      : null;
 
   return [
-    `🎭 ${subject} — ${urgency}`,
+    `🎭 ${trialSubjectLine(kind)}`,
     "",
-    "Хотите стать свободнее, увереннее и научиться легко общаться с людьми?",
+    trialPitch(kind),
     "",
-    trialInviteLine(details.title, details.description),
-    "✨ Учимся быстро мыслить",
-    "✨ Развиваем чувство юмора",
-    "✨ Прокачиваем общение и уверенность",
-    "✨ Играем в комедийные форматы и много смеёмся",
+    ...trialBullets(kind),
     "",
-    `📅 ${when} 📍 ${formatVenueForBroadcast(details.venue)}`,
+    "📅 Ближайшие даты:",
+    ...dates,
+    ...(more ? [more] : []),
     "",
-    `🎟 Пробное занятие — ${price}`,
-    "Билеты на сайте👇",
-    ticketUrl,
+    `📍 ${formatVenueForBroadcast(details.venue)}`,
+    `🎟 ${price} · без опыта · язык занятия — на странице`,
     "",
-    trialClosingLine(details.title, details.description),
+    "Все даты и запись — по одной ссылке:",
+    hubUrl,
+    "",
+    "Можно просто прийти попробовать. Ни к чему не обязывает ❤️",
   ].join("\n");
 }
 
@@ -192,30 +238,75 @@ function buildPerformanceBroadcastCaption(details: EventBroadcastDetails, ticket
 export function buildGroupBroadcastContent(
   base: string,
   details: EventBroadcastDetails,
-): { photoCaption: string; previewMessage: string; ticketUrl: string } {
-  const ticketUrl = `${base.replace(/\/$/, "")}/ru/events/${details.slug}`;
-  const photoCaption =
-    details.listingKind === "trial"
-      ? buildTrialBroadcastCaption(details, ticketUrl)
-      : buildPerformanceBroadcastCaption(details, ticketUrl);
+): { photoCaption: string; previewMessage: string; ticketUrl: string; buttonLabel: string } {
+  const isTrial = details.listingKind === "trial";
+  const ticketUrl = isTrial
+    ? trialHubUrl(base, details.poetCourseSlug, details.slug)
+    : `${base.replace(/\/$/, "")}/ru/events/${details.slug}`;
 
-  const previewMessage = ["🎫 Билеты и описание на сайте:", ticketUrl].join("\n");
+  const photoCaption = isTrial
+    ? buildTrialBroadcastCaption(details, ticketUrl)
+    : buildPerformanceBroadcastCaption(details, ticketUrl);
 
-  return { photoCaption: photoCaption.slice(0, 1024), previewMessage, ticketUrl };
+  const previewMessage = isTrial
+    ? "Страница не протухает: даты обновляются, ссылка та же."
+    : ["🎫 Билеты и описание на сайте:", ticketUrl].join("\n");
+
+  const buttonLabel = isTrial ? "🎟 Выбрать дату" : "🎫 Билеты";
+
+  return {
+    photoCaption: photoCaption.slice(0, 1024),
+    previewMessage,
+    ticketUrl,
+    buttonLabel,
+  };
+}
+
+async function fetchCourseSlug(
+  supabase: SupabaseClient,
+  poetCourseId: string | null,
+): Promise<string | null> {
+  if (!poetCourseId) return null;
+  const { data, error } = await supabase.from("poet_course").select("slug").eq("id", poetCourseId).maybeSingle();
+  if (error || !data) return null;
+  return typeof data.slug === "string" ? data.slug : null;
+}
+
+async function fetchUpcomingTrialStarts(
+  supabase: SupabaseClient,
+  poetCourseId: string | null,
+): Promise<string[]> {
+  if (!poetCourseId) return [];
+  const nowIso = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("events")
+    .select("starts_at")
+    .eq("listing_kind", "trial")
+    .eq("poet_course_id", poetCourseId)
+    .in("visibility", ["published", "unlisted"])
+    .gte("starts_at", nowIso)
+    .order("starts_at", { ascending: true })
+    .limit(12);
+  if (error || !data) return [];
+  return data.map((row) => String(row.starts_at));
 }
 
 export async function fetchEventBroadcastDetails(
   supabase: SupabaseClient,
   event: PublishedEventInfo,
 ): Promise<EventBroadcastDetails | null> {
-  const query = supabase.from("events").select(EVENT_SELECT);
-  const { data, error } = event.id
-    ? await query.eq("id", event.id).maybeSingle()
-    : await query.eq("slug", event.slug).maybeSingle();
+  const query = (select: string) => {
+    const q = supabase.from("events").select(select);
+    return event.id ? q.eq("id", event.id).maybeSingle() : q.eq("slug", event.slug).maybeSingle();
+  };
 
-  if (error || !data) return null;
+  let result = await query(EVENT_SELECT);
+  if (result.error?.code === "42703") {
+    result = await query(EVENT_SELECT_NO_COURSE);
+  }
+  if (result.error || !result.data) return null;
 
-  const row = data as {
+  const row = result.data as {
     slug: string;
     title: string;
     description: string;
@@ -224,7 +315,15 @@ export async function fetchEventBroadcastDetails(
     price_grosze: number;
     day_of_event_price_grosze: number | null;
     listing_kind: string | null;
+    poet_course_id?: string | null;
   };
+
+  const poetCourseId = typeof row.poet_course_id === "string" ? row.poet_course_id : null;
+  const listingKind = row.listing_kind ?? "performance";
+  const poetCourseSlug =
+    listingKind === "trial" ? await fetchCourseSlug(supabase, poetCourseId) : null;
+  const upcomingDates =
+    listingKind === "trial" ? await fetchUpcomingTrialStarts(supabase, poetCourseId) : [];
 
   return {
     slug: row.slug,
@@ -234,7 +333,9 @@ export async function fetchEventBroadcastDetails(
     startsAtIso: row.starts_at,
     priceGrosze: row.price_grosze,
     dayOfEventPriceGrosze: row.day_of_event_price_grosze,
-    listingKind: row.listing_kind ?? "performance",
+    listingKind,
+    poetCourseSlug,
+    upcomingDates: upcomingDates.length ? upcomingDates : [row.starts_at],
   };
 }
 
@@ -249,5 +350,7 @@ export function fallbackBroadcastDetails(event: PublishedEventInfo): EventBroadc
     priceGrosze: 0,
     dayOfEventPriceGrosze: null,
     listingKind: "performance",
+    poetCourseSlug: null,
+    upcomingDates: [event.startsAtIso],
   };
 }

@@ -202,9 +202,9 @@
     "relatedPoetCta": "Kursy i zajęcia Popular Poet"
   },
   "TrialHub": {
-    "metaTitle": "{course} — zapisy na zajęcia próbne",
+    "metaTitle": "{course} — zajęcia próbne w Warszawie · wybierz termin",
     "metaTitleWithDate": "{course} — zajęcia próbne {date}",
-    "metaDescription": "Najbliższe terminy zajęć próbnych „{course}” w Warszawie i płatność online.",
+    "metaDescription": "Zajęcia próbne „{course}” w Teatrze „Popularny Poeta”: najbliższe terminy, zapisy i płatność online. Bez doświadczenia, język — rosyjski.",
     "metaTitleFallback": "Zajęcia próbne — PopularTickets",
     "metaDescriptionFallback": "Zapisy na zajęcia próbne Teatru „Popularny Poeta” w Warszawie.",
     "kicker": "Zajęcia próbne",

@@ -23,8 +23,8 @@ export type PublishedEventInfo = {
   id?: string;
 };
 
-function ticketButton(ticketUrl: string) {
-  return [[{ text: "🎫 Билеты", url: ticketUrl }]];
+function ticketButton(ticketUrl: string, label = "🎫 Билеты") {
+  return [[{ text: label, url: ticketUrl }]];
 }
 
 export function readPublishedEvents(parsed: Record<string, unknown>): PublishedEventInfo[] {
@@ -53,8 +53,8 @@ async function sendEventBroadcastToChat(
 ): Promise<void> {
   const details =
     (await fetchEventBroadcastDetails(supabase, event)) ?? fallbackBroadcastDetails(event);
-  const { photoCaption, previewMessage, ticketUrl } = buildGroupBroadcastContent(base, details);
-  const keyboard = ticketButton(ticketUrl);
+  const { photoCaption, previewMessage, ticketUrl, buttonLabel } = buildGroupBroadcastContent(base, details);
+  const keyboard = ticketButton(ticketUrl, buttonLabel);
 
   const photoUrl = image.imageUrl
     ? resolveAbsoluteAssetUrl(image.imageUrl, base)
@@ -141,27 +141,49 @@ export async function broadcastDraftToGroups(
   const imageFileIds = storedImageFileIds(draft.parsed, draft.image_file_id);
   const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "https://www.populartickets.pl";
 
+  // Пробные одного курса → один пост с постоянной ссылкой на хаб (не спам датами).
+  const posts: { event: PublishedEventInfo; fileId?: string }[] = [];
+  const seenTrialCourses = new Set<string>();
+
+  for (let i = 0; i < published.length; i++) {
+    const event = published[i]!;
+    const details =
+      (await fetchEventBroadcastDetails(supabase, event)) ?? fallbackBroadcastDetails(event);
+
+    if (details.listingKind === "trial" && details.poetCourseSlug) {
+      if (seenTrialCourses.has(details.poetCourseSlug)) continue;
+      seenTrialCourses.add(details.poetCourseSlug);
+      posts.push({ event, fileId: imageFileIds[i] });
+      continue;
+    }
+
+    posts.push({ event, fileId: imageFileIds[i] });
+  }
+
   let sent = 0;
   let failed = 0;
   const failedChatIds = new Set<number>();
 
   for (const targetChatId of chatIds) {
-    for (let i = 0; i < published.length; i++) {
-      const event = published[i]!;
-
+    for (const post of posts) {
       try {
+        let imageUrl: string | null = null;
+        if (!post.fileId && post.event.id) {
+          const { data } = await supabase.from("events").select("image_url").eq("id", post.event.id).maybeSingle();
+          imageUrl = typeof data?.image_url === "string" ? data.image_url : null;
+        }
         await sendEventBroadcastToChat(
           supabase,
           targetChatId,
-          event,
-          { fileId: imageFileIds[i] },
+          post.event,
+          { fileId: post.fileId, imageUrl },
           base,
         );
         sent++;
       } catch (e) {
         failed++;
         failedChatIds.add(targetChatId);
-        console.error("[telegram broadcast]", targetChatId, event.slug, e);
+        console.error("[telegram broadcast]", targetChatId, post.event.slug, e);
       }
     }
   }

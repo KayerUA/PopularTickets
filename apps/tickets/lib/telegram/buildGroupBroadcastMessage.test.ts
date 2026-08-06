@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildGroupBroadcastContent,
   extractBroadcastTeaser,
+  formatTrialDateBullet,
 } from "@/lib/telegram/buildGroupBroadcastMessage";
 
 describe("extractBroadcastTeaser", () => {
@@ -15,8 +16,8 @@ describe("extractBroadcastTeaser", () => {
 });
 
 describe("buildGroupBroadcastContent", () => {
-  it("builds selling trial caption with bullets, price and ticket url", () => {
-    const { photoCaption, previewMessage, ticketUrl } = buildGroupBroadcastContent(
+  it("builds a permanent trial hub caption with schedule and hub url", () => {
+    const { photoCaption, previewMessage, ticketUrl, buttonLabel } = buildGroupBroadcastContent(
       "https://www.populartickets.pl",
       {
         slug: "probnoe-improv-2026-05-21",
@@ -24,21 +25,45 @@ describe("buildGroupBroadcastContent", () => {
         description:
           "Приходите попробовать импровизацию без опыта. Живой зал, поддержка, смех и знакомство с театром.",
         venue: "ul. Domaniewska 37, Warszawa",
-        startsAtIso: "2026-05-21T17:00:00.000Z",
+        startsAtIso: "2026-05-21T16:00:00.000Z",
         priceGrosze: 7000,
         dayOfEventPriceGrosze: null,
         listingKind: "trial",
+        poetCourseSlug: "improv",
+        upcomingDates: [
+          "2026-05-21T16:00:00.000Z",
+          "2026-05-23T16:00:00.000Z",
+          "2026-05-25T10:30:00.000Z",
+        ],
       },
     );
 
-    expect(ticketUrl).toBe("https://www.populartickets.pl/ru/events/probnoe-improv-2026-05-21");
-    expect(photoCaption).toContain("ПРОБНОЕ ЗАНЯТИЕ ПО ИМПРОВИЗАЦИИ");
-    expect(photoCaption).toContain("✨ Учимся быстро мыслить");
+    expect(ticketUrl).toBe("https://www.populartickets.pl/ru/probnoe/improv");
+    expect(buttonLabel).toBe("🎟 Выбрать дату");
+    expect(photoCaption).toContain("ПРОБНОЕ · ИМПРОВИЗАЦИЯ");
+    expect(photoCaption).toContain("Ближайшие даты:");
+    expect(photoCaption).toContain(formatTrialDateBullet("2026-05-21T16:00:00.000Z"));
     expect(photoCaption).toContain("Популярный поэт");
-    expect(photoCaption).toContain("🎟 Пробное занятие — 70 zł");
-    expect(photoCaption).toContain("Билеты на сайте");
+    expect(photoCaption).toContain("70 zł");
     expect(photoCaption).toContain(ticketUrl);
-    expect(photoCaption).toContain("Без опыта");
-    expect(previewMessage).toContain(ticketUrl);
+    expect(photoCaption).toContain("одной ссылке");
+    expect(previewMessage).toContain("не протухает");
+  });
+
+  it("keeps performance posts on the event page", () => {
+    const { ticketUrl, buttonLabel } = buildGroupBroadcastContent("https://www.populartickets.pl", {
+      slug: "improv-show-friday",
+      title: "Improv Show",
+      description: "Вечер импровизации.",
+      venue: "ul. Domaniewska 37",
+      startsAtIso: "2026-05-21T17:00:00.000Z",
+      priceGrosze: 6000,
+      dayOfEventPriceGrosze: null,
+      listingKind: "performance",
+      poetCourseSlug: null,
+      upcomingDates: [],
+    });
+    expect(ticketUrl).toBe("https://www.populartickets.pl/ru/events/improv-show-friday");
+    expect(buttonLabel).toBe("🎫 Билеты");
   });
 });

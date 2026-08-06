@@ -52,7 +52,8 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const dates = supabase ? await fetchTrialHubDates(supabase, course.id, locale) : [];
   const photos = supabase ? await fetchTrialHubPhotos(supabase, course.id) : [];
   const { selected } = selectTrialHubDate(dates, requestedSlug);
-  const title = selected
+  // Для постоянной ссылки без ?d= — стабильный title (удобно шарить в Telegram).
+  const title = requestedSlug && selected
     ? t("metaTitleWithDate", { course: course.title, date: formatEventDateTime(selected.startsAt, locale) })
     : t("metaTitle", { course: course.title });
 
