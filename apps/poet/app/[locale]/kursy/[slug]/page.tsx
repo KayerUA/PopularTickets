@@ -18,7 +18,8 @@ import {
 import { PoetTrialEventsGrid } from "@/components/PoetTrialEventsGrid";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { PoetJsonLd } from "@/components/PoetJsonLd";
-import { buildBreadcrumbListJsonLd, buildCourseJsonLd } from "@/lib/poetJsonLd";
+import { buildBreadcrumbListJsonLd, buildCourseJsonLd, buildFaqPageJsonLd } from "@/lib/poetJsonLd";
+import { buildTrialEventSeriesJsonLd } from "@/lib/poetTrialJsonLd";
 import { POET_STATIC_COURSE_SLUGS } from "@/lib/poetStaticCourses";
 
 export const revalidate = 60;
@@ -177,11 +178,36 @@ export default async function PoetCoursePage({ params }: PageProps) {
           { name: display.title, item: courseAbs },
         ])
       : null;
+  // Даты курса живут на одной странице: серия + отдельный Event на каждый слот.
+  const seriesLd =
+    courseAbs && trials.length > 0
+      ? buildTrialEventSeriesJsonLd({
+          trials,
+          locale: loc,
+          name: display.title,
+          description: plainDesc.length > 0 ? plainDesc : display.title,
+          url: courseAbs,
+        })
+      : null;
+  const faqPairs = [
+    ["faqQ1", "faqA1"],
+    ["faqQ2", "faqA2"],
+    ["faqQ3", "faqA3"],
+    ["faqQ4", "faqA4"],
+  ] as const;
+  const faqLd = buildFaqPageJsonLd(
+    faqPairs.map(([questionKey, answerKey]) => ({
+      name: tPage(questionKey),
+      acceptedAnswer: { text: tPage(answerKey) },
+    })),
+  );
 
   return (
     <>
       {courseLd ? <PoetJsonLd data={courseLd} /> : null}
       {breadcrumbLd ? <PoetJsonLd data={breadcrumbLd} /> : null}
+      {seriesLd ? <PoetJsonLd data={seriesLd} /> : null}
+      <PoetJsonLd data={faqLd} />
       <div className="poet-safe-x mx-auto max-w-5xl pb-12 pt-6 sm:pb-16 sm:pt-8">
       <nav className="text-sm text-zinc-500">
         <Link href="/" className="text-poet-gold/90 hover:text-poet-gold-bright">
@@ -238,6 +264,21 @@ export default async function PoetCoursePage({ params }: PageProps) {
             <PoetTrialEventsGrid locale={locale as AppLocale} trials={trials} />
           </div>
         )}
+      </section>
+
+      <section className="mt-12 scroll-mt-32 sm:scroll-mt-28" id="faq">
+        <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{tPage("faqTitle")}</h2>
+        <dl className="mt-5 space-y-4">
+          {faqPairs.map(([questionKey, answerKey]) => (
+            <div
+              key={questionKey}
+              className="rounded-2xl border border-poet-gold/15 bg-poet-surface/20 px-5 py-4 sm:px-6"
+            >
+              <dt className="text-sm font-semibold text-zinc-100 sm:text-base">{tPage(questionKey)}</dt>
+              <dd className="mt-2 text-sm leading-relaxed text-zinc-400">{tPage(answerKey)}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
     </div>
     </>

@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import { POPULAR_POET_TRIAL_VENUE_PL } from "@/lib/theatreVenueDefaults";
 import { EVENT_ADMIN_TIMEZONE } from "@/lib/warsawEventDatetime";
+import { isTrialScheduleAfisha } from "@/lib/telegram/trialSchedule";
 
 export const MIN_EVENT_DESCRIPTION_CHARS = 300;
 /** Целевая длина для SEO (не жёсткий лимит JSON-схемы). */
@@ -18,11 +19,48 @@ export const COURSE_DESCRIPTION_IMPROV = `Импровизация — заня�
 export const COURSE_DESCRIPTION_ACTING = `Актёрское мастерство — работа с голосом, телом, вниманием и подачей, которая помогает увереннее чувствовать себя и на сцене, и в жизни. Участники развивают свободу самовыражения и умение быть в контакте с собой и другими.`;
 
 /**
+ * Расписание пробных: продажа идёт с хаба курса, отдельные даты не индексируются,
+ * поэтому шесть SEO-текстов на каждую дату не нужны — сервер подставит шаблон курса.
+ */
+function buildTrialSchedulePrompt(sourceText: string, hasImage: boolean, now: DateTime): string {
+  return `Ты парсер расписания занятий театра «Популярный поэт» (Warszawa, ul. Domaniewska 37).
+Задача: превратить расписание в список дат. Тексты писать НЕ нужно.
+
+Сейчас: ${now.toFormat("yyyy-MM-dd HH:mm")} (${EVENT_ADMIN_TIMEZONE}).
+
+═══ ПРАВИЛА ═══
+• Один объект events[] на КАЖДУЮ дату из расписания, порядок как в тексте.
+• Дисциплина берётся из строки даты или из ближайшего заголовка выше: «Импровизация» → improv, «Актёрское мастерство» → acting, PLAY-BACK → playback.
+• course в каждом event: improv | acting | playback. Не угадывай — если дисциплина нигде не названа, ставь null.
+• Диапазон «18:00-20:00» → startsAtWarsaw только время НАЧАЛА: 18:00.
+• День недели в скобках игнорируй; год ${now.year}, если не указан.
+• Строки вроде «И сразу еще на неделю» — не события.
+• Цифры не выдумывай: pricePln / totalTickets только если явно написаны, иначе null.
+
+═══ JSON ═══
+Верни один JSON-объект без markdown-обёртки:
+{
+  "events": [{ "startsAtWarsaw": "yyyy-MM-ddTHH:mm", "course": "improv|acting|playback|null", "listingKind": "trial" }],
+  "pricePln", "dayOfEventPricePln", "totalTickets",
+  "venue": "${POPULAR_POET_TRIAL_VENUE_PL}",
+  "eventLanguage": "ru | uk | ru_uk | pl | en | mixed"
+}
+
+${hasImage ? "Текст расписания может быть на изображении — прочитай его." : ""}
+
+Расписание:
+"""
+${sourceText.trim() || "(прочитай текст с изображения)"}
+"""`;
+}
+
+/**
  * Промпт Gemini: парсинг афиши + SEO-описания для populartickets.pl (RU / PL / UK).
  * Описание — plain text с абзацами и подзаголовками (сайт рендерит pre-wrap, без Markdown).
  */
 export function buildGeminiEventParsePrompt(sourceText: string, hasImage: boolean): string {
   const now = DateTime.now().setZone(EVENT_ADMIN_TIMEZONE);
+  if (isTrialScheduleAfisha(sourceText)) return buildTrialSchedulePrompt(sourceText, hasImage, now);
 
   return `Ты редактор афиш и SEO-текстов для билетной кассы ${BRAND.ru} (improv / театр, Warszawa, ul. Domaniewska 37).
 Задача: из афиши извлечь поля и написать продающие тексты на трёх языках.

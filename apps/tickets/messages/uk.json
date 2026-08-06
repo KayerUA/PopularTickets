@@ -201,6 +201,28 @@
     "relatedHubCta": "Усі події за темою",
     "relatedPoetCta": "Курси та заняття Popular Poet"
   },
+  "TrialHub": {
+    "metaTitle": "{course} — запис на пробне заняття",
+    "metaTitleWithDate": "{course} — пробне заняття {date}",
+    "metaDescription": "Найближчі дати пробного заняття «{course}» у Варшаві та оплата онлайн.",
+    "metaTitleFallback": "Пробне заняття — PopularTickets",
+    "metaDescriptionFallback": "Запис на пробне заняття театру «Популярний поет» у Варшаві.",
+    "kicker": "Пробне заняття",
+    "heading": "{course}: вибір дати й оплата",
+    "chooseDate": "Найближчі дати",
+    "chooseDateHint": "Оберіть зручний день — форма нижче оновиться під обрану дату.",
+    "seatsLeft": "вільних місць: {count}",
+    "soldOutBadge": "місць немає",
+    "selectedSoldOut": "На цю дату місця закінчилися. Оберіть іншу дату вище.",
+    "requestedDateUnavailable": "Ця дата вже недоступна — нижче найближчі вільні.",
+    "emptyDates": "Найближчі дати ще не призначені. Повний розклад і анонси нових груп — на сайті театру.",
+    "courseCta": "Докладніше про курс",
+    "afishaCta": "Уся афіша",
+    "allDatesCta": "Усі дати й оплата",
+    "moreDates": "Ще дат: {count}",
+    "aboutCourseTitle": "Що далі після пробного",
+    "aboutCourseBody": "Пробне заняття ні до чого не зобов'язує: після нього можна продовжити в основній групі. Програма курсу, викладачі й розклад — на сайті театру «Популярний поет»."
+  },
   "TicketsFacts": {
     "metaTitle": "Про PopularTickets — офіційна каса Popular Poet",
     "metaDescription": "PopularTickets: офіційна квиткова каса Popular Poet, онлайн-квитки, QR на email, Przelewy24, оператор POPULAR POET Sp. z o.o.",

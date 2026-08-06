@@ -20,11 +20,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = getServiceSupabase();
   let eventRows: { slug: string; updated_at: string; starts_at: string }[] = [];
   if (supabase) {
+    // trial отдаёт 308 на хаб курса, special — на /special/{slug}: в sitemap только конечные URL.
     const { data } = await supabase
       .from("events")
       .select("slug,updated_at,starts_at")
       .eq("visibility", "published")
-      .neq("listing_kind", "special");
+      .not("listing_kind", "in", '("special","trial")');
     eventRows = (data ?? []) as { slug: string; updated_at: string; starts_at: string }[];
   }
 

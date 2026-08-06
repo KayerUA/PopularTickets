@@ -6,7 +6,7 @@ import { effectiveEventPriceGrosze } from "@/lib/eventPrice";
 
 /** Без maps_url — иначе при «schema cache» без колонки падает весь запрос. */
 const EVENT_SELECT_PUBLIC =
-  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,day_of_event_price_grosze,total_tickets,listing_kind,discount_periods,event_language,visibility" as const;
+  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,day_of_event_price_grosze,total_tickets,listing_kind,discount_periods,event_language,poet_course_id,visibility" as const;
 
 export type PublishedEventRow = {
   id: string;
@@ -31,6 +31,8 @@ export type PublishedEventRow = {
   listing_kind: string | null;
   discount_periods?: unknown;
   event_language: EventLanguage;
+  /** Курс popularpoet.pl — заполнен только у пробных. */
+  poet_course_id: string | null;
   /** `published` — в афіші; `unlisted` — лише за прямим посиланням; `inactive` — не повинен потрапляти сюди. */
   visibility: string;
 };
@@ -89,6 +91,10 @@ export async function fetchPublishedEventBySlug(
   const image_focal_x = clampEventImageFocal((row as { image_focal_x?: unknown }).image_focal_x);
   const image_focal_y = clampEventImageFocal((row as { image_focal_y?: unknown }).image_focal_y);
   const event_language = normalizeEventLanguage(row.event_language);
+  const poet_course_id =
+    typeof (row as { poet_course_id?: unknown }).poet_course_id === "string"
+      ? (row as { poet_course_id: string }).poet_course_id
+      : null;
 
   const title_pl = typeof (row as { title_pl?: unknown }).title_pl === "string" ? (row as { title_pl: string }).title_pl : null;
   const description_pl =
@@ -115,6 +121,7 @@ export async function fetchPublishedEventBySlug(
       listing_kind,
       discount_periods: (row as { discount_periods?: unknown }).discount_periods,
       event_language,
+      poet_course_id,
       visibility,
       image_focal_x,
       image_focal_y,

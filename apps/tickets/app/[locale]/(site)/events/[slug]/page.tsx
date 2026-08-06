@@ -34,6 +34,7 @@ import { RelatedEventsSection } from "@/components/RelatedEventsSection";
 import { eventRobotsMeta } from "@/lib/eventSeoPolicy";
 import { resolveApplicablePromoCode } from "@/lib/promoCodes";
 import { PromoVisitTracker } from "@/components/PromoVisitTracker";
+import { fetchPoetCourseSlugById, trialHubPath } from "@/lib/trialCourseHub";
 
 /** Server Actions + ISR: закэшированная страница после деплоя даёт «Server Action … was not found». */
 export const dynamic = "force-dynamic";
@@ -146,8 +147,16 @@ export default async function EventPage({
     totalTickets: event.total_tickets,
   });
   const listingKind = normalizeEventListingKind(event.listing_kind);
+  const promoQuery = promoRaw ? `&promo=${encodeURIComponent(promoRaw)}` : "";
   if (listingKind === "special") {
     permanentRedirect(`/${locale}/special/${event.slug}${promoRaw ? `?promo=${encodeURIComponent(promoRaw)}` : ""}`);
+  }
+  // Пробные продаются с хаба курса: все даты и оплата на одной вечной странице.
+  if (listingKind === "trial" && event.poet_course_id) {
+    const courseSlug = await fetchPoetCourseSlugById(supabase, event.poet_course_id);
+    if (courseSlug) {
+      permanentRedirect(`${trialHubPath(locale, courseSlug, event.slug)}${promoQuery}`);
+    }
   }
   const mapsHref = resolveEventMapsUrl({
     maps_url: event.maps_url,

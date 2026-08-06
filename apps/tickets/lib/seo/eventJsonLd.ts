@@ -225,6 +225,8 @@ export type EventItemListEntry = {
   remaining: number;
   soldOut: boolean;
   mapsUrl?: string | null;
+  /** Путь без локали, если покупка идёт не со страницы события (напр. хаб пробных). */
+  pagePath?: string;
 };
 
 /** ItemList из Event для листингов (intent-хабы, афиша). */
@@ -245,6 +247,7 @@ export function buildEventItemListJsonLd(
       remaining: entry.remaining,
       soldOut: entry.soldOut,
       mapsUrl: entry.mapsUrl,
+      ...(entry.pagePath ? { pagePath: entry.pagePath } : {}),
     }) as Record<string, unknown>;
     return [
       {

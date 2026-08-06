@@ -8,7 +8,7 @@ import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { EventStatusBadge } from "@/components/EventStatusBadge";
 import type { PoetTrialDisplay } from "@/lib/poetTrials";
 import type { AppLocale } from "@/i18n/routing";
-import { ticketsEventPage } from "@/lib/ticketsSite";
+import { ticketsEventPage, ticketsTrialCheckout } from "@/lib/ticketsSite";
 
 type Props = {
   slot: PoetTrialDisplay;
@@ -20,7 +20,9 @@ type Props = {
 export async function PoetTrialEventCard({ slot, locale, showCourseBadge = false }: Props) {
   const t = await getTranslations("EventCard");
   const tPoet = await getTranslations("Poet");
-  const href = ticketsEventPage(locale, slot.slug);
+  const href = slot.courseSlug
+    ? ticketsTrialCheckout(locale, slot.courseSlug, slot.slug)
+    : ticketsEventPage(locale, slot.slug);
   const language = normalizeEventLanguage(slot.eventLanguage);
   const when = slot.starts_at ? formatEventDateTime(slot.starts_at, locale) : null;
   const cta =

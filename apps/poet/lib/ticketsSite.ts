@@ -31,6 +31,21 @@ export function ticketsEventPage(locale: AppLocale, eventSlug: string): string {
   return `${b}/${locale}/events/${encodeURIComponent(eventSlug)}`;
 }
 
+/**
+ * Хаб пробних занять курсу на PopularTickets: усі дати в одному місці + оплата.
+ * Сторінка окремої дати веде сюди ж (308), тож посилаємось одразу без зайвого хопу.
+ */
+export function ticketsTrialCheckout(
+  locale: AppLocale,
+  courseSlug: string,
+  eventSlug?: string | null,
+): string {
+  const b = getTicketsSiteBase();
+  if (!b) return "#";
+  const base = `${b}/${locale}/probnoe/${encodeURIComponent(courseSlug)}`;
+  return eventSlug ? `${base}?d=${encodeURIComponent(eventSlug)}` : base;
+}
+
 /** Страница подарочного сертификата (PopularTickets). */
 export function ticketsGiftPage(locale: AppLocale = "ru"): string {
   const b = getTicketsSiteBase();

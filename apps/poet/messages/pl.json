@@ -26,7 +26,16 @@
     "trialsHeading": "Najbliższe zajęcia tego kursu",
     "trialsIntro": "Wybierz termin: to mogą być zajęcia wprowadzające, otwarta lekcja, masterclass albo inny format w tym kierunku.",
     "emptyTrials": "Nie ma teraz otwartych terminów dla tego kierunku. Zajrzyj do wspólnego kalendarza albo napisz na Telegram — dobierzemy najlepszy start.",
-    "ctaFullCalendar": "Wszystkie zajęcia i wydarzenia"
+    "ctaFullCalendar": "Wszystkie zajęcia i wydarzenia",
+    "faqTitle": "Częste pytania o zajęcia",
+    "faqQ1": "Czy potrzebne jest doświadczenie?",
+    "faqA1": "Nie. Zajęcia otwarte są dla osób początkujących: wszystko tłumaczymy na miejscu, a ćwiczenia prowadzimy tak, żeby włączył się każdy uczestnik.",
+    "faqQ2": "Ile trwają zajęcia i ile kosztują?",
+    "faqA2": "Zajęcia trwają około dwóch godzin. Aktualna cena i liczba wolnych miejsc są podane przy każdym terminie — płatność online na PopularTickets, potwierdzenie przychodzi na e-mail.",
+    "faqQ3": "Co zabrać ze sobą?",
+    "faqA3": "Wygodne ubranie, w którym łatwo się poruszać, zmienne obuwie lub skarpetki oraz wodę. Nic nie trzeba przygotowywać wcześniej.",
+    "faqQ4": "Gdzie odbywają się zajęcia?",
+    "faqA4": "Warszawa, ul. Domaniewska 37, centrum biznesowe Zepter, 5 piętro. Najbliższe metro to Wilanowska lub Służew."
   },
   "FactsPage": {
     "metaTitle": "O Popular Poet — teatr i kursy aktorskie w Warszawie",

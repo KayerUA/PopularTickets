@@ -25,6 +25,8 @@ import {
 import type { IntentClusterKey } from "@/lib/ticketsIntentRoutes";
 import { intentFaqTranslationKeys } from "@/lib/ticketsIntentFaq";
 import { NextModeIntentWidget } from "@/components/NextModeIntentWidget";
+import { TrialCourseGroups } from "@/components/TrialCourseGroups";
+import { fetchTrialHubGroups, trialHubHref, type TrialHubGroup } from "@/lib/trialCourseHub";
 
 const FEATURED_SPECIAL_SLUG = "next-mode-2026-08-15";
 const EDITORIAL_DATE = "2026-07-15";
@@ -74,9 +76,35 @@ export default async function IntentDiscoverPage({
   const nextModePromo = includeNextMode ? nextModeIntentPromoForCluster(cluster) : null;
   const editorialCluster = locale === "ru" && isEditorialCluster(cluster) ? cluster : null;
   const supabase = getServiceSupabase();
+  // Пробные показываем по дисциплинам: даты живут на хабе курса, а не на отдельных страницах.
+  const isTrialCluster = cluster === "trial";
   let list: EventCardProps[] = [];
   let jsonLdEntries: EventItemListEntry[] = [];
-  if (supabase) {
+  let trialGroups: TrialHubGroup[] = [];
+
+  if (supabase && isTrialCluster) {
+    trialGroups = await fetchTrialHubGroups(supabase, locale);
+    jsonLdEntries = trialGroups.flatMap(({ course, dates }) =>
+      dates.map((date) => ({
+        event: {
+          title: date.title,
+          description: date.description,
+          venue: date.venue,
+          starts_at: date.startsAt,
+          image_url: date.imageUrl,
+          price_grosze: date.priceGrosze,
+          slug: date.slug,
+          listing_kind: "trial",
+          event_language: date.eventLanguage,
+          total_tickets: date.totalTickets,
+        },
+        remaining: date.remaining,
+        soldOut: date.soldOut,
+        mapsUrl: null,
+        pagePath: trialHubHref(course.slug, date.slug),
+      })),
+    );
+  } else if (supabase) {
     let query = supabase
       .from("events")
       .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language,visibility")
@@ -354,7 +382,17 @@ export default async function IntentDiscoverPage({
 
       <section className="mt-10 scroll-mt-24 space-y-6" id="afisha">
         <p className="text-[11px] font-mono uppercase tracking-[0.4em] text-zinc-500">{t("eventsSectionLabel")}</p>
-        {list.length ? <HomeEventsGrid events={list} /> : <p className="text-zinc-500">{t("eventsEmpty")}</p>}
+        {isTrialCluster ? (
+          trialGroups.length ? (
+            <TrialCourseGroups groups={trialGroups} locale={locale} />
+          ) : (
+            <p className="text-zinc-500">{t("eventsEmpty")}</p>
+          )
+        ) : list.length ? (
+          <HomeEventsGrid events={list} />
+        ) : (
+          <p className="text-zinc-500">{t("eventsEmpty")}</p>
+        )}
       </section>
     </div>
   );

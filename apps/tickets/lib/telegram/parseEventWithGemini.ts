@@ -9,6 +9,17 @@ import { POPULAR_POET_TRIAL_VENUE_PL } from "@/lib/theatreVenueDefaults";
 import { EVENT_ADMIN_TIMEZONE } from "@/lib/warsawEventDatetime";
 import { normalizeEventLanguage } from "@/lib/eventLanguage";
 import { IMAGE_FOCALS_KEY } from "@/lib/telegram/draftImageFocal";
+import {
+  extractScheduleLinesFromSource,
+  isTrialScheduleAfisha,
+  poetCourseSlugFromText,
+  TRIAL_COPY,
+  type ScheduleLine,
+  type TrialCopy,
+  type TrialCourseSlug,
+} from "@/lib/telegram/trialSchedule";
+
+export { extractScheduleLinesFromSource, poetCourseSlugFromText };
 
 const MIN_DESCRIPTION_CHARS = MIN_EVENT_DESCRIPTION_CHARS;
 
@@ -190,6 +201,21 @@ function rejectDateLeakage(o: Record<string, unknown>): void {
   }
 }
 
+const TEXT_FIELDS = ["title", "titlePl", "titleUk"] as const;
+const DESCRIPTION_FIELDS = ["description", "descriptionPl", "descriptionUk"] as const;
+
+/** Пробные: тексты по шаблону курса, если Gemini их не прислал (промпт для расписаний их не просит). */
+function applyTrialCopyDefaults(o: Record<string, unknown>, copy: TrialCopy): void {
+  for (const field of TEXT_FIELDS) {
+    const value = o[field];
+    if (typeof value !== "string" || value.trim().length < 2) o[field] = copy[field];
+  }
+  for (const field of DESCRIPTION_FIELDS) {
+    const value = o[field];
+    if (typeof value !== "string" || value.trim().length < MIN_DESCRIPTION_CHARS) o[field] = copy[field];
+  }
+}
+
 function sanitizeOneEvent(
   input: Record<string, unknown>,
   shared: {
@@ -199,6 +225,7 @@ function sanitizeOneEvent(
     venue: string;
     eventLanguage: string;
   },
+  trialCopy?: TrialCopy | null,
 ): Record<string, unknown> {
   const o = { ...input };
 
@@ -232,6 +259,7 @@ function sanitizeOneEvent(
   o.venue = venue;
 
   o.eventLanguage = shared.eventLanguage;
+  if (trialCopy) applyTrialCopyDefaults(o, trialCopy);
   o.description = ensureMinDescription(o.description, venue);
   o.descriptionPl = ensureMinDescription(o.descriptionPl, venue);
   o.descriptionUk = ensureMinDescription(o.descriptionUk, venue);
@@ -239,31 +267,6 @@ function sanitizeOneEvent(
   delete o.notes;
 
   return o;
-}
-
-/** Резервный разбор строк расписания «20.05 (ср) 20:00-22:00 — …». */
-export function extractScheduleLinesFromSource(sourceText: string): {
-  startsAtWarsaw: string;
-  lineHint: string;
-}[] {
-  const now = DateTime.now().setZone(EVENT_ADMIN_TIMEZONE);
-  const out: { startsAtWarsaw: string; lineHint: string }[] = [];
-  const re =
-    /(\d{1,2})\.(\d{1,2})(?:\s*\([^)]+\))?\s+(\d{1,2}):(\d{2})(?:\s*[-–—]\s*\d{1,2}:\d{2})?\s*[—–-]\s*(.+)/gm;
-
-  for (const m of sourceText.matchAll(re)) {
-    const day = m[1]!.padStart(2, "0");
-    const month = m[2]!.padStart(2, "0");
-    const hour = m[3]!.padStart(2, "0");
-    const min = m[4]!.padStart(2, "0");
-    const lineHint = m[5]!.trim();
-    out.push({
-      startsAtWarsaw: `${now.year}-${month}-${day}T${hour}:${min}`,
-      lineHint,
-    });
-  }
-
-  return out;
 }
 
 function applyScheduleFallback(events: RawParsedEvent[], sourceText: string): void {
@@ -286,13 +289,6 @@ function applyScheduleFallback(events: RawParsedEvent[], sourceText: string): vo
   }
 }
 
-function isTrialScheduleAfisha(sourceText: string): boolean {
-  const t = sourceText.toLowerCase();
-  if (/пробн|zajęci[aę]\s+prób|zajec\s+prob|trial\s+class/i.test(t)) return true;
-  const lines = extractScheduleLinesFromSource(sourceText);
-  return lines.length >= 2 && /(?:^|\n)\s*вход\s*:\s*70|70\s*zł|70\s*zl\b/i.test(t);
-}
-
 function scheduleSlotKey(startsAtWarsaw: string | null | undefined): string | null {
   if (!startsAtWarsaw) return null;
   const dt = DateTime.fromFormat(startsAtWarsaw, "yyyy-MM-dd'T'HH:mm", { zone: EVENT_ADMIN_TIMEZONE });
@@ -300,49 +296,42 @@ function scheduleSlotKey(startsAtWarsaw: string | null | undefined): string | nu
   return `${dt.toFormat("MM-dd")}T${dt.toFormat("HH:mm")}`;
 }
 
-function poetCourseSlugFromLineHint(lineHint: string): "improv" | "acting" | "playback" | "masterclass" {
-  if (/playback|play-back|плейбек|play\s*back/i.test(lineHint)) return "playback";
-  if (/актёр|актер|acting/i.test(lineHint) && /мастерств/i.test(lineHint)) return "acting";
-  if (/импров|impro|комед/i.test(lineHint)) return "improv";
-  return "improv";
-}
-
 function inferPoetCourseSlugForTrial(ev: RawParsedEvent, lineHint?: string): void {
   if (ev.listingKind !== "trial") {
     delete ev.poetCourseSlug;
     return;
   }
-  if (lineHint) {
-    ev.poetCourseSlug = poetCourseSlugFromLineHint(lineHint);
+  const fromHint = lineHint ? poetCourseSlugFromText(lineHint) : null;
+  if (fromHint) {
+    ev.poetCourseSlug = fromHint;
     return;
   }
-  const blob = `${ev.title} ${ev.description}`.toLowerCase();
-  if (/playback|play-back|плейбек/i.test(blob)) ev.poetCourseSlug = "playback";
-  else if (/актёр|актер|acting/i.test(blob) && /мастерств/i.test(blob)) ev.poetCourseSlug = "acting";
-  else if (/импров|impro|комед/i.test(blob)) ev.poetCourseSlug = "improv";
+  const fromEvent = poetCourseSlugFromText(`${ev.title} ${ev.description}`);
+  if (fromEvent) ev.poetCourseSlug = fromEvent;
 }
 
-function trialTitlesFromLineHint(lineHint: string): Pick<RawParsedEvent, "title" | "titlePl" | "titleUk"> {
-  const isActing = /актёр|актер|acting/i.test(lineHint) && /мастерств/i.test(lineHint);
-  if (isActing) {
-    return {
-      title: "Пробное занятие по актёрскому мастерству в Варшаве — театр «Популярный поэт»",
-      titlePl: "Zajęcia próbne z aktorstwa w Warszawie — Teatr „Popularny Poeta”",
-      titleUk: "Пробне заняття з акторської майстерності у Варшаві — театр «Популярний поет»",
-    };
-  }
-  return {
-    title: "Пробное занятие по импровизации в Варшаве — театр «Популярный поэт»",
-    titlePl: "Zajęcia próbne z improwizacji w Warszawie — Teatr „Popularny Poeta”",
-    titleUk: "Пробне заняття з імпровізації у Варшаві — театр «Популярний поет»",
-  };
+function trialTitles(course: TrialCourseSlug): Pick<RawParsedEvent, "title" | "titlePl" | "titleUk"> {
+  const { title, titlePl, titleUk } = TRIAL_COPY[course];
+  return { title, titlePl, titleUk };
 }
 
 function titleLooksLikeMasterclass(title: string): boolean {
   return /мастер[-\s]?класс|master[-\s]?class|masterclass/i.test(title);
 }
 
-/** Пробные из расписания: trial + каноничные title (Gemini путает impro с «мастер-классом»). */
+/** Строка расписания под конкретное событие: по слоту даты, иначе по порядку. */
+function matchScheduleLine(
+  lines: ScheduleLine[],
+  startsAtWarsaw: unknown,
+  index: number,
+  total: number,
+): ScheduleLine | undefined {
+  const key = typeof startsAtWarsaw === "string" ? scheduleSlotKey(startsAtWarsaw) : null;
+  const bySlot = key ? lines.find((line) => scheduleSlotKey(line.startsAtWarsaw) === key) : undefined;
+  return bySlot ?? (lines.length === total ? lines[index] : undefined);
+}
+
+/** Пробные из расписания: trial + каноничные тексты (Gemini путает impro с «мастер-классом»). */
 function applyTrialSchedulePolicy(events: RawParsedEvent[], sourceText: string): void {
   if (!isTrialScheduleAfisha(sourceText)) return;
 
@@ -352,25 +341,15 @@ function applyTrialSchedulePolicy(events: RawParsedEvent[], sourceText: string):
     ev.listingKind = "trial";
   }
 
-  for (const ev of events) {
-    const key = scheduleSlotKey(ev.startsAtWarsaw);
-    const line =
-      (key ? lines.find((l) => scheduleSlotKey(l.startsAtWarsaw) === key) : undefined) ??
-      (lines.length === events.length
-        ? lines[events.indexOf(ev)]
-        : undefined);
-
-    if (line) {
-      Object.assign(ev, trialTitlesFromLineHint(line.lineHint));
-      inferPoetCourseSlugForTrial(ev, line.lineHint);
-      continue;
+  events.forEach((ev, index) => {
+    const line = matchScheduleLine(lines, ev.startsAtWarsaw, index, events.length);
+    inferPoetCourseSlugForTrial(ev, line?.lineHint);
+    if (!ev.poetCourseSlug && titleLooksLikeMasterclass(ev.title)) {
+      ev.poetCourseSlug = "improv";
     }
-
-    if (titleLooksLikeMasterclass(ev.title)) {
-      Object.assign(ev, trialTitlesFromLineHint("импров"));
-      inferPoetCourseSlugForTrial(ev, "импров");
-    }
-  }
+    const course = ev.poetCourseSlug && ev.poetCourseSlug !== "masterclass" ? ev.poetCourseSlug : null;
+    if (course) Object.assign(ev, trialTitles(course));
+  });
 
   for (const ev of events) {
     if (ev.listingKind === "trial" && !ev.poetCourseSlug) {
@@ -416,11 +395,30 @@ function sanitizeGeminiBatchPayload(input: unknown, sourceText: string): RawPars
     eventLanguage: sharedLang,
   };
 
-  const sanitized = rawEvents.map((item) => {
+  const trialSchedule = isTrialScheduleAfisha(sourceText);
+  const scheduleLines = trialSchedule ? extractScheduleLinesFromSource(sourceText) : [];
+
+  const sanitized = rawEvents.map((item, index) => {
     if (!item || typeof item !== "object") {
       throw new Error("Gemini JSON: некорректный элемент events");
     }
-    return sanitizeOneEvent(item as Record<string, unknown>, shared);
+    const raw = item as Record<string, unknown>;
+    let trialCopy: TrialCopy | null = null;
+    if (trialSchedule) {
+      const line = matchScheduleLine(
+        scheduleLines,
+        normalizeStartsAtWarsaw(raw.startsAtWarsaw),
+        index,
+        rawEvents.length,
+      );
+      const course =
+        (line ? poetCourseSlugFromText(line.lineHint) : null) ??
+        poetCourseSlugFromText(String(raw.course ?? raw.poetCourseSlug ?? "")) ??
+        poetCourseSlugFromText(`${String(raw.title ?? "")} ${String(raw.description ?? "")}`) ??
+        "improv";
+      trialCopy = TRIAL_COPY[course];
+    }
+    return sanitizeOneEvent(raw, shared, trialCopy);
   });
 
   const parsed: RawParsedEvent[] = [];

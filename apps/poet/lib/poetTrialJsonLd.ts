@@ -14,7 +14,7 @@ import {
 } from "@/lib/poetEntity";
 import type { PoetTrialDisplay } from "@/lib/poetTrials";
 import { poetCanonicalPath } from "@/lib/seoPoet";
-import { getTicketsSiteBase, ticketsEventPage } from "@/lib/ticketsSite";
+import { getTicketsSiteBase, ticketsEventPage, ticketsTrialCheckout } from "@/lib/ticketsSite";
 import { POPULAR_POET_TRIAL_VENUE_PL } from "@/lib/theatreVenueDefaults";
 import { eventEndDateIso } from "@/lib/eventEndDateIso";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
@@ -42,7 +42,11 @@ function buildTrialEventJsonLd(trial: PoetTrialDisplay, locale: AppLocale): Reco
   if (!trial.starts_at) return null;
 
   const ticketsBase = getTicketsSiteBase();
-  const eventUrl = ticketsBase ? ticketsEventPage(locale, trial.slug) : undefined;
+  const eventUrl = !ticketsBase
+    ? undefined
+    : trial.courseSlug
+      ? ticketsTrialCheckout(locale, trial.courseSlug, trial.slug)
+      : ticketsEventPage(locale, trial.slug);
   const startsMs = new Date(trial.starts_at).getTime();
   const isPast = !Number.isNaN(startsMs) && startsMs < Date.now();
   const soldOut = trial.status === "sold_out" || trial.remainingTickets <= 0;
@@ -118,6 +122,62 @@ function buildTrialEventJsonLd(trial: PoetTrialDisplay, locale: AppLocale): Reco
         ...(poetUrl ? { url: poetUrl } : {}),
       },
     },
+  }) as Record<string, unknown>;
+}
+
+/**
+ * EventSeries + subEvent для страницы курса: одна вечная страница вместо страницы на каждую дату,
+ * но каждый слот остаётся отдельным Event с ценой и наличием мест.
+ */
+export function buildTrialEventSeriesJsonLd(input: {
+  trials: PoetTrialDisplay[];
+  locale: AppLocale;
+  name: string;
+  description: string;
+  url: string;
+}): Record<string, unknown> | null {
+  const subEvent = input.trials.flatMap((trial) => {
+    const event = buildTrialEventJsonLd(trial, input.locale);
+    return event ? [event] : [];
+  });
+
+  if (!subEvent.length) return null;
+
+  const poetUrl = getPoetSiteUrl()?.replace(/\/$/, "");
+
+  return stripJsonLdEmptyValues({
+    "@context": "https://schema.org",
+    "@type": "EventSeries",
+    name: input.name,
+    description: input.description.replace(/\s+/g, " ").trim().slice(0, 2000) || input.name,
+    url: input.url,
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    organizer: {
+      "@type": "Organization",
+      name: POET_ORGANIZATION_NAME,
+      alternateName: POET_ORGANIZATION_ALTERNATE_NAMES,
+      ...(poetUrl ? { url: poetUrl } : {}),
+      sameAs: poetSameAsUrls(),
+    },
+    location: {
+      "@type": "Place",
+      name: POET_ORGANIZATION_NAME,
+      hasMap: POET_THEATRE_MAPS_URL,
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: POET_GEO_LAT,
+        longitude: POET_GEO_LNG,
+      },
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: POET_ADDRESS_STREET,
+        addressLocality: POET_ADDRESS_LOCALITY,
+        postalCode: POET_ADDRESS_POSTAL_CODE,
+        addressCountry: POET_ADDRESS_COUNTRY,
+      },
+    },
+    numberOfItems: subEvent.length,
+    subEvent,
   }) as Record<string, unknown>;
 }
 

@@ -201,6 +201,28 @@
     "relatedHubCta": "Wszystkie wydarzenia w temacie",
     "relatedPoetCta": "Kursy i zajęcia Popular Poet"
   },
+  "TrialHub": {
+    "metaTitle": "{course} — zapisy na zajęcia próbne",
+    "metaTitleWithDate": "{course} — zajęcia próbne {date}",
+    "metaDescription": "Najbliższe terminy zajęć próbnych „{course}” w Warszawie i płatność online.",
+    "metaTitleFallback": "Zajęcia próbne — PopularTickets",
+    "metaDescriptionFallback": "Zapisy na zajęcia próbne Teatru „Popularny Poeta” w Warszawie.",
+    "kicker": "Zajęcia próbne",
+    "heading": "{course}: wybór terminu i płatność",
+    "chooseDate": "Najbliższe terminy",
+    "chooseDateHint": "Wybierz dogodny dzień — formularz poniżej dopasuje się do terminu.",
+    "seatsLeft": "wolne miejsca: {count}",
+    "soldOutBadge": "brak miejsc",
+    "selectedSoldOut": "Na ten termin nie ma już miejsc. Wybierz inny termin powyżej.",
+    "requestedDateUnavailable": "Ten termin jest już niedostępny — poniżej najbliższe wolne.",
+    "emptyDates": "Najbliższe terminy nie są jeszcze ustalone. Pełny grafik i zapowiedzi nowych grup — na stronie teatru.",
+    "courseCta": "Więcej o kursie",
+    "afishaCta": "Cały repertuar",
+    "allDatesCta": "Wszystkie terminy i płatność",
+    "moreDates": "Kolejne terminy: {count}",
+    "aboutCourseTitle": "Co po zajęciach próbnych",
+    "aboutCourseBody": "Zajęcia próbne do niczego nie zobowiązują: po nich można kontynuować w grupie podstawowej. Program kursu, prowadzący i grafik — na stronie Teatru „Popularny Poeta”."
+  },
   "TicketsFacts": {
     "metaTitle": "O PopularTickets — oficjalna kasa Popular Poet",
     "metaDescription": "PopularTickets: oficjalna kasa biletowa Popular Poet, bilety online, QR na e-mail, Przelewy24, operator POPULAR POET Sp. z o.o.",
