@@ -7,11 +7,15 @@ import { getServiceSupabase } from "@/lib/supabase/admin";
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { TrialDateCheckout } from "@/components/TrialDateCheckout";
 import { PromoVisitTracker } from "@/components/PromoVisitTracker";
+import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
 import { resolveApplicablePromoCode } from "@/lib/promoCodes";
 import { buildPublicPageMetadata, truncateMetaDescription } from "@/lib/seo";
 import { eventLanguageLabel } from "@/lib/eventLanguage";
 import { formatEventDateTime } from "@/lib/format";
+import { isOptimizableEventImage } from "@/lib/imageOptimization";
+import { getPublicAppUrl } from "@/lib/publicAppUrl";
+import { resolveAbsoluteAssetUrl } from "@/lib/safePublicUrl";
 import { POPULAR_POET_THEATRE_MAPS_URL, POPULAR_POET_TRIAL_VENUE_PL } from "@/lib/theatreVenueDefaults";
 import {
   fetchTrialHubCourse,
@@ -51,11 +55,17 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     ? t("metaTitleWithDate", { course: course.title, date: formatEventDateTime(selected.startsAt, locale) })
     : t("metaTitle", { course: course.title });
 
+  const heroAbs = resolveAbsoluteAssetUrl(course.heroImageUrl, getPublicAppUrl());
+  const ogImages = heroAbs
+    ? [{ url: heroAbs, width: 1200, height: 630, alt: course.title }]
+    : undefined;
+
   return buildPublicPageMetadata({
     locale,
     path: `/${TRIAL_HUB_SEGMENT}/${courseSlug}`,
     title,
     description: truncateMetaDescription(course.description) || t("metaDescription", { course: course.title }),
+    ogImages,
     // Индексируемая посадочная — страница курса на popularpoet.pl; здесь только оплата.
     robots: { index: false, follow: true },
   });
@@ -83,37 +93,57 @@ export default async function TrialCourseHubPage({ params, searchParams }: PageP
   const venue = selected?.venue?.trim() || POPULAR_POET_TRIAL_VENUE_PL;
   const courseHref = poetCourseUrl(locale, course.slug);
 
+  const coverSrc = course.heroImageUrl?.trim() || null;
+
   return (
     <div className="poet-safe-x mx-auto max-w-3xl py-8 sm:py-14">
       {promo && selected ? <PromoVisitTracker promoCodeId={promo.id} eventId={selected.id} /> : null}
 
-      <header>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-poet-gold/75">{t("kicker")}</p>
-        <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
-          {t("heading", { course: course.title })}
-        </h1>
-        {course.description.trim() ? (
-          <p className="mt-4 whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-zinc-400 sm:text-base">
-            {course.description}
-          </p>
-        ) : null}
-        <p className="mt-4 text-sm text-zinc-400">{venue}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-          <a
-            href={POPULAR_POET_THEATRE_MAPS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-poet-gold-bright underline decoration-poet-gold/40 underline-offset-2 hover:text-poet-gold"
-          >
-            {tEvent("openInMaps")}
-          </a>
-          {selected ? (
-            <span className="text-zinc-500">
-              {tEvent("languageLabel")}: {eventLanguageLabel(selected.eventLanguage, locale)}
-            </span>
-          ) : null}
+      <div className="overflow-hidden rounded-2xl border border-poet-gold/25 bg-poet-surface/50 shadow-gold backdrop-blur-md sm:rounded-3xl">
+        <div className="relative aspect-[16/10] w-full overflow-hidden bg-zinc-950 sm:aspect-video">
+          {coverSrc ? (
+            <MediaCoverBlurred
+              src={coverSrc}
+              alt={course.title}
+              sizes="(max-width:768px) 100vw, 896px"
+              priority
+              unoptimized={!isOptimizableEventImage(coverSrc)}
+              frameClassName="absolute inset-0"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-poet-gold-dim/35 via-poet-bg to-zinc-950" />
+          )}
+          <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-poet-bg via-poet-bg/25 to-transparent" />
         </div>
-      </header>
+
+        <header className="px-4 pb-6 pt-5 sm:px-8 sm:pb-8 sm:pt-6">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-poet-gold/75">{t("kicker")}</p>
+          <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
+            {t("heading", { course: course.title })}
+          </h1>
+          {course.description.trim() ? (
+            <p className="mt-4 whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-zinc-400 sm:text-base">
+              {course.description}
+            </p>
+          ) : null}
+          <p className="mt-4 text-sm text-zinc-400">{venue}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+            <a
+              href={POPULAR_POET_THEATRE_MAPS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-poet-gold-bright underline decoration-poet-gold/40 underline-offset-2 hover:text-poet-gold"
+            >
+              {tEvent("openInMaps")}
+            </a>
+            {selected ? (
+              <span className="text-zinc-500">
+                {tEvent("languageLabel")}: {eventLanguageLabel(selected.eventLanguage, locale)}
+              </span>
+            ) : null}
+          </div>
+        </header>
+      </div>
 
       {showRequestedNotice ? (
         <p className="mt-6 rounded-xl border border-poet-gold/25 bg-poet-gold/[0.06] px-4 py-3 text-sm text-zinc-300">

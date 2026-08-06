@@ -220,7 +220,7 @@ export async function fetchTrialHubDates(
 }
 
 export type TrialHubGroup = {
-  course: { id: string; slug: string; title: string };
+  course: { id: string; slug: string; title: string; heroImageUrl: string | null };
   dates: TrialHubDate[];
 };
 
@@ -256,13 +256,13 @@ export async function fetchTrialHubGroups(
   let courseRows: Record<string, unknown>[] = [];
   const courses = await supabase
     .from("poet_course")
-    .select("id,slug,title,title_pl,title_uk")
+    .select("id,slug,title,title_pl,title_uk,hero_image_url,card_image_url")
     .in("visibility", ["published", "unlisted"])
     .order("sort_order", { ascending: true });
   if (courses.error?.code === "42703") {
     const fallback = await supabase
       .from("poet_course")
-      .select("id,slug,title")
+      .select("id,slug,title,hero_image_url,card_image_url")
       .in("visibility", ["published", "unlisted"]);
     if (fallback.error) {
       console.error("[trialCourseHub] courses:", fallback.error.message);
@@ -299,7 +299,12 @@ export async function fetchTrialHubGroups(
     );
     return [
       {
-        course: { id, slug: String(course.slug), title: copy?.title ?? String(course.title ?? "") },
+        course: {
+          id,
+          slug: String(course.slug),
+          title: copy?.title ?? String(course.title ?? ""),
+          heroImageUrl: str(course.hero_image_url) ?? str(course.card_image_url),
+        },
         dates,
       },
     ];
