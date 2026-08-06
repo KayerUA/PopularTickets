@@ -2,7 +2,7 @@ import { Resend } from "resend";
 import { formatPlnFromGrosze } from "@/lib/format";
 import type { GiftProductCode } from "@/lib/giftProducts";
 import type { AppLocale } from "@/i18n/routing";
-import { getTelegramOwnerUserIds } from "@/lib/telegram/config";
+import { getTelegramOwnerUserIds, getTelegramSaleNotifyChatIds } from "@/lib/telegram/config";
 import { sendTelegramMessage } from "@/lib/telegram/telegramBotApi";
 
 const fromDefault = "PopularTickets <onboarding@resend.dev>";
@@ -40,6 +40,42 @@ async function notifyTelegramAboutResendError(params: {
         await sendTelegramMessage(chatId, text);
       } catch (telegramError) {
         console.error("[sendGiftOrderEmails] Telegram alert", telegramError);
+      }
+    }),
+  );
+}
+
+async function notifyTelegramAboutGiftSale(params: {
+  orderId: string;
+  product: string;
+  buyerName: string;
+  email: string;
+  phone: string | null;
+  recipientName: string | null;
+  amount: string;
+}): Promise<void> {
+  const chatIds = getTelegramSaleNotifyChatIds();
+  if (!chatIds.size) return;
+
+  const text = [
+    "✅ Продажа сертификата",
+    `🎁 ${params.product}`,
+    `💰 ${params.amount}`,
+    `👤 ${params.buyerName}`,
+    `✉️ ${params.email}`,
+    params.phone?.trim() ? `📞 ${params.phone.trim()}` : null,
+    params.recipientName?.trim() ? `Получатель: ${params.recipientName.trim()}` : null,
+    `Заказ: ${params.orderId}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  await Promise.all(
+    [...chatIds].map(async (chatId) => {
+      try {
+        await sendTelegramMessage(chatId, text);
+      } catch (telegramError) {
+        console.error("[sendGiftOrderEmails] Telegram sale ping", telegramError);
       }
     }),
   );
@@ -123,43 +159,53 @@ export async function sendGiftOrderEmails(params: {
   }
 
   const adminTo = notifyRecipients();
-  if (!key || !adminTo.length) return;
+  if (key && adminTo.length) {
+    const resend = new Resend(key);
+    const lines = [
+      `🎁 Новый сертификат (${params.orderId})`,
+      `Продукт: ${product}`,
+      `Сумма: ${amount}`,
+      `Покупатель: ${params.buyerName}`,
+      `Email: ${params.email}`,
+      params.phone ? `Телефон: ${params.phone}` : null,
+      params.recipientName ? `Получатель: ${params.recipientName}` : null,
+      params.giftMessage ? `Пожелание: ${params.giftMessage}` : null,
+    ].filter(Boolean);
 
-  const resend = new Resend(key);
-  const lines = [
-    `🎁 Новый сертификат (${params.orderId})`,
-    `Продукт: ${product}`,
-    `Сумма: ${amount}`,
-    `Покупатель: ${params.buyerName}`,
-    `Email: ${params.email}`,
-    params.phone ? `Телефон: ${params.phone}` : null,
-    params.recipientName ? `Получатель: ${params.recipientName}` : null,
-    params.giftMessage ? `Пожелание: ${params.giftMessage}` : null,
-  ].filter(Boolean);
-
-  try {
-    const { error } = await resend.emails.send({
-      from: senderAddress(),
-      to: adminTo,
-      subject: `[Popular Poet] Сертификат · ${amount}`,
-      text: lines.join("\n"),
-    });
-    if (error) {
-      console.error("[sendGiftOrderEmails] admin Resend error", error);
+    try {
+      const { error } = await resend.emails.send({
+        from: senderAddress(),
+        to: adminTo,
+        subject: `[Popular Poet] Сертификат · ${amount}`,
+        text: lines.join("\n"),
+      });
+      if (error) {
+        console.error("[sendGiftOrderEmails] admin Resend error", error);
+        await notifyTelegramAboutResendError({
+          orderId: params.orderId,
+          recipient: "администратору",
+          error,
+        });
+      }
+    } catch (e) {
+      console.error("[sendGiftOrderEmails] admin", e);
       await notifyTelegramAboutResendError({
         orderId: params.orderId,
         recipient: "администратору",
-        error,
+        error: e,
       });
     }
-  } catch (e) {
-    console.error("[sendGiftOrderEmails] admin", e);
-    await notifyTelegramAboutResendError({
-      orderId: params.orderId,
-      recipient: "администратору",
-      error: e,
-    });
   }
+
+  await notifyTelegramAboutGiftSale({
+    orderId: params.orderId,
+    product,
+    buyerName: params.buyerName,
+    email: params.email,
+    phone: params.phone,
+    recipientName: params.recipientName,
+    amount,
+  });
 }
 
 export async function fulfillPaidGiftOrder(orderId: string, p24OrderId?: number | null): Promise<void> {
@@ -175,7 +221,7 @@ export async function fulfillPaidGiftOrder(orderId: string, p24OrderId?: number 
   if (error || !order) throw new Error("gift order not found");
   if (order.status === "paid") return;
 
-  const { error: updErr } = await supabase
+  const { data: markedPaid, error: updErr } = await supabase
     .from("gift_orders")
     .update({
       status: "paid",
@@ -183,9 +229,12 @@ export async function fulfillPaidGiftOrder(orderId: string, p24OrderId?: number 
       updated_at: new Date().toISOString(),
     })
     .eq("id", orderId)
-    .eq("status", "pending");
+    .eq("status", "pending")
+    .select("id")
+    .maybeSingle();
 
   if (updErr) throw new Error(updErr.message);
+  if (!markedPaid) return;
 
   await sendGiftOrderEmails({
     orderId: order.id,

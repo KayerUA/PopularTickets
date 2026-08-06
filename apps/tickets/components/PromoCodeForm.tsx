@@ -20,20 +20,25 @@ export function PromoCodeForm({ events }: { events: EventOption[] }) {
     <form action={action} className="grid gap-4 rounded-2xl border border-poet-gold/20 bg-zinc-950/35 p-4 sm:grid-cols-2 sm:p-5">
       <div className="sm:col-span-2">
         <h2 className="font-display text-lg font-semibold text-zinc-100">Новый промокод</h2>
-        <p className="mt-1 text-xs text-zinc-500">Партнёрская ссылка будет вида <code>?promo=КОД</code>.</p>
+        <p className="mt-1 text-xs text-zinc-500">Партнёрская ссылка будет вида <code>?promo=КОД</code>. Скидка 0 — только метка и статистика.</p>
       </div>
       {state?.error ? <p className="sm:col-span-2 text-sm text-red-400">{state.error}</p> : null}
       {state?.ok ? <p className="sm:col-span-2 text-sm text-emerald-300">{state.ok}</p> : null}
       <label className="block text-sm text-zinc-300">
         Код
         <div className="mt-1 flex gap-2">
-          <input name="code" required className="min-w-0 flex-1 rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 font-mono text-white" placeholder="NEXTMODE15" />
+          <input name="code" required className="min-w-0 flex-1 rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 font-mono text-white" placeholder="NEXTMODE-1" />
           <button type="button" onClick={(e) => {
             const form = e.currentTarget.form;
             const input = form?.elements.namedItem("code");
             if (input instanceof HTMLInputElement) input.value = randomCode();
           }} className="rounded-xl border border-poet-gold/25 px-3 text-xs text-poet-gold hover:border-poet-gold/60">Сгенерировать</button>
         </div>
+      </label>
+      <label className="block text-sm text-zinc-300">
+        Кодов в серии
+        <input name="batchSize" type="number" min="1" max="20" defaultValue="1" className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white" />
+        <span className="mt-1 block text-xs text-zinc-500">Для 20: укажите <code>NEXTMODE-1</code> — создадим до <code>NEXTMODE-20</code>.</span>
       </label>
       <label className="block text-sm text-zinc-300">
         Партнёр
@@ -53,13 +58,13 @@ export function PromoCodeForm({ events }: { events: EventOption[] }) {
       {discountType === "fixed" ? (
         <label className="block text-sm text-zinc-300">
           Скидка покупателю, PLN за билет
-          <input name="discountFixedPln" type="number" min="0.01" step="0.01" required defaultValue="10" className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white" />
+          <input name="discountFixedPln" type="number" min="0" step="0.01" required defaultValue="10" className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white" />
           <input name="discountPercent" type="hidden" value="" />
         </label>
       ) : (
         <label className="block text-sm text-zinc-300">
           Скидка покупателю, %
-          <input name="discountPercent" type="number" min="1" max="99" required defaultValue="10" className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white" />
+          <input name="discountPercent" type="number" min="0" max="99" required defaultValue="10" className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white" />
           <input name="discountFixedPln" type="hidden" value="" />
         </label>
       )}

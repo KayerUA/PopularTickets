@@ -14,12 +14,14 @@ alter table public.promo_codes
 alter table public.promo_codes
   drop constraint if exists promo_codes_discount_value_check,
   drop constraint if exists promo_codes_discount_type_check,
+  drop constraint if exists promo_codes_discount_percent_check,
   drop constraint if exists promo_codes_discount_fixed_grosze_check,
   drop constraint if exists promo_codes_commission_grosze_check;
 
 alter table public.promo_codes
   add constraint promo_codes_discount_type_check check (discount_type in ('percent', 'fixed')),
-  add constraint promo_codes_discount_fixed_grosze_check check (discount_fixed_grosze is null or discount_fixed_grosze > 0),
+  add constraint promo_codes_discount_percent_check check (discount_percent is null or (discount_percent >= 0 and discount_percent < 100)),
+  add constraint promo_codes_discount_fixed_grosze_check check (discount_fixed_grosze is null or discount_fixed_grosze >= 0),
   add constraint promo_codes_commission_grosze_check check (commission_grosze >= 0),
   add constraint promo_codes_discount_value_check check (
     (discount_type = 'percent' and discount_percent is not null and discount_fixed_grosze is null)

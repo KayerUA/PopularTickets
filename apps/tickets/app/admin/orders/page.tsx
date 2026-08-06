@@ -3,11 +3,22 @@ import { getServiceSupabase } from "@/lib/supabase/admin";
 import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { formatPlnFromGrosze, formatPlDateTime } from "@/lib/format";
 
-type Search = { event?: string };
+type OrdersView = "main" | "pending";
+type Search = { event?: string; view?: string };
+
+function ordersHref(view: OrdersView, eventId?: string): string {
+  const query = new URLSearchParams();
+  if (eventId) query.set("event", eventId);
+  if (view === "pending") query.set("view", "pending");
+  const suffix = query.toString();
+  return `/admin/orders${suffix ? `?${suffix}` : ""}`;
+}
 
 export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<Search> }) {
   const sp = await searchParams;
   const eventFilter = typeof sp.event === "string" ? sp.event : undefined;
+  const view: OrdersView = sp.view === "pending" ? "pending" : "main";
+  const isPendingView = view === "pending";
 
   const supabase = getServiceSupabase();
   if (!supabase) {
@@ -29,6 +40,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
   if (eventFilter) {
     query = query.eq("event_id", eventFilter);
   }
+  query = isPendingView ? query.eq("status", "pending") : query.neq("status", "pending");
 
   const { data: orders, error } = await query;
 
@@ -40,8 +52,12 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-zinc-50">Заказы</h1>
-          <p className="text-sm text-zinc-500">Статусы, билеты, check-in.</p>
+          <h1 className="font-display text-2xl font-semibold text-zinc-50">
+            {isPendingView ? "Ожидают оплату" : "Заказы"}
+          </h1>
+          <p className="text-sm text-zinc-500">
+            {isPendingView ? "Незавершённые попытки оплаты." : "Статусы, билеты, check-in."}
+          </p>
         </div>
         {eventFilter ? (
           <Link
@@ -55,7 +71,27 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
         )}
       </div>
 
+      <nav className="flex w-fit rounded-full border border-poet-gold/20 bg-zinc-950/70 p-1 text-sm" aria-label="Заказы">
+        <Link
+          href={ordersHref("main", eventFilter)}
+          className={`rounded-full px-4 py-2 transition ${
+            !isPendingView ? "bg-poet-gold/20 text-poet-gold-bright" : "text-zinc-400 hover:text-white"
+          }`}
+        >
+          Основные
+        </Link>
+        <Link
+          href={ordersHref("pending", eventFilter)}
+          className={`rounded-full px-4 py-2 transition ${
+            isPendingView ? "bg-amber-300/15 text-amber-200" : "text-zinc-400 hover:text-white"
+          }`}
+        >
+          Ожидают оплату
+        </Link>
+      </nav>
+
       <form method="get" className="flex flex-wrap items-end gap-3 text-sm">
+        {isPendingView ? <input type="hidden" name="view" value="pending" /> : null}
         <label className="text-zinc-400">
           Событие
           <select

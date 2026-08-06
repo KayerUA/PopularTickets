@@ -14,15 +14,30 @@ export function getGeminiApiKey(): string | undefined {
   return (process.env.GEMINI_API_KEY ?? "").trim() || undefined;
 }
 
-/** Владельцы бота из env — полный доступ, включая /addadmin и /removeadmin. */
-export function getTelegramOwnerUserIds(): Set<number> {
-  const raw = (process.env.TELEGRAM_ADMIN_USER_IDS ?? "").trim();
+function parseTelegramChatIds(raw: string, allowGroupIds = false): Set<number> {
   if (!raw) return new Set();
   const ids = raw
     .split(/[,;\s]+/)
     .map((s) => Number(s.trim()))
-    .filter((n) => Number.isFinite(n) && n > 0);
+    .filter((n) => Number.isFinite(n) && (allowGroupIds ? n !== 0 : n > 0));
   return new Set(ids);
+}
+
+/** Владельцы бота из env — полный доступ, включая /addadmin и /removeadmin. */
+export function getTelegramOwnerUserIds(): Set<number> {
+  const raw = (process.env.TELEGRAM_ADMIN_USER_IDS ?? "").trim();
+  return parseTelegramChatIds(raw);
+}
+
+/**
+ * Куда слать уведомления обо всех продажах: билетов и сертификатов.
+ *
+ * Если переменная не задана, сохраняем прежнее поведение — шлём владельцам
+ * бота. Здесь допустим id группы (отрицательный), если бот добавлен в неё.
+ */
+export function getTelegramSaleNotifyChatIds(): Set<number> {
+  const raw = (process.env.TELEGRAM_SALE_NOTIFY_CHAT_IDS ?? "").trim();
+  return raw ? parseTelegramChatIds(raw, true) : getTelegramOwnerUserIds();
 }
 
 /** @deprecated alias — владельцы из TELEGRAM_ADMIN_USER_IDS */

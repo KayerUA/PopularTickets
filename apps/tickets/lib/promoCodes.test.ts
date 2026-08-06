@@ -10,6 +10,10 @@ describe("promoDiscountGrosze", () => {
     expect(promoDiscountGrosze(8_500, 2, { discountPercent: null, discountFixedGrosze: 1_000 })).toBe(2_000);
   });
 
+  it("accepts a zero-discount code as an attribution marker", () => {
+    expect(promoDiscountGrosze(8_500, 2, { discountPercent: 0, discountFixedGrosze: null })).toBe(0);
+  });
+
   it("never discounts below zero", () => {
     expect(promoDiscountGrosze(500, 2, { discountPercent: null, discountFixedGrosze: 1_000 })).toBe(1_000);
   });

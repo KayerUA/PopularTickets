@@ -2,7 +2,7 @@ import { Resend } from "resend";
 import { formatEventDateTime, formatPlnFromGrosze } from "@/lib/format";
 import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
-import { getTelegramOwnerUserIds } from "@/lib/telegram/config";
+import { getTelegramSaleNotifyChatIds } from "@/lib/telegram/config";
 import { sendTelegramMessage } from "@/lib/telegram/telegramBotApi";
 
 const fromDefault = "PopularTickets <onboarding@resend.dev>";
@@ -40,6 +40,7 @@ type OrderRow = {
   amount_grosze: number;
   status: string;
   marketing_email_opt_in?: boolean | null;
+  promo_code?: string | null;
   event_id: string;
 };
 
@@ -58,14 +59,14 @@ async function loadOrder(orderId: string): Promise<OrderRow | null> {
   const full = await supabase
     .from("orders")
     .select(
-      "id,created_at,buyer_name,email,phone,quantity,amount_grosze,status,marketing_email_opt_in,event_id",
+      "id,created_at,buyer_name,email,phone,quantity,amount_grosze,status,marketing_email_opt_in,promo_code,event_id",
     )
     .eq("id", orderId)
     .maybeSingle();
 
   if (!full.error && full.data) return full.data as OrderRow;
 
-  if (full.error && /marketing_email_opt_in|PGRST204|schema cache/i.test(full.error.message)) {
+  if (full.error && /marketing_email_opt_in|promo_code|PGRST204|schema cache/i.test(full.error.message)) {
     console.warn(
       "[sendAdminSaleNotification] marketing_email_opt_in недоступен — грузим заказ без него",
     );
@@ -78,7 +79,7 @@ async function loadOrder(orderId: string): Promise<OrderRow | null> {
       console.error("[sendAdminSaleNotification] order load", legacy.error ?? full.error);
       return null;
     }
-    return { ...(legacy.data as OrderRow), marketing_email_opt_in: null };
+    return { ...(legacy.data as OrderRow), marketing_email_opt_in: null, promo_code: null };
   }
 
   console.error("[sendAdminSaleNotification] order load", full.error);
@@ -203,6 +204,7 @@ export async function sendAdminSaleNotification(params: {
       ["Email", order.email as string],
       ["Телефон", ((order.phone as string | null)?.trim() || "—") as string],
       ["Рассылка", order.marketing_email_opt_in ? "да" : "—"],
+      ["Промокод", order.promo_code?.trim() || "—"],
       ["Билеты", ticketList.join(", ")],
       ["Заказ", order.id as string],
     ];
@@ -245,9 +247,10 @@ ${
     }
   }
 
-  // Telegram владельцам всегда — даже если Resend/env пустые (типичная причина «раньше приходило — потом нет»).
-  const ownerIds = getTelegramOwnerUserIds();
-  if (ownerIds.size) {
+  // Telegram всегда — даже если Resend/env пустые. Получатели продаж могут
+  // отличаться от владельцев, которые управляют ботом.
+  const saleNotifyChatIds = getTelegramSaleNotifyChatIds();
+  if (saleNotifyChatIds.size) {
     const tgText = emailOk
       ? [
           "✅ Продажа",
@@ -257,6 +260,7 @@ ${
           `👤 ${order.buyer_name}`,
           `✉️ ${order.email}`,
           order.phone?.trim() ? `📞 ${order.phone.trim()}` : null,
+          order.promo_code?.trim() ? `🏷️ Промокод: ${order.promo_code.trim()}` : null,
         ]
       : [
           "⚠️ Продажа — письмо админу НЕ ушло",
@@ -266,13 +270,14 @@ ${
           `👤 ${order.buyer_name}`,
           `✉️ ${order.email}`,
           order.phone?.trim() ? `📞 ${order.phone.trim()}` : null,
+          order.promo_code?.trim() ? `🏷️ Промокод: ${order.promo_code.trim()}` : null,
           `Заказ: ${order.id}`,
           emailSkipReason ? `Причина: ${emailSkipReason}` : null,
           "Vercel Production: RESEND_API_KEY + RESEND_FROM_EMAIL + ADMIN_SALE_NOTIFY_EMAIL",
         ];
 
     await Promise.all(
-      [...ownerIds].map(async (chatId) => {
+      [...saleNotifyChatIds].map(async (chatId) => {
         try {
           await sendTelegramMessage(chatId, tgText.filter(Boolean).join("\n"));
         } catch (telegramError) {

@@ -23,8 +23,8 @@ const PromoSchema = z.object({
     z.string().min(3).max(80).regex(/^[a-z0-9_-]+$/, "Hash: латиница, цифры, _ или -").nullable(),
   ),
   discountType: z.enum(["percent", "fixed"]),
-  discountPercent: z.preprocess((v) => (v === "" ? null : v), z.coerce.number().int().min(1).max(99).nullable()),
-  discountFixedPln: z.preprocess((v) => (v === "" ? null : v), z.coerce.number().positive().max(10_000).nullable()),
+  discountPercent: z.preprocess((v) => (v === "" ? null : v), z.coerce.number().int().min(0).max(99).nullable()),
+  discountFixedPln: z.preprocess((v) => (v === "" ? null : v), z.coerce.number().min(0).max(10_000).nullable()),
   commissionPln: z.preprocess((v) => (v === "" ? 0 : v), z.coerce.number().min(0).max(10_000)),
   marketingMaterialsUrl: z.preprocess(
     (v) => (typeof v === "string" && v.trim() ? v.trim() : null),
@@ -33,6 +33,7 @@ const PromoSchema = z.object({
   scope: z.enum(["all", "special", "event"]),
   eventId: z.string().uuid().optional(),
   landingEventId: z.string().uuid().optional(),
+  batchSize: z.preprocess((v) => (v === "" || v == null ? 1 : v), z.coerce.number().int().min(1).max(20)),
   maxRedemptions: z.preprocess((v) => (v === "" ? null : v), z.coerce.number().int().positive().nullable()),
   startsAt: z.preprocess(warsawDatetimeOrNull, z.string().datetime().nullable()),
   endsAt: z.preprocess(warsawDatetimeOrNull, z.string().datetime().nullable()),
@@ -46,6 +47,18 @@ const PromoSchema = z.object({
 });
 
 export type CreatePromoCodeState = { error?: string; ok?: string } | null;
+
+function batchCodes(firstCode: string, batchSize: number): string[] | null {
+  if (batchSize === 1) return [firstCode];
+
+  const match = firstCode.match(/^(.*)-(\d+)$/);
+  if (!match) return null;
+  const prefix = match[1];
+  const firstNumber = Number(match[2]);
+  if (!prefix || !Number.isSafeInteger(firstNumber)) return null;
+
+  return Array.from({ length: batchSize }, (_, index) => `${prefix}-${firstNumber + index}`);
+}
 
 export async function createPromoCode(_prev: CreatePromoCodeState, formData: FormData): Promise<CreatePromoCodeState> {
   try {
@@ -62,6 +75,7 @@ export async function createPromoCode(_prev: CreatePromoCodeState, formData: For
       scope: formData.get("scope"),
       eventId: formData.get("eventId") || undefined,
       landingEventId: formData.get("landingEventId") || undefined,
+      batchSize: formData.get("batchSize"),
       maxRedemptions: formData.get("maxRedemptions"),
       startsAt: formData.get("startsAt") || null,
       endsAt: formData.get("endsAt") || null,
@@ -71,8 +85,19 @@ export async function createPromoCode(_prev: CreatePromoCodeState, formData: For
     if (v.scope === "event" && !v.eventId) return { error: "Для типа «конкретное событие» выберите событие." };
     if (v.startsAt && v.endsAt && new Date(v.startsAt) >= new Date(v.endsAt)) return { error: "Дата окончания должна быть позже даты начала." };
 
-    const { error } = await requireServiceSupabase().from("promo_codes").insert({
-      code: normalizePromoCode(v.code),
+    const codes = batchCodes(normalizePromoCode(v.code), v.batchSize);
+    if (!codes) return { error: "Для серии код должен оканчиваться на «-число», например NEXTMODE-1." };
+
+    const supabase = requireServiceSupabase();
+    const { data: existing, error: existingErr } = await supabase
+      .from("promo_codes")
+      .select("code")
+      .in("code", codes);
+    if (existingErr) return { error: existingErr.message };
+    if (existing?.length) return { error: `Уже существуют: ${existing.map((promo) => promo.code).join(", ")}.` };
+
+    const promos = codes.map((code) => ({
+      code,
       partner_name: v.partnerName,
       ambassador_hash: v.ambassadorHash,
       discount_type: v.discountType,
@@ -86,10 +111,11 @@ export async function createPromoCode(_prev: CreatePromoCodeState, formData: For
       max_redemptions: v.maxRedemptions,
       starts_at: v.startsAt,
       ends_at: v.endsAt,
-    });
+    }));
+    const { error } = await supabase.from("promo_codes").insert(promos);
     if (error) return { error: error.code === "23505" ? "Такой промокод уже существует." : error.message };
     revalidatePath("/admin/promo-codes");
-    return { ok: "Промокод создан." };
+    return { ok: codes.length === 1 ? "Промокод создан." : `Создано промокодов: ${codes.length}.` };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Не удалось создать промокод" };
   }

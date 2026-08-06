@@ -33,6 +33,17 @@ function fieldBorder(hasError: boolean): string {
   return hasError ? "border-red-400/70 focus:border-red-400/90" : "border-poet-gold/20";
 }
 
+function promoAppliedMessage(
+  discountFixedGrosze: number | null | undefined,
+  discountPercent: number | null | undefined,
+): string | null {
+  if ((discountFixedGrosze ?? 0) > 0) {
+    return `Промокод применён: −${formatPlnFromGrosze(discountFixedGrosze ?? 0)} за билет`;
+  }
+  if ((discountPercent ?? 0) > 0) return `Промокод применён: −${discountPercent}%`;
+  return null;
+}
+
 export function EventCheckoutForm({
   eventSlug,
   remaining,
@@ -54,12 +65,9 @@ export function EventCheckoutForm({
   const initialPromoDiscountPerTicketGrosze = initialPromoDiscountFixedGrosze
     ?? Math.round(unitPriceGrosze * ((initialPromoDiscountPercent ?? 0) / 100));
   const [promoDiscountPerTicketGrosze, setPromoDiscountPerTicketGrosze] = useState(initialPromoDiscountPerTicketGrosze);
+  const [promoApplied, setPromoApplied] = useState(Boolean(initialPromoCode));
   const [promoMessage, setPromoMessage] = useState<string | null>(
-    initialPromoDiscountFixedGrosze
-      ? `Промокод применён: −${formatPlnFromGrosze(initialPromoDiscountFixedGrosze)} за билет`
-      : (initialPromoDiscountPercent ?? 0) > 0
-        ? `Промокод применён: −${initialPromoDiscountPercent}%`
-        : null,
+    initialPromoCode ? promoAppliedMessage(initialPromoDiscountFixedGrosze, initialPromoDiscountPercent) : null,
   );
   const formRef = useRef<HTMLFormElement>(null);
   const max = Math.min(20, remaining);
@@ -78,18 +86,17 @@ export function EventCheckoutForm({
     const result = await previewPromoCode({ code: promoCode, eventSlug, unitPriceGrosze });
     if (!result) {
       setPromoDiscountPerTicketGrosze(0);
+      setPromoApplied(false);
       setPromoMessage(null);
     } else if ("error" in result) {
       setPromoDiscountPerTicketGrosze(0);
+      setPromoApplied(false);
       setPromoMessage(result.error);
     } else {
       setPromoCode(result.code);
       setPromoDiscountPerTicketGrosze(result.discountPerTicketGrosze);
-      setPromoMessage(
-        result.discountFixedGrosze
-          ? `Промокод применён: −${formatPlnFromGrosze(result.discountFixedGrosze)} за билет`
-          : `Промокод применён: −${result.discountPercent}%`,
-      );
+      setPromoApplied(true);
+      setPromoMessage(promoAppliedMessage(result.discountFixedGrosze, result.discountPercent));
     }
   };
 
@@ -304,6 +311,7 @@ export function EventCheckoutForm({
             onChange={(e) => {
               setPromoCode(e.target.value.toUpperCase());
               setPromoDiscountPerTicketGrosze(0);
+              setPromoApplied(false);
               setPromoMessage(null);
             }}
             onBlur={() => void applyPromoCode()}
@@ -311,7 +319,7 @@ export function EventCheckoutForm({
             autoComplete="off"
             placeholder="PARTNER15"
           />
-          {promoMessage ? <p className={`mt-1.5 text-xs ${promoDiscountPerTicketGrosze ? "text-emerald-300" : "text-red-400"}`}>{promoMessage}</p> : null}
+          {promoMessage ? <p className={`mt-1.5 text-xs ${promoApplied ? "text-emerald-300" : "text-red-400"}`}>{promoMessage}</p> : null}
         </div>
       </div>
 
