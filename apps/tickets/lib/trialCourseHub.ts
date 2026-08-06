@@ -186,6 +186,73 @@ async function loadSoldMap(supabase: SupabaseClient, ids: string[]): Promise<Map
   return soldMap;
 }
 
+export type TrialHubPhoto = {
+  src: string;
+  focalX: number | null;
+  focalY: number | null;
+};
+
+const TRIAL_HUB_GALLERY_LIMIT = 6;
+
+function photoScore(src: string): number {
+  // Живые кадры с занятий лежат в trial-photos; афишные обложки — ниже приоритетом.
+  if (src.includes("/trial-photos/")) return 2;
+  return 1;
+}
+
+/**
+ * Уникальные обложки с прошедших пробных этого курса.
+ * Сначала кадры из trial-photos, затем остальные афиши — без дублей URL.
+ */
+export async function fetchTrialHubPhotos(
+  supabase: SupabaseClient,
+  courseId: string,
+  limit = TRIAL_HUB_GALLERY_LIMIT,
+): Promise<TrialHubPhoto[]> {
+  const nowIso = new Date().toISOString();
+  const query = (select: string) =>
+    supabase
+      .from("events")
+      .select(select)
+      .eq("listing_kind", "trial")
+      .eq("poet_course_id", courseId)
+      .lt("starts_at", nowIso)
+      .not("image_url", "is", null)
+      .order("starts_at", { ascending: false })
+      .limit(48);
+
+  let result = await query("image_url,image_focal_x,image_focal_y,starts_at");
+  if (result.error?.code === "42703") {
+    result = await query("image_url,starts_at");
+  }
+  if (result.error) {
+    console.error("[trialCourseHub] photos:", result.error.message);
+    return [];
+  }
+
+  const rows = (result.data ?? []) as unknown as Record<string, unknown>[];
+  const ranked: { photo: TrialHubPhoto; score: number; index: number }[] = [];
+  const seen = new Set<string>();
+
+  for (const [index, row] of rows.entries()) {
+    const src = str(row.image_url);
+    if (!src || seen.has(src)) continue;
+    seen.add(src);
+    ranked.push({
+      index,
+      score: photoScore(src),
+      photo: {
+        src,
+        focalX: typeof row.image_focal_x === "number" ? row.image_focal_x : null,
+        focalY: typeof row.image_focal_y === "number" ? row.image_focal_y : null,
+      },
+    });
+  }
+
+  ranked.sort((a, b) => b.score - a.score || a.index - b.index);
+  return ranked.slice(0, limit).map((entry) => entry.photo);
+}
+
 /** Будущие пробные занятия курса с остатком мест. */
 export async function fetchTrialHubDates(
   supabase: SupabaseClient,
@@ -285,30 +352,33 @@ export async function fetchTrialHubGroups(
     datesByCourse.set(courseId, list);
   }
 
-  return courseRows.flatMap((course) => {
-    const id = String(course.id);
-    const dates = datesByCourse.get(id);
-    if (!dates?.length) return [];
-    const copy = resolveCourseCopy(
-      {
-        title: String(course.title ?? ""),
-        title_pl: str(course.title_pl),
-        title_uk: str(course.title_uk),
-      },
-      locale,
-    );
-    return [
-      {
-        course: {
-          id,
-          slug: String(course.slug),
-          title: copy?.title ?? String(course.title ?? ""),
-          heroImageUrl: str(course.hero_image_url) ?? str(course.card_image_url),
+  return Promise.all(
+    courseRows.flatMap((course) => {
+      const id = String(course.id);
+      const dates = datesByCourse.get(id);
+      if (!dates?.length) return [];
+      const copy = resolveCourseCopy(
+        {
+          title: String(course.title ?? ""),
+          title_pl: str(course.title_pl),
+          title_uk: str(course.title_uk),
         },
-        dates,
-      },
-    ];
-  });
+        locale,
+      );
+      return [
+        fetchTrialHubPhotos(supabase, id, 1).then((photos) => ({
+          course: {
+            id,
+            slug: String(course.slug),
+            title: copy?.title ?? String(course.title ?? ""),
+            heroImageUrl:
+              photos[0]?.src ?? str(course.hero_image_url) ?? str(course.card_image_url),
+          },
+          dates,
+        })),
+      ];
+    }),
+  );
 }
 
 /** Дата под чекаут: предвыбранная из ?d=, иначе ближайшая свободная. */
