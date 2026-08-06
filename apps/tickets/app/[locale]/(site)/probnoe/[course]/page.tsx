@@ -102,9 +102,9 @@ export default async function TrialCourseHubPage({ params, searchParams }: PageP
       {promo && selected ? <PromoVisitTracker promoCodeId={promo.id} eventId={selected.id} /> : null}
 
       <div className="overflow-hidden rounded-2xl border border-poet-gold/25 bg-poet-surface/50 shadow-gold backdrop-blur-md sm:rounded-3xl">
-        <div className="relative overflow-hidden">
+        <div className="relative sm:overflow-hidden">
           <TrialHubGallery photos={photos} alt={course.title} fallbackSrc={course.heroImageUrl} />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-16 bg-gradient-to-t from-poet-bg/80 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] hidden h-16 bg-gradient-to-t from-poet-bg/80 to-transparent sm:block" />
         </div>
 
         <header className="px-4 pb-6 pt-5 sm:px-8 sm:pb-8 sm:pt-6">

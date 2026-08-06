@@ -15,18 +15,20 @@ function Shot({
   alt,
   priority,
   className,
+  sizes,
 }: {
   photo: TrialHubPhoto;
   alt: string;
   priority?: boolean;
   className: string;
+  sizes: string;
 }) {
   return (
     <div className={className}>
       <MediaCoverBlurred
         src={photo.src}
         alt={alt}
-        sizes="(max-width:768px) 90vw, 560px"
+        sizes={sizes}
         priority={priority}
         unoptimized={!isOptimizableEventImage(photo.src)}
         coverObjectPosition={eventCoverObjectPosition(photo.focalX, photo.focalY)}
@@ -36,46 +38,56 @@ function Shot({
   );
 }
 
-/**
- * Галерея кадров с прошедших пробных: несколько фото сразу, без карточного шума.
- */
-export function TrialHubGallery({ photos, alt, fallbackSrc }: Props) {
-  const shots =
-    photos.length > 0
-      ? photos
-      : fallbackSrc?.trim()
-        ? [{ src: fallbackSrc.trim(), focalX: 50, focalY: 50 }]
-        : [];
+function MobileCarousel({ shots, alt }: { shots: TrialHubPhoto[]; alt: string }) {
+  return (
+    <div className="sm:hidden">
+      <ul
+        className="-mx-0 flex snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain px-0 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        aria-label={alt}
+      >
+        {shots.map((photo, index) => (
+          <li
+            key={photo.src}
+            className="relative aspect-[4/5] w-[78%] max-w-[320px] shrink-0 snap-center overflow-hidden"
+          >
+            <Shot
+              photo={photo}
+              alt={alt}
+              priority={index === 0}
+              sizes="78vw"
+              className="absolute inset-0"
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
-  if (shots.length === 0) {
-    return (
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-zinc-950 sm:aspect-video">
-        <div className="absolute inset-0 bg-gradient-to-br from-poet-gold-dim/35 via-poet-bg to-zinc-950" />
-      </div>
-    );
-  }
-
+function DesktopMosaic({ shots, alt }: { shots: TrialHubPhoto[]; alt: string }) {
   if (shots.length === 1) {
     return (
       <Shot
         photo={shots[0]!}
         alt={alt}
         priority
-        className="relative aspect-[16/10] w-full overflow-hidden bg-zinc-950 sm:aspect-video"
+        sizes="896px"
+        className="relative hidden aspect-video w-full overflow-hidden bg-zinc-950 sm:block"
       />
     );
   }
 
   if (shots.length === 2) {
     return (
-      <div className="grid grid-cols-2 gap-1.5 bg-zinc-950 sm:gap-2">
+      <div className="hidden grid-cols-2 gap-2 bg-zinc-950 sm:grid">
         {shots.map((photo, index) => (
           <Shot
             key={photo.src}
             photo={photo}
             alt={alt}
             priority={index === 0}
-            className="relative aspect-[4/5] overflow-hidden sm:aspect-[4/3]"
+            sizes="448px"
+            className="relative aspect-[4/3] overflow-hidden"
           />
         ))}
       </div>
@@ -87,38 +99,72 @@ export function TrialHubGallery({ photos, alt, fallbackSrc }: Props) {
   const rest = shots.slice(3, 6);
 
   return (
-    <div className="flex flex-col gap-1.5 bg-zinc-950 sm:gap-2">
-      <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-[1.45fr_1fr] sm:gap-2">
+    <div className="hidden flex-col gap-2 bg-zinc-950 sm:flex">
+      <div className="grid grid-cols-[1.45fr_1fr] gap-2">
         <Shot
           photo={lead}
           alt={alt}
           priority
-          className="relative aspect-[16/10] overflow-hidden sm:aspect-auto sm:min-h-[280px]"
+          sizes="560px"
+          className="relative min-h-[280px] overflow-hidden"
         />
-        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-1 sm:gap-2">
-          {side.map((photo, index) => (
+        <div className="grid grid-cols-1 gap-2">
+          {side.map((photo) => (
             <Shot
               key={photo.src}
               photo={photo}
               alt={alt}
-              priority={index === 0}
-              className="relative aspect-[4/3] overflow-hidden sm:min-h-0 sm:flex-1"
+              sizes="320px"
+              className="relative aspect-[4/3] overflow-hidden"
             />
           ))}
         </div>
       </div>
       {rest.length > 0 ? (
-        <div className={`grid gap-1.5 sm:gap-2 ${rest.length === 1 ? "grid-cols-1" : rest.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
+        <div
+          className={`grid gap-2 ${
+            rest.length === 1 ? "grid-cols-1" : rest.length === 2 ? "grid-cols-2" : "grid-cols-3"
+          }`}
+        >
           {rest.map((photo) => (
             <Shot
               key={photo.src}
               photo={photo}
               alt={alt}
+              sizes="300px"
               className="relative aspect-[4/3] overflow-hidden"
             />
           ))}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * Галерея кадров с прошедших пробных:
+ * на мобиле — горизонтальный snap-слайдер, на десктопе — компактная мозаика.
+ */
+export function TrialHubGallery({ photos, alt, fallbackSrc }: Props) {
+  const shots =
+    photos.length > 0
+      ? photos
+      : fallbackSrc?.trim()
+        ? [{ src: fallbackSrc.trim(), focalX: 50, focalY: 50 }]
+        : [];
+
+  if (shots.length === 0) {
+    return (
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-zinc-950 sm:aspect-video">
+        <div className="absolute inset-0 bg-gradient-to-br from-poet-gold-dim/35 via-poet-bg to-zinc-950" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-zinc-950">
+      <MobileCarousel shots={shots} alt={alt} />
+      <DesktopMosaic shots={shots} alt={alt} />
     </div>
   );
 }
