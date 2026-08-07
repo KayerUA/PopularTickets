@@ -306,7 +306,7 @@ export async function fetchEventBroadcastDetails(
   }
   if (result.error || !result.data) return null;
 
-  const row = result.data as {
+  const row = result.data as unknown as {
     slug: string;
     title: string;
     description: string;
