@@ -12,7 +12,6 @@ import { buildFaqPageJsonLd, buildPoetOrganizationLocalGraph } from "@/lib/poetJ
 import { buildPoetTrialItemListJsonLd } from "@/lib/poetTrialJsonLd";
 import { poetCanonicalPath } from "@/lib/seoPoet";
 import type { AppLocale } from "@/i18n/routing";
-import { NextModeChoiceWidget } from "@/components/NextModeChoiceWidget";
 
 export const revalidate = 60;
 
@@ -122,13 +121,6 @@ export default async function HomePage() {
         <p className="mt-2 max-w-2xl text-sm text-zinc-500">{t("coursesIntro")}</p>
         <PoetCourseShowcase dbCourses={dbCourses} locale={locale} />
       </section>
-
-      {tickets ? (
-        <NextModeChoiceWidget
-          eventHref={`${tickets}/${locale}/special/next-mode-2026-08-15`}
-          imageUrl="/og/next-mode-comedy-2026-08-15-v2.jpg"
-        />
-      ) : null}
 
       <section id="schedule" className="mt-14 scroll-mt-32 sm:mt-20 sm:scroll-mt-28">
         <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("calendarTitle")}</h2>

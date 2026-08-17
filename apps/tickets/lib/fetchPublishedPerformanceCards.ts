@@ -6,8 +6,6 @@ import { resolveEventCopy } from "@/lib/contentI18n";
 import { resolveEventMarketingStatus, sortEventsForMarketing, normalizeEventListingKind } from "@/lib/eventMarketingStatus";
 import { eventPriceDetails } from "@/lib/eventPrice";
 
-const FEATURED_SPECIAL_SLUG = "next-mode-2026-08-15";
-
 export async function fetchPublishedPerformanceCards(
   supabase: SupabaseClient,
   locale: AppLocale,
@@ -48,11 +46,10 @@ export async function fetchPublishedPerformanceCards(
   }
 
   const cards: EventCardProps[] = eventRows.flatMap((ev) => {
-    const slug = ev.slug as string;
     const listingKind = normalizeEventListingKind((ev as { listing_kind?: string | null }).listing_kind);
     const visibility = String((ev as { visibility?: unknown }).visibility ?? "");
     const isPublishedPerformance = visibility === "published" && listingKind === "performance";
-    if (!isPublishedPerformance && slug !== FEATURED_SPECIAL_SLUG) return [];
+    if (!isPublishedPerformance) return [];
 
     const copy = resolveEventCopy(
       {
@@ -83,7 +80,7 @@ export async function fetchPublishedPerformanceCards(
     });
     return [
       {
-        slug,
+        slug: ev.slug as string,
         title: copy.title,
         venue: ev.venue as string,
         startsAt: ev.starts_at as string,

@@ -11,7 +11,6 @@ import { buildPublicPageMetadata } from "@/lib/seo";
 import { JsonLd } from "@/components/JsonLd";
 import { buildHomeJsonLd, buildFaqPageJsonLd } from "@/lib/seo/eventJsonLd";
 import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
-import { NextModeChoiceWidget } from "@/components/NextModeChoiceWidget";
 
 export const revalidate = 60;
 
@@ -95,11 +94,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
           ))}
         </ul>
       </div>
-
-      <NextModeChoiceWidget
-        eventHref={`/${locale}/special/next-mode-2026-08-15`}
-        imageUrl="/og/next-mode-comedy-2026-08-15-v2.jpg"
-      />
 
       <MarqueeStrip />
 
