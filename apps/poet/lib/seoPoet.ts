@@ -69,7 +69,7 @@ export function buildPoetPageMetadata(input: PoetPageMetaInput): Metadata {
 
   return {
     ...(metadataBase ? { metadataBase } : {}),
-    title: { default: input.title, template: "%s · Popular Poet" },
+    title: { absolute: input.title },
     description: input.description,
     ...(input.keywords?.length ? { keywords: input.keywords } : {}),
     alternates: {

@@ -37,7 +37,6 @@ export async function generateMetadata({
   const { data: event } = supabase ? await fetchPublishedEventBySlug(supabase, slug) : { data: null };
   const copy = event ? resolveEventCopy(event, locale) : null;
   const isNextModeEvent = slug === NEXT_MODE_SLUG;
-  const isIndexableNextModePage = isNextModeEvent && locale === "ru";
   const title = isNextModeEvent ? "Next Mode Comedy — зрители управляют шоу" : (copy?.title ?? event?.title ?? "Билеты");
   const description = isNextModeEvent
     ? "15 августа, 19:00, Варшава. Интерактивное импров-шоу P!MPRO × Next Mode: выбирай задания с телефона и смотри, как актёры выкручиваются вживую."
@@ -51,9 +50,8 @@ export async function generateMetadata({
     keywords: isNextModeEvent ? ["Next Mode Comedy", "P!MPRO", "импровизация", "комедийное шоу", "Варшава"] : undefined,
     ogType: "article",
     ogImages: ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: title }] : undefined,
-    robots: isIndexableNextModePage
-      ? { index: true, follow: true, googleBot: { index: true, follow: true } }
-      : { index: false, follow: false, googleBot: { index: false, follow: false, noimageindex: true } },
+    // Сервисная страница остаётся доступной по прямой ссылке, но прошедшие special-события не продвигаем в поиске.
+    robots: { index: false, follow: true, googleBot: { index: false, follow: true } },
   });
 }
 

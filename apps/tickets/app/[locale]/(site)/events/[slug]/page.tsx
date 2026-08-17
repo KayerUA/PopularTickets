@@ -75,7 +75,7 @@ export async function generateMetadata({
   }
   const short = formatEventDateShortForTitle(event.starts_at);
   const eventLanguage = normalizeEventLanguage(event.event_language);
-  const title = `${copy.title} — ${tMeta("eventListingLine")}, ${short}`;
+  const title = `${copy.title} — ${short}`;
   const desc = `${tMeta("eventDescriptionBuy")} ${formatEventDateTime(event.starts_at, locale)}. ${event.venue}. ${eventLanguageLabel(eventLanguage, locale)}. ${truncateMetaDescription(copy.description)}`;
   let ogImages: { url: string; width: number; height: number; alt: string }[] | undefined;
   const ogImageAbs = eventOgImageUrl(event.slug);

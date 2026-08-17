@@ -9,6 +9,13 @@ import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
 /** Сегмент транзакционного хаба пробных: /{locale}/probnoe/{courseSlug}. */
 export const TRIAL_HUB_SEGMENT = "probnoe";
 
+/** Вечные индексируемые посадочные: даты внутри меняются, URL курса остаётся стабильным. */
+export const INDEXABLE_TRIAL_HUB_COURSE_SLUGS = ["improv", "acting"] as const;
+
+export function isIndexableTrialHubCourseSlug(slug: string): boolean {
+  return (INDEXABLE_TRIAL_HUB_COURSE_SLUGS as readonly string[]).includes(slug);
+}
+
 /** Параметр предвыбранной даты (slug события). */
 export const TRIAL_HUB_DATE_PARAM = "d";
 
@@ -33,6 +40,7 @@ export type TrialHubCourse = {
   title: string;
   description: string;
   heroImageUrl: string | null;
+  visibility: string;
 };
 
 export type TrialHubDate = {
@@ -113,6 +121,7 @@ export async function fetchTrialHubCourse(
     title: copy?.title ?? String(data.title ?? ""),
     description: copy?.description ?? "",
     heroImageUrl: str(data.hero_image_url) ?? str(data.card_image_url),
+    visibility: String(data.visibility ?? ""),
   };
 }
 

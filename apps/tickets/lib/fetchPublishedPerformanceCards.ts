@@ -10,6 +10,7 @@ export async function fetchPublishedPerformanceCards(
   supabase: SupabaseClient,
   locale: AppLocale,
 ): Promise<{ cards: EventCardProps[]; error: PostgrestError | null }> {
+  const nowIso = new Date().toISOString();
   let { data: events, error } = await supabase
     .from("events")
     .select(
@@ -17,6 +18,7 @@ export async function fetchPublishedPerformanceCards(
     )
     .in("visibility", ["published", "unlisted"])
     .in("listing_kind", ["performance", "special"])
+    .gte("starts_at", nowIso)
     .order("starts_at", { ascending: true });
 
   if (error?.code === "42703") {
@@ -27,6 +29,7 @@ export async function fetchPublishedPerformanceCards(
       )
       .in("visibility", ["published", "unlisted"])
       .in("listing_kind", ["performance", "special"])
+      .gte("starts_at", nowIso)
       .order("starts_at", { ascending: true });
     events = (fallback.data ?? []).map((ev) => ({ ...ev, event_language: null }));
     error = fallback.error;

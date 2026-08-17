@@ -18,18 +18,15 @@ import type { EventItemListEntry } from "@/lib/seo/eventJsonLd";
 import {
   intentClusterForSlug,
   intentListingKindFilter,
-  nextModeIntentPromoForCluster,
   TICKETS_INTENT_CLUSTER_SLUGS,
   ticketsIntentHreflangUrls,
 } from "@/lib/ticketsIntentRoutes";
 import type { IntentClusterKey } from "@/lib/ticketsIntentRoutes";
 import { intentFaqTranslationKeys } from "@/lib/ticketsIntentFaq";
-import { NextModeIntentWidget } from "@/components/NextModeIntentWidget";
 import { TrialCourseGroups } from "@/components/TrialCourseGroups";
 import { fetchTrialHubGroups, trialHubHref, type TrialHubGroup } from "@/lib/trialCourseHub";
 
-const FEATURED_SPECIAL_SLUG = "next-mode-2026-08-15";
-const EDITORIAL_DATE = "2026-07-15";
+const EDITORIAL_DATE = "2026-08-17";
 const EDITORIAL_CLUSTERS = ["leisure", "improv", "russian", "afisha"] as const;
 const EDITORIAL_SECTION_NUMBERS = [1, 2, 3, 4] as const;
 
@@ -72,8 +69,6 @@ export default async function IntentDiscoverPage({
 
   const t = await getTranslations({ locale, namespace: "IntentDiscover" });
   const listingFilter = intentListingKindFilter(cluster);
-  const includeNextMode = locale === "ru" && listingFilter !== "trial";
-  const nextModePromo = includeNextMode ? nextModeIntentPromoForCluster(cluster) : null;
   const editorialCluster = locale === "ru" && isEditorialCluster(cluster) ? cluster : null;
   const supabase = getServiceSupabase();
   // Пробные показываем по дисциплинам: даты живут на хабе курса, а не на отдельных страницах.
@@ -105,18 +100,15 @@ export default async function IntentDiscoverPage({
       })),
     );
   } else if (supabase) {
+    const nowIso = new Date().toISOString();
     let query = supabase
       .from("events")
       .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language,visibility")
+      .eq("visibility", "published")
+      .gte("starts_at", nowIso)
       .order("starts_at", { ascending: true });
 
-    if (includeNextMode) {
-      query = query.in("visibility", ["published", "unlisted"]).in("listing_kind", ["performance", "special"]);
-    } else {
-      query = query.eq("visibility", "published");
-    }
-
-    if (!includeNextMode && listingFilter !== "all") {
+    if (listingFilter !== "all") {
       query = query.eq("listing_kind", listingFilter);
     }
 
@@ -127,15 +119,10 @@ export default async function IntentDiscoverPage({
       let fallbackQuery = supabase
         .from("events")
         .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,visibility")
+        .eq("visibility", "published")
+        .gte("starts_at", nowIso)
         .order("starts_at", { ascending: true });
-      if (includeNextMode) {
-        fallbackQuery = fallbackQuery
-          .in("visibility", ["published", "unlisted"])
-          .in("listing_kind", ["performance", "special"]);
-      } else {
-        fallbackQuery = fallbackQuery.eq("visibility", "published");
-      }
-      if (!includeNextMode && listingFilter !== "all") {
+      if (listingFilter !== "all") {
         fallbackQuery = fallbackQuery.eq("listing_kind", listingFilter);
       }
       const fallback = await fallbackQuery;
@@ -146,14 +133,6 @@ export default async function IntentDiscoverPage({
     } else {
       rows = events ?? [];
     }
-
-    rows = rows.filter((ev) => {
-      if (!includeNextMode) return true;
-      const slug = ev.slug as string;
-      const visibility = String((ev as { visibility?: unknown }).visibility ?? "");
-      const kind = normalizeEventListingKind((ev as { listing_kind?: string | null }).listing_kind);
-      return (visibility === "published" && kind === "performance") || slug === FEATURED_SPECIAL_SLUG;
-    });
 
     const ids = rows.map((ev) => ev.id as string);
     const soldMap = new Map<string, number>();
@@ -310,14 +289,6 @@ export default async function IntentDiscoverPage({
         {answer ? <p className="mt-4 text-base font-semibold leading-relaxed text-zinc-100">{answer}</p> : null}
         <p className="mt-3 whitespace-pre-line text-base leading-relaxed text-zinc-300">{t(`${cluster}Intro`)}</p>
       </header>
-
-      {nextModePromo ? (
-        <NextModeIntentWidget
-          eventHref={`/special/${FEATURED_SPECIAL_SLUG}`}
-          initialFormat={nextModePromo.initialFormat}
-          variant={nextModePromo.variant}
-        />
-      ) : null}
 
       {editorialCluster ? (
         <section className="mt-10 max-w-4xl" aria-labelledby="intent-guide-heading">

@@ -4,13 +4,10 @@ import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { routing } from "@/i18n/routing";
 import { allIntentSlugs } from "@/lib/ticketsIntentRoutes";
 import { ticketsFactsPathForLocale } from "@/lib/ticketsFactsHreflang";
-import type { AppLocale } from "@/i18n/routing";
 import { eventSitemapTier } from "@/lib/eventSeoPolicy";
+import { INDEXABLE_TRIAL_HUB_COURSE_SLUGS, TRIAL_HUB_SEGMENT } from "@/lib/trialCourseHub";
 
 const STATIC_PATHS = ["", "/events", "/firma", "/regulamin", "/zwroty", "/polityka-prywatnosci", "/podarok"] as const;
-const INDEXABLE_SPECIAL_PATHS_BY_LOCALE: Partial<Record<AppLocale, readonly string[]>> = {
-  ru: ["/special/next-mode-2026-08-15"],
-};
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getPublicAppUrl()?.replace(/\/$/, "");
@@ -39,15 +36,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: p === "" ? 1 : 0.6,
       });
     }
-    for (const path of INDEXABLE_SPECIAL_PATHS_BY_LOCALE[locale as AppLocale] ?? []) {
+    for (const courseSlug of INDEXABLE_TRIAL_HUB_COURSE_SLUGS) {
       out.push({
-        url: `${base}/${locale}${path}`,
+        url: `${base}/${locale}/${TRIAL_HUB_SEGMENT}/${courseSlug}`,
         lastModified: new Date(),
-        changeFrequency: "weekly",
-        priority: 0.8,
+        changeFrequency: "daily",
+        priority: 0.85,
       });
     }
-    const factsPath = ticketsFactsPathForLocale(locale as AppLocale);
+    const factsPath = ticketsFactsPathForLocale(locale);
     out.push({
       url: `${base}/${locale}${factsPath}`,
       lastModified: new Date(),
