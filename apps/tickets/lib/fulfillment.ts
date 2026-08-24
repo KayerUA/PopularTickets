@@ -187,7 +187,7 @@ export async function handleP24Notification(
   // Resolve this branch first so no ticket fulfillment is attempted for their P24 session.
   const { data: crmOrder, error: crmErr } = await supabase
     .from("crm_checkout_orders")
-    .select("id,crm_payment_id,amount_grosze,currency,status,p24_order_id,paid_at,webhook_url")
+    .select("id,crm_payment_id,amount_grosze,currency,status,p24_order_id,paid_at,webhook_url,buyer_email,buyer_name,description,metadata,created_at")
     .eq("p24_session_id", n.sessionId)
     .maybeSingle();
 
@@ -212,7 +212,7 @@ export async function handleP24Notification(
       .update({ status: "paid", p24_order_id: n.orderId, paid_at: crmOrder.paid_at ?? now })
       .eq("id", crmOrder.id)
       .in("status", ["pending", "paid"])
-      .select("id,crm_payment_id,amount_grosze,currency,p24_order_id,paid_at,webhook_url")
+      .select("id,crm_payment_id,amount_grosze,currency,p24_order_id,paid_at,webhook_url,buyer_email,buyer_name,description,metadata,created_at")
       .maybeSingle();
     if (paidErr || !paidOrder) {
       console.error("[crm checkout] mark paid", paidErr);
@@ -226,7 +226,14 @@ export async function handleP24Notification(
       .not("delivered_at", "is", null)
       .limit(1)
       .maybeSingle();
-    if (!delivered) await sendCrmPaidWebhook(paidOrder);
+    if (!delivered) {
+      try {
+        await sendCrmPaidWebhook(paidOrder);
+      } catch (error) {
+        console.error("[crm checkout] paid webhook", error);
+        return { status: 502, body: "CRM webhook delivery failed" };
+      }
+    }
     return { status: 200, body: "ok" };
   }
 

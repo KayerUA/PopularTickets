@@ -11,6 +11,7 @@ const CheckoutSchema = z.object({
   crm_payment_id: z.string().trim().min(1).max(200),
   amount: z.number().positive().finite().max(1_000_000).refine((value) => Math.round(value * 100) === value * 100, "amount must have at most 2 decimal places"),
   currency: z.literal("PLN"),
+  locale: z.enum(["pl", "uk", "ru"]).default("pl"),
   description: z.string().trim().min(1).max(500),
   buyer_email: z.string().trim().email().max(254),
   buyer_name: z.string().trim().min(1).max(160).optional(),
@@ -88,14 +89,32 @@ export async function POST(request: NextRequest) {
   }
 
   if (!order) return NextResponse.json({ ok: false, error: "order create failed" }, { status: 500 });
+  if (order.status === "pending") {
+    const refreshed = await supabase
+      .from("crm_checkout_orders")
+      .update({
+        description: input.description,
+        buyer_email: input.buyer_email,
+        buyer_name: input.buyer_name ?? null,
+        payer_name: input.payer_name ?? input.buyer_name ?? null,
+        return_url: input.return_url,
+        webhook_url: input.webhook_url,
+        metadata: input.metadata ?? {},
+      })
+      .eq("id", order.id);
+    if (refreshed.error) {
+      console.error("[crm checkout] refresh pending order", refreshed.error);
+      return NextResponse.json({ ok: false, error: "order refresh failed" }, { status: 500 });
+    }
+  }
   if (!order.p24_token && order.status === "pending") {
     try {
       const sign = signRegister({ sessionId: order.id, merchantId: getMerchantId(), amount: order.amount_grosze, currency: order.currency });
       const registered = await p24Register({
         merchantId: getMerchantId(), posId: getPosId(), sessionId: order.id, amount: order.amount_grosze, currency: order.currency,
         description: crmP24Description(input.description, input.invoice_number), email: input.buyer_email,
-        client: input.payer_name ?? input.buyer_name, country: "PL", language: "pl", encoding: "UTF-8", regulationAccept: true,
-        urlReturn: `${baseUrl}/pl/crm-checkout/${encodeURIComponent(order.id)}/thanks`, urlStatus: `${baseUrl}/api/p24/notify`, sign,
+        client: input.payer_name ?? input.buyer_name, country: "PL", language: input.locale === "pl" ? "pl" : "en", encoding: "UTF-8", regulationAccept: true,
+        urlReturn: `${baseUrl}/${input.locale}/crm-checkout/${encodeURIComponent(order.id)}/thanks`, urlStatus: `${baseUrl}/api/p24/notify`, sign,
       });
       const updated = await supabase.from("crm_checkout_orders").update({ p24_token: registered.token }).eq("id", order.id).select("id,crm_payment_id,amount_grosze,currency,status,p24_token").single();
       if (updated.error || !updated.data) throw new Error(updated.error?.message || "could not save P24 token");
@@ -105,5 +124,5 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: "P24 registration failed" }, { status: 502 });
     }
   }
-  return NextResponse.json({ ok: true, checkout_url: crmCheckoutUrl(baseUrl, order.id), order_id: order.id, crm_payment_id: order.crm_payment_id });
+  return NextResponse.json({ ok: true, checkout_url: crmCheckoutUrl(baseUrl, order.id, input.locale), order_id: order.id, crm_payment_id: order.crm_payment_id });
 }

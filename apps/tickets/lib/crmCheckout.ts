@@ -1,10 +1,17 @@
 import crypto from "node:crypto";
 import { getP24TrnUrl } from "@/lib/p24";
+import type { AppLocale } from "@/i18n/routing";
 
 export const CRM_CHECKOUT_DESCRIPTION_MAX_LENGTH = 252;
 
-export function crmCheckoutUrl(baseUrl: string, orderId: string): string {
-  return `${baseUrl}/pl/crm-checkout/${encodeURIComponent(orderId)}`;
+export function crmCheckoutUrl(baseUrl: string, orderId: string, locale: AppLocale = "pl"): string {
+  return `${baseUrl}/${locale}/crm-checkout/${encodeURIComponent(orderId)}`;
+}
+
+export function crmReservationExpiresAt(metadata: unknown): string | null {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return null;
+  const value = (metadata as Record<string, unknown>).reservation_expires_at;
+  return typeof value === "string" && !Number.isNaN(Date.parse(value)) ? value : null;
 }
 
 /** P24's description rendering is inconsistent with non-ASCII characters. */
@@ -38,6 +45,11 @@ export async function sendCrmPaidWebhook(order: {
   p24_order_id: number | null;
   paid_at: string | null;
   webhook_url: string;
+  buyer_email: string;
+  buyer_name: string | null;
+  description: string;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
 }): Promise<void> {
   const payload = JSON.stringify({
     crm_payment_id: order.crm_payment_id,
@@ -47,6 +59,11 @@ export async function sendCrmPaidWebhook(order: {
     tickets_order_id: order.id,
     p24_order_id: order.p24_order_id ? String(order.p24_order_id) : null,
     paid_at: order.paid_at,
+    buyer_email: order.buyer_email,
+    buyer_name: order.buyer_name,
+    description: order.description,
+    metadata: order.metadata ?? {},
+    checkout_created_at: order.created_at,
   });
   const { requireServiceSupabase } = await import("@/lib/supabase/admin");
   const supabase = requireServiceSupabase();
@@ -85,4 +102,5 @@ export async function sendCrmPaidWebhook(order: {
     });
   }
   console.error("[crm checkout] CRM webhook delivery failed", order.id);
+  throw new Error(`CRM webhook delivery failed for order ${order.id}`);
 }
