@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { fetchPublishedPoetCourseBySlug } from "@/lib/poetCourses";
 import { fetchPublishedTrials, fetchTrialsForCourse, filterTrialsByCourseSlug, type PoetTrialDisplay } from "@/lib/poetTrials";
-import { getTicketsSiteBase, ticketsHome, ticketsTrialCheckout } from "@/lib/ticketsSite";
+import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
 import { resolveCourseCopy, resolveCourseTag } from "@/lib/contentI18n";
 import { buildPoetPageMetadata, poetCanonicalPath } from "@/lib/seoPoet";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
@@ -245,8 +245,8 @@ export default async function PoetCoursePage({ params }: PageProps) {
           <h1 className="font-display text-3xl font-semibold tracking-tight text-gradient-gold sm:text-4xl">{display.title}</h1>
           <p className="max-w-3xl text-sm leading-relaxed text-zinc-400 sm:text-base">{display.body}</p>
           <p className="text-xs leading-relaxed text-zinc-500">{t("courseTrialHint")}</p>
-          {program && programSlug ? (
-            <PoetCourseProgram program={program} bookingHref={ticketsTrialCheckout(loc, programSlug)} />
+          {program ? (
+            <PoetCourseProgram program={program} bookingHref="#proby-kursu" />
           ) : null}
         </div>
       </article>

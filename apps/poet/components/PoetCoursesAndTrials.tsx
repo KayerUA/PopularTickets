@@ -14,7 +14,6 @@ import {
 } from "@/lib/poetStaticCourses";
 import { PoetCourseCard } from "@/components/PoetCourseCard";
 import type { PoetCourseProgramContent } from "@/components/PoetCourseProgram";
-import { ticketsTrialCheckout } from "@/lib/ticketsSite";
 
 const STATIC_SLUGS: readonly PoetHomepageCourseSlug[] = POET_HOMEPAGE_COURSE_SLUGS;
 
@@ -44,7 +43,7 @@ export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: Poe
                 <PoetCourseCard
                   key={c.id}
                   courseHref={`/kursy/${c.slug}`}
-                  bookingHref={program ? ticketsTrialCheckout(locale, c.slug) : `/kursy/${c.slug}`}
+                  bookingHref={program ? `/kursy/${c.slug}#proby-kursu` : `/kursy/${c.slug}`}
                   image={img}
                   title={copy.title}
                   description={copy.description}
@@ -66,7 +65,7 @@ export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: Poe
               <PoetCourseCard
                 key={slug}
                 courseHref={`/kursy/${slug}`}
-                bookingHref={program ? ticketsTrialCheckout(locale, slug) : `/kursy/${slug}`}
+                bookingHref={program ? `/kursy/${slug}#proby-kursu` : `/kursy/${slug}`}
                 image={keys.image}
                 title={t(keys.titleKey)}
                 description={t(keys.bodyKey)}
