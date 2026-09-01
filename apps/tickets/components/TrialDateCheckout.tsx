@@ -53,10 +53,12 @@ export function TrialDateCheckout({
 
   return (
     <div>
-      <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("chooseDate")}</h2>
+      <h2 id="trial-booking-heading" className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">
+        {t("chooseDate")}
+      </h2>
       <p className="mt-2 text-sm text-zinc-500">{t("chooseDateHint")}</p>
 
-      <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="list">
+      <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {dates.map((date) => {
           const isSelected = date.slug === selected.slug;
           return (
@@ -66,7 +68,7 @@ export function TrialDateCheckout({
                 disabled={date.soldOut}
                 aria-pressed={isSelected}
                 onClick={() => setSelectedSlug(date.slug)}
-                className={`flex h-full w-full flex-col rounded-2xl border px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                className={`flex min-h-11 h-full w-full flex-col rounded-2xl border px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
                   isSelected
                     ? "border-poet-gold/70 bg-poet-gold/[0.08] shadow-gold-sm"
                     : "border-poet-gold/20 bg-black/25 hover:border-poet-gold/45 hover:bg-poet-gold/[0.04]"

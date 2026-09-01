@@ -150,7 +150,7 @@ export function TrialHubGallery({ photos, alt, fallbackSrc }: Props) {
     photos.length > 0
       ? photos
       : fallbackSrc?.trim()
-        ? [{ src: fallbackSrc.trim(), focalX: 50, focalY: 50 }]
+        ? [{ src: fallbackSrc.trim(), focalX: 50, focalY: fallbackSrc.endsWith("/courses/akterka.jpg") ? 6 : 50 }]
         : [];
 
   if (shots.length === 0) {

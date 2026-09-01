@@ -27,6 +27,43 @@
     "trialsIntro": "Wybierz termin: to mogą być zajęcia wprowadzające, otwarta lekcja, masterclass albo inny format w tym kierunku.",
     "emptyTrials": "Nie ma teraz otwartych terminów dla tego kierunku. Zajrzyj do wspólnego kalendarza albo napisz na Telegram — dobierzemy najlepszy start.",
     "ctaFullCalendar": "Wszystkie zajęcia i wydarzenia",
+    "programs": {
+      "acting": {
+        "title": "Program",
+        "lessons": "32 zajęcia",
+        "stages": [
+          { "range": "1–4", "title": "Swoboda", "topics": ["Ciało, głos, emocje", "Mowa, dykcja, intonacja"] },
+          { "range": "5–8", "title": "Pewność siebie", "topics": ["Gra na scenie", "Praca przed kamerą"] },
+          { "range": "9–12", "title": "Głębia", "topics": ["Uczucia i myślenie obrazowe", "Wyobraźnia"] },
+          { "range": "13–16", "title": "Przemiana", "topics": ["Wchodzenie w rolę", "Postacie"] },
+          { "range": "17–32", "title": "Uznanie", "topics": ["Wybór sztuki", "Przygotowanie spektaklu"] }
+        ],
+        "price": "Cena — 490 zł za każde 4 zajęcia",
+        "schedule": "2 godziny, raz w tygodniu",
+        "group": "Grupa — 8 osób",
+        "start": "Start od razu po zajęciach próbnych",
+        "venue": "Warszawa, Mokotów, Domaniewska 37",
+        "trial": "Zajęcia próbne — 70 zł",
+        "bookingCta": "Wybierz zajęcia próbne"
+      },
+      "improv": {
+        "title": "Program",
+        "lessons": "16 zajęć",
+        "stages": [
+          { "range": "1–4", "title": "Swoboda", "topics": ["Ciało, głos, emocje", "Wyjście z blokady"] },
+          { "range": "5–8", "title": "Kreatywność", "topics": ["Szybkie reakcje", "Humor, żarty, postacie"] },
+          { "range": "9–12", "title": "Pewność siebie", "topics": ["Zadania aktorskie", "Techniki improwizacji"] },
+          { "range": "13–16", "title": "Uznanie", "topics": ["Przygotowanie do występu", "Występ w show"] }
+        ],
+        "price": "Cena — 490 zł za każde 4 zajęcia",
+        "schedule": "2 godziny, raz w tygodniu",
+        "group": "Grupa — 8 osób",
+        "start": "Start od razu po zajęciach próbnych",
+        "venue": "Warszawa, Mokotów, Domaniewska 37",
+        "trial": "Zajęcia próbne — 70 zł",
+        "bookingCta": "Wybierz zajęcia próbne"
+      }
+    },
     "faqTitle": "Częste pytania o zajęcia",
     "faqQ1": "Czy potrzebne jest doświadczenie?",
     "faqA1": "Nie. Zajęcia otwarte są dla osób początkujących: wszystko tłumaczymy na miejscu, a ćwiczenia prowadzimy tak, żeby włączył się każdy uczestnik.",
@@ -129,7 +166,9 @@
     "coursePlaybackTitle": "Grupy PLAY-BACK",
     "coursePlaybackBody": "Uczysz się uważnie słuchać i zamieniać prawdziwe historie widzów w sceny z ruchem i muzyką.",
     "coursePlaybackSeoDescription": "Kurs PLAY-BACK Popular Poet w Warszawie: teatr improwizowany oparty na historiach widzów, praca zespołowa, ruch, muzyka i uważna obecność na scenie.",
-    "courseCardCta": "Otwórz program i terminy",
+    "courseCardCta": "Więcej o kursie",
+    "courseProgramToggle": "Zobacz program",
+    "courseDetailsCta": "Pełna strona kursu",
     "courseTrialHint": "Otwarte zajęcia rezerwujesz online: wybierasz termin, opłacasz miejsce i przychodzisz do praktyki.",
     "trialsTitle": "Zajęcia i wydarzenia",
     "calendarTitle": "Najbliższe zajęcia i wydarzenia",

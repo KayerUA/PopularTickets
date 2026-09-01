@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { fetchPublishedPoetCourseBySlug } from "@/lib/poetCourses";
 import { fetchPublishedTrials, fetchTrialsForCourse, filterTrialsByCourseSlug, type PoetTrialDisplay } from "@/lib/poetTrials";
-import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
+import { getTicketsSiteBase, ticketsHome, ticketsTrialCheckout } from "@/lib/ticketsSite";
 import { resolveCourseCopy, resolveCourseTag } from "@/lib/contentI18n";
 import { buildPoetPageMetadata, poetCanonicalPath } from "@/lib/seoPoet";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
@@ -17,6 +17,7 @@ import {
 } from "@/lib/poetStaticCourses";
 import { PoetTrialEventsGrid } from "@/components/PoetTrialEventsGrid";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
+import { PoetCourseProgram, type PoetCourseProgramContent } from "@/components/PoetCourseProgram";
 import { PoetJsonLd } from "@/components/PoetJsonLd";
 import { buildBreadcrumbListJsonLd, buildCourseJsonLd, buildFaqPageJsonLd } from "@/lib/poetJsonLd";
 import { buildTrialEventSeriesJsonLd } from "@/lib/poetTrialJsonLd";
@@ -201,6 +202,11 @@ export default async function PoetCoursePage({ params }: PageProps) {
       acceptedAnswer: { text: tPage(answerKey) },
     })),
   );
+  const programSlug = dbCourse?.slug ?? staticSlug;
+  const program =
+    programSlug === "acting" || programSlug === "improv"
+      ? (tPage.raw(`programs.${programSlug}`) as PoetCourseProgramContent)
+      : null;
 
   return (
     <>
@@ -228,6 +234,7 @@ export default async function PoetCoursePage({ params }: PageProps) {
             priority
             unoptimized={display.image.startsWith("http://") || display.image.startsWith("https://")}
             frameClassName="absolute inset-0"
+            coverObjectPosition={display.variant === "acting" ? "50% 6%" : undefined}
           />
           <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-poet-bg via-poet-bg/40 to-transparent" aria-hidden />
         </div>
@@ -238,6 +245,9 @@ export default async function PoetCoursePage({ params }: PageProps) {
           <h1 className="font-display text-3xl font-semibold tracking-tight text-gradient-gold sm:text-4xl">{display.title}</h1>
           <p className="max-w-3xl text-sm leading-relaxed text-zinc-400 sm:text-base">{display.body}</p>
           <p className="text-xs leading-relaxed text-zinc-500">{t("courseTrialHint")}</p>
+          {program && programSlug ? (
+            <PoetCourseProgram program={program} bookingHref={ticketsTrialCheckout(loc, programSlug)} />
+          ) : null}
         </div>
       </article>
 

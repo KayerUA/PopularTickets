@@ -210,6 +210,11 @@
     "kicker": "Zajęcia próbne",
     "heading": "Zajęcia próbne „{course}” w Warszawie",
     "evergreenLead": "Tutaj zawsze znajdziesz przyszłe terminy „{course}”: wybierz dogodny dzień, sprawdź wolne miejsca i zapisz się online.",
+    "primaryCta": "Wybierz termin próbny",
+    "bookingKicker": "Zapisy online na zajęcia próbne",
+    "heroNoExperience": "Bez doświadczenia",
+    "heroDuration": "2 godziny praktyki",
+    "trialPriceLabel": "Zajęcia próbne",
     "breadcrumbAria": "Nawigacja",
     "breadcrumbHome": "Strona główna",
     "chooseDate": "Najbliższe terminy",
@@ -241,7 +246,42 @@
     "faqLanguageQ": "W jakim języku odbywają się zajęcia?",
     "faqLanguageA": "Język jest podany przy każdym terminie. Popular Poet pracuje głównie z rosyjsko- i ukraińskojęzycznymi grupami w Warszawie.",
     "faqAfterQ": "Czy po zajęciach próbnych można kontynuować naukę?",
-    "faqAfterA": "Tak. Jeśli format Ci odpowiada, możesz wybrać regularną grupę; link do pełnego programu kursu znajduje się na tej stronie."
+    "faqAfterA": "Tak. Jeśli format Ci odpowiada, możesz wybrać regularną grupę; link do pełnego programu kursu znajduje się na tej stronie.",
+    "programs": {
+      "acting": {
+        "title": "Program kursu aktorskiego",
+        "lead": "32 zajęcia: od swobody ciała i głosu po rolę i przygotowanie własnego spektaklu.",
+        "lessons": "32 zajęcia",
+        "stages": [
+          { "range": "1–4", "title": "Swoboda", "topics": ["Ciało, głos, emocje", "Mowa, dykcja, intonacja"] },
+          { "range": "5–8", "title": "Pewność siebie", "topics": ["Gra na scenie", "Praca przed kamerą"] },
+          { "range": "9–12", "title": "Głębia", "topics": ["Uczucia i myślenie obrazowe", "Wyobraźnia"] },
+          { "range": "13–16", "title": "Przemiana", "topics": ["Wchodzenie w rolę", "Postacie"] },
+          { "range": "17–32", "title": "Uznanie", "topics": ["Wybór sztuki", "Przygotowanie spektaklu"] }
+        ],
+        "price": "490 zł za każde 4 zajęcia",
+        "schedule": "2 godziny, raz w tygodniu",
+        "group": "Grupa — 8 osób",
+        "start": "Start od razu po zajęciach próbnych",
+        "venue": "Warszawa, Mokotów, Domaniewska 37"
+      },
+      "improv": {
+        "title": "Program kursu improwizacji",
+        "lead": "16 zajęć: swoboda reakcji, kreatywność, techniki sceniczne i finałowy występ w show.",
+        "lessons": "16 zajęć",
+        "stages": [
+          { "range": "1–4", "title": "Swoboda", "topics": ["Ciało, głos, emocje", "Wyjście z blokady"] },
+          { "range": "5–8", "title": "Kreatywność", "topics": ["Szybkie reakcje", "Humor, żarty, postacie"] },
+          { "range": "9–12", "title": "Pewność siebie", "topics": ["Zadania aktorskie", "Techniki improwizacji"] },
+          { "range": "13–16", "title": "Uznanie", "topics": ["Przygotowanie do występu", "Występ w show"] }
+        ],
+        "price": "490 zł za każde 4 zajęcia",
+        "schedule": "2 godziny, raz w tygodniu",
+        "group": "Grupa — 8 osób",
+        "start": "Start od razu po zajęciach próbnych",
+        "venue": "Warszawa, Mokotów, Domaniewska 37"
+      }
+    }
   },
   "TicketsFacts": {
     "metaTitle": "O PopularTickets — oficjalna kasa Popular Poet",

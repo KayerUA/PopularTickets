@@ -12,13 +12,22 @@ import {
   staticCourseKeys,
   type PoetHomepageCourseSlug,
 } from "@/lib/poetStaticCourses";
-import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
+import { PoetCourseCard } from "@/components/PoetCourseCard";
+import type { PoetCourseProgramContent } from "@/components/PoetCourseProgram";
+import { ticketsTrialCheckout } from "@/lib/ticketsSite";
 
 const STATIC_SLUGS: readonly PoetHomepageCourseSlug[] = POET_HOMEPAGE_COURSE_SLUGS;
 
 export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: PoetCourseRow[]; locale: AppLocale }) {
   const t = await getTranslations("Poet");
+  const tPage = await getTranslations("CoursePage");
   const useDb = dbCourses.length > 0;
+
+  function programFor(slug: string): PoetCourseProgramContent | null {
+    return slug === "acting" || slug === "improv"
+      ? (tPage.raw(`programs.${slug}`) as PoetCourseProgramContent)
+      : null;
+  }
 
   return (
     <ul className="mt-8 grid gap-5 sm:mt-10 sm:grid-cols-2 lg:grid-cols-3">
@@ -30,64 +39,44 @@ export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: Poe
               const variant = normalizeCourseCardVariant(c.card_variant);
               const img = c.card_image_url.trim() || "/courses/theatre.jpg";
               const tagLine = resolveCourseTag(c, locale);
+              const program = programFor(c.slug);
               return (
-              <li key={c.id} className="h-full list-none">
-                <Link
-                  href={`/kursy/${c.slug}`}
-                  className={`poet-course-card poet-course-card--${variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-4 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] outline-none transition duration-500 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-poet-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--poet-bg)] sm:p-5`}
-                >
-                  <div className="poet-shine pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
-                  <div className="relative mb-4 aspect-[16/10] w-full overflow-hidden rounded-xl border border-poet-gold/20 bg-zinc-950">
-                    <MediaCoverBlurred
-                      src={img}
-                      alt={copy.title}
-                      sizes="(max-width:640px) calc(100vw - 4rem), (max-width:1024px) 50vw, 240px"
-                      unoptimized={img.startsWith("http://") || img.startsWith("https://")}
-                      frameClassName="absolute inset-0"
-                    />
-                  </div>
-                  {tagLine ? (
-                    <p className="relative text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500">{tagLine}</p>
-                  ) : null}
-                  <h3 className="relative mt-2 font-display text-[1.35rem] font-semibold leading-tight tracking-tight text-gradient-gold sm:text-[1.45rem]">
-                    {copy.title}
-                  </h3>
-                  <p className="relative mt-3 line-clamp-4 flex-1 text-[0.9375rem] leading-relaxed text-zinc-300 sm:line-clamp-5 sm:text-sm">{copy.description}</p>
-                  <span className="relative mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-poet-gold/30 bg-black/30 px-4 py-2.5 text-center text-sm font-semibold text-poet-gold-bright transition group-hover:border-poet-gold/55 group-hover:bg-poet-gold/10">
-                    {t("courseCardCta")}
-                  </span>
-                </Link>
-              </li>
+                <PoetCourseCard
+                  key={c.id}
+                  courseHref={`/kursy/${c.slug}`}
+                  bookingHref={program ? ticketsTrialCheckout(locale, c.slug) : `/kursy/${c.slug}`}
+                  image={img}
+                  title={copy.title}
+                  description={copy.description}
+                  tagLine={tagLine}
+                  variant={variant}
+                  unoptimized={img.startsWith("http://") || img.startsWith("https://")}
+                  program={program}
+                  programToggleLabel={t("courseProgramToggle")}
+                  detailsLabel={t("courseDetailsCta")}
+                  ctaLabel={program ? program.bookingCta : t("courseCardCta")}
+                />
               );
             })
             .filter((node) => node !== null)
         : STATIC_SLUGS.map((slug) => {
             const keys = staticCourseKeys(slug);
+            const program = programFor(slug);
             return (
-              <li key={slug} className="h-full list-none">
-                <Link
-                  href={`/kursy/${slug}`}
-                  className={`poet-course-card poet-course-card--${keys.variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-4 no-underline text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] outline-none transition duration-500 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-poet-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--poet-bg)] sm:p-5`}
-                >
-                  <div className="poet-shine pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
-                  <div className="relative mb-4 aspect-[16/10] w-full overflow-hidden rounded-xl border border-poet-gold/20 bg-zinc-950">
-                    <MediaCoverBlurred
-                      src={keys.image}
-                      alt={t(keys.titleKey)}
-                      sizes="(max-width:640px) calc(100vw - 4rem), (max-width:1024px) 50vw, 240px"
-                      frameClassName="absolute inset-0"
-                    />
-                  </div>
-                  <p className="relative text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500">{t(keys.tagKey)}</p>
-                  <h3 className="relative mt-2 font-display text-[1.35rem] font-semibold leading-tight tracking-tight text-gradient-gold sm:text-[1.45rem]">
-                    {t(keys.titleKey)}
-                  </h3>
-                  <p className="relative mt-3 line-clamp-4 flex-1 text-[0.9375rem] leading-relaxed text-zinc-300 sm:line-clamp-5 sm:text-sm">{t(keys.bodyKey)}</p>
-                  <span className="relative mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-poet-gold/30 bg-black/30 px-4 py-2.5 text-center text-sm font-semibold text-poet-gold-bright transition group-hover:border-poet-gold/55 group-hover:bg-poet-gold/10">
-                    {t("courseCardCta")}
-                  </span>
-                </Link>
-              </li>
+              <PoetCourseCard
+                key={slug}
+                courseHref={`/kursy/${slug}`}
+                bookingHref={program ? ticketsTrialCheckout(locale, slug) : `/kursy/${slug}`}
+                image={keys.image}
+                title={t(keys.titleKey)}
+                description={t(keys.bodyKey)}
+                tagLine={t(keys.tagKey)}
+                variant={keys.variant}
+                program={program}
+                programToggleLabel={t("courseProgramToggle")}
+                detailsLabel={t("courseDetailsCta")}
+                ctaLabel={program ? program.bookingCta : t("courseCardCta")}
+              />
             );
           })}
     </ul>

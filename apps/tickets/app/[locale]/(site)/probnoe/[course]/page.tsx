@@ -8,6 +8,7 @@ import { SupabaseSetupHint } from "@/components/SupabaseSetupHint";
 import { TrialDateCheckout } from "@/components/TrialDateCheckout";
 import { PromoVisitTracker } from "@/components/PromoVisitTracker";
 import { TrialHubGallery } from "@/components/TrialHubGallery";
+import { TrialCourseProgram, type TrialCourseProgramContent } from "@/components/TrialCourseProgram";
 import { isCheckoutBypassPayment } from "@/lib/checkoutBypass";
 import { resolveApplicablePromoCode } from "@/lib/promoCodes";
 import { buildPublicPageMetadata, canonicalPath } from "@/lib/seo";
@@ -17,6 +18,7 @@ import { resolveAbsoluteAssetUrl } from "@/lib/safePublicUrl";
 import { POPULAR_POET_THEATRE_MAPS_URL, POPULAR_POET_TRIAL_VENUE_PL } from "@/lib/theatreVenueDefaults";
 import { JsonLd } from "@/components/JsonLd";
 import { buildBreadcrumbListJsonLd, buildFaqPageJsonLd } from "@/lib/seo/eventJsonLd";
+import { formatPlnFromGrosze } from "@/lib/format";
 import {
   fetchTrialHubCourse,
   fetchTrialHubDates,
@@ -112,9 +114,14 @@ export default async function TrialCourseHubPage({ params, searchParams }: PageP
     faqPairs.map((item) => ({ name: item.q, acceptedAnswer: { text: item.a } })),
   );
   const siblingCourseSlug = course.slug === "improv" ? "acting" : course.slug === "acting" ? "improv" : null;
+  const program =
+    course.slug === "acting" || course.slug === "improv"
+      ? (t.raw(`programs.${course.slug}`) as TrialCourseProgramContent)
+      : null;
+  const trialPrice = selected ? formatPlnFromGrosze(selected.priceGrosze) : null;
 
   return (
-    <div className="poet-safe-x mx-auto max-w-3xl py-8 sm:py-14">
+    <div className="poet-safe-x mx-auto max-w-5xl py-8 sm:py-14">
       {promo && selected ? <PromoVisitTracker promoCodeId={promo.id} eventId={selected.id} /> : null}
       {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
       <JsonLd data={faqLd} />
@@ -139,7 +146,7 @@ export default async function TrialCourseHubPage({ params, searchParams }: PageP
             {pageHeading}
           </h1>
           <p className="mt-4 text-[0.9375rem] font-medium leading-relaxed text-zinc-200 sm:text-base">
-            {t("evergreenLead", { course: course.title })}
+            {program?.lead ?? t("evergreenLead", { course: course.title })}
           </p>
           {course.description.trim() ? (
             <p className="mt-3 whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-zinc-400 sm:text-base">
@@ -147,6 +154,15 @@ export default async function TrialCourseHubPage({ params, searchParams }: PageP
             </p>
           ) : null}
           <p className="mt-4 text-sm text-zinc-400">{venue}</p>
+          <div className="mt-5 flex flex-wrap gap-2 text-xs font-medium text-zinc-300">
+            <span className="rounded-full border border-poet-gold/20 bg-black/25 px-3 py-1.5">{t("heroNoExperience")}</span>
+            <span className="rounded-full border border-poet-gold/20 bg-black/25 px-3 py-1.5">{t("heroDuration")}</span>
+            {trialPrice ? (
+              <span className="rounded-full border border-poet-gold/30 bg-poet-gold/[0.07] px-3 py-1.5 font-semibold text-poet-gold-bright">
+                {t("trialPriceLabel")}: {trialPrice}
+              </span>
+            ) : null}
+          </div>
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
             <a
               href={POPULAR_POET_THEATRE_MAPS_URL}
@@ -162,6 +178,12 @@ export default async function TrialCourseHubPage({ params, searchParams }: PageP
               </span>
             ) : null}
           </div>
+          <a
+            href="#trial-booking"
+            className="btn-poet btn-poet-theatre mt-6 inline-flex min-h-12 w-full items-center justify-center px-6 py-3 text-center text-sm font-semibold no-underline sm:w-auto"
+          >
+            {t("primaryCta")}
+          </a>
         </header>
       </div>
 
@@ -171,10 +193,18 @@ export default async function TrialCourseHubPage({ params, searchParams }: PageP
         </p>
       ) : null}
 
-      <section className="mt-8">
+      <section
+        id="trial-booking"
+        aria-labelledby="trial-booking-heading"
+        className="mt-8 scroll-mt-28 rounded-3xl border border-poet-gold/25 bg-gradient-to-br from-black/55 via-poet-surface/35 to-black/35 p-5 shadow-gold-sm sm:p-8"
+      >
+        <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.28em] text-poet-gold/75">{t("bookingKicker")}</p>
         {dates.length === 0 || !selected ? (
           <div className="rounded-2xl border border-dashed border-poet-gold/25 bg-black/25 px-5 py-8 sm:px-8">
-            <p className="text-sm leading-relaxed text-zinc-400">{t("emptyDates")}</p>
+            <h2 id="trial-booking-heading" className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">
+              {t("chooseDate")}
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-400">{t("emptyDates")}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a href={courseHref} className="btn-poet btn-poet-theatre inline-flex no-underline">
                 {t("courseCta")}
@@ -208,6 +238,16 @@ export default async function TrialCourseHubPage({ params, searchParams }: PageP
           </>
         )}
       </section>
+
+      {program ? (
+        <TrialCourseProgram
+          program={program}
+          bookingHref="#trial-booking"
+          bookingLabel={t("primaryCta")}
+          trialPriceLabel={t("trialPriceLabel")}
+          trialPrice={trialPrice}
+        />
+      ) : null}
 
       <section className="mt-10 rounded-2xl border border-poet-gold/20 bg-black/20 px-5 py-6 sm:px-7">
         <h2 className="font-display text-lg font-medium text-zinc-100">{t("aboutCourseTitle")}</h2>

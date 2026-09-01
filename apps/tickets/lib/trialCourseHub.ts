@@ -253,7 +253,11 @@ export async function fetchTrialHubPhotos(
       photo: {
         src,
         focalX: typeof row.image_focal_x === "number" ? row.image_focal_x : null,
-        focalY: typeof row.image_focal_y === "number" ? row.image_focal_y : null,
+        focalY: src.endsWith("/courses/akterka.jpg")
+          ? 6
+          : typeof row.image_focal_y === "number"
+            ? row.image_focal_y
+            : null,
       },
     });
   }
