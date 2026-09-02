@@ -1,3 +1,5 @@
+import type { PoetCourseStoryContent } from "@/components/PoetCourseStory";
+
 export type PoetCourseProgramContent = {
   title: string;
   lessons: string;
@@ -13,6 +15,7 @@ export type PoetCourseProgramContent = {
   venue: string;
   trial: string;
   bookingCta: string;
+  story?: PoetCourseStoryContent;
 };
 
 export function PoetCourseProgram({
@@ -23,7 +26,7 @@ export function PoetCourseProgram({
   bookingHref: string;
 }) {
   return (
-    <section className="mt-8 border-t border-poet-gold/15 pt-7" aria-labelledby="course-program-heading">
+    <section aria-labelledby="course-program-heading">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h2 id="course-program-heading" className="font-display text-2xl font-medium text-zinc-100 sm:text-3xl">
           {program.title}

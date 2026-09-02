@@ -44,7 +44,56 @@
         "start": "Start od razu po zajęciach próbnych",
         "venue": "Warszawa, Mokotów, Domaniewska 37",
         "trial": "Zajęcia próbne — 70 zł",
-        "bookingCta": "Wybierz zajęcia próbne"
+        "bookingCta": "Wybierz zajęcia próbne",
+        "story": {
+          "happensTitle": "Co dzieje się na kursie",
+          "happensLead": "Na zajęciach regularnie pracujesz z głosem, ciałem, mimiką, uwagą, emocjami i partnerem. Przez ćwiczenia, treningi i etiudy stopniowo uczysz się:",
+          "skillGroups": [
+            {
+              "title": "Głos i ciało",
+              "items": [
+                "sterować głośnością, barwą, głębią, intonacją i akcentami",
+                "pracować z plastyką i zdejmować napięcie z ciała",
+                "zauważać nawykową mimikę i zmieniać ją",
+                "wyrażać różne emocje i znajdować do nich dostęp"
+              ]
+            },
+            {
+              "title": "Partner",
+              "items": [
+                "utrzymać uwagę drugiej osoby",
+                "reagować na partnera, a nie tylko na siebie",
+                "próbować nietypowych dla siebie modeli zachowania",
+                "działać w zadanych okolicznościach"
+              ]
+            },
+            {
+              "title": "Postać i scena",
+              "items": [
+                "tworzyć postać i istnieć w jej okolicznościach",
+                "składać z ćwiczeń pełną pracę sceniczną"
+              ]
+            }
+          ],
+          "playTitle": "A także — spektakl",
+          "playBody": "Kiedy grupa przechodzi do spektaklu, pojawia się konkretne zadanie: rozebrać tekst, relacje postaci, okoliczności, znaleźć charakter, zbudować kontakt z partnerami i doprowadzić wszystko do występu przed widownią. Praca nad rolą to nie końcowy haczyk. Zmusza do tego, na co w zwykłym życiu często nie pozwalamy sobie.",
+          "playPull": "Być głośniej, dziwniej, śmieszniej, ostro, czulej, niedorzeczniej, swobodniej.",
+          "classTitle": "Jak wyglądają zajęcia",
+          "classLead": "Przychodzisz do teatru. Pedagog wita grupę, chwilę rozmawiacie i stopniowo przełączacie się z codziennych spraw na twórczość. Bez egzaminów, ocen i konieczności umieć cokolwiek z góry.",
+          "classSteps": [
+            { "title": "Rozgrzewka", "body": "Ciało, głos, mimika, emocje. Dużo ruchu i ćwiczeń fizycznych — uczymy się swobodniej się ujawniać." },
+            { "title": "Kontakt", "body": "Ćwiczenia w parach i grupie: uwaga, reakcja, wyobraźnia i wyczucie partnera. Można synchronizować ruch, robić to samo działanie w różnych emocjach albo szukać, jak powiedzieć myśl bez słów." },
+            { "title": "Przemiana", "body": "Próbujemy różnych postaci: zmieniamy głos, plastykę, manierę i patrzymy na sytuację oczami kogoś innego." },
+            { "title": "Okoliczności podane", "body": "Historie z życia, kina, książek albo całkowicie wymyślone sytuacje. Zadanie nie polega na tym, by «po prostu zagrać scenę», tylko znaleźć w niej działanie, relacje, uczucia i sens." },
+            { "title": "Tekst sztuki", "body": "Czytamy, rozbieramy cele postaci, próbujemy wariantów i zamieniamy zapisane słowa w żywą scenę." },
+            { "title": "Zamknięcie", "body": "Etiuda, scena albo fragment spektaklu: wszystko, czego uczyliśmy się przez te dwie godziny." }
+          ],
+          "closeTitle": "To nie szkoła aktorska «na zawód»",
+          "closeBody": [
+            "Nie dążymy do tego, by zrobić z was zawodowych aktorów. Przez mistrzostwo aktorskie lepiej rozumiecie siebie, swoje emocje i pragnienia, swobodniej mówicie, pewniej się ujawniacie, słyszycie innych i odważniej działacie w życiu.",
+            "Dwie godziny twórczości, kontaktu i praktyki — bez presji i strachu przed oceną. Bezpieczna przestrzeń, w której można być sobą i stawać się bardziej wyrazistym."
+          ]
+        }
       },
       "improv": {
         "title": "Program",
@@ -61,7 +110,53 @@
         "start": "Start od razu po zajęciach próbnych",
         "venue": "Warszawa, Mokotów, Domaniewska 37",
         "trial": "Zajęcia próbne — 70 zł",
-        "bookingCta": "Wybierz zajęcia próbne"
+        "bookingCta": "Wybierz zajęcia próbne",
+        "story": {
+          "happensTitle": "Improwizacja to nie stand-up",
+          "happensLead": "Nie musisz wychodzić na scenę sam i z góry wymyślać genialnych żartów. Grasz z partnerem albo z zespołem, tworzysz fabuły tu i teraz i uczysz się wymyślać wszystko w biegu.",
+          "skillGroups": [
+            {
+              "title": "Razem, nie solo",
+              "items": [
+                "grasz z partnerem albo z zespołem",
+                "tworzysz fabuły prosto na scenie",
+                "uczysz się wymyślać na bieżąco"
+              ]
+            },
+            {
+              "title": "Humor z gry",
+              "items": [
+                "dużo absurdu i nieoczekiwanych sytuacji",
+                "śmiech częściej rodzi się z postaci i decyzji, a nie z wcześniej napisanego żartu"
+              ]
+            },
+            {
+              "title": "Jak to mówisz",
+              "items": [
+                "możesz mówić cokolwiek",
+                "uczymy się robić to głośno, swobodnie, ciekawie, jaskrawo i aktorsko"
+              ]
+            }
+          ],
+          "playTitle": "Najważniejsze — jak to robisz",
+          "playBody": "Tu jest dużo żywego humoru, ale nie trenujemy numerów stand-upowych. Śmiech pojawia się z wyrazistych postaci, nieoczekiwanych decyzji i twojej gry z partnerem.",
+          "playPull": "Możesz mówić cokolwiek. Najważniejsze — jak to robisz.",
+          "classTitle": "Jak wyglądają zajęcia",
+          "classLead": "Przychodzisz do teatru. Pedagog wita grupę, chwilę rozmawiacie, poznajecie się i przełączacie z codzienności na twórczość. Bez egzaminów, ocen i konieczności umieć cokolwiek z góry.",
+          "classSteps": [
+            { "title": "Rozgrzewka", "body": "Pierwsze minuty — ciało, głos, mimika i emocje: stopniowo się rozluźniamy i czujemy się swobodniej." },
+            { "title": "Gry grupowe", "body": "Od pierwszych minut dużo kontaktu. Gry aktorskie rozwijają uwagę, myślenie, wyobraźnię i komunikację. Na scenie nie jesteś sam — jesteś częścią zespołu." },
+            { "title": "Partner", "body": "Ćwiczenia w parach i grupie: powtarzamy ruchy, działamy synchronicznie, mówimy łamańce języków z różnymi emocjami. Uczymy się słyszeć partnera i zauważać jego reakcje." },
+            { "title": "Podstawy improwizacji", "body": "Jak buduje się fabuła, jak prowadzić dialog, jak mówić z partnerem i rozwijać scenę. Osobno — postacie i wchodzenie w różne obrazy." },
+            { "title": "Formaty", "body": "Na koniec gramy 5–6 krótkich scenek: dostajesz zadanie aktorskie i w kilka minut tworzysz historię prosto na scenie." },
+            { "title": "Dwie godziny gry", "body": "Dużo ruchu, śmiechu, kontaktu, twórczości i prawdziwej gry — bez presji i strachu przed oceną." }
+          ],
+          "closeTitle": "Ciepłe miejsce, nie egzamin",
+          "closeBody": [
+            "W teatrze czeka na was woda, słodki poczęstunek i wszystko, czego trzeba do zajęć.",
+            "Najważniejsza jest ciepła i bezpieczna atmosfera, w której można się śmiać, próbować nowego, popełniać błędy i po prostu być sobą."
+          ]
+        }
       }
     },
     "faqTitle": "Częste pytania o zajęcia",

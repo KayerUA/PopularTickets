@@ -18,6 +18,7 @@ import {
 import { PoetTrialEventsGrid } from "@/components/PoetTrialEventsGrid";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { PoetCourseProgram, type PoetCourseProgramContent } from "@/components/PoetCourseProgram";
+import { PoetCourseStory } from "@/components/PoetCourseStory";
 import { PoetJsonLd } from "@/components/PoetJsonLd";
 import { buildBreadcrumbListJsonLd, buildCourseJsonLd, buildFaqPageJsonLd } from "@/lib/poetJsonLd";
 import { buildTrialEventSeriesJsonLd } from "@/lib/poetTrialJsonLd";
@@ -245,11 +246,16 @@ export default async function PoetCoursePage({ params }: PageProps) {
           <h1 className="font-display text-3xl font-semibold tracking-tight text-gradient-gold sm:text-4xl">{display.title}</h1>
           <p className="max-w-3xl text-sm leading-relaxed text-zinc-400 sm:text-base">{display.body}</p>
           <p className="text-xs leading-relaxed text-zinc-500">{t("courseTrialHint")}</p>
-          {program ? (
-            <PoetCourseProgram program={program} bookingHref="#proby-kursu" />
-          ) : null}
         </div>
       </article>
+
+      {program?.story ? <PoetCourseStory story={program.story} /> : null}
+
+      {program ? (
+        <div className="mt-10 rounded-2xl border border-poet-gold/20 bg-poet-surface/25 px-5 py-7 shadow-gold-sm sm:mt-12 sm:px-8 sm:py-9">
+          <PoetCourseProgram program={program} bookingHref="#proby-kursu" />
+        </div>
+      ) : null}
 
       <section className="mt-10 scroll-mt-32 sm:mt-12 sm:scroll-mt-28" id="proby-kursu">
         <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{tPage("trialsHeading")}</h2>
