@@ -43,6 +43,7 @@ export function ticketEmailHtml(params: {
   tickets: EmailTicketCardInput[];
   cardLabels: EmailTicketCardLabels;
   locale: AppLocale;
+  seatingNotice?: string;
 }): string {
   const str = ticketEmailStrings(params.locale);
   const ticketCards = params.tickets.map((t) => renderEmailTicketCardHtml(t, params.cardLabels)).join("");
@@ -99,7 +100,8 @@ export function ticketEmailHtml(params: {
                   </tr>
                   <tr>
                     <td style="padding:0 22px 14px 22px;">
-                      ${ticketCards}
+                      ${params.seatingNotice ? `<p style="color:#e8d48b">${esc(params.seatingNotice)}</p>` : ""}
+                  ${ticketCards}
                     </td>
                   </tr>
                   <tr>

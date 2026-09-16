@@ -29,8 +29,9 @@ export async function sendTicketsEmail(params: {
   eventTitle: string;
   venue: string;
   startsAt: string;
-  tickets: { id: string; ticketNumber: string }[];
+  tickets: { id: string; ticketNumber: string; seatLabel?: string }[];
   locale: AppLocale;
+  seatingNotice?: string;
 }): Promise<void> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
@@ -73,6 +74,7 @@ export async function sendTicketsEmail(params: {
         venue: params.venue,
         dateTimeLabel: params.startsAt,
         ticketNumber: t.ticketNumber,
+        seatLabel: t.seatLabel,
         ticketId: t.id,
         ...pdfLabels,
       });
@@ -83,6 +85,7 @@ export async function sendTicketsEmail(params: {
       });
       emailTickets.push({
         ticketNumber: t.ticketNumber,
+        seatLabel: t.seatLabel,
         ticketId: t.id,
         qrImageSrc: `cid:${inlineId}`,
         attachmentLabel: str.colAttachment,
@@ -91,6 +94,7 @@ export async function sendTicketsEmail(params: {
       console.error("[sendTicketsEmail] PDF failed, inline QR + PNG attachment", { ticketId: t.id }, err);
       emailTickets.push({
         ticketNumber: t.ticketNumber,
+        seatLabel: t.seatLabel,
         ticketId: t.id,
         qrImageSrc: `cid:${inlineId}`,
         attachmentLabel: str.colAttachmentPng,
@@ -113,6 +117,7 @@ export async function sendTicketsEmail(params: {
       stubControl: pdfLabels.stubControl,
     },
     locale: params.locale,
+    seatingNotice: params.seatingNotice,
   });
 
   const { error } = await resend.emails.send({

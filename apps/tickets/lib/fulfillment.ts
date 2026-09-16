@@ -1,3 +1,4 @@
+import { seatLabel, seatingText } from "@/lib/seating/i18n";
 import { z } from "zod";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
 import {
@@ -77,13 +78,18 @@ async function ensureTicketsAndEmail(params: {
     } else {
       try {
         const loc = orderLocale(params.order.locale);
+        const { data: assigned, error: seatError } = await supabase.from("tickets").select("id,seat_id").eq("order_id", params.order.id);
+        if (seatError) throw new Error("seat lookup failed");
+        const { data: seatOrder } = await supabase.from("orders").select("seating_attention").eq("id", params.order.id).single();
+        const seatById = new Map((assigned ?? []).map(t => [t.id, t.seat_id]));
         await sendTicketsEmail({
           to: params.order.email,
           eventTitle: event.title,
           venue: event.venue,
           startsAt: formatEventDateTime(event.starts_at as string, loc),
-          tickets: allTickets.map((t) => ({ id: t.id, ticketNumber: t.ticket_number })),
+          tickets: allTickets.map((t) => ({ id: t.id, ticketNumber: t.ticket_number, seatLabel: seatLabel(seatById.get(t.id), loc) })),
           locale: loc,
+          seatingNotice: seatOrder?.seating_attention ? seatingText[loc].attention : undefined,
         });
       } catch (e) {
         console.error("email failed", e);

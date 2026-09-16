@@ -30,6 +30,9 @@ const ticketPdfTracingRouteKeys = [
   "/*/checkout/return",
   "/[locale]/checkout/return",
   "/api/p24/notify",
+  "/[locale]/seats/[token]",
+  "/*/seats/*",
+  "/admin/seating",
   "/[locale]/events/[slug]",
   "/*/events/[slug]",
 ] as const;

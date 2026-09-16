@@ -25,6 +25,8 @@ import { allowsPublicEventByVisibility } from "@/lib/contentVisibility";
 import { effectiveEventPriceGrosze } from "@/lib/eventPrice";
 import { normalizePromoCode, promoDiscountGrosze, resolveApplicablePromoCode } from "@/lib/promoCodes";
 
+import { seatingText } from "@/lib/seating/i18n";
+
 function p24UiLanguage(locale: AppLocale): string {
   if (locale === "pl") return "pl";
   // Przelewy24: для uk/ru используем английский UI (стабильно для песочницы)
@@ -166,6 +168,14 @@ export async function createPendingOrder(
     throw new Error(t("orderCreateFailed"));
   }
 
+  const seatIds = z.array(z.string().max(20)).max(20).parse(formData.getAll("seatId"));
+  const { error: seatError } = await supabase.rpc("pt_reserve_seats", { p_order_id: orderId, p_seat_ids: seatIds });
+  if (seatError) {
+    await supabase.from("orders").update({ status: "cancelled" }).eq("id", orderId).eq("status", "pending");
+    console.error("seat reservation", seatError);
+    throw new Error(seatError.message.includes("seating_priority") ? seatingText[locale].priority : seatingText[locale].conflict);
+  }
+
   if (isCheckoutBypassPayment()) {
     try {
       await bypassPaymentAndFulfillOrder(orderId);
@@ -211,6 +221,7 @@ export async function createPendingOrder(
         language: p24Lang,
         encoding: "UTF-8",
         regulationAccept: true,
+        ...(seatIds.length ? { timeLimit: 15 } : {}),
         urlReturn: `${baseUrl}${await buildCheckoutReturnPath(locale, orderId)}`,
         urlStatus: `${baseUrl}/api/p24/notify`,
         sign,

@@ -6,7 +6,8 @@ export type PaidOrderReceipt = {
   venue: string;
   startsAt: string;
   listingKind: string | null;
-  tickets: { id: string; ticket_number: string }[];
+  seatingAttention: boolean;
+  tickets: { id: string; ticket_number: string; seat_id: string | null }[];
 };
 
 export type OrderReceiptState =
@@ -24,7 +25,7 @@ export async function loadOrderReceiptState(
 ): Promise<OrderReceiptState> {
   const { data: order, error: oErr } = await supabase
     .from("orders")
-    .select("id,status,email,event_id")
+    .select("id,status,email,event_id,seating_attention")
     .eq("id", orderId)
     .maybeSingle();
 
@@ -52,7 +53,7 @@ export async function loadOrderReceiptState(
 
   const { data: tickets, error: tErr } = await supabase
     .from("tickets")
-    .select("id,ticket_number")
+    .select("id,ticket_number,seat_id")
     .eq("order_id", orderId)
     .order("ticket_number", { ascending: true });
 
@@ -60,12 +61,13 @@ export async function loadOrderReceiptState(
     return { kind: "not_found" };
   }
 
-  const list = (tickets ?? []) as { id: string; ticket_number: string }[];
+  const list = (tickets ?? []) as { id: string; ticket_number: string; seat_id: string | null }[];
 
   return {
     kind: "paid",
     receipt: {
       email: order.email as string,
+      seatingAttention: Boolean(order.seating_attention),
       eventTitle: ev.title as string,
       venue: ev.venue as string,
       startsAt: ev.starts_at as string,

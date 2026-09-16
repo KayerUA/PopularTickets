@@ -37,7 +37,10 @@ function validCrmUrl(raw: string): boolean {
   try {
     const url = new URL(raw);
     if (url.protocol !== "https:") return process.env.NODE_ENV !== "production" && url.protocol === "http:" && url.hostname === "localhost";
-    const allowed = (process.env.CRM_CHECKOUT_ALLOWED_HOSTS?.split(",").map((host) => host.trim()).filter(Boolean) ?? ["popularcrm.vercel.app"]);
+    const allowed = (process.env.CRM_CHECKOUT_ALLOWED_HOSTS?.split(",").map((host) => host.trim()).filter(Boolean) ?? [
+      "crm.popularpoet.pl",
+      "popularcrm.vercel.app",
+    ]);
     return allowed.includes(url.hostname);
   } catch { return false; }
 }

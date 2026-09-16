@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { unstable_rethrow } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -15,6 +15,10 @@ import {
   type CheckoutFieldKey,
 } from "@/lib/checkoutFormValidation";
 import { previewPromoCode } from "@/app/actions/promo-codes";
+
+import { SeatMap } from "@/components/SeatMap";
+import type { SeatMapState } from "@/lib/seating/types";
+import { seatingText } from "@/lib/seating/i18n";
 
 type Props = {
   eventSlug: string;
@@ -57,6 +61,25 @@ export function EventCheckoutForm({
   initialPromoDiscountFixedGrosze = null,
 }: Props) {
   const t = useTranslations("CheckoutForm");
+  const st = seatingText[locale];
+  const [seatMap, setSeatMap] = useState<SeatMapState | null>(null);
+  const [seatLoading, setSeatLoading] = useState(true);
+  const [seatLoadError, setSeatLoadError] = useState(false);
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+  const [seatRefresh, setSeatRefresh] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    setSeatLoading(true);
+    fetch(`/api/events/${encodeURIComponent(eventSlug)}/seats`, { cache: "no-store", signal: controller.signal })
+      .then(async r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(({ map }: { map: SeatMapState | null }) => {
+        setSeatMap(map); setSeatLoadError(false);
+        setSelectedSeats(ids => ids.filter(id => map?.seats.some(s => s.id === id && s.status === "free")));
+      })
+      .catch(() => { if (!controller.signal.aborted) setSeatLoadError(true); })
+      .finally(() => { if (!controller.signal.aborted) setSeatLoading(false); });
+    return () => controller.abort();
+  }, [eventSlug, seatRefresh]);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<CheckoutFieldKey, string>>>({});
   const [pending, setPending] = useState(false);
@@ -136,6 +159,9 @@ export function EventCheckoutForm({
     setError(null);
     setPending(true);
     try {
+      if (seatLoading || seatLoadError) throw new Error(st.unavailable);
+      if (seatMap?.mode === "priority") throw new Error(st.priority);
+      if (seatMap && selectedSeats.length !== quantity) throw new Error(st.choose);
       const result = await createPendingOrder(formData);
       if (result && typeof result === "object" && "p24Url" in result && typeof result.p24Url === "string") {
         window.location.assign(result.p24Url);
@@ -144,6 +170,7 @@ export function EventCheckoutForm({
     } catch (e: unknown) {
       unstable_rethrow(e);
       setError(e instanceof Error ? e.message : t("errorGeneric"));
+      setSeatRefresh(n => n + 1);
     } finally {
       setPending(false);
     }
@@ -164,6 +191,14 @@ export function EventCheckoutForm({
     >
       <input type="hidden" name="eventSlug" value={eventSlug} />
       <input type="hidden" name="locale" value={locale} />
+      {selectedSeats.map(id => <input key={id} type="hidden" name="seatId" value={id} />)}
+      {seatLoading ? <p className="text-sm text-zinc-400">{st.loading}</p> : seatLoadError ? <p role="alert" className="text-sm text-red-400">{st.unavailable}</p> : seatMap ? <div className="space-y-3">
+        {seatMap.mode === "priority" ? <p className="text-amber-200">{st.priority}</p> : <>
+          <SeatMap map={seatMap} selected={selectedSeats} onChange={setSelectedSeats} limit={quantity} locale={locale} disabled={pending} />
+          <p className="text-xs text-zinc-400">{st.hold}</p>
+        </>}
+      </div> : null}
+      {(seatMap || seatLoadError) && <button type="button" disabled={seatLoading || pending} className="text-sm text-poet-gold underline" onClick={() => setSeatRefresh(n => n + 1)}>{st.refresh}</button>}
       <div className="pointer-events-none absolute left-3 top-2 h-5 w-px border-l border-dashed border-poet-gold/35 sm:left-4" aria-hidden />
       <div className="pointer-events-none absolute right-3 top-2 h-5 w-px border-r border-dashed border-poet-gold/35 sm:right-4" aria-hidden />
 
@@ -416,7 +451,7 @@ export function EventCheckoutForm({
       <button
         id={CHECKOUT_SUBMIT_ID}
         type="submit"
-        disabled={pending}
+        disabled={pending || seatLoading || seatLoadError || seatMap?.mode === "priority" || (!!seatMap && selectedSeats.length !== quantity)}
         className="btn-poet btn-poet-theatre flex w-full scroll-mt-28 py-3.5 text-sm font-semibold tracking-wide md:inline-flex md:w-auto md:px-12 md:py-3"
       >
         {pending ? t("submitting") : bypassPayment ? t("submitBypass") : t("submit")}

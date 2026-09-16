@@ -1,3 +1,4 @@
+import { seatLabel, seatingText } from "@/lib/seating/i18n";
 import type { PaidOrderReceipt } from "@/lib/checkoutReceipt";
 import { ticketQrDataUrl } from "@/lib/qrDataUrl";
 import { renderTicketLayoutPdf } from "@/lib/renderTicketLayoutPdf";
@@ -59,6 +60,7 @@ export async function CheckoutPaidReceipt({
           venue: receipt.venue,
           dateTimeLabel: when,
           ticketNumber: t.ticket_number,
+          seatLabel: seatLabel(t.seat_id, locale),
           ticketId: t.id,
           ticketKindSecondary: labels.ticketPdfKindSecondary,
           ticketQrSecondary: labels.ticketPdfQrSecondary,
@@ -101,6 +103,7 @@ export async function CheckoutPaidReceipt({
           </a>
         </div>
       ) : null}
+      {receipt.seatingAttention && <p role="alert" className="text-amber-200">{seatingText[locale].attention}</p>}
       <p className="text-xs text-amber-200/90">{labels.shareWarning}</p>
       <ul className="space-y-8">
         {ticketRows.map((t) => (
@@ -119,6 +122,7 @@ export async function CheckoutPaidReceipt({
               <p className="font-display my-2 text-lg font-semibold leading-snug tracking-wide text-poet-gold-bright [overflow-wrap:anywhere] sm:my-3 sm:text-xl">
                 {t.ticket_number}
               </p>
+              {t.seat_id && <p className="text-sm text-poet-gold-bright">{seatLabel(t.seat_id, locale)}</p>}
               <p className="text-[9px] uppercase tracking-[0.22em] text-poet-gold/55">{labels.ticketRibbon}</p>
             </aside>
 

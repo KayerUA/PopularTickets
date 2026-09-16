@@ -12,6 +12,7 @@ export type TicketLayoutDocInput = {
   venue: string;
   dateTimeLabel: string;
   ticketNumber: string;
+  seatLabel?: string;
   ticketId: string;
   /** Мелкий перевод подписи вида билета (пусто для PL). */
   ticketKindSecondary: string;
@@ -257,7 +258,7 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
 
   /** Landscape: полоса билета сверху + блок события снизу (y растёт вверх). */
   const W = 520;
-  const H = 248;
+  const H = input.seatLabel ? 300 : 248;
   const margin = 14;
   const ticketH = 152;
   const ticketTop = H - margin;
@@ -447,6 +448,12 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
     const tw = fontBold.widthOfTextAtSize(line, 9.5);
     page.drawText(line, { x: (W - tw) / 2, y: metaY, size: 9.5, font: fontBold, color: GOLD });
     metaY -= 11;
+  }
+
+  if (input.seatLabel) {
+    const sw = fontBold.widthOfTextAtSize(input.seatLabel, 8);
+    page.drawText(input.seatLabel, { x: (W - sw) / 2, y: metaY, size: 8, font: fontBold, color: GOLD });
+    metaY -= 10;
   }
 
   const whenVenue = `${input.dateTimeLabel} · ${input.venue}`;

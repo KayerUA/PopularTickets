@@ -23,6 +23,7 @@ export type EmailTicketCardLabels = {
 
 export type EmailTicketCardInput = {
   ticketNumber: string;
+  seatLabel?: string;
   ticketId: string;
   /** cid:… для inline QR (Gmail не показывает data: URL) */
   qrImageSrc: string;
@@ -47,6 +48,7 @@ export function renderEmailTicketCardHtml(ticket: EmailTicketCardInput, labels: 
       </p>
       <p style="margin:0 0 10px 0;font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:600;line-height:1.15;letter-spacing:0.04em;color:${C.goldBright};word-break:break-word;">
         ${esc(ticket.ticketNumber)}
+        ${ticket.seatLabel ? `<br /><span style="font-size:14px;line-height:1.6">${esc(ticket.seatLabel)}</span>` : ""}
       </p>
       <p style="margin:0;font-family:system-ui,-apple-system,sans-serif;font-size:9px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:${C.goldDim};">
         ${esc(labels.ticketRibbon.toUpperCase())}

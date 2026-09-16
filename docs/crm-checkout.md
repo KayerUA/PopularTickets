@@ -4,7 +4,7 @@ PopularTickets is the payment desk. CRM creates one checkout and opens the retur
 
 ## Environment
 
-Set the same `CRM_CHECKOUT_SECRET` in both applications. Tickets also uses `CRM_WEBHOOK_SECRET` when set (otherwise it signs the callback with `CRM_CHECKOUT_SECRET`). `CRM_CHECKOUT_ALLOWED_HOSTS` is a comma-separated allow-list for CRM hosts and defaults to `popularcrm.vercel.app`.
+Set the same `CRM_CHECKOUT_SECRET` in both applications. Tickets also uses `CRM_WEBHOOK_SECRET` when set (otherwise it signs the callback with `CRM_CHECKOUT_SECRET`). `CRM_CHECKOUT_ALLOWED_HOSTS` is a comma-separated allow-list for CRM hosts and defaults to `crm.popularpoet.pl,popularcrm.vercel.app`.
 
 ## Create checkout
 
@@ -23,8 +23,8 @@ curl -X POST https://www.populartickets.pl/api/crm/checkout \
     "buyer_name":"Jan Kowalski",
     "payer_name":"Jan Kowalski",
     "invoice_number":"FV/2026/123",
-    "return_url":"https://popularcrm.vercel.app/pay/return?payment_id=5e074f62-a7e5-4f82-bca4-4fe2b8294f16",
-    "webhook_url":"https://popularcrm.vercel.app/api/v1/webhooks/tickets"
+    "return_url":"https://crm.popularpoet.pl/pay/return?payment_id=5e074f62-a7e5-4f82-bca4-4fe2b8294f16",
+    "webhook_url":"https://crm.popularpoet.pl/api/v1/webhooks/tickets"
   }'
 ```
 

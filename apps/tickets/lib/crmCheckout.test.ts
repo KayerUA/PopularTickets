@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { crmCheckoutUrl, crmReservationExpiresAt } from "@/lib/crmCheckout";
+import {
+  crmCheckoutPresentation,
+  crmCheckoutUrl,
+  crmReservationExpiresAt,
+} from "@/lib/crmCheckout";
 
 describe("crmCheckoutUrl", () => {
   it("keeps Polish as the backwards-compatible default", () => {
@@ -23,4 +27,26 @@ describe("crmReservationExpiresAt", () => {
     "rejects invalid metadata %#",
     (metadata) => expect(crmReservationExpiresAt(metadata)).toBeNull(),
   );
+});
+
+describe("crmCheckoutPresentation", () => {
+  it("treats cabinet packages as Popular Poet abonament", () => {
+    expect(crmCheckoutPresentation({
+      description: "Abonament - 4 zajecia - Pt 19:00 aktorstwo",
+    })).toEqual({ brand: "poet", kind: "package" });
+  });
+
+  it("keeps IDEA trial when metadata or a seat hold says so", () => {
+    expect(crmCheckoutPresentation({
+      description: "Zajecia probne",
+      metadata: { brand: "idea", product_kind: "trial", reservation_expires_at: "2026-08-24T17:30:00.000Z" },
+    })).toEqual({ brand: "idea", kind: "trial" });
+  });
+
+  it("uses explicit Poet trial metadata", () => {
+    expect(crmCheckoutPresentation({
+      description: "Probnoe",
+      metadata: { brand: "poet", product_kind: "trial" },
+    })).toEqual({ brand: "poet", kind: "trial" });
+  });
 });

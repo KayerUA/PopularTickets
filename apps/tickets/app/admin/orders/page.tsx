@@ -32,7 +32,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
   let query = supabase
     .from("orders")
     .select(
-      "id,created_at,buyer_name,email,phone,quantity,status,amount_grosze,marketing_email_opt_in,event_id,events(id,title,slug),tickets(id,ticket_number,used_at)"
+      "id,created_at,buyer_name,email,phone,quantity,status,amount_grosze,marketing_email_opt_in,event_id,events(id,title,slug),tickets(id,ticket_number,used_at,seat_id)"
     )
     .order("created_at", { ascending: false })
     .limit(500);
@@ -90,6 +90,8 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
         </Link>
       </nav>
 
+      <Link href={`/admin/seating${eventFilter ? `?event=${encodeURIComponent(eventFilter)}` : ""}`} className="text-poet-gold underline">Рассадка и приглашения выбрать места</Link>
+
       <form method="get" className="flex flex-wrap items-end gap-3 text-sm">
         {isPendingView ? <input type="hidden" name="view" value="pending" /> : null}
         <label className="text-zinc-400">
@@ -138,6 +140,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
               const tickets = (o.tickets ?? []) as {
                 id: string;
                 ticket_number: string;
+                seat_id: string | null;
                 used_at: string | null;
               }[];
               const used = tickets.filter((t) => t.used_at).length;
@@ -184,7 +187,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                         <ul className="font-mono text-[11px] text-zinc-500">
                           {tickets.map((t) => (
                             <li key={t.id}>
-                              {t.ticket_number} {t.used_at ? "✓" : "—"}
+                              {t.ticket_number} {t.seat_id ? ` · ${t.seat_id}` : ""} {t.used_at ? "✓" : "—"}
                             </li>
                           ))}
                         </ul>

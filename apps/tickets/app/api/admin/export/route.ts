@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
   const { data: orders, error } = await supabase
     .from("orders")
     .select(
-      "id,created_at,buyer_name,email,phone,quantity,status,amount_grosze,marketing_email_opt_in,p24_session_id,p24_order_id,tickets(id,ticket_number,used_at)"
+      "id,created_at,buyer_name,email,phone,quantity,status,amount_grosze,marketing_email_opt_in,p24_session_id,p24_order_id,tickets(id,ticket_number,used_at,seat_id)"
     )
     .eq("event_id", eventId)
     .order("created_at", { ascending: false });
@@ -54,12 +54,13 @@ export async function GET(req: NextRequest) {
     "ticket_id",
     "ticket_number",
     "used_at",
+    "seat_id",
   ];
 
   const lines: string[] = [header.join(",")];
 
   for (const o of orders ?? []) {
-    const tickets = (o.tickets ?? []) as { id: string; ticket_number: string; used_at: string | null }[];
+    const tickets = (o.tickets ?? []) as { id: string; ticket_number: string; used_at: string | null; seat_id: string | null }[];
     const marketing = Boolean((o as { marketing_email_opt_in?: boolean }).marketing_email_opt_in);
     if (!tickets.length) {
       lines.push(
@@ -75,6 +76,7 @@ export async function GET(req: NextRequest) {
           marketing ? "1" : "0",
           o.p24_session_id,
           o.p24_order_id != null ? String(o.p24_order_id) : "",
+          "",
           "",
           "",
           "",
@@ -101,6 +103,7 @@ export async function GET(req: NextRequest) {
           t.id,
           t.ticket_number,
           t.used_at ?? "",
+          t.seat_id ?? "",
         ]
           .map((c) => csvEscape(String(c)))
           .join(",")

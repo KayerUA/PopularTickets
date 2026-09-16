@@ -24,6 +24,7 @@ async function assertCheckinAuthorized(): Promise<boolean> {
 export type CheckinTicketRow = {
   ticketId: string;
   ticketNumber: string;
+  seatId: string | null;
   eventTitle: string;
   used: boolean;
   buyerName: string;
@@ -36,7 +37,7 @@ export type CheckinLookup =
   | { status: "unauthorized" }
   | { status: "unconfigured" }
   | { status: "invalid" }
-  | { status: "valid"; ticketId: string; ticketNumber: string; eventTitle: string; used: boolean }
+  | { status: "valid"; ticketId: string; ticketNumber: string; seatId: string | null; eventTitle: string; used: boolean }
   | { status: "choices"; tickets: CheckinTicketRow[] }
   | { status: "rate_limited" };
 
@@ -59,7 +60,7 @@ function toRows(
     email: string;
     phone: string | null;
     event_id: string;
-    tickets: { id: string; ticket_number: string; used_at: string | null }[] | null;
+    tickets: { id: string; ticket_number: string; seat_id: string | null; used_at: string | null }[] | null;
   }[],
   titles: Map<string, string>,
 ): CheckinTicketRow[] {
@@ -70,6 +71,7 @@ function toRows(
       out.push({
         ticketId: t.id,
         ticketNumber: t.ticket_number,
+        seatId: t.seat_id,
         eventTitle,
         used: Boolean(t.used_at),
         buyerName: o.buyer_name,
@@ -82,7 +84,7 @@ function toRows(
 }
 
 const ORDER_TICKETS_SELECT =
-  "id,buyer_name,email,phone,event_id,tickets(id,ticket_number,used_at)" as const;
+  "id,buyer_name,email,phone,event_id,tickets(id,ticket_number,used_at,seat_id)" as const;
 
 async function lookupByContact(supabase: SupabaseClient, raw: string, kind: "email" | "phone"): Promise<CheckinTicketRow[]> {
   if (kind === "email") {
@@ -118,13 +120,14 @@ async function lookupByContact(supabase: SupabaseClient, raw: string, kind: "ema
 
 async function lookupSingleTicket(
   supabase: SupabaseClient,
-  ticket: { id: string; ticket_number: string; used_at: string | null; event_id: string },
+  ticket: { id: string; ticket_number: string; seat_id: string | null; used_at: string | null; event_id: string },
 ): Promise<CheckinLookup> {
   const { data: ev } = await supabase.from("events").select("title").eq("id", ticket.event_id).single();
   return {
     status: "valid",
     ticketId: ticket.id,
     ticketNumber: ticket.ticket_number,
+    seatId: ticket.seat_id,
     eventTitle: ev?.title ?? "",
     used: Boolean(ticket.used_at),
   };
@@ -161,6 +164,7 @@ export async function lookupTicketAction(
         status: "valid",
         ticketId: t.ticketId,
         ticketNumber: t.ticketNumber,
+        seatId: t.seatId,
         eventTitle: t.eventTitle,
         used: t.used,
       };
@@ -171,7 +175,7 @@ export async function lookupTicketAction(
   if (kind === "ticket_number") {
     const { data: ticket, error } = await supabase
       .from("tickets")
-      .select("id,ticket_number,used_at,event_id")
+      .select("id,ticket_number,used_at,event_id,seat_id")
       .ilike("ticket_number", raw.trim())
       .maybeSingle();
     if (error || !ticket) return { status: "invalid" };
@@ -181,7 +185,7 @@ export async function lookupTicketAction(
   if (kind === "uuid") {
     const { data: ticket, error } = await supabase
       .from("tickets")
-      .select("id,ticket_number,used_at,event_id")
+      .select("id,ticket_number,used_at,event_id,seat_id")
       .eq("id", raw)
       .maybeSingle();
     if (error || !ticket) return { status: "invalid" };

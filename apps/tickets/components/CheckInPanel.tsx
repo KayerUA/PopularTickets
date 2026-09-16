@@ -8,6 +8,7 @@ import {
   type CheckinLookup,
   type CheckinTicketRow,
 } from "@/app/actions/checkin";
+import { seatLabel } from "@/lib/seating/i18n";
 import { CheckInQrScanner } from "@/components/CheckInQrScanner";
 
 const initial: CheckinLookup = { status: "idle" };
@@ -15,6 +16,7 @@ const initial: CheckinLookup = { status: "idle" };
 type ValidTicket = {
   ticketId: string;
   ticketNumber: string;
+  seatId: string | null;
   eventTitle: string;
   used: boolean;
 };
@@ -44,6 +46,7 @@ function TicketResultCard({
       <p className="text-white">{ticket.eventTitle}</p>
       <p className="text-sm text-zinc-400">Номер билета</p>
       <p className="font-mono text-poet-gold-bright">{ticket.ticketNumber}</p>
+      {ticket.seatId && <p className="text-poet-gold-bright">{seatLabel(ticket.seatId, "ru")}</p>}
 
       {!ticket.used ? (
         <form
@@ -92,6 +95,7 @@ function ChoicesList({
               className="w-full rounded-xl border border-poet-gold/25 bg-zinc-950/60 px-4 py-3 text-left transition hover:border-poet-gold/45 hover:bg-poet-gold/5"
             >
               <div className="font-mono text-sm text-poet-gold-bright">{t.ticketNumber}</div>
+              {t.seatId && <p className="text-sm text-poet-gold-bright">{seatLabel(t.seatId, "ru")}</p>}
               <div className="mt-1 text-sm text-white">{t.eventTitle}</div>
               <div className="mt-1 text-xs text-zinc-500">
                 {t.buyerName} · {t.email}
@@ -127,6 +131,7 @@ export function CheckInPanel({ authRequired, authenticated, loginError }: Props)
       ? {
           ticketId: state.ticketId,
           ticketNumber: state.ticketNumber,
+          seatId: state.seatId,
           eventTitle: state.eventTitle,
           used: state.used,
         }
@@ -234,6 +239,7 @@ export function CheckInPanel({ authRequired, authenticated, loginError }: Props)
             setSelected({
               ticketId: t.ticketId,
               ticketNumber: t.ticketNumber,
+              seatId: t.seatId,
               eventTitle: t.eventTitle,
               used: t.used,
             })

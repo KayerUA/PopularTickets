@@ -14,6 +14,43 @@ export function crmReservationExpiresAt(metadata: unknown): string | null {
   return typeof value === "string" && !Number.isNaN(Date.parse(value)) ? value : null;
 }
 
+export type CrmCheckoutBrand = "poet" | "idea";
+export type CrmCheckoutKind = "package" | "trial" | "event";
+
+function asRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value as Record<string, unknown>;
+}
+
+/** Cabinet packages default to Poet; IDEA only when metadata/description says so. */
+export function crmCheckoutPresentation(input: {
+  description?: string | null;
+  metadata?: unknown;
+}): { brand: CrmCheckoutBrand; kind: CrmCheckoutKind } {
+  const description = input.description ?? "";
+  const meta = asRecord(input.metadata);
+  const brandRaw = String(meta.brand ?? meta.studio ?? "").toLowerCase();
+  const kindRaw = String(meta.product_kind ?? meta.kind ?? "").toLowerCase();
+
+  const brand: CrmCheckoutBrand =
+    brandRaw === "kids" || brandRaw === "idea"
+      ? "idea"
+      : brandRaw === "poet"
+        ? "poet"
+        : crmReservationExpiresAt(meta) || /idea/i.test(description)
+          ? "idea"
+          : "poet";
+
+  const kind: CrmCheckoutKind =
+    kindRaw === "trial" || kindRaw === "event" || kindRaw === "package"
+      ? kindRaw
+      : /pr[oó]bn|trial|пробн/i.test(description)
+        ? "trial"
+        : "package";
+
+  return { brand, kind };
+}
+
 /** P24's description rendering is inconsistent with non-ASCII characters. */
 export function crmP24Description(description: string, invoiceNumber?: string | null): string {
   const ascii = description
