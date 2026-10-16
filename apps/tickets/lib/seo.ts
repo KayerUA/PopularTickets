@@ -53,7 +53,7 @@ function hreflangLanguages(path: string): Record<string, string> | undefined {
 
 /** Путь к дефолтному OG-изображению (1200×630) на public. */
 export const DEFAULT_TICKETS_OG_IMAGE_PATH = "/courses/theatre-photo.jpg";
-export const EVENT_OG_IMAGE_VERSION = "20260713-1";
+export const EVENT_OG_IMAGE_VERSION = "20261016-1";
 const STATIC_EVENT_OG_IMAGES: Readonly<Record<string, string>> = {
   "next-mode-2026-08-15": "/og/next-mode-comedy-2026-08-15-v2.jpg",
 };
@@ -100,6 +100,9 @@ export type PublicPageMetaInput = {
   /** Абсолютные URL изображений для OG/Twitter */
   ogImages?: { url: string; width?: number; height?: number; alt?: string }[];
   robots?: Metadata["robots"];
+  /** Переопределение geo meta (ICBM / placename) для конкретной площадки. */
+  geoPlacename?: string;
+  geoIcbm?: string;
   /**
    * Явные hreflang URL (полные), если путь отличается по локалям (напр. /uk/pro-* vs /pl/o-*).
    */
@@ -143,6 +146,10 @@ export function buildPublicPageMetadata(input: PublicPageMetaInput): Metadata {
       ...(ogImages?.length ? { images: ogImages.map((i) => i.url) } : {}),
     },
     robots: input.robots ?? { index: true, follow: true },
-    other: { ...GEO_OTHER },
+    other: {
+      ...GEO_OTHER,
+      ...(input.geoPlacename ? { "geo.placename": input.geoPlacename } : {}),
+      ...(input.geoIcbm ? { ICBM: input.geoIcbm } : {}),
+    },
   };
 }

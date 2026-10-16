@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- ImageResponse renders social preview markup, not browser DOM. */
 import { ImageResponse } from "next/og";
 import { getServiceSupabase } from "@/lib/supabase/admin";
+import { NOGA_SHOW_SLUG } from "@/lib/nogaShowImages";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,6 +47,32 @@ export async function GET(
         .in("visibility", ["published", "unlisted"])
         .maybeSingle()
     : { data: null };
+
+  if (slug === NOGA_SHOW_SLUG && photo) {
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            display: "flex",
+            width: "1200px",
+            height: "630px",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#3a0610",
+          }}
+        >
+          <img src={photo} alt="" width="1200" height="630" style={{ width: "1200px", height: "630px", objectFit: "contain" }} />
+        </div>
+      ),
+      {
+        width: 1200,
+        height: 630,
+        headers: {
+          "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+        },
+      },
+    );
+  }
 
   const isNextMode = slug === NEXT_MODE_SLUG;
   const title = isNextMode ? "Next Mode Comedy" : (event?.title || "PopularTickets");

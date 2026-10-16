@@ -41,7 +41,7 @@ describe("buildEventJsonLd", () => {
     expect(ld.eventAttendanceMode).toBe("https://schema.org/OfflineEventAttendanceMode");
     expect(ld.image).toEqual([
       "https://www.populartickets.pl/events/test.png",
-      "https://www.populartickets.pl/api/og/event/improv-2026-06-06?v=20260713-1",
+      "https://www.populartickets.pl/api/og/event/improv-2026-06-06?v=20261016-1",
     ]);
 
     const location = ld.location as Record<string, unknown>;
@@ -81,7 +81,7 @@ describe("buildEventJsonLd", () => {
     }) as Record<string, unknown>;
 
     expect(ld.image).toEqual([
-      "https://www.populartickets.pl/api/og/event/improv-2026-06-06?v=20260713-1",
+      "https://www.populartickets.pl/api/og/event/improv-2026-06-06?v=20261016-1",
     ]);
   });
 
