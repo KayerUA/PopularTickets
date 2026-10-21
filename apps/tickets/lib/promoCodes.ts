@@ -32,6 +32,21 @@ export function normalizePromoCode(raw: string | null | undefined): string {
   return (raw ?? "").trim().toUpperCase().replace(/\s+/g, "");
 }
 
+/**
+ * scope `event` — только это шоу.
+ * scope `all` или `special` с заполненным event_id — все подходящие события, кроме этого шоу.
+ */
+export function promoScopeAllowsEvent(
+  scope: string,
+  boundEventId: string | null,
+  event: { id: string; listingKind: string | null | undefined },
+): boolean {
+  if (scope === "special" && event.listingKind !== "special") return false;
+  if (scope === "event") return boundEventId === event.id;
+  if (boundEventId && boundEventId === event.id) return false;
+  return true;
+}
+
 export function promoDiscountGrosze(
   unitPriceGrosze: number,
   quantity: number,
@@ -75,9 +90,7 @@ export async function resolveApplicablePromoCode(
   const endsAt = data.ends_at ? new Date(data.ends_at).getTime() : null;
   if ((startsAt !== null && startsAt > now) || (endsAt !== null && endsAt < now)) return null;
 
-  const scope = data.scope as PromoScope;
-  if (scope === "special" && event.listingKind !== "special") return null;
-  if (scope === "event" && data.event_id !== event.id) return null;
+  if (!promoScopeAllowsEvent(data.scope, data.event_id, event)) return null;
 
   if (typeof data.max_redemptions === "number") {
     const { count, error: usageError } = await supabase

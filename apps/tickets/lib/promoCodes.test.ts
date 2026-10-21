@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { promoDiscountGrosze } from "@/lib/promoCodes";
+import { promoDiscountGrosze, promoScopeAllowsEvent } from "@/lib/promoCodes";
 
 describe("promoDiscountGrosze", () => {
   it("applies a percentage discount to every ticket", () => {
@@ -16,5 +16,24 @@ describe("promoDiscountGrosze", () => {
 
   it("never discounts below zero", () => {
     expect(promoDiscountGrosze(500, 2, { discountPercent: null, discountFixedGrosze: 1_000 })).toBe(1_000);
+  });
+});
+
+describe("promoScopeAllowsEvent", () => {
+  const noga = { id: "noga", listingKind: "performance" };
+  const other = { id: "other", listingKind: "performance" };
+
+  it("keeps a general code off the show stored in event_id", () => {
+    expect(promoScopeAllowsEvent("all", "noga", noga)).toBe(false);
+    expect(promoScopeAllowsEvent("all", "noga", other)).toBe(true);
+  });
+
+  it("still allows a general code with no bound show", () => {
+    expect(promoScopeAllowsEvent("all", null, noga)).toBe(true);
+  });
+
+  it("keeps an event code on its own show", () => {
+    expect(promoScopeAllowsEvent("event", "noga", noga)).toBe(true);
+    expect(promoScopeAllowsEvent("event", "noga", other)).toBe(false);
   });
 });
