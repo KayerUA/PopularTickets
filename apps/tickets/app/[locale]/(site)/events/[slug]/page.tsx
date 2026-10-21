@@ -34,6 +34,7 @@ import { RelatedEventsSection } from "@/components/RelatedEventsSection";
 import { eventRobotsMeta } from "@/lib/eventSeoPolicy";
 import { resolveApplicablePromoCode } from "@/lib/promoCodes";
 import { PromoVisitTracker } from "@/components/PromoVisitTracker";
+import { PIMPRO_PARTY_SLUG, PimproTicketPage } from "@/components/PimproTicketPage";
 import { fetchPoetCourseSlugById, trialHubPath } from "@/lib/trialCourseHub";
 
 /** Server Actions + ISR: закэшированная страница после деплоя даёт «Server Action … was not found». */
@@ -217,6 +218,53 @@ export default async function EventPage({
     description: copy.description,
   });
   const promo = await resolveApplicablePromoCode(supabase, promoRaw, { id: event.id, listingKind: event.listing_kind });
+
+  if (slug === PIMPRO_PARTY_SLUG) {
+    return (
+      <>
+        {promo ? <PromoVisitTracker promoCodeId={promo.id} eventId={event.id} /> : null}
+        {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
+        <JsonLd data={faqLd} />
+        <JsonLd
+          data={buildEventJsonLd(
+            {
+              title: copy.title,
+              description: copy.description,
+              venue: event.venue,
+              starts_at: event.starts_at,
+              image_url: event.image_url,
+              price_grosze: event.price_grosze,
+              slug: event.slug,
+              listing_kind: event.listing_kind,
+              event_language: eventLanguage,
+              total_tickets: event.total_tickets,
+            },
+            locale,
+            { remaining, soldOut, mapsUrl: mapsHref },
+          )}
+        />
+        <PimproTicketPage
+          locale={locale}
+          title={copy.title}
+          description={copy.description}
+          imageUrl={event.image_url}
+          startsAt={event.starts_at}
+          venue={event.venue}
+          priceGrosze={event.price_grosze}
+          remaining={remaining}
+          mapsHref={mapsHref}
+          showCheckout={showCheckout}
+          isPast={isPast}
+          eventSlug={event.slug}
+          bypassPayment={isCheckoutBypassPayment()}
+          promo={promo}
+          related={relatedEvents}
+          ticketsIntentPath={contextLinks.ticketsIntentPath}
+          poetHubUrl={contextLinks.poetHubUrl}
+        />
+      </>
+    );
+  }
 
   return (
     <div

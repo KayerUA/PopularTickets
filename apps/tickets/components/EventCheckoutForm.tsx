@@ -28,6 +28,8 @@ type Props = {
   bypassPayment?: boolean;
   compact?: boolean;
   phoneRequired?: boolean;
+  /** Черно-костяной билет P!MPRO: без золота театра. */
+  appearance?: "default" | "pimpro";
   initialPromoCode?: string;
   initialPromoDiscountPercent?: number | null;
   initialPromoDiscountFixedGrosze?: number | null;
@@ -59,7 +61,9 @@ export function EventCheckoutForm({
   initialPromoCode = "",
   initialPromoDiscountPercent = 0,
   initialPromoDiscountFixedGrosze = null,
+  appearance = "default",
 }: Props) {
+  const pimpro = appearance === "pimpro";
   const t = useTranslations("CheckoutForm");
   const st = seatingText[locale];
   const [seatMap, setSeatMap] = useState<SeatMapState | null>(null);
@@ -124,7 +128,18 @@ export function EventCheckoutForm({
   };
 
   const fieldClass = (key: CheckoutFieldKey) =>
-    `mt-1.5 w-full min-h-11 rounded-xl border bg-zinc-900/80 px-3 py-2.5 text-base text-white transition placeholder:text-zinc-600 disabled:opacity-50 sm:min-h-10 sm:py-2 sm:text-sm ${fieldBorder(Boolean(fieldErrors[key]))}`;
+    pimpro
+      ? `mt-1.5 w-full min-h-11 border bg-black px-3 py-2.5 text-base text-[#e6e5e1] transition placeholder:text-[#a8a49c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff4400] focus-visible:ring-offset-2 focus-visible:ring-offset-[#e6e5e1] disabled:opacity-50 sm:min-h-10 sm:py-2 sm:text-sm ${fieldErrors[key] ? "border-red-800" : "border-black"}`
+      : `mt-1.5 w-full min-h-11 rounded-xl border bg-zinc-900/80 px-3 py-2.5 text-base text-white transition placeholder:text-zinc-600 disabled:opacity-50 sm:min-h-10 sm:py-2 sm:text-sm ${fieldBorder(Boolean(fieldErrors[key]))}`;
+  const labelClass = pimpro ? "text-xs font-bold uppercase tracking-[0.14em] text-black" : "text-zinc-400";
+  const errorText = pimpro ? "text-red-800" : "text-red-400";
+  const okText = pimpro ? "text-emerald-800" : "text-emerald-300";
+  const linkClass = pimpro
+    ? "text-black underline underline-offset-2"
+    : "text-poet-gold underline decoration-poet-gold/40 underline-offset-2 hover:text-poet-gold-bright";
+  const checkClass = pimpro
+    ? "mt-1 h-4 w-4 shrink-0 border border-black bg-white accent-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff4400]"
+    : "mt-1 h-4 w-4 shrink-0 rounded border border-poet-gold/40 bg-zinc-950 text-poet-gold focus:ring-poet-gold/50";
 
   const validationMessages = {
     nameRequired: t("nameRequired"),
@@ -181,7 +196,11 @@ export function EventCheckoutForm({
       ref={formRef}
       id={CHECKOUT_FORM_ID}
       noValidate
-      className={`relative mt-6 space-y-4 rounded-2xl border border-poet-gold/25 bg-gradient-to-b from-[#1a0c12]/90 via-poet-bg/85 to-zinc-950/90 p-4 shadow-[0_0_0_1px_rgba(197,160,89,0.12),inset_0_1px_0_rgba(255,230,200,0.06)] sm:p-5${compact ? " mt-4" : ""}`}
+      className={
+        pimpro
+          ? "relative mt-8 space-y-4"
+          : `relative mt-6 space-y-4 rounded-2xl border border-poet-gold/25 bg-gradient-to-b from-[#1a0c12]/90 via-poet-bg/85 to-zinc-950/90 p-4 shadow-[0_0_0_1px_rgba(197,160,89,0.12),inset_0_1px_0_rgba(255,230,200,0.06)] sm:p-5${compact ? " mt-4" : ""}`
+      }
       onSubmit={async (e) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
@@ -192,21 +211,27 @@ export function EventCheckoutForm({
       <input type="hidden" name="eventSlug" value={eventSlug} />
       <input type="hidden" name="locale" value={locale} />
       {selectedSeats.map(id => <input key={id} type="hidden" name="seatId" value={id} />)}
-      {seatLoading ? <p className="text-sm text-zinc-400">{st.loading}</p> : seatLoadError ? <p role="alert" className="text-sm text-red-400">{st.unavailable}</p> : seatMap ? <div className="space-y-3">
-        {seatMap.mode === "priority" ? <p className="text-amber-200">{st.priority}</p> : <>
-          <SeatMap map={seatMap} selected={selectedSeats} onChange={setSelectedSeats} limit={quantity} locale={locale} disabled={pending} />
-          <p className="text-xs text-zinc-400">{st.hold}</p>
+      {seatLoading ? <p className={pimpro ? "text-sm text-black" : "text-sm text-zinc-400"}>{st.loading}</p> : seatLoadError ? <p role="alert" className={`text-sm ${errorText}`}>{st.unavailable}</p> : seatMap ? <div className="space-y-3">
+        {seatMap.mode === "priority" ? <p className={pimpro ? "text-black" : "text-amber-200"}>{st.priority}</p> : <>
+          <div className="-mx-1 sm:mx-0">
+            <SeatMap map={seatMap} selected={selectedSeats} onChange={setSelectedSeats} limit={quantity} locale={locale} disabled={pending} />
+          </div>
+          <p className={pimpro ? "text-xs text-black" : "text-xs text-zinc-400"}>{st.hold}</p>
         </>}
       </div> : null}
-      {(seatMap || seatLoadError) && <button type="button" disabled={seatLoading || pending} className="text-sm text-poet-gold underline" onClick={() => setSeatRefresh(n => n + 1)}>{st.refresh}</button>}
-      <div className="pointer-events-none absolute left-3 top-2 h-5 w-px border-l border-dashed border-poet-gold/35 sm:left-4" aria-hidden />
-      <div className="pointer-events-none absolute right-3 top-2 h-5 w-px border-r border-dashed border-poet-gold/35 sm:right-4" aria-hidden />
+      {(seatMap || seatLoadError) && <button type="button" disabled={seatLoading || pending} className={pimpro ? "text-sm text-black underline" : "text-sm text-poet-gold underline"} onClick={() => setSeatRefresh(n => n + 1)}>{st.refresh}</button>}
+      {pimpro ? null : (
+        <>
+          <div className="pointer-events-none absolute left-3 top-2 h-5 w-px border-l border-dashed border-poet-gold/35 sm:left-4" aria-hidden />
+          <div className="pointer-events-none absolute right-3 top-2 h-5 w-px border-r border-dashed border-poet-gold/35 sm:right-4" aria-hidden />
+        </>
+      )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className={pimpro ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"}>
         <div className="block text-sm" data-checkout-field="buyerName">
-          <label htmlFor="checkout-buyerName" className="text-zinc-400">
+          <label htmlFor="checkout-buyerName" className={labelClass}>
             {t("name")}
-            <span className="ml-1 text-red-400/90" aria-hidden>
+            <span className={pimpro ? "ml-1 text-red-800" : "ml-1 text-red-400/90"} aria-hidden>
               *
             </span>
           </label>
@@ -223,15 +248,15 @@ export function EventCheckoutForm({
             }}
           />
           {fieldErrors.buyerName ? (
-            <p id="checkout-buyerName-error" className="mt-1.5 text-xs text-red-400" role="alert">
+            <p id="checkout-buyerName-error" className={`mt-1.5 text-xs ${errorText}`} role="alert">
               {fieldErrors.buyerName}
             </p>
           ) : null}
         </div>
         <div className="block text-sm" data-checkout-field="email">
-          <label htmlFor="checkout-email" className="text-zinc-400">
+          <label htmlFor="checkout-email" className={labelClass}>
             {t("email")}
-            <span className="ml-1 text-red-400/90" aria-hidden>
+            <span className={pimpro ? "ml-1 text-red-800" : "ml-1 text-red-400/90"} aria-hidden>
               *
             </span>
           </label>
@@ -250,15 +275,15 @@ export function EventCheckoutForm({
             }}
           />
           {fieldErrors.email ? (
-            <p id="checkout-email-error" className="mt-1.5 text-xs text-red-400" role="alert">
+            <p id="checkout-email-error" className={`mt-1.5 text-xs ${errorText}`} role="alert">
               {fieldErrors.email}
             </p>
           ) : null}
         </div>
         {phoneRequired ? <div className="block text-sm" data-checkout-field="phone">
-          <label htmlFor="checkout-phone" className="text-zinc-400">
+          <label htmlFor="checkout-phone" className={labelClass}>
             {t("phone")}
-            <span className="ml-1 text-red-400/90" aria-hidden>
+            <span className={pimpro ? "ml-1 text-red-800" : "ml-1 text-red-400/90"} aria-hidden>
               *
             </span>
           </label>
@@ -278,24 +303,32 @@ export function EventCheckoutForm({
             }}
           />
           {fieldErrors.phone ? (
-            <p id="checkout-phone-error" className="mt-1.5 text-xs text-red-400" role="alert">
+            <p id="checkout-phone-error" className={`mt-1.5 text-xs ${errorText}`} role="alert">
               {fieldErrors.phone}
             </p>
           ) : null}
         </div> : null}
         <div className="block text-sm" data-checkout-field="quantity">
-          <label htmlFor="checkout-quantity" className="text-zinc-400">
+          <label htmlFor="checkout-quantity" className={labelClass}>
             {t("quantity")}
           </label>
           <div
-            className={`mt-1.5 grid min-h-11 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] overflow-hidden rounded-xl border bg-zinc-900/80 transition sm:min-h-10 ${fieldBorder(Boolean(fieldErrors.quantity))}`}
+            className={
+              pimpro
+                ? `mt-1.5 grid min-h-11 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] overflow-hidden border bg-black transition sm:min-h-10 ${fieldErrors.quantity ? "border-red-800" : "border-black"}`
+                : `mt-1.5 grid min-h-11 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] overflow-hidden rounded-xl border bg-zinc-900/80 transition sm:min-h-10 ${fieldBorder(Boolean(fieldErrors.quantity))}`
+            }
           >
             <button
               type="button"
               aria-label={`${t("quantity")} −`}
               disabled={pending || quantity <= 1}
               onClick={() => updateQuantity(quantity - 1)}
-              className="inline-flex min-h-11 items-center justify-center border-r border-white/10 text-xl text-zinc-300 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 sm:min-h-10"
+              className={
+                pimpro
+                  ? "inline-flex min-h-11 items-center justify-center border-r border-[#e6e5e1]/30 text-xl text-[#e6e5e1] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35 sm:min-h-10"
+                  : "inline-flex min-h-11 items-center justify-center border-r border-white/10 text-xl text-zinc-300 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 sm:min-h-10"
+              }
             >
               <span aria-hidden>−</span>
             </button>
@@ -313,7 +346,11 @@ export function EventCheckoutForm({
               onFocus={(e) => e.currentTarget.select()}
               onBlur={() => updateQuantity(Number.parseInt(quantityInput, 10) || 1)}
               disabled={pending}
-              className="min-h-11 min-w-0 bg-transparent px-2 py-2.5 text-center text-base font-semibold tabular-nums text-white outline-none disabled:opacity-50 sm:min-h-10 sm:py-2 sm:text-sm"
+              className={
+                pimpro
+                  ? "min-h-11 min-w-0 bg-transparent px-2 py-2.5 text-center text-base font-black tabular-nums text-[#e6e5e1] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff4400] disabled:opacity-50 sm:min-h-10 sm:py-2 sm:text-sm"
+                  : "min-h-11 min-w-0 bg-transparent px-2 py-2.5 text-center text-base font-semibold tabular-nums text-white outline-none disabled:opacity-50 sm:min-h-10 sm:py-2 sm:text-sm"
+              }
               inputMode="numeric"
               pattern="[0-9]*"
               autoComplete="off"
@@ -325,19 +362,23 @@ export function EventCheckoutForm({
               aria-label={`${t("quantity")} +`}
               disabled={pending || quantity >= max}
               onClick={() => updateQuantity(quantity + 1)}
-              className="inline-flex min-h-11 items-center justify-center border-l border-white/10 text-xl text-zinc-300 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 sm:min-h-10"
+              className={
+                pimpro
+                  ? "inline-flex min-h-11 items-center justify-center border-l border-[#e6e5e1]/30 text-xl text-[#e6e5e1] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35 sm:min-h-10"
+                  : "inline-flex min-h-11 items-center justify-center border-l border-white/10 text-xl text-zinc-300 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 sm:min-h-10"
+              }
             >
               <span aria-hidden>+</span>
             </button>
           </div>
           {fieldErrors.quantity ? (
-            <p id="checkout-quantity-error" className="mt-1.5 text-xs text-red-400" role="alert">
+            <p id="checkout-quantity-error" className={`mt-1.5 text-xs ${errorText}`} role="alert">
               {fieldErrors.quantity}
             </p>
           ) : null}
         </div>
         <div className="block text-sm" data-checkout-field="promoCode">
-          <label htmlFor="checkout-promoCode" className="text-zinc-400">Промокод</label>
+          <label htmlFor="checkout-promoCode" className={labelClass}>Промокод</label>
           <input
             id="checkout-promoCode"
             name="promoCode"
@@ -354,40 +395,40 @@ export function EventCheckoutForm({
             autoComplete="off"
             placeholder="PARTNER15"
           />
-          {promoMessage ? <p className={`mt-1.5 text-xs ${promoApplied ? "text-emerald-300" : "text-red-400"}`}>{promoMessage}</p> : null}
+          {promoMessage ? <p className={`mt-1.5 text-xs ${promoApplied ? okText : errorText}`}>{promoMessage}</p> : null}
         </div>
       </div>
 
-      <div className="rounded-xl border border-poet-gold/15 bg-black/25 px-3 py-3 text-sm sm:px-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-poet-gold/75">{t("summaryTitle")}</p>
-        <dl className="mt-2 space-y-1.5 text-zinc-300">
+      <div className={pimpro ? "border-t border-black pt-3 text-sm" : "rounded-xl border border-poet-gold/15 bg-black/25 px-3 py-3 text-sm sm:px-4"}>
+        <p className={pimpro ? "text-xs font-black uppercase tracking-[0.14em] text-black" : "text-xs font-semibold uppercase tracking-[0.18em] text-poet-gold/75"}>{t("summaryTitle")}</p>
+        <dl className={pimpro ? "mt-2 space-y-1.5 text-black" : "mt-2 space-y-1.5 text-zinc-300"}>
           <div className="flex justify-between gap-3">
             <dt>{t("totalLabel")}</dt>
-            <dd className="font-medium text-poet-gold-bright">{formatPlnFromGrosze(totalGrosze)}</dd>
+            <dd className={pimpro ? "font-black text-black" : "font-medium text-poet-gold-bright"}>{formatPlnFromGrosze(totalGrosze)}</dd>
           </div>
           {promoDiscountPerTicketGrosze > 0 ? (
-            <div className="flex justify-between gap-3 text-xs text-zinc-500">
+            <div className={pimpro ? "flex justify-between gap-3 text-xs text-black" : "flex justify-between gap-3 text-xs text-zinc-500"}>
               <dt>Без промокода</dt>
               <dd className="line-through">{formatPlnFromGrosze(unitPriceGrosze * quantity)}</dd>
             </div>
           ) : null}
         </dl>
-        {!compact ? <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">{t("taxExemptionNote")}</p> : null}
+        {!compact ? <p className={pimpro ? "mt-2 text-[11px] leading-relaxed text-black" : "mt-2 text-[11px] leading-relaxed text-zinc-500"}>{t("taxExemptionNote")}</p> : null}
       </div>
 
       {error ? (
-        <p className="break-words text-sm text-red-400" role="alert">
+        <p className={`break-words text-sm ${errorText}`} role="alert">
           {error}
         </p>
       ) : null}
       <div data-checkout-field="acceptLegal">
-        <label className="flex cursor-pointer items-start gap-3 text-sm text-zinc-400">
+        <label className={pimpro ? "flex cursor-pointer items-start gap-3 text-sm text-black" : "flex cursor-pointer items-start gap-3 text-sm text-zinc-400"}>
           <input
             type="checkbox"
             name="acceptLegal"
             value="on"
             disabled={pending}
-            className="mt-1 h-4 w-4 shrink-0 rounded border border-poet-gold/40 bg-zinc-950 text-poet-gold focus:ring-poet-gold/50"
+            className={checkClass}
             aria-invalid={fieldErrors.acceptLegal ? true : undefined}
             aria-describedby={fieldErrors.acceptLegal ? "checkout-legal-error" : undefined}
             onChange={() => {
@@ -397,12 +438,12 @@ export function EventCheckoutForm({
           <span className="leading-relaxed">
             {t.rich("legalConsent", {
               terms: (chunks) => (
-                <Link href="/regulamin" className="text-poet-gold underline decoration-poet-gold/40 underline-offset-2 hover:text-poet-gold-bright">
+                <Link href="/regulamin" className={linkClass}>
                   {chunks}
                 </Link>
               ),
               privacy: (chunks) => (
-                <Link href="/polityka-prywatnosci" className="text-poet-gold underline decoration-poet-gold/40 underline-offset-2 hover:text-poet-gold-bright">
+                <Link href="/polityka-prywatnosci" className={linkClass}>
                   {chunks}
                 </Link>
               ),
@@ -410,32 +451,32 @@ export function EventCheckoutForm({
           </span>
         </label>
         {fieldErrors.acceptLegal ? (
-          <p id="checkout-legal-error" className="mt-1.5 text-xs text-red-400" role="alert">
+          <p id="checkout-legal-error" className={`mt-1.5 text-xs ${errorText}`} role="alert">
             {fieldErrors.acceptLegal}
           </p>
         ) : null}
       </div>
-      {!compact ? <label className="flex cursor-pointer items-start gap-3 text-sm text-zinc-400">
+      {!compact ? <label className={pimpro ? "flex cursor-pointer items-start gap-3 text-sm text-black" : "flex cursor-pointer items-start gap-3 text-sm text-zinc-400"}>
         <input
           type="checkbox"
           name="marketingEmailOptIn"
           value="on"
           disabled={pending}
-          className="mt-1 h-4 w-4 shrink-0 rounded border border-poet-gold/40 bg-zinc-950 text-poet-gold focus:ring-poet-gold/50"
+          className={checkClass}
         />
         <span className="leading-relaxed">
           {t.rich("marketingEmailConsent", {
             privacy: (chunks) => (
-              <Link href="/polityka-prywatnosci" className="text-poet-gold underline decoration-poet-gold/40 underline-offset-2 hover:text-poet-gold-bright">
+              <Link href="/polityka-prywatnosci" className={linkClass}>
                 {chunks}
               </Link>
             ),
           })}
         </span>
       </label> : null}
-      {!compact ? <p className="text-xs leading-relaxed text-zinc-500 sm:mt-1">{bypassPayment ? t("hintBypass") : t("hint")}</p> : null}
+      {!compact ? <p className={pimpro ? "text-xs leading-relaxed text-black sm:mt-1" : "text-xs leading-relaxed text-zinc-500 sm:mt-1"}>{bypassPayment ? t("hintBypass") : t("hint")}</p> : null}
       {!compact && !bypassPayment ? (
-        <div className="flex items-start gap-3 rounded-xl border border-poet-gold/15 bg-black/25 px-3 py-2.5">
+        <div className={pimpro ? "flex items-start gap-3 border border-black px-3 py-2.5" : "flex items-start gap-3 rounded-xl border border-poet-gold/15 bg-black/25 px-3 py-2.5"}>
           {/* eslint-disable-next-line @next/next/no-img-element -- lokalne SVG z public/ */}
           <img
             src={P24_FOOTER_GRAPHICS.mark}
@@ -444,7 +485,7 @@ export function EventCheckoutForm({
             height={48}
             className="mt-0.5 h-10 w-10 shrink-0 rounded-md object-contain sm:h-11 sm:w-11"
           />
-          <p className="min-w-0 flex-1 text-[11px] leading-relaxed text-zinc-500/95">{t("p24CheckoutTrust")}</p>
+          <p className={pimpro ? "min-w-0 flex-1 text-[11px] leading-relaxed text-black" : "min-w-0 flex-1 text-[11px] leading-relaxed text-zinc-500/95"}>{t("p24CheckoutTrust")}</p>
         </div>
       ) : null}
 
@@ -452,7 +493,11 @@ export function EventCheckoutForm({
         id={CHECKOUT_SUBMIT_ID}
         type="submit"
         disabled={pending || seatLoading || seatLoadError || seatMap?.mode === "priority" || (!!seatMap && selectedSeats.length !== quantity)}
-        className="btn-poet btn-poet-theatre flex w-full scroll-mt-28 py-3.5 text-sm font-semibold tracking-wide md:inline-flex md:w-auto md:px-12 md:py-3"
+        className={
+          pimpro
+            ? "flex min-h-12 w-full scroll-mt-28 items-center justify-center bg-[#ff4400] px-5 py-3.5 text-sm font-black uppercase tracking-[0.14em] text-black transition hover:bg-[#e63d00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:ring-offset-[#e6e5e1] disabled:cursor-not-allowed disabled:opacity-45"
+            : "btn-poet btn-poet-theatre flex w-full scroll-mt-28 py-3.5 text-sm font-semibold tracking-wide md:inline-flex md:w-auto md:px-12 md:py-3"
+        }
       >
         {pending ? t("submitting") : bypassPayment ? t("submitBypass") : t("submit")}
       </button>
