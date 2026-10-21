@@ -20,6 +20,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { buildEventJsonLd, buildBreadcrumbListJsonLd, buildFaqPageJsonLd } from "@/lib/seo/eventJsonLd";
 import { COMPANY } from "@/lib/company";
 import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
+import { EventOfferPrice, wholeZlotyLabel } from "@/components/EventOfferPrice";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { Link } from "@/i18n/navigation";
 import { resolveEventCopy } from "@/lib/contentI18n";
@@ -421,14 +422,18 @@ export default async function EventPage({
           <div className="flex flex-col gap-4 border-t border-poet-gold/15 pt-5 sm:flex-row sm:flex-wrap sm:items-start sm:gap-6 sm:pt-6">
             <div className="min-w-0 sm:max-w-md">
               <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{t("priceLabel")}</p>
-              <p className="text-xl font-semibold text-poet-gold-bright">{formatPlnFromGrosze(event.price_grosze)}</p>
-              {hasDayOfEventIncrease ? (
-                <p className="mt-1 max-w-sm text-xs leading-relaxed text-poet-gold/85">
-                  {isEventDayPrice
-                    ? t("eventDayPriceActive")
-                    : t("bookEarlyPrice", { price: formatPlnFromGrosze(event.day_of_event_price_grosze!) })}
-                </p>
-              ) : null}
+              <div className="mt-1">
+                <EventOfferPrice
+                  priceGrosze={event.price_grosze}
+                  dayPriceGrosze={event.day_of_event_price_grosze}
+                  isEventDay={isEventDayPrice}
+                  discountLabel={t("earlyDiscount", {
+                    discount: wholeZlotyLabel((event.day_of_event_price_grosze ?? 0) - event.price_grosze),
+                  })}
+                  eventDayLabel={t("eventDayPriceActive")}
+                  priceClassName="text-xl"
+                />
+              </div>
               <p className="mt-2 max-w-md text-[11px] leading-relaxed text-zinc-500">{t("taxExemptionNote")}</p>
             </div>
             {!isPast ? (

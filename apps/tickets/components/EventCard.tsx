@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { formatPlnFromGrosze } from "@/lib/format";
+import { EventOfferPrice, wholeZlotyLabel } from "@/components/EventOfferPrice";
 import type { AppLocale } from "@/i18n/routing";
 import type { EventMarketingStatus, EventListingKind } from "@/lib/eventMarketingStatus";
 import { EventStatusBadge } from "@/components/EventStatusBadge";
@@ -55,7 +55,7 @@ export function EventCard(e: EventCardProps) {
       <article
         className={`flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/55 shadow-gold-sm backdrop-blur-sm transition duration-500 ease-out group-hover:-translate-y-0.5 group-hover:border-poet-gold/45 group-hover:shadow-gold sm:group-hover:-translate-y-1 ${e.status === "past" ? "opacity-[0.88]" : ""} ${e.status === "sold_out" ? "opacity-95 saturate-[0.85]" : ""}`}
       >
-        <div className="relative aspect-[16/10] w-full overflow-hidden bg-zinc-950 sm:aspect-video">
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-950">
           {e.imageUrl ? (
             <MediaCoverBlurred
               src={e.imageUrl}
@@ -64,17 +64,15 @@ export function EventCard(e: EventCardProps) {
               unoptimized={!isOptimizableEventImage(e.imageUrl)}
               coverObjectPosition={eventCoverObjectPosition(e.imageFocalX, e.imageFocalY)}
               frameClassName="absolute inset-0"
+              fit="contain"
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-poet-gold-dim/35 via-poet-bg to-zinc-950" />
           )}
-          <div className="pointer-events-none absolute inset-0 z-[3] bg-gradient-to-t from-poet-bg via-poet-bg/5 to-transparent opacity-80" />
-          <div className="pointer-events-none absolute left-3 top-3 z-[4] flex flex-wrap gap-2 sm:left-4 sm:top-4">
-            <EventStatusBadge status={e.status} listingKind={listingKind} />
-          </div>
         </div>
         <div className="flex min-h-0 flex-1 flex-col justify-between gap-5 p-4 text-zinc-100 sm:p-5">
           <div className="flex shrink-0 flex-col gap-3">
+            <EventStatusBadge status={e.status} listingKind={listingKind} />
             <h2 className="font-display text-xl font-semibold leading-[1.22] tracking-tight text-zinc-50 transition [overflow-wrap:anywhere] group-hover:text-poet-gold-bright sm:text-[1.35rem]">
               {e.title}
             </h2>
@@ -97,26 +95,35 @@ export function EventCard(e: EventCardProps) {
               {t("languageLabel")}: {eventLanguageLabel(language, e.locale)}
             </p>
           </div>
-          <div className="flex shrink-0 flex-col gap-3 border-t border-poet-gold/15 pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <span className="text-xl font-semibold text-poet-gold-bright">{formatPlnFromGrosze(e.priceGrosze)}</span>
-              {e.dayOfEventPriceGrosze ? (
-                <p className="mt-0.5 text-[11px] leading-snug text-poet-gold/80">
-                  {e.isEventDayPrice
-                    ? t("eventDayPriceActive")
-                    : t("bookEarlyPrice", { price: formatPlnFromGrosze(e.dayOfEventPriceGrosze) })}
-                </p>
-              ) : null}
+          <div className="flex shrink-0 flex-col gap-2.5 border-t border-poet-gold/15 pt-4">
+            <div className="flex items-end justify-between gap-3">
+              <EventOfferPrice
+                priceGrosze={e.priceGrosze}
+                dayPriceGrosze={e.dayOfEventPriceGrosze}
+                isEventDay={e.isEventDayPrice}
+                discountLabel=""
+                eventDayLabel=""
+                showCaption={false}
+              />
+              <span
+                className={`min-h-11 shrink-0 justify-center whitespace-nowrap px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wide ${
+                  e.status === "past" || e.status === "sold_out"
+                    ? "inline-flex rounded-full border border-poet-gold/25 bg-zinc-900/60 text-zinc-200"
+                    : "btn-poet poet-shine inline-flex"
+                }`}
+              >
+                {cta}
+              </span>
             </div>
-            <span
-              className={`min-h-11 w-full justify-center px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wide sm:w-auto sm:py-2 ${
-                e.status === "past" || e.status === "sold_out"
-                  ? "inline-flex rounded-full border border-poet-gold/25 bg-zinc-900/60 text-zinc-200"
-                  : "btn-poet poet-shine inline-flex"
-              }`}
-            >
-              {cta}
-            </span>
+            {(e.dayOfEventPriceGrosze ?? 0) > e.priceGrosze && !e.isEventDayPrice ? (
+              <p className="text-xs font-medium leading-snug text-poet-gold">
+                {t("earlyDiscount", {
+                  discount: wholeZlotyLabel((e.dayOfEventPriceGrosze ?? 0) - e.priceGrosze),
+                })}
+              </p>
+            ) : e.isEventDayPrice && e.dayOfEventPriceGrosze ? (
+              <p className="text-[11px] leading-snug text-poet-gold/85">{t("eventDayPriceActive")}</p>
+            ) : null}
           </div>
         </div>
       </article>
