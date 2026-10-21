@@ -48,6 +48,8 @@ export async function GET(
         .maybeSingle()
     : { data: null };
 
+  const photo = await imageDataUrl(event?.image_url ?? null);
+
   if (slug === NOGA_SHOW_SLUG && photo) {
     return new ImageResponse(
       (
@@ -79,7 +81,6 @@ export async function GET(
   const subtitle = isNextMode ? "P!MPRO × NEXT MODE" : "Билеты на события в Варшаве";
   const tagline = isNextMode ? "ЗРИТЕЛИ УПРАВЛЯЮТ ШОУ" : "ЖИВОЕ СОБЫТИЕ";
   const when = event?.starts_at ? formatEventDate(event.starts_at) : "";
-  const photo = await imageDataUrl(event?.image_url ?? null);
 
   return new ImageResponse(
     (
