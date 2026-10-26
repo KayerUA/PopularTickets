@@ -17,10 +17,9 @@ export function StudioLocation({ locale }: { locale: AppLocale }) {
     <p className="mt-3 text-zinc-300">Popular Poet · {t.address}</p>
     <p className="mt-2 text-zinc-300">{t.travel}</p>
     <a className="inline-flex min-h-11 items-center text-poet-gold-bright underline" href="tel:+48452203802">+48 452 203 802</a>
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
       <button type="button" className="min-h-11 text-poet-gold-bright underline" onClick={() => setOpen(true)} aria-expanded={open}>{t.map}</button>
-      <a className="inline-flex min-h-11 items-center text-poet-gold-bright underline" href="https://maps.app.goo.gl/BtaKyKYvp6nGZbx37">Google Maps</a>
-      <a className="inline-flex min-h-11 items-center text-poet-gold-bright underline" href="https://maps.google.com/?cid=15137450578812510681">{t.reviews}</a>
+      <a className="inline-flex min-h-11 items-center text-poet-gold-bright underline" href="https://maps.app.goo.gl/BtaKyKYvp6nGZbx37">{locale === "pl" ? "Trasa w Google Maps" : locale === "uk" ? "Маршрут у Google Maps" : "Маршрут в Google Maps"}</a>
     </div>
     {open ? <iframe title={t.title} loading="lazy" src="https://maps.google.com/maps?q=52.1828699,21.0068606&z=17&output=embed" className="mt-4 h-80 w-full rounded-xl border-0" referrerPolicy="no-referrer-when-downgrade" /> : null}
   </section>;

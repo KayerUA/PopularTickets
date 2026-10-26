@@ -8,8 +8,8 @@ export function courseDetails(slug: string) {
 }
 
 export const COURSE_LANGUAGE = {
-  ru: "Занятия на русском. Если вам удобнее по-украински, можно говорить по-украински.",
-  uk: "Заняття російською. Якщо вам зручніше українською, можна говорити українською.",
+  ru: "Занятия на русском, можно говорить по-украински.",
+  uk: "Заняття російською, можна говорити українською.",
   pl: "Zajęcia prowadzimy po rosyjsku. Można mówić po ukraińsku.",
 } as const;
 

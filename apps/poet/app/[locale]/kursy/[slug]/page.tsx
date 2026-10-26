@@ -162,10 +162,6 @@ export default async function PoetCoursePage({ params }: PageProps) {
 
   let trials: PoetTrialDisplay[];
   const loc = locale as AppLocale;
-  if (slug === "improv" || slug === "acting") {
-    display.title = COURSE_SEO[loc][slug].title;
-    display.body = COURSE_SEO[loc][slug].description;
-  }
   if (dbCourse) {
     trials = await fetchTrialsForCourse(dbCourse.id, loc);
   } else {
@@ -296,9 +292,6 @@ export default async function PoetCoursePage({ params }: PageProps) {
       )}
 
       <CourseFacts slug={slug} locale={loc} />
-      <StudioLocation locale={loc} />
-      <CourseStageLinks locale={loc} slug={slug} />
-      {program ? <TeacherCard locale={loc} /> : null}
       {program?.story ? <PoetCourseStory story={program.story} /> : null}
 
       {photoCourse && photoCourse.shots.length > 0 ? (
@@ -316,6 +309,8 @@ export default async function PoetCoursePage({ params }: PageProps) {
           <PoetCourseProgram program={program} bookingHref="#proby-kursu" />
         </div>
       ) : null}
+
+      {program ? <TeacherCard locale={loc} /> : null}
 
       <section className="mt-10 scroll-mt-32 sm:mt-12 sm:scroll-mt-28" id="proby-kursu">
         <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{tPage("trialsHeading")}</h2>
@@ -356,6 +351,8 @@ export default async function PoetCoursePage({ params }: PageProps) {
           ))}
         </dl>
       </section>
+      <CourseStageLinks locale={loc} slug={slug} />
+      <StudioLocation locale={loc} />
     </div>
     </>
   );

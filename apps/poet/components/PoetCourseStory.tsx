@@ -8,8 +8,6 @@ export type PoetCourseStoryContent = {
   classTitle: string;
   classLead: string;
   classSteps: Array<{ title: string; body: string }>;
-  closeTitle: string;
-  closeBody: string[];
 };
 
 export function PoetCourseStory({ story }: { story: PoetCourseStoryContent }) {
@@ -71,19 +69,6 @@ export function PoetCourseStory({ story }: { story: PoetCourseStoryContent }) {
         </ol>
       </section>
 
-      <section
-        className="rounded-2xl border border-poet-gold/15 bg-black/25 px-5 py-6 sm:px-7"
-        aria-labelledby="course-close-heading"
-      >
-        <h2 id="course-close-heading" className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">
-          {story.closeTitle}
-        </h2>
-        {story.closeBody.map((paragraph) => (
-          <p key={paragraph} className="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-400 sm:text-base">
-            {paragraph}
-          </p>
-        ))}
-      </section>
     </div>
   );
 }
