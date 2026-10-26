@@ -15,7 +15,7 @@ export function PoetImprovHero({ cover, tag, title, body, hint, cta }: Props) {
   return (
     <article className="mt-6 overflow-hidden rounded-3xl border border-poet-gold/25 bg-poet-surface/25 shadow-gold-sm">
       <div className="grid lg:grid-cols-[minmax(240px,380px)_1fr] lg:items-stretch">
-        <div className="bg-black">
+        <div className="h-56 bg-black sm:h-80 lg:h-auto">
           <Image
             src={cover.src}
             alt={title}
@@ -23,8 +23,8 @@ export function PoetImprovHero({ cover, tag, title, body, hint, cta }: Props) {
             height={cover.height}
             priority
             quality={75}
-            sizes="(max-width: 1024px) 100vw, 760px"
-            className="h-auto w-full"
+            sizes="(max-width: 1023px) 100vw, 380px"
+            className="h-full w-full object-cover object-[center_25%] lg:h-auto"
           />
         </div>
         <div className="flex flex-col justify-center px-5 py-7 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
