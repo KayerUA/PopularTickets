@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
@@ -50,7 +51,7 @@ export default async function ShowPage({ params }: Props) {
     <nav aria-label={t.repertoire} className="flex flex-wrap gap-4 text-sm text-zinc-300"><Link className="inline-flex min-h-11 items-center underline" href="/shou">{t.repertoire}</Link><Link className="inline-flex min-h-11 items-center underline" href="/events">{t.afisha}</Link></nav>
     <header className="mt-6 grid items-start gap-6 sm:grid-cols-[minmax(0,1fr)_220px] lg:grid-cols-[minmax(0,1fr)_280px]">
       <div><p className="text-sm text-poet-gold-bright">{t.formats[show.format]}</p><h1 className="mt-3 break-words font-display text-3xl text-zinc-50 sm:text-4xl">{show.title}</h1><p className="mt-5 max-w-xl leading-relaxed text-zinc-300">{t.description}</p></div>
-      {image ? <img src={image} alt={show.title} className="max-h-96 w-full rounded-xl object-contain sm:max-h-none" /> : null}
+      {image ? <Image src={image} alt={show.title} width={700} height={1000} sizes="(max-width: 639px) 100vw, 280px" className="max-h-96 w-full rounded-xl object-contain sm:max-h-none" /> : null}
     </header>
     <section className="mt-10"><h2 className="font-display text-2xl text-zinc-50">{t.upcoming}</h2>{upcoming.length ? <ul className="mt-5 divide-y divide-white/15">{upcoming.map((event) => <li key={event.id} className="py-5"><h3 className="text-lg text-zinc-100">{formatEventDateTime(event.starts_at, locale)}</h3><p className="mt-1 text-zinc-300">{event.venue}</p><p className="mt-1 text-zinc-300">{formatPlnFromGrosze(effectiveEventPriceGrosze(event))}</p><Link href={`/events/${event.slug}`} className="mt-3 inline-flex min-h-11 items-center rounded-lg bg-poet-gold px-5 font-semibold text-zinc-950">{t.ticket}</Link></li>)}</ul> : <p className="mt-4 text-zinc-300">{t.empty} <Link href="/events" className="underline">{t.afisha}</Link></p>}</section>
     {past.length ? <section className="mt-10"><h2 className="font-display text-2xl text-zinc-50">{t.past}</h2><ul className="mt-4 divide-y divide-white/15">{past.map((event) => <li key={event.id}><Link href={`/events/${event.slug}`} className="block min-h-11 py-4 text-zinc-300 underline">{formatEventDateTime(event.starts_at, locale)} · {event.venue}</Link></li>)}</ul></section> : null}
