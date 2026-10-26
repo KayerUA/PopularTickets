@@ -26,7 +26,7 @@ describe("buildGroupBroadcastContent", () => {
           "Приходите попробовать импровизацию без опыта. Живой зал, поддержка, смех и знакомство с театром.",
         venue: "ul. Domaniewska 37, Warszawa",
         startsAtIso: "2026-05-21T16:00:00.000Z",
-        priceGrosze: 7000,
+        priceGrosze: 10000,
         dayOfEventPriceGrosze: null,
         listingKind: "trial",
         poetCourseSlug: "improv",
@@ -44,7 +44,7 @@ describe("buildGroupBroadcastContent", () => {
     expect(photoCaption).toContain("Ближайшие даты:");
     expect(photoCaption).toContain(formatTrialDateBullet("2026-05-21T16:00:00.000Z"));
     expect(photoCaption).toContain("Популярный поэт");
-    expect(photoCaption).toContain("70 zł");
+    expect(photoCaption).toContain("100 zł");
     expect(photoCaption).toContain(ticketUrl);
     expect(photoCaption).toContain("одной ссылке");
     expect(previewMessage).toContain("не протухает");

@@ -1,4 +1,6 @@
 import { esc } from "@/lib/email/htmlEscape";
+import type { WalletLinks } from "@/lib/wallet/links";
+import type { WalletButtonLabels } from "@/lib/wallet/labels";
 
 const C = {
   gold: "#c5a059",
@@ -19,6 +21,7 @@ export type EmailTicketCardLabels = {
   ticketLabel: string;
   ticketRibbon: string;
   stubControl: string;
+  wallet: WalletButtonLabels;
 };
 
 export type EmailTicketCardInput = {
@@ -28,6 +31,7 @@ export type EmailTicketCardInput = {
   /** cid:… для inline QR (Gmail не показывает data: URL) */
   qrImageSrc: string;
   attachmentLabel: string;
+  walletLinks?: WalletLinks;
 };
 
 /** Горизонтальный билет (table layout) — как CheckoutPaidReceipt / PDF. */
@@ -62,6 +66,7 @@ export function renderEmailTicketCardHtml(ticket: EmailTicketCardInput, labels: 
       <p style="margin:0;font-family:system-ui,-apple-system,sans-serif;font-size:11px;line-height:1.4;color:${C.muted};text-align:center;">
         ${esc(ticket.attachmentLabel)}
       </p>
+      ${ticket.walletLinks?.apple || ticket.walletLinks?.google ? `<table cellpadding="0" cellspacing="0" role="presentation" style="margin:12px auto 0 auto;"><tr>${ticket.walletLinks.apple ? `<td style="padding:0 4px 6px 4px;"><a href="${esc(ticket.walletLinks.apple)}" style="display:inline-block;padding:10px 12px;border:1px solid ${C.borderSoft};border-radius:7px;background:#080708;color:${C.text};font-family:system-ui,-apple-system,sans-serif;font-size:12px;line-height:1.3;text-decoration:none;">${esc(labels.wallet.apple)}</a></td>` : ""}${ticket.walletLinks.google ? `<td style="padding:0 4px 6px 4px;"><a href="${esc(ticket.walletLinks.google)}" style="display:inline-block;padding:10px 12px;border:1px solid ${C.borderSoft};border-radius:7px;background:#171317;color:${C.goldBright};font-family:system-ui,-apple-system,sans-serif;font-size:12px;line-height:1.3;text-decoration:none;">${esc(labels.wallet.google)}</a></td>` : ""}</tr></table>` : ""}
     </td>
     <td width="20%" align="center" valign="middle" style="padding:10px 6px;background:linear-gradient(180deg,#1c0c10 0%,#120709 50%,#000 100%);">
       <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:13px;font-weight:700;line-height:1.05;letter-spacing:0.18em;text-transform:uppercase;color:${C.goldBright};text-align:center;">

@@ -5,6 +5,8 @@ import { emailTicketPdfLayoutStrings, ticketEmailStrings } from "@/lib/email/tic
 import { ticketQrPngBuffer } from "@/lib/qrDataUrl";
 import { renderTicketLayoutPdf } from "@/lib/renderTicketLayoutPdf";
 import type { AppLocale } from "@/i18n/routing";
+import { buildTicketWalletLinks } from "@/lib/wallet/links";
+import { walletButtonLabels } from "@/lib/wallet/labels";
 
 const fromDefault = "PopularTickets <onboarding@resend.dev>";
 
@@ -43,12 +45,19 @@ export async function sendTicketsEmail(params: {
 
   const pdfLabels = emailTicketPdfLayoutStrings(params.locale);
   const str = ticketEmailStrings(params.locale);
+  const walletLabels = walletButtonLabels(params.locale);
   const attachments: ResendAttachment[] = [];
   const emailTickets: EmailTicketCardInput[] = [];
 
   for (const t of params.tickets) {
     const base = safeFileBase(t.ticketNumber);
     const inlineId = qrInlineContentId(t.id);
+    let walletLinks: { apple?: string; google?: string } = {};
+    try {
+      walletLinks = await buildTicketWalletLinks(t.id, params.locale);
+    } catch (err) {
+      console.error("[sendTicketsEmail] Wallet link generation failed", { ticketId: t.id }, err);
+    }
 
     let qrPng: Buffer;
     let qrDataUrl = "";
@@ -89,6 +98,7 @@ export async function sendTicketsEmail(params: {
         ticketId: t.id,
         qrImageSrc: `cid:${inlineId}`,
         attachmentLabel: str.colAttachment,
+        walletLinks,
       });
     } catch (err) {
       console.error("[sendTicketsEmail] PDF failed, inline QR + PNG attachment", { ticketId: t.id }, err);
@@ -98,6 +108,7 @@ export async function sendTicketsEmail(params: {
         ticketId: t.id,
         qrImageSrc: `cid:${inlineId}`,
         attachmentLabel: str.colAttachmentPng,
+        walletLinks,
       });
     }
   }
@@ -115,6 +126,7 @@ export async function sendTicketsEmail(params: {
       ticketLabel: pdfLabels.ticketLabel,
       ticketRibbon: pdfLabels.ticketRibbon,
       stubControl: pdfLabels.stubControl,
+      wallet: walletLabels,
     },
     locale: params.locale,
     seatingNotice: params.seatingNotice,

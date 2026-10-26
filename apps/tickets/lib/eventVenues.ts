@@ -11,7 +11,12 @@ export const SWIETLICA_WOLNOSCI_MAPS_URL = "https://maps.app.goo.gl/jz9E6JUn8rcy
 export const SWIETLICA_WOLNOSCI_VENUE =
   "Świetlica Wolności — Nowy Świat 6/12, 00-400 Warszawa";
 
-export type EventVenuePresetId = "popular-poet-theatre" | "swietlica-wolnosci" | "custom";
+export const STAND_UP_LOKAL_MAPS_URL =
+  "https://www.google.com/maps/search/?api=1&query=Stand+up+Lokal+ul.+Stanislawa+Noakowskiego+16+Warszawa";
+
+export const STAND_UP_LOKAL_VENUE = "Stand up Lokal, ul. Stanisława Noakowskiego 16, 00-666 Warszawa";
+
+export type EventVenuePresetId = "popular-poet-theatre" | "swietlica-wolnosci" | "stand-up-lokal" | "custom";
 
 export type EventVenuePreset = {
   id: EventVenuePresetId;
@@ -35,7 +40,19 @@ export const EVENT_VENUE_PRESETS: EventVenuePreset[] = [
     venue: SWIETLICA_WOLNOSCI_VENUE,
     mapsUrl: SWIETLICA_WOLNOSCI_MAPS_URL,
   },
+  {
+    id: "stand-up-lokal",
+    label: "Stand up Lokal — Noakowskiego 16",
+    venue: STAND_UP_LOKAL_VENUE,
+    mapsUrl: STAND_UP_LOKAL_MAPS_URL,
+  },
 ];
+
+export function parseEventVenuePresetId(value: string): EventVenuePresetId {
+  if (value === "custom") return "custom";
+  if (EVENT_VENUE_PRESETS.some((preset) => preset.id === value)) return value as EventVenuePresetId;
+  return "popular-poet-theatre";
+}
 
 export function getEventVenuePreset(id: EventVenuePresetId): EventVenuePreset | undefined {
   return EVENT_VENUE_PRESETS.find((p) => p.id === id);
@@ -48,6 +65,9 @@ export function detectEventVenuePresetId(venue: string): EventVenuePresetId {
   const lower = v.toLowerCase();
   if (lower.includes("wietlica") || lower.includes("nowy świat") || lower.includes("nowy swiat")) {
     return "swietlica-wolnosci";
+  }
+  if (lower.includes("noakowskiego") || lower.includes("stand up lokal") || lower.includes("stand-up lokal")) {
+    return "stand-up-lokal";
   }
   return "custom";
 }

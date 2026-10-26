@@ -1,3 +1,4 @@
+import { PoetMetaViewContent } from "@/components/PoetMetaPixel";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
@@ -19,6 +20,11 @@ import { PoetTrialEventsGrid } from "@/components/PoetTrialEventsGrid";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { PoetCourseProgram, type PoetCourseProgramContent } from "@/components/PoetCourseProgram";
 import { PoetCourseStory } from "@/components/PoetCourseStory";
+import { PoetImprovGallery } from "@/components/PoetImprovGallery";
+import { PoetImprovHero } from "@/components/PoetImprovHero";
+import { ACTING_COVER, ACTING_GALLERY } from "@/lib/actingGallery";
+import { galleryPhotosForTrials } from "@/lib/courseGalleryPick";
+import { IMPROV_COVER, IMPROV_GALLERY } from "@/lib/improvGallery";
 import { PoetJsonLd } from "@/components/PoetJsonLd";
 import { buildBreadcrumbListJsonLd, buildCourseJsonLd, buildFaqPageJsonLd } from "@/lib/poetJsonLd";
 import { buildTrialEventSeriesJsonLd } from "@/lib/poetTrialJsonLd";
@@ -204,6 +210,22 @@ export default async function PoetCoursePage({ params }: PageProps) {
     })),
   );
   const programSlug = dbCourse?.slug ?? staticSlug;
+  const isImprov = programSlug === "improv";
+  const isActing = programSlug === "acting";
+  const usedOnTrials = new Set(galleryPhotosForTrials(trials).values());
+  const photoCourse = isImprov
+    ? {
+        cover: IMPROV_COVER,
+        shots: IMPROV_GALLERY.filter((shot) => !usedOnTrials.has(shot.src)),
+        altKey: "improvGalleryAlt" as const,
+      }
+    : isActing
+      ? {
+          cover: ACTING_COVER,
+          shots: ACTING_GALLERY.filter((shot) => !usedOnTrials.has(shot.src)),
+          altKey: "actingGalleryAlt" as const,
+        }
+      : null;
   const program =
     programSlug === "acting" || programSlug === "improv"
       ? (tPage.raw(`programs.${programSlug}`) as PoetCourseProgramContent)
@@ -211,6 +233,7 @@ export default async function PoetCoursePage({ params }: PageProps) {
 
   return (
     <>
+      <PoetMetaViewContent slug={slug} />
       {courseLd ? <PoetJsonLd data={courseLd} /> : null}
       {breadcrumbLd ? <PoetJsonLd data={breadcrumbLd} /> : null}
       {seriesLd ? <PoetJsonLd data={seriesLd} /> : null}
@@ -226,6 +249,16 @@ export default async function PoetCoursePage({ params }: PageProps) {
         </Link>
       </nav>
 
+      {photoCourse ? (
+        <PoetImprovHero
+          cover={photoCourse.cover}
+          tag={display.tag}
+          title={display.title}
+          body={display.body}
+          hint={t("courseTrialHint")}
+          cta={tPage(isActing ? "programs.acting.bookingCta" : "programs.improv.bookingCta")}
+        />
+      ) : (
       <article className="mt-8 overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/25 shadow-gold-sm backdrop-blur-sm">
         <div className="relative aspect-video w-full overflow-hidden bg-zinc-950">
           <MediaCoverBlurred
@@ -248,8 +281,18 @@ export default async function PoetCoursePage({ params }: PageProps) {
           <p className="text-xs leading-relaxed text-zinc-500">{t("courseTrialHint")}</p>
         </div>
       </article>
+      )}
 
       {program?.story ? <PoetCourseStory story={program.story} /> : null}
+
+      {photoCourse && photoCourse.shots.length > 0 ? (
+        <PoetImprovGallery
+          shots={photoCourse.shots}
+          title={tPage("improvGalleryTitle")}
+          lead={tPage("improvGalleryLead")}
+          alt={tPage(photoCourse.altKey)}
+        />
+      ) : null}
 
       {program ? (
         <div className="mt-10 rounded-2xl border border-poet-gold/20 bg-poet-surface/25 px-5 py-7 shadow-gold-sm sm:mt-12 sm:px-8 sm:py-9">

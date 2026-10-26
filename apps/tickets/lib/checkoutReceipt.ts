@@ -8,6 +8,10 @@ export type PaidOrderReceipt = {
   listingKind: string | null;
   seatingAttention: boolean;
   tickets: { id: string; ticket_number: string; seat_id: string | null }[];
+  orderId: string;
+  eventSlug: string;
+  amountGrosze: number;
+  quantity: number;
 };
 
 export type OrderReceiptState =
@@ -25,7 +29,7 @@ export async function loadOrderReceiptState(
 ): Promise<OrderReceiptState> {
   const { data: order, error: oErr } = await supabase
     .from("orders")
-    .select("id,status,email,event_id,seating_attention")
+    .select("id,status,email,event_id,seating_attention,amount_grosze,quantity")
     .eq("id", orderId)
     .maybeSingle();
 
@@ -43,7 +47,7 @@ export async function loadOrderReceiptState(
 
   const { data: ev, error: eErr } = await supabase
     .from("events")
-    .select("title,venue,starts_at,listing_kind")
+    .select("slug,title,venue,starts_at,listing_kind")
     .eq("id", order.event_id as string)
     .maybeSingle();
 
@@ -73,6 +77,10 @@ export async function loadOrderReceiptState(
       startsAt: ev.starts_at as string,
       listingKind: typeof ev.listing_kind === "string" ? ev.listing_kind : null,
       tickets: list,
+      orderId,
+      eventSlug: String(ev.slug ?? ""),
+      amountGrosze: Number(order.amount_grosze ?? 0),
+      quantity: Number(order.quantity ?? list.length) || list.length,
     },
   };
 }

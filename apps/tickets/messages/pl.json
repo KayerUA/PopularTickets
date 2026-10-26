@@ -191,7 +191,7 @@
     "trialReturnCta": "Do zajęć i kursów",
     "faqTitle": "Najczęstsze pytania",
     "faqQ1": "Jak dojechać?",
-    "faqA1": "Adres i link do mapy są na tej stronie. Sala Popular Poet: ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42.",
+    "faqA1": "Adres i link do mapy są na tej stronie: {venue}.",
     "faqQ2": "W jakim języku jest wydarzenie?",
     "faqA2": "Język wieczoru jest podany w karcie powyżej. Popular Poet pracuje z publicznością rosyjsko- i ukraińskojęzyczną w Warszawie — każde wydarzenie ma swój język.",
     "faqQ3": "Czy można zwrócić bilet?",
@@ -231,7 +231,7 @@
     "allDatesCta": "Wszystkie terminy i płatność",
     "moreDates": "Kolejne terminy: {count}",
     "aboutCourseTitle": "Co po zajęciach próbnych",
-    "aboutCourseBody": "Zajęcia próbne do niczego nie zobowiązują: po nich można kontynuować w grupie podstawowej. Program kursu, prowadzący i grafik — na stronie Teatru „Popularny Poeta”.",
+    "aboutCourseBody": "Zajęcia próbne do niczego nie zobowiązują: jeśli format Ci pasuje, po nich możesz od razu dołączyć do grupy. Program kursu, prowadzący i grafik — na stronie Teatru „Popularny Poeta”.",
     "seoTitle": "Co warto wiedzieć przed pierwszym spotkaniem",
     "seoExperienceTitle": "Bez doświadczenia",
     "seoExperienceBody": "Format próbny jest dla początkujących: nie trzeba przygotowywać tekstu, roli ani znać ćwiczeń teatralnych.",
@@ -247,7 +247,7 @@
     "faqLanguageQ": "W jakim języku odbywają się zajęcia?",
     "faqLanguageA": "Język jest podany przy każdym terminie. Popular Poet pracuje głównie z rosyjsko- i ukraińskojęzycznymi grupami w Warszawie.",
     "faqAfterQ": "Czy po zajęciach próbnych można kontynuować naukę?",
-    "faqAfterA": "Tak. Jeśli format Ci odpowiada, możesz wybrać regularną grupę; link do pełnego programu kursu znajduje się na tej stronie.",
+    "faqAfterA": "Tak. Jeśli zajęcia Ci odpowiadają, możesz od razu dołączyć do regularnej grupy — link do programu kursu jest na tej stronie.",
     "programs": {
       "acting": {
         "title": "Program kursu aktorskiego",
@@ -260,10 +260,10 @@
           { "range": "13–16", "title": "Przemiana", "topics": ["Wchodzenie w rolę", "Postacie"] },
           { "range": "17–32", "title": "Uznanie", "topics": ["Wybór sztuki", "Przygotowanie spektaklu"] }
         ],
-        "price": "490 zł za każde 4 zajęcia",
+        "price": "590 zł za każde 4 zajęcia (~147 zł / 2 godziny zajęć)",
         "schedule": "2 godziny, raz w tygodniu",
         "group": "Grupa — 8 osób",
-        "start": "Start od razu po zajęciach próbnych",
+        "start": "Po zajęciach próbnych możesz od razu dołączyć do grupy",
         "venue": "Warszawa, Mokotów, Domaniewska 37"
       },
       "improv": {
@@ -276,10 +276,10 @@
           { "range": "9–12", "title": "Pewność siebie", "topics": ["Zadania aktorskie", "Techniki improwizacji"] },
           { "range": "13–16", "title": "Uznanie", "topics": ["Przygotowanie do występu", "Występ w show"] }
         ],
-        "price": "490 zł za każde 4 zajęcia",
+        "price": "590 zł za każde 4 zajęcia (~147 zł / 2 godziny zajęć)",
         "schedule": "2 godziny, raz w tygodniu",
         "group": "Grupa — 8 osób",
-        "start": "Start od razu po zajęciach próbnych",
+        "start": "Po zajęciach próbnych możesz od razu dołączyć do grupy",
         "venue": "Warszawa, Mokotów, Domaniewska 37"
       }
     }
@@ -346,7 +346,7 @@
     "trialMetaTitle": "Próbne zajęcia Warszawa — Popular Poet",
     "trialMetaDescription": "Próbne i otwarte zajęcia Popular Poet w Warszawie. Rezerwacja miejsca online na PopularTickets.",
     "trialH1": "Próbne zajęcia w Warszawie",
-    "trialAnswer": "Otwarte zajęcie Popular Poet w Warszawie kosztuje od 70 PLN. Grupa do 12 osób, adres: ul. Domaniewska 37. Rezerwacja online na PopularTickets.",
+    "trialAnswer": "Zajęcia próbne Popular Poet w Warszawie kosztują 100 PLN. Grupa do 12 osób, adres: ul. Domaniewska 37. Po zajęciach próbnych możesz od razu dołączyć do grupy. Rezerwacja online na PopularTickets.",
     "trialIntro": "Pełna oferta kursów — na popularpoet.pl. Terminy wprowadzających zajęć poniżej.",
     "faqTitle": "Najczęstsze pytania",
     "improvFaqQ1": "Czym jest show impro Popular Poet?",

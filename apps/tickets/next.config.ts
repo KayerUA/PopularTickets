@@ -27,6 +27,7 @@ const ticketPdfAssets = useMonorepoTracingRoot ? ticketPdfAssetsMonorepo : ticke
 
 /** PDF/QR билета вызываются со страницы return, из /api/p24/notify и из server actions на странице события. */
 const ticketPdfTracingRouteKeys = [
+  "/api/wallet/*",
   "/*/checkout/return",
   "/[locale]/checkout/return",
   "/api/p24/notify",

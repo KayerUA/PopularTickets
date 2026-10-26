@@ -1,5 +1,7 @@
 "use client";
 
+import { trackInitiateCheckout, type ProductType } from "@/lib/metaPixel";
+import { attachOrderAttribution } from "@/lib/orderAttribution";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { unstable_rethrow } from "next/navigation";
@@ -15,6 +17,7 @@ import {
   type CheckoutFieldKey,
 } from "@/lib/checkoutFormValidation";
 import { previewPromoCode } from "@/app/actions/promo-codes";
+import { isSilentRatingOfferPromo } from "@/lib/ratings/offer";
 
 import { SeatMap } from "@/components/SeatMap";
 import type { SeatMapState } from "@/lib/seating/types";
@@ -22,6 +25,8 @@ import { seatingText } from "@/lib/seating/i18n";
 
 type Props = {
   eventSlug: string;
+  /** Meta/GA: "course" for trial lessons. */
+  productType?: ProductType;
   remaining: number;
   locale: AppLocale;
   unitPriceGrosze: number;
@@ -33,6 +38,7 @@ type Props = {
   initialPromoCode?: string;
   initialPromoDiscountPercent?: number | null;
   initialPromoDiscountFixedGrosze?: number | null;
+  initialPromoRequiredQuantity?: number | null;
 };
 
 function fieldBorder(hasError: boolean): string {
@@ -42,16 +48,22 @@ function fieldBorder(hasError: boolean): string {
 function promoAppliedMessage(
   discountFixedGrosze: number | null | undefined,
   discountPercent: number | null | undefined,
+  silent = false,
 ): string | null {
   if ((discountFixedGrosze ?? 0) > 0) {
-    return `Промокод применён: −${formatPlnFromGrosze(discountFixedGrosze ?? 0)} за билет`;
+    return silent
+      ? `Скидка: −${formatPlnFromGrosze(discountFixedGrosze ?? 0)} за билет`
+      : `Промокод применён: −${formatPlnFromGrosze(discountFixedGrosze ?? 0)} за билет`;
   }
-  if ((discountPercent ?? 0) > 0) return `Промокод применён: −${discountPercent}%`;
+  if ((discountPercent ?? 0) > 0) {
+    return silent ? `Скидка: −${discountPercent}%` : `Промокод применён: −${discountPercent}%`;
+  }
   return null;
 }
 
 export function EventCheckoutForm({
   eventSlug,
+  productType,
   remaining,
   locale,
   unitPriceGrosze,
@@ -61,6 +73,7 @@ export function EventCheckoutForm({
   initialPromoCode = "",
   initialPromoDiscountPercent = 0,
   initialPromoDiscountFixedGrosze = null,
+  initialPromoRequiredQuantity = null,
   appearance = "default",
 }: Props) {
   const pimpro = appearance === "pimpro";
@@ -87,43 +100,77 @@ export function EventCheckoutForm({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<CheckoutFieldKey, string>>>({});
   const [pending, setPending] = useState(false);
-  const [quantityInput, setQuantityInput] = useState("1");
+  const [quantityInput, setQuantityInput] = useState(String(initialPromoRequiredQuantity ?? 1));
   const [promoCode, setPromoCode] = useState(initialPromoCode);
   const initialPromoDiscountPerTicketGrosze = initialPromoDiscountFixedGrosze
     ?? Math.round(unitPriceGrosze * ((initialPromoDiscountPercent ?? 0) / 100));
   const [promoDiscountPerTicketGrosze, setPromoDiscountPerTicketGrosze] = useState(initialPromoDiscountPerTicketGrosze);
   const [promoApplied, setPromoApplied] = useState(Boolean(initialPromoCode));
+  const [promoRequiredQuantity, setPromoRequiredQuantity] = useState(initialPromoRequiredQuantity);
   const [promoMessage, setPromoMessage] = useState<string | null>(
-    initialPromoCode ? promoAppliedMessage(initialPromoDiscountFixedGrosze, initialPromoDiscountPercent) : null,
+    initialPromoCode
+      ? promoAppliedMessage(
+          initialPromoDiscountFixedGrosze,
+          initialPromoDiscountPercent,
+          isSilentRatingOfferPromo(initialPromoCode),
+        )
+      : null,
   );
+  const silentOffer = isSilentRatingOfferPromo(promoCode) && promoApplied;
+  useEffect(() => {
+    if (!isSilentRatingOfferPromo(initialPromoCode) || typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("promo") && !url.searchParams.has("gift")) return;
+    url.searchParams.delete("promo");
+    url.searchParams.delete("gift");
+    const query = url.searchParams.toString();
+    window.history.replaceState(null, "", `${url.pathname}${query ? `?${query}` : ""}${url.hash}`);
+  }, [initialPromoCode]);
   const formRef = useRef<HTMLFormElement>(null);
   const max = Math.min(20, remaining);
   const parsedQuantity = Number.parseInt(quantityInput, 10);
   const quantity = Number.isInteger(parsedQuantity) && parsedQuantity >= 1 && parsedQuantity <= max ? parsedQuantity : 1;
 
   const updateQuantity = (next: number) => {
-    setQuantityInput(String(Math.min(max, Math.max(1, Math.floor(next)))));
+    if (promoRequiredQuantity) return;
+    const quantityNext = Math.min(max, Math.max(1, Math.floor(next)));
+    setQuantityInput(String(quantityNext));
+    setSelectedSeats((ids) => (ids.length > quantityNext ? ids.slice(0, quantityNext) : ids));
     if (fieldErrors.quantity) setFieldErrors((prev) => ({ ...prev, quantity: undefined }));
   };
 
-  const discountedUnitPriceGrosze = Math.max(0, unitPriceGrosze - promoDiscountPerTicketGrosze);
+  const chooseSeats = (ids: string[]) => {
+    const next = ids.slice(0, promoRequiredQuantity ?? max);
+    setSelectedSeats(next);
+    setQuantityInput(String(promoRequiredQuantity ?? Math.max(1, next.length)));
+    if (fieldErrors.quantity) setFieldErrors((prev) => ({ ...prev, quantity: undefined }));
+  };
+
+  const effectivePromoDiscountGrosze = promoRequiredQuantity && quantity !== promoRequiredQuantity
+    ? 0
+    : promoDiscountPerTicketGrosze;
+  const discountedUnitPriceGrosze = Math.max(0, unitPriceGrosze - effectivePromoDiscountGrosze);
   const totalGrosze = discountedUnitPriceGrosze * quantity;
 
   const applyPromoCode = async () => {
     const result = await previewPromoCode({ code: promoCode, eventSlug, unitPriceGrosze });
     if (!result) {
       setPromoDiscountPerTicketGrosze(0);
+      setPromoRequiredQuantity(null);
       setPromoApplied(false);
       setPromoMessage(null);
     } else if ("error" in result) {
       setPromoDiscountPerTicketGrosze(0);
+      setPromoRequiredQuantity(null);
       setPromoApplied(false);
       setPromoMessage(result.error);
     } else {
       setPromoCode(result.code);
       setPromoDiscountPerTicketGrosze(result.discountPerTicketGrosze);
+      setPromoRequiredQuantity(result.requiredQuantity);
+      if (result.requiredQuantity) updateQuantity(result.requiredQuantity);
       setPromoApplied(true);
-      setPromoMessage(promoAppliedMessage(result.discountFixedGrosze, result.discountPercent));
+      setPromoMessage(promoAppliedMessage(result.discountFixedGrosze, result.discountPercent, isSilentRatingOfferPromo(result.code)));
     }
   };
 
@@ -177,6 +224,13 @@ export function EventCheckoutForm({
       if (seatLoading || seatLoadError) throw new Error(st.unavailable);
       if (seatMap?.mode === "priority") throw new Error(st.priority);
       if (seatMap && selectedSeats.length !== quantity) throw new Error(st.choose);
+      trackInitiateCheckout({
+        slug: eventSlug,
+        valuePln: unitPriceGrosze / 100,
+        productType: productType ?? "ticket",
+        quantity: Number(formData.get("quantity")) || 1,
+      });
+      attachOrderAttribution(formData);
       const result = await createPendingOrder(formData);
       if (result && typeof result === "object" && "p24Url" in result && typeof result.p24Url === "string") {
         window.location.assign(result.p24Url);
@@ -214,7 +268,7 @@ export function EventCheckoutForm({
       {seatLoading ? <p className={pimpro ? "text-sm text-black" : "text-sm text-zinc-400"}>{st.loading}</p> : seatLoadError ? <p role="alert" className={`text-sm ${errorText}`}>{st.unavailable}</p> : seatMap ? <div className="space-y-3">
         {seatMap.mode === "priority" ? <p className={pimpro ? "text-black" : "text-amber-200"}>{st.priority}</p> : <>
           <div className="-mx-1 sm:mx-0">
-            <SeatMap map={seatMap} selected={selectedSeats} onChange={setSelectedSeats} limit={quantity} locale={locale} disabled={pending} />
+            <SeatMap map={seatMap} selected={selectedSeats} onChange={chooseSeats} limit={promoRequiredQuantity ?? max} locale={locale} disabled={pending} />
           </div>
           <p className={pimpro ? "text-xs text-black" : "text-xs text-zinc-400"}>{st.hold}</p>
         </>}
@@ -322,7 +376,7 @@ export function EventCheckoutForm({
             <button
               type="button"
               aria-label={`${t("quantity")} −`}
-              disabled={pending || quantity <= 1}
+              disabled={pending || Boolean(promoRequiredQuantity) || quantity <= 1}
               onClick={() => updateQuantity(quantity - 1)}
               className={
                 pimpro
@@ -337,6 +391,7 @@ export function EventCheckoutForm({
               name="quantity"
               type="text"
               value={quantityInput}
+              readOnly={Boolean(promoRequiredQuantity)}
               onChange={(e) => {
                 const digits = e.target.value.replace(/\D/g, "").slice(0, String(max).length);
                 setQuantityInput(digits);
@@ -360,7 +415,7 @@ export function EventCheckoutForm({
             <button
               type="button"
               aria-label={`${t("quantity")} +`}
-              disabled={pending || quantity >= max}
+              disabled={pending || Boolean(promoRequiredQuantity) || quantity >= max}
               onClick={() => updateQuantity(quantity + 1)}
               className={
                 pimpro
@@ -377,6 +432,12 @@ export function EventCheckoutForm({
             </p>
           ) : null}
         </div>
+        {silentOffer ? (
+          <div className="block text-sm">
+            <input type="hidden" name="promoCode" value={promoCode} />
+            {promoMessage ? <p className={`text-xs ${okText}`}>{promoMessage}</p> : null}
+          </div>
+        ) : (
         <div className="block text-sm" data-checkout-field="promoCode">
           <label htmlFor="checkout-promoCode" className={labelClass}>Промокод</label>
           <input
@@ -387,6 +448,7 @@ export function EventCheckoutForm({
             onChange={(e) => {
               setPromoCode(e.target.value.toUpperCase());
               setPromoDiscountPerTicketGrosze(0);
+              setPromoRequiredQuantity(null);
               setPromoApplied(false);
               setPromoMessage(null);
             }}
@@ -396,7 +458,11 @@ export function EventCheckoutForm({
             placeholder="PARTNER15"
           />
           {promoMessage ? <p className={`mt-1.5 text-xs ${promoApplied ? okText : errorText}`}>{promoMessage}</p> : null}
+          {promoApplied && promoRequiredQuantity && quantity !== promoRequiredQuantity ? (
+            <p className={`mt-1.5 text-xs ${errorText}`}>Для этого промокода выберите {promoRequiredQuantity} билета.</p>
+          ) : null}
         </div>
+        )}
       </div>
 
       <div className={pimpro ? "border-t border-black pt-3 text-sm" : "rounded-xl border border-poet-gold/15 bg-black/25 px-3 py-3 text-sm sm:px-4"}>
@@ -406,9 +472,9 @@ export function EventCheckoutForm({
             <dt>{t("totalLabel")}</dt>
             <dd className={pimpro ? "font-black text-black" : "font-medium text-poet-gold-bright"}>{formatPlnFromGrosze(totalGrosze)}</dd>
           </div>
-          {promoDiscountPerTicketGrosze > 0 ? (
+          {effectivePromoDiscountGrosze > 0 ? (
             <div className={pimpro ? "flex justify-between gap-3 text-xs text-black" : "flex justify-between gap-3 text-xs text-zinc-500"}>
-              <dt>Без промокода</dt>
+              <dt>{silentOffer ? "Обычная цена" : "Без промокода"}</dt>
               <dd className="line-through">{formatPlnFromGrosze(unitPriceGrosze * quantity)}</dd>
             </div>
           ) : null}

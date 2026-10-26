@@ -22,6 +22,7 @@ import { COMPANY } from "@/lib/company";
 import { eventCoverObjectPosition } from "@/lib/eventCoverFocal";
 import { EventOfferPrice, wholeZlotyLabel } from "@/components/EventOfferPrice";
 import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
+import { MetaViewContent } from "@/components/MetaTrack";
 import { Link } from "@/i18n/navigation";
 import { resolveEventCopy } from "@/lib/contentI18n";
 import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
@@ -34,9 +35,12 @@ import { eventContextLinks } from "@/lib/eventContextLinks";
 import { RelatedEventsSection } from "@/components/RelatedEventsSection";
 import { eventRobotsMeta } from "@/lib/eventSeoPolicy";
 import { resolveApplicablePromoCode } from "@/lib/promoCodes";
+import { promoFromPublicQuery } from "@/lib/ratings/offer";
 import { PromoVisitTracker } from "@/components/PromoVisitTracker";
-import { PIMPRO_PARTY_SLUG, PimproTicketPage } from "@/components/PimproTicketPage";
 import { fetchPoetCourseSlugById, trialHubPath } from "@/lib/trialCourseHub";
+import { eventSearchAliases, knownVenueFromAddress } from "@/lib/venueGeo";
+import { PIMPRO_PARTY_SLUG, PimproTicketPage } from "@/components/PimproTicketPage";
+import { preserveAttributionQuery } from "@/lib/orderAttribution";
 
 /** Server Actions + ISR: закэшированная страница после деплоя даёт «Server Action … was not found». */
 export const dynamic = "force-dynamic";
@@ -77,20 +81,25 @@ export async function generateMetadata({
   }
   const short = formatEventDateShortForTitle(event.starts_at);
   const eventLanguage = normalizeEventLanguage(event.event_language);
-  const title = `${copy.title} — ${short}`;
+  const title = `${copy.title} — ${short}, Warszawa`;
   const desc = `${tMeta("eventDescriptionBuy")} ${formatEventDateTime(event.starts_at, locale)}. ${event.venue}. ${eventLanguageLabel(eventLanguage, locale)}. ${truncateMetaDescription(copy.description)}`;
   let ogImages: { url: string; width: number; height: number; alt: string }[] | undefined;
   const ogImageAbs = eventOgImageUrl(event.slug);
   if (ogImageAbs) {
     ogImages = [{ url: ogImageAbs, width: 1200, height: 630, alt: copy.title }];
   }
+  const venueGeo = knownVenueFromAddress(event.venue);
   const keywords = [
     ...tMeta("homeKeywords")
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean),
     copy.title,
+    ...eventSearchAliases(copy.title),
     event.venue,
+    "Warszawa",
+    "Warsaw",
+    ...(venueGeo?.district ? [venueGeo.district] : []),
   ];
   const robots = eventRobotsMeta(event.starts_at, event.visibility);
   return buildPublicPageMetadata({
@@ -103,6 +112,8 @@ export async function generateMetadata({
     ogImages,
     robots,
     hreflangAlternateUrls: hreflangLanguagesForPublishedEvent(`/events/${slug}`),
+    geoPlacename: venueGeo?.placename,
+    geoIcbm: venueGeo ? `${venueGeo.lat}, ${venueGeo.lng}` : undefined,
   });
 }
 
@@ -111,12 +122,14 @@ export default async function EventPage({
   searchParams,
 }: {
   params: Promise<{ locale: AppLocale; slug: string }>;
-  searchParams: Promise<{ promo?: string }>;
+  searchParams: Promise<{ promo?: string; gift?: string; [key: string]: string | string[] | undefined }>;
 }) {
   const { slug, locale } = await params;
-  const { promo: promoRaw } = await searchParams;
+  const query = await searchParams;
+  const { promo: promoParam, gift } = query;
+  const promoRaw = promoFromPublicQuery({ slug, promo: promoParam, gift });
   const legacyRedirect = legacyEventRedirectPath(locale, slug);
-  if (legacyRedirect) permanentRedirect(legacyRedirect);
+  if (legacyRedirect) permanentRedirect(preserveAttributionQuery(legacyRedirect, query));
 
   const t = await getTranslations({ locale, namespace: "EventPage" });
   const supabase = getServiceSupabase();
@@ -151,13 +164,13 @@ export default async function EventPage({
   const listingKind = normalizeEventListingKind(event.listing_kind);
   const promoQuery = promoRaw ? `&promo=${encodeURIComponent(promoRaw)}` : "";
   if (listingKind === "special") {
-    permanentRedirect(`/${locale}/special/${event.slug}${promoRaw ? `?promo=${encodeURIComponent(promoRaw)}` : ""}`);
+    permanentRedirect(preserveAttributionQuery(`/${locale}/special/${event.slug}${promoRaw ? `?promo=${encodeURIComponent(promoRaw)}` : ""}`, query));
   }
   // Пробные продаются с хаба курса: все даты и оплата на одной вечной странице.
   if (listingKind === "trial" && event.poet_course_id) {
     const courseSlug = await fetchPoetCourseSlugById(supabase, event.poet_course_id);
     if (courseSlug) {
-      permanentRedirect(`${trialHubPath(locale, courseSlug, event.slug)}${promoQuery}`);
+      permanentRedirect(preserveAttributionQuery(`${trialHubPath(locale, courseSlug, event.slug)}${promoQuery}`, query));
     }
   }
   const mapsHref = resolveEventMapsUrl({
@@ -201,7 +214,7 @@ export default async function EventPage({
   const faqLd = buildFaqPageJsonLd(
     faqPairs.map(([qk, ak]) => ({
       name: t(qk),
-      acceptedAnswer: { text: t(ak) },
+      acceptedAnswer: { text: ak === "faqA1" ? t(ak, { venue: event.venue }) : t(ak) },
     })),
   );
 
@@ -224,6 +237,7 @@ export default async function EventPage({
     return (
       <>
         {promo ? <PromoVisitTracker promoCodeId={promo.id} eventId={event.id} /> : null}
+        <MetaViewContent slug={event.slug} name={copy.title} valuePln={event.price_grosze / 100} productType={listingKind === "trial" ? "course" : "ticket"} />
         {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
         <JsonLd data={faqLd} />
         <JsonLd
@@ -272,6 +286,7 @@ export default async function EventPage({
       className={`poet-safe-x mx-auto max-w-3xl py-8 sm:py-14${showCheckout ? " pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:pb-14" : ""}`}
     >
       {promo ? <PromoVisitTracker promoCodeId={promo.id} eventId={event.id} /> : null}
+      <MetaViewContent slug={event.slug} name={copy.title} valuePln={event.price_grosze / 100} productType={listingKind === "trial" ? "course" : "ticket"} />
       {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
       <JsonLd data={faqLd} />
       <nav className="mb-6 text-sm text-zinc-500" aria-label={t("breadcrumbAria")}>
@@ -472,6 +487,7 @@ export default async function EventPage({
                 initialPromoCode={promo?.code}
                 initialPromoDiscountPercent={promo?.discountPercent}
                 initialPromoDiscountFixedGrosze={promo?.discountFixedGrosze}
+                initialPromoRequiredQuantity={promo?.requiredQuantity}
               />
             </section>
           ) : (
@@ -488,7 +504,7 @@ export default async function EventPage({
           {faqPairs.map(([qk, ak]) => (
             <div key={qk}>
               <dt className="text-sm font-semibold text-zinc-200">{t(qk)}</dt>
-              <dd className="mt-2 text-sm leading-relaxed text-zinc-400">{t(ak)}</dd>
+              <dd className="mt-2 text-sm leading-relaxed text-zinc-400">{ak === "faqA1" ? t(ak, { venue: event.venue }) : t(ak)}</dd>
             </div>
           ))}
         </dl>

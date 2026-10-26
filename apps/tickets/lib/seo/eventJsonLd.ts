@@ -13,6 +13,7 @@ import {
   POPULAR_POET_THEATRE_POSTAL_CODE,
 } from "@/lib/theatreVenueDefaults";
 import { eventEndDateIso } from "@/lib/seo/eventEndDateIso";
+import { eventSearchAliases, isStagedPlay, knownVenueFromAddress } from "@/lib/venueGeo";
 
 type EventRow = {
   title: string;
@@ -57,6 +58,9 @@ function normalizeEventFormat(event: EventRow, locale: AppLocale): string {
   }
   if (text.includes("masterclass") || text.includes("мастер") || text.includes("warsztat")) {
     return locale === "pl" ? "warsztat sceniczny" : locale === "uk" ? "сценічний майстер-клас" : "сценический мастер-класс";
+  }
+  if (isStagedPlay(event.title, event.description)) {
+    return locale === "pl" ? "spektakl" : locale === "uk" ? "вистава" : "спектакль";
   }
   return locale === "pl" ? "wydarzenie sceniczne" : locale === "uk" ? "сценічна подія" : "сценическое событие";
 }
@@ -109,12 +113,20 @@ export function buildEventJsonLd(
   const rawDesc = typeof event.description === "string" ? event.description : "";
   const desc = rawDesc.replace(/\s+/g, " ").trim().slice(0, 2000);
   const venueAddress = normalizeVenueAddress(event.venue);
+  const knownVenue = knownVenueFromAddress(event.venue);
   const atTheatre = isPopularPoetTheatreVenue(event.venue) || event.listing_kind === "trial";
   const mapsUrl =
     (typeof opts.mapsUrl === "string" && opts.mapsUrl.trim()) ||
+    knownVenue?.mapsUrl ||
     (atTheatre ? POPULAR_POET_THEATRE_MAPS_URL : "");
-  const postalCode = venueAddress.postalCode ?? (atTheatre ? POPULAR_POET_THEATRE_POSTAL_CODE : undefined);
+  const postalCode = venueAddress.postalCode ?? knownVenue?.postalCode ?? (atTheatre ? POPULAR_POET_THEATRE_POSTAL_CODE : undefined);
   const eventFormat = normalizeEventFormat(event, locale);
+  const aliases = eventSearchAliases(event.title);
+  const geo = knownVenue
+    ? { lat: knownVenue.lat, lng: knownVenue.lng }
+    : atTheatre
+      ? POPULAR_POET_THEATRE_GEO
+      : null;
   const endDate = eventEndDateIso(event.starts_at);
   const startMs = new Date(event.starts_at).getTime();
   const isPast = !Number.isNaN(startMs) && startMs < Date.now();
@@ -179,8 +191,9 @@ export function buildEventJsonLd(
 
   return stripJsonLdEmptyValues({
     "@context": "https://schema.org",
-    "@type": "Event",
+    "@type": isStagedPlay(event.title, event.description) ? "TheaterEvent" : "Event",
     name: event.title,
+    ...(aliases.length ? { alternateName: aliases } : {}),
     description: desc || event.title,
     startDate: event.starts_at,
     endDate,
@@ -199,12 +212,12 @@ export function buildEventJsonLd(
       "@type": "Place",
       name: venueAddress.name,
       ...(mapsUrl ? { hasMap: mapsUrl } : {}),
-      ...(atTheatre
+      ...(geo
         ? {
             geo: {
               "@type": "GeoCoordinates",
-              latitude: POPULAR_POET_THEATRE_GEO.lat,
-              longitude: POPULAR_POET_THEATRE_GEO.lng,
+              latitude: geo.lat,
+              longitude: geo.lng,
             },
           }
         : {}),
@@ -212,9 +225,13 @@ export function buildEventJsonLd(
         "@type": "PostalAddress",
         addressCountry: "PL",
         addressLocality: venueAddress.addressLocality,
+        addressRegion: "Mazowieckie",
         postalCode,
         streetAddress: venueAddress.streetAddress,
       },
+      ...(knownVenue?.district
+        ? { containedInPlace: { "@type": "AdministrativeArea", name: `${knownVenue.district}, Warszawa` } }
+        : {}),
     },
     offers,
   }) as object;

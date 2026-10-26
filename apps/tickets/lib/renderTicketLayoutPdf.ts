@@ -1,9 +1,10 @@
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, type PDFFont, type PDFPage, rgb } from "pdf-lib";
+import { PDFDocument, PDFName, PDFString, type PDFFont, type PDFPage, rgb } from "pdf-lib";
 import sharp from "sharp";
 import { companyFooterShort } from "@/lib/company";
 import { TICKET_PDF_KIND_PL, TICKET_PDF_QR_HINT_PL } from "@/lib/ticketPdfLegalPl";
 import { DEJAVU_SANS_BOLD_TTF, DEJAVU_SANS_TTF } from "@/lib/ticketPdfFontsEmbedded";
+import { knownVenueFromAddress } from "@/lib/venueGeo";
 
 export type TicketLayoutDocInput = {
   /** `data:image/png;base64,...` — QR как на странице */
@@ -248,6 +249,7 @@ function drawPanelVerticalWash(
 
 /** PDF-билет: горизонтальный «театральный» макет как на /checkout/return (3 колонки + перфорация). */
 export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promise<Buffer> {
+  const venueMapUrl = knownVenueFromAddress(input.venue)?.mapsUrl;
   const regularBytes = new Uint8Array(DEJAVU_SANS_TTF);
   const boldBytes = new Uint8Array(DEJAVU_SANS_BOLD_TTF);
 
@@ -258,7 +260,7 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
 
   /** Landscape: полоса билета сверху + блок события снизу (y растёт вверх). */
   const W = 520;
-  const H = input.seatLabel ? 300 : 248;
+  const H = (input.seatLabel ? 300 : 248) + (venueMapUrl ? 16 : 0);
   const margin = 14;
   const ticketH = 152;
   const ticketTop = H - margin;
@@ -462,6 +464,24 @@ export async function renderTicketLayoutPdf(input: TicketLayoutDocInput): Promis
     const sw = font.widthOfTextAtSize(line, 6.8);
     page.drawText(line, { x: (W - sw) / 2, y: metaY, size: 6.8, font, color: rgb(0.58, 0.56, 0.54) });
     metaY -= 8;
+  }
+
+  if (venueMapUrl) {
+    const mapLabel = "Google Maps";
+    const mapSize = 6.2;
+    const mapW = fontBold.widthOfTextAtSize(mapLabel, mapSize);
+    const mapX = (W - mapW) / 2;
+    page.drawText(mapLabel, { x: mapX, y: metaY, size: mapSize, font: fontBold, color: GOLD_BRIGHT });
+    page.drawLine({ start: { x: mapX, y: metaY - 1 }, end: { x: mapX + mapW, y: metaY - 1 }, thickness: 0.4, color: GOLD_BRIGHT });
+    const link = pdfDoc.context.obj({
+      Type: PDFName.of("Annot"),
+      Subtype: PDFName.of("Link"),
+      Rect: [mapX, metaY - 2, mapX + mapW, metaY + mapSize + 2],
+      Border: [0, 0, 0],
+      A: pdfDoc.context.obj({ S: PDFName.of("URI"), URI: PDFString.of(venueMapUrl) }),
+    });
+    page.node.addAnnot(pdfDoc.context.register(link));
+    metaY -= 12;
   }
 
   const qrSec = input.ticketQrSecondary.trim();

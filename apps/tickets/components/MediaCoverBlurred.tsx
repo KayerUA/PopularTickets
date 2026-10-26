@@ -15,7 +15,7 @@ type Props = {
    * `cover` — заполняет кадр (витрина, читаемая афиша, допустим обрез).
    * `contain` — целиком картинка в кадре (узкая полоска у вертикальных постеров).
    */
-  fit?: "cover" | "contain";
+  fit?: "cover" | "contain" | "natural";
 };
 
 /**
@@ -41,6 +41,25 @@ export function MediaCoverBlurred({
     return (
       <div className={frameClassName}>
         <div className="absolute inset-0 bg-gradient-to-br from-poet-gold-dim/35 via-poet-bg to-zinc-950" aria-hidden />
+      </div>
+    );
+  }
+
+  if (fit === "natural") {
+    /* Постер в собственных пропорциях: без обреза и без полос по краям. */
+    return (
+      <div className={frameClassName}>
+        <Image
+          src={safeSrc}
+          alt={alt}
+          width={1200}
+          height={1500}
+          sizes={sizes}
+          quality={quality}
+          priority={priority}
+          unoptimized={unoptimized}
+          className="pointer-events-none block h-auto w-full"
+        />
       </div>
     );
   }

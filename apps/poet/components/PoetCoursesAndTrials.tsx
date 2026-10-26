@@ -29,7 +29,7 @@ export async function PoetCourseShowcase({ dbCourses, locale }: { dbCourses: Poe
   }
 
   return (
-    <ul className="mt-8 grid gap-5 sm:mt-10 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="mt-8 grid auto-rows-[minmax(0,1fr)] items-stretch gap-5 sm:mt-10 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
       {useDb
         ? dbCourses
             .map((c) => {

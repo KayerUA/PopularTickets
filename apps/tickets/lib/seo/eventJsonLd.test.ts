@@ -132,6 +132,51 @@ describe("buildEventJsonLd", () => {
     expect(geo.latitude).toBeTruthy();
     expect(geo.longitude).toBeTruthy();
   });
+
+  it("marks Boeing-Boeing at Scena Kocjana as a TheaterEvent in Bemowo", () => {
+    const ld = buildEventJsonLd(
+      {
+        ...baseEvent,
+        title: "Спектакль «Боинг-Боинг»",
+        description: "Фарс Marc Camoletti. Scena Kocjana.",
+        venue: "Bemowskie Centrum Kultury — Scena Kocjana, ul. Kocjana 3, 01-473 Warszawa",
+        slug: "spektakl-boing-boing-scena-kocjana-2026-10-04",
+      },
+      "ru",
+      { remaining: 170, soldOut: false, mapsUrl: null },
+    ) as Record<string, unknown>;
+    expect(ld["@type"]).toBe("TheaterEvent");
+    expect(ld.alternateName).toEqual(expect.arrayContaining(["Boeing-Boeing", "Боинг-Боинг"]));
+    expect(ld.additionalType).toBe("спектакль");
+    const location = ld.location as Record<string, unknown>;
+    const geo = location.geo as Record<string, unknown>;
+    expect(geo.latitude).toBeCloseTo(52.2544, 3);
+    expect(geo.longitude).toBeCloseTo(20.9253, 3);
+    const contained = location.containedInPlace as Record<string, unknown>;
+    expect(contained.name).toContain("Bemowo");
+  });
+
+  it("places Stand up Lokal in Śródmieście, not Mokotów", () => {
+    const ld = buildEventJsonLd(
+      {
+        ...baseEvent,
+        title: "Шоу импровизации «Нога в ногу»",
+        description: "Живая импровизационная комедия.",
+        venue: "Stand up Lokal, ul. Stanisława Noakowskiego 16, 00-666 Warszawa",
+        slug: "shou-improvizatsiya-noga-v-nogu-2026-10-25",
+      },
+      "ru",
+      { remaining: 40, soldOut: false, mapsUrl: null },
+    ) as Record<string, unknown>;
+    const location = ld.location as Record<string, unknown>;
+    const geo = location.geo as Record<string, unknown>;
+    expect(geo.latitude).toBeCloseTo(52.2217, 3);
+    expect(geo.longitude).toBeCloseTo(21.01, 3);
+    const address = location.address as Record<string, unknown>;
+    expect(address.postalCode).toBe("00-666");
+    const contained = location.containedInPlace as Record<string, unknown>;
+    expect(contained.name).toContain("Śródmieście");
+  });
 });
 
 describe("buildEventItemListJsonLd", () => {

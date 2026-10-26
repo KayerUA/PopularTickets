@@ -1,13 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { routing } from "@/i18n/routing";
 
-const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-sans" });
-const playfair = Playfair_Display({
-  subsets: ["latin", "latin-ext", "cyrillic"],
+const inter = localFont({
+  src: "../../../assets/fonts/Inter.ttf",
+  variable: "--font-sans",
+  weight: "100 900",
+});
+const playfair = localFont({
+  src: "../../../assets/fonts/PlayfairDisplay.ttf",
   variable: "--font-display",
-  weight: ["400", "600", "700"],
+  weight: "400 900",
 });
 
 export const metadata: Metadata = {

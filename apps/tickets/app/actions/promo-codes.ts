@@ -126,6 +126,7 @@ export async function previewPromoCode(input: { code: string; eventSlug: string;
     code: string;
     discountPercent: number | null;
     discountFixedGrosze: number | null;
+    requiredQuantity: number | null;
     discountPerTicketGrosze: number;
     discountedUnitPriceGrosze: number;
   } | { error: string } | null
@@ -148,6 +149,7 @@ export async function previewPromoCode(input: { code: string; eventSlug: string;
     code: promo.code,
     discountPercent: promo.discountPercent,
     discountFixedGrosze: promo.discountFixedGrosze,
+    requiredQuantity: promo.requiredQuantity,
     discountPerTicketGrosze,
     discountedUnitPriceGrosze: input.unitPriceGrosze - discountPerTicketGrosze,
   };

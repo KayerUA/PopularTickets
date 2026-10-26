@@ -16,7 +16,7 @@ export function PaidSeatSelection({ map, quantity, locale, token, orderId }: {
   const router = useRouter();
   const t = seatingText[locale];
   return <div className="space-y-4">
-    <SeatMap map={map} selected={selected} onChange={setSelected} limit={quantity} locale={locale} disabled={pending || saved} />
+    <SeatMap map={map} selected={selected} onChange={setSelected} limit={quantity} locale={locale} disabled={pending || saved} exactCount />
     <p className="text-sm text-zinc-400">{t.choose}</p>
     {message && <p role="status" className="text-amber-200">{message}</p>}
     <div className="flex flex-wrap gap-4">

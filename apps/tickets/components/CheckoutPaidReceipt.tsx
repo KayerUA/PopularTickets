@@ -7,6 +7,10 @@ import { TicketRipColumn } from "@/components/TicketRipColumn";
 import { formatEventDateTime } from "@/lib/format";
 import type { AppLocale } from "@/i18n/routing";
 import { POPULAR_POET_SITE_URL } from "@/lib/theatre";
+import { buildTicketWalletLinks } from "@/lib/wallet/links";
+import { walletButtonLabels } from "@/lib/wallet/labels";
+import { WalletButtons } from "@/components/WalletButtons";
+import { knownVenueFromAddress } from "@/lib/venueGeo";
 
 export type CheckoutReceiptLabels = {
   ticketsHeading: string;
@@ -43,15 +47,24 @@ export async function CheckoutPaidReceipt({
   const when = formatEventDateTime(receipt.startsAt, locale);
   const lessonsUrl = `${POPULAR_POET_SITE_URL.replace(/\/+$/, "")}/${locale}#schedule`;
   const isTrial = receipt.listingKind === "trial";
+  const walletLabels = walletButtonLabels(locale);
+  const venueMapUrl = knownVenueFromAddress(receipt.venue)?.mapsUrl;
+  const mapLabel = locale === "pl" ? "Otwórz w Mapach Google" : locale === "uk" ? "Відкрити в Google Картах" : "Открыть в Google Картах";
 
   const ticketRows = await Promise.all(
     receipt.tickets.map(async (t) => {
+      let walletLinks: { apple?: string; google?: string } = {};
+      try {
+        walletLinks = await buildTicketWalletLinks(t.id, locale);
+      } catch (err) {
+        console.error("[CheckoutPaidReceipt] Wallet link generation failed", { ticketId: t.id }, err);
+      }
       let dataUrl: string;
       try {
         dataUrl = await ticketQrDataUrl(t.id);
       } catch (err) {
         console.error("[CheckoutPaidReceipt] QR data URL failed", { ticketId: t.id }, err);
-        return { ...t, dataUrl: "", ticketPdfDataUrl: "", renderError: labels.ticketRenderError };
+        return { ...t, dataUrl: "", ticketPdfDataUrl: "", renderError: labels.ticketRenderError, walletLinks };
       }
       try {
         const pdfBuf = await renderTicketLayoutPdf({
@@ -71,10 +84,10 @@ export async function CheckoutPaidReceipt({
           stubControl: labels.stubControl,
         });
         const ticketPdfDataUrl = `data:application/pdf;base64,${pdfBuf.toString("base64")}`;
-        return { ...t, dataUrl, ticketPdfDataUrl, renderError: null as string | null };
+        return { ...t, dataUrl, ticketPdfDataUrl, renderError: null as string | null, walletLinks };
       } catch (err) {
         console.error("[CheckoutPaidReceipt] ticket PDF render failed", { ticketId: t.id }, err);
-        return { ...t, dataUrl, ticketPdfDataUrl: "", renderError: labels.ticketRenderError };
+        return { ...t, dataUrl, ticketPdfDataUrl: "", renderError: labels.ticketRenderError, walletLinks };
       }
     })
   );
@@ -87,6 +100,7 @@ export async function CheckoutPaidReceipt({
           {receipt.eventTitle} · {when}
         </p>
         <p className="mt-1 text-sm text-zinc-500">{receipt.venue}</p>
+        {venueMapUrl ? <a href={venueMapUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm text-poet-gold-bright underline underline-offset-2">{mapLabel}</a> : null}
       </div>
       <p className="text-sm leading-relaxed text-zinc-400">
         {labels.emailAlso}{" "}
@@ -159,6 +173,7 @@ export async function CheckoutPaidReceipt({
                     {labels.downloadTicket}
                   </a>
                 ) : null}
+                <WalletButtons links={t.walletLinks} labels={walletLabels} />
                 <CopyTextButton text={t.id} label={labels.copyId} copiedLabel={labels.copiedId} />
                 <p className="break-all font-mono text-[11px] leading-relaxed text-zinc-500">{t.id}</p>
               </div>

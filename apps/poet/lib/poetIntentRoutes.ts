@@ -26,7 +26,7 @@ const PL: PoetIntentPage[] = [
       "Kurs aktorski Popular Poet w Warszawie dla osób rosyjsko- i ukraińskojęzycznych: głos, ciało, emocje, tekst i praktyka sceniczna w małej grupie.",
     h1: "Kurs aktorski w Warszawie dla osób rosyjsko- i ukraińskojęzycznych",
     answerLead:
-      "Kurs aktorski Popular Poet w Warszawie — od 70 PLN za zajęcia otwarte, grupy do 12 osób, ul. Domaniewska 37. Zajęcia po rosyjsku lub ukraińsku; zapisy na popularpoet.pl.",
+      "Kurs aktorski Popular Poet w Warszawie — zajęcia próbne 100 PLN, potem można od razu dołączyć do grupy. Abonament 590 zł za 4 zajęcia. Ul. Domaniewska 37.",
     lead:
       "Praktyczne zajęcia sceniczne: głos, ciało, emocje, tekst i partner w małej grupie — bez polskojęzycznej akademii.",
     bullets: [
@@ -142,7 +142,7 @@ const PL: PoetIntentPage[] = [
       "Próbne zajęcia Popular Poet w Warszawie: pierwsze spotkanie z sceną, improwizacją i grupą bez długiego zobowiązania.",
     h1: "Próbne zajęcia w Warszawie",
     answerLead:
-      "Próbne zajęcie Popular Poet w Warszawie kosztuje od 70 PLN. Grupa do 12 osób, ul. Domaniewska 37. Rezerwacja online na PopularTickets.",
+      "Próbne zajęcie Popular Poet w Warszawie kosztuje 100 PLN. Grupa do 12 osób, ul. Domaniewska 37. Po zajęciach można od razu dołączyć do grupy. Rezerwacja online na PopularTickets.",
     lead:
       "Jedno spotkanie ze sceną, improwizacją i grupą — bez długiego zobowiązania na cały kurs.",
     bullets: [
@@ -165,7 +165,7 @@ const PL: PoetIntentPage[] = [
       },
       {
         q: "Czy po próbnym zajęciu można dołączyć do kursu?",
-        a: "Tak. Jeśli format pasuje, można przejść do regularnej grupy aktorskiej lub impro.",
+        a: "Tak. Jeśli format pasuje, po zajęciach próbnych możesz od razu dołączyć do regularnej grupy aktorskiej lub impro.",
       },
     ],
   },
@@ -280,7 +280,7 @@ const UK: PoetIntentPage[] = [
       "Акторські курси Popular Poet у Варшаві: голос, тіло, емоції, текст і сценічна практика в малих групах для україномовних і російськомовних учасників.",
     h1: "Акторські курси у Варшаві",
     answerLead:
-      "Акторський курс Popular Poet у Варшаві — від 70 PLN за відкрите заняття, групи до 12 осіб, ul. Domaniewska 37. Заняття українською або російською; запис на popularpoet.pl.",
+      "Акторський курс Popular Poet у Варшаві — пробне заняття 100 PLN, далі можна одразу приєднатися до групи. Абонемент 590 zł за 4 заняття. Ul. Domaniewska 37.",
     lead:
       "Голос, тіло, партнер, реакція та текст у малих групах — без зайвої теорії.",
     bullets: [
@@ -381,7 +381,7 @@ const UK: PoetIntentPage[] = [
       "Пробні заняття Popular Poet у Варшаві: перше знайомство зі сценою, імпровізацією та групою без довгого зобов’язання.",
     h1: "Пробне заняття у Варшаві",
     answerLead:
-      "Пробне заняття Popular Poet у Варшаві коштує від 70 PLN. Група до 12 осіб, ul. Domaniewska 37. Бронювання онлайн на PopularTickets.",
+      "Пробне заняття Popular Poet у Варшаві коштує 100 PLN. Група до 12 осіб, ul. Domaniewska 37. Після пробного можна одразу приєднатися до групи. Бронювання онлайн на PopularTickets.",
     lead:
       "Одна зустріч зі сценою, імпровізацією та групою — без довгого зобов’язання на весь курс.",
     bullets: [
@@ -404,7 +404,7 @@ const UK: PoetIntentPage[] = [
       },
       {
         q: "Чи можна після пробного перейти на курс?",
-        a: "Так. Якщо формат підходить, можна долучитися до регулярної акторської або impro-групи.",
+        a: "Так. Якщо формат підходить, після пробного можна одразу приєднатися до регулярної акторської або impro-групи.",
       },
     ],
   },
@@ -519,7 +519,7 @@ const RU: PoetIntentPage[] = [
       "Актёрские курсы Popular Poet в Варшаве: голос, тело, эмоции, текст и сценическая практика в малых группах для русскоязычных и украиноязычных участников.",
     h1: "Актёрские курсы в Варшаве",
     answerLead:
-      "Актёрский курс Popular Poet в Варшаве — от 70 PLN за открытое занятие, группы до 12 человек, ul. Domaniewska 37. Занятия на русском или украинском; запись на popularpoet.pl.",
+      "Актёрский курс Popular Poet в Варшаве — пробное занятие 100 PLN, дальше можно сразу присоединиться к группе. Абонемент 590 zł за 4 занятия. Ul. Domaniewska 37.",
     lead:
       "Голос, тело, партнёр, реакция и текст в малых группах — без лишней теории.",
     bullets: [
@@ -620,7 +620,7 @@ const RU: PoetIntentPage[] = [
       "Пробные занятия Popular Poet в Варшаве: первое знакомство со сценой, импровизацией и группой без длинного обязательства.",
     h1: "Пробное занятие в Варшаве",
     answerLead:
-      "Пробное занятие Popular Poet в Варшаве стоит от 70 PLN. Группа до 12 человек, ul. Domaniewska 37. Запись онлайн на PopularTickets.",
+      "Пробное занятие Popular Poet в Варшаве стоит 100 PLN. Группа до 12 человек, ul. Domaniewska 37. После пробного можно сразу присоединиться к группе. Запись онлайн на PopularTickets.",
     lead:
       "Одна встреча со сценой, импровизацией и группой — без длинного обязательства на весь курс.",
     bullets: [
@@ -643,7 +643,7 @@ const RU: PoetIntentPage[] = [
       },
       {
         q: "Можно ли после пробного перейти на курс?",
-        a: "Да. Если формат подходит, можно присоединиться к регулярной актёрской или импровизационной группе.",
+        a: "Да. Если формат подошёл, можно сразу присоединиться к регулярной актёрской или импровизационной группе.",
       },
     ],
   },

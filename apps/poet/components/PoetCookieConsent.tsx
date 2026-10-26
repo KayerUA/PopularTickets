@@ -23,6 +23,7 @@ function readStored(): ConsentValue | null {
 function writeStored(v: ConsentValue) {
   try {
     window.localStorage.setItem(STORAGE_KEY, v);
+    window.dispatchEvent(new CustomEvent("cookie-consent-changed", { detail: v }));
   } catch {
     /* ignore */
   }

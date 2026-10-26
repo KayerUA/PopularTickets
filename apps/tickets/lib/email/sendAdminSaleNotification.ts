@@ -302,6 +302,126 @@ ${
   }
 }
 
+function metaText(metadata: Record<string, unknown> | null, key: string): string {
+  const value = metadata?.[key];
+  return typeof value === "string" ? value.trim() : "";
+}
+
+/** IDEA and other CRM checkouts are not event-ticket orders, so the sale ping never saw them. */
+export async function sendCrmCheckoutSaleNotification(order: {
+  id: string;
+  amount_grosze: number;
+  buyer_email: string;
+  buyer_name: string | null;
+  description: string;
+  metadata: Record<string, unknown> | null;
+}): Promise<boolean> {
+  const sessionId = `crm-sale-${order.id}`;
+  const supabase = requireServiceSupabase();
+  const { data: already } = await supabase
+    .from("payment_callbacks")
+    .select("id")
+    .eq("session_id", sessionId)
+    .eq("status", "crm_admin_notified")
+    .limit(1)
+    .maybeSingle();
+  if (already) return true;
+
+  const phone = metaText(order.metadata, "phone");
+  const childName = metaText(order.metadata, "child_name");
+  const age = metaText(order.metadata, "age");
+  const idea = metaText(order.metadata, "source") === "ideaactors.pl";
+  const kind = idea ? "пробное IDEA" : "оплата CRM";
+  const amount = formatPlnFromGrosze(order.amount_grosze);
+  const buyer = order.buyer_name?.trim() || "—";
+  const subject = `[PopularTickets] ${kind} · ${amount} · ${buyer}`;
+
+  const rows: [string, string][] = [
+    ["Что", order.description],
+    ["Сумма", amount],
+    ["Покупатель", buyer],
+    ["Ребёнок", childName || "—"],
+    ["Возраст", age || "—"],
+    ["Email", order.buyer_email],
+    ["Телефон", phone || "—"],
+    ["Заказ", order.id],
+  ];
+
+  const to = notifyRecipients();
+  const key = (process.env.RESEND_API_KEY ?? "").trim();
+  const from =
+    (process.env.RESEND_FROM_EMAIL ?? "").trim() ||
+    (process.env.RESEND_FROM ?? "").trim() ||
+    fromDefault;
+  let emailOk = false;
+
+  if (to.length && key) {
+    const tableHtml = rows
+      .map(
+        ([label, value]) =>
+          `<tr><td style="padding:6px 12px 6px 0;color:#71717a;vertical-align:top;white-space:nowrap">${escapeHtml(label)}</td><td style="padding:6px 0;color:#fafafa">${escapeHtml(value)}</td></tr>`,
+      )
+      .join("");
+    const html = `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;background:#09090b;color:#fafafa;padding:24px">
+<p style="margin:0 0 16px;font-size:18px;font-weight:600">${escapeHtml(kind)}</p>
+<table style="border-collapse:collapse;font-size:14px;line-height:1.4">${tableHtml}</table>
+</body></html>`;
+    try {
+      const resend = new Resend(key);
+      const { error } = await resend.emails.send({ from, to, subject, html });
+      if (error) console.error("[sendCrmCheckoutSaleNotification] Resend error", error);
+      else emailOk = true;
+    } catch (error) {
+      console.error("[sendCrmCheckoutSaleNotification] Resend throw", error);
+    }
+  } else {
+    console.warn("[sendCrmCheckoutSaleNotification] email skipped: ADMIN_SALE_NOTIFY_EMAIL or RESEND_API_KEY is empty");
+  }
+
+  const saleNotifyChatIds = getTelegramSaleNotifyChatIds();
+  const childLine = [childName, age].filter(Boolean).join(" · ");
+  const tgText = [
+    emailOk ? "✅ Оплата" : "⚠️ Оплата — письмо админу не ушло",
+    kind,
+    order.description,
+    `💰 ${amount}`,
+    `👤 ${buyer}`,
+    childLine ? `🧒 ${childLine}` : null,
+    `✉️ ${order.buyer_email}`,
+    phone ? `📞 ${phone}` : null,
+  ].filter(Boolean).join("\n");
+
+  let telegramOk = false;
+  if (saleNotifyChatIds.size) {
+    const results = await Promise.all(
+      [...saleNotifyChatIds].map(async (chatId) => {
+        try {
+          await sendTelegramMessage(chatId, tgText);
+          return true;
+        } catch (telegramError) {
+          console.error("[sendCrmCheckoutSaleNotification] Telegram", telegramError);
+          return false;
+        }
+      }),
+    );
+    telegramOk = results.some(Boolean);
+  }
+
+  const configured = Boolean((to.length && key) || saleNotifyChatIds.size);
+  if (!emailOk && !telegramOk && configured) return false;
+
+  const { error: auditErr } = await supabase.from("payment_callbacks").insert({
+    provider: "admin_notify",
+    order_id: null,
+    provider_order_id: null,
+    session_id: sessionId,
+    status: "crm_admin_notified",
+    payload: { crmCheckoutOrderId: order.id, emailOk, idea },
+  });
+  if (auditErr) console.warn("[sendCrmCheckoutSaleNotification] audit insert skipped:", auditErr.message);
+  return true;
+}
+
 function resendErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {

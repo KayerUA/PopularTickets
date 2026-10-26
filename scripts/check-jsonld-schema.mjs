@@ -8,7 +8,7 @@ const source = readFileSync(join(root, "apps/tickets/lib/seo/eventJsonLd.ts"), "
 const requiredSnippets = [
   "function stripJsonLdEmptyValues",
   "return stripJsonLdEmptyValues({",
-  '"@type": "Event"',
+  '"TheaterEvent"',
   "startDate: event.starts_at",
   "additionalType: eventFormat",
   '"@type": "Place"',

@@ -6,6 +6,7 @@ import type { AppLocale } from "@/i18n/routing";
 import { getServiceSupabase } from "@/lib/supabase/admin";
 import { loadOrderReceiptState } from "@/lib/checkoutReceipt";
 import { CheckoutPaidReceipt, type CheckoutReceiptLabels } from "@/components/CheckoutPaidReceipt";
+import { MetaPurchase } from "@/components/MetaTrack";
 import { ScrollToTopOnMount } from "@/components/ScrollToTopOnMount";
 import { Link } from "@/i18n/navigation";
 import { isOrderReceiptSigningConfigured, verifyOrderReceiptToken } from "@/lib/orderReceiptToken";
@@ -95,7 +96,19 @@ export default async function CheckoutReturnPage({
           : `/checkout/return?order=${encodeURIComponent(orderId)}`;
 
       if (state.kind === "paid") {
-        receiptBlock = <CheckoutPaidReceipt receipt={state.receipt} locale={locale} labels={labels} />;
+        receiptBlock = (
+          <>
+            <MetaPurchase
+              orderId={state.receipt.orderId}
+              slug={state.receipt.eventSlug}
+              name={state.receipt.eventTitle}
+              totalPln={state.receipt.amountGrosze / 100}
+              quantity={state.receipt.quantity}
+              productType={state.receipt.listingKind === "trial" ? "course" : "ticket"}
+            />
+            <CheckoutPaidReceipt receipt={state.receipt} locale={locale} labels={labels} />
+          </>
+        );
       } else if (state.kind === "pending") {
         receiptBlock = (
           <div className="mt-8 space-y-3 border-t border-poet-gold/20 pt-8 text-left">

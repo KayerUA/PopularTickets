@@ -1,8 +1,7 @@
 import Image from "next/image";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
-import type { AppLocale } from "@/i18n/routing";
+import { getTicketsSiteBase } from "@/lib/ticketsSite";
 import { PoetLocaleSwitcher } from "@/components/PoetLocaleSwitcher";
 
 const navLinkClass =
@@ -10,7 +9,6 @@ const navLinkClass =
 
 export async function PoetHeader() {
   const tickets = getTicketsSiteBase();
-  const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("Poet");
 
   return (
@@ -50,20 +48,13 @@ export async function PoetHeader() {
             <Link href="/#kursy" className={navLinkClass}>
               {t("navCourses")}
             </Link>
+            <Link href="/#afisha" title={t("navTicketsTitle")} className={navLinkClass}>
+              {t("navTickets")}
+            </Link>
             <Link href="/#schedule" className={navLinkClass}>
               {t("navTrials")}
             </Link>
-            {tickets ? (
-              <>
-                <a
-                  href={ticketsHome(locale)}
-                  title={t("navTicketsTitle")}
-                  className={`${navLinkClass} max-w-[9.5rem] truncate sm:max-w-none`}
-                >
-                  {t("navTickets")}
-                </a>
-              </>
-            ) : (
+            {tickets ? null : (
               <span className="shrink-0 px-2 text-[10px] leading-tight text-amber-200/80 sm:text-[11px]">{t("envMissing")}</span>
             )}
           </nav>

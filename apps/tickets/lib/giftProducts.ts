@@ -21,13 +21,13 @@ export function getGiftProducts(): GiftProduct[] {
   return [
     {
       code: "trial_gift",
-      priceGrosze: envGrosze("GIFT_TRIAL_PRICE_PLN", 70),
+      priceGrosze: envGrosze("GIFT_TRIAL_PRICE_PLN", 100),
       titleKey: "trialGiftTitle",
       bodyKey: "trialGiftBody",
     },
     {
       code: "pass_4",
-      priceGrosze: envGrosze("GIFT_PASS4_PRICE_PLN", 280),
+      priceGrosze: envGrosze("GIFT_PASS4_PRICE_PLN", 590),
       titleKey: "pass4Title",
       bodyKey: "pass4Body",
     },

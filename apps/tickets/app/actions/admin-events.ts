@@ -18,6 +18,7 @@ import { parseStartsAtFromAdminForm } from "@/lib/warsawEventDatetime";
 import { DEFAULT_EVENT_LANGUAGE, normalizeEventLanguage } from "@/lib/eventLanguage";
 import { resolveEventMapsUrlForSave } from "@/lib/theatreVenueDefaults";
 import {
+  parseEventVenuePresetId,
   resolveVenueFieldsFromPreset,
   type EventVenuePresetId,
 } from "@/lib/eventVenues";
@@ -234,8 +235,7 @@ function groszeFromPln(pln: number): number {
 
 function resolveVenueFromFormData(formData: FormData): { venue: string; mapsUrl: string } {
   const presetRaw = String(formData.get("venuePresetId") ?? "popular-poet-theatre");
-  const presetId: EventVenuePresetId =
-    presetRaw === "swietlica-wolnosci" || presetRaw === "custom" ? presetRaw : "popular-poet-theatre";
+  const presetId: EventVenuePresetId = parseEventVenuePresetId(presetRaw);
   const rawListingKind = String(formData.get("listingKind") ?? "performance");
   const listingKind = rawListingKind === "trial" || rawListingKind === "special" ? rawListingKind : "performance";
   return resolveVenueFieldsFromPreset(

@@ -10,6 +10,7 @@ export type ApplicablePromo = {
   discountPercent: number | null;
   discountFixedGrosze: number | null;
   commissionPerTicketGrosze: number;
+  requiredQuantity: number | null;
 };
 
 type PromoCodeRow = {
@@ -26,6 +27,7 @@ type PromoCodeRow = {
   starts_at: string | null;
   ends_at: string | null;
   max_redemptions: number | null;
+  required_quantity?: number | null;
 };
 
 export function normalizePromoCode(raw: string | null | undefined): string {
@@ -69,11 +71,20 @@ export async function resolveApplicablePromoCode(
 
   const extended = await supabase
     .from("promo_codes")
-    .select("id,code,partner_name,discount_percent,discount_type,discount_fixed_grosze,commission_grosze,scope,event_id,is_active,starts_at,ends_at,max_redemptions")
+    .select("id,code,partner_name,discount_percent,discount_type,discount_fixed_grosze,commission_grosze,scope,event_id,is_active,starts_at,ends_at,max_redemptions,required_quantity")
     .eq("code", code)
     .maybeSingle();
   let data = extended.data as PromoCodeRow | null;
   let error = extended.error;
+  if (error?.code === "42703" || error?.code === "PGRST204") {
+    const current = await supabase
+      .from("promo_codes")
+      .select("id,code,partner_name,discount_percent,discount_type,discount_fixed_grosze,commission_grosze,scope,event_id,is_active,starts_at,ends_at,max_redemptions")
+      .eq("code", code)
+      .maybeSingle();
+    data = current.data as PromoCodeRow | null;
+    error = current.error;
+  }
   if (error?.code === "42703" || error?.code === "PGRST204") {
     const legacy = await supabase
       .from("promo_codes")
@@ -113,5 +124,6 @@ export async function resolveApplicablePromoCode(
       ? (data.discount_fixed_grosze ?? ambassador?.discountFixedGrosze ?? null)
       : null,
     commissionPerTicketGrosze: data.commission_grosze ?? ambassador?.commissionPerTicketGrosze ?? 0,
+    requiredQuantity: data.required_quantity ?? null,
   };
 }

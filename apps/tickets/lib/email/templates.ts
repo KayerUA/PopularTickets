@@ -7,6 +7,7 @@ import {
 } from "@/lib/email/ticketCardHtml";
 import { ticketEmailStrings } from "@/lib/email/ticketEmailI18n";
 import type { AppLocale } from "@/i18n/routing";
+import { knownVenueFromAddress } from "@/lib/venueGeo";
 
 const C = {
   bg: "#0b0609",
@@ -46,6 +47,8 @@ export function ticketEmailHtml(params: {
   seatingNotice?: string;
 }): string {
   const str = ticketEmailStrings(params.locale);
+  const venueMapUrl = knownVenueFromAddress(params.venue)?.mapsUrl;
+  const mapLabel = params.locale === "pl" ? "Otwórz w Mapach Google" : params.locale === "uk" ? "Відкрити в Google Картах" : "Открыть в Google Картах";
   const ticketCards = params.tickets.map((t) => renderEmailTicketCardHtml(t, params.cardLabels)).join("");
 
   const kicker = brandKicker(params.locale);
@@ -90,6 +93,7 @@ export function ticketEmailHtml(params: {
                   <tr>
                     <td style="padding:8px 28px 20px 28px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:${C.muted};font-size:15px;line-height:1.6;">
                       <span style="display:block;color:${C.muted};">${esc(params.venue)}</span>
+                      ${venueMapUrl ? `<a href="${esc(venueMapUrl)}" style="display:inline-block;margin-top:6px;color:${C.goldBright};text-decoration:underline;">${esc(mapLabel)}</a>` : ""}
                       <span style="display:block;margin-top:8px;font-size:16px;font-weight:600;color:${C.goldBright};">${esc(params.startsAt)}</span>
                     </td>
                   </tr>

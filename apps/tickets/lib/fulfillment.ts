@@ -9,7 +9,7 @@ import {
   signVerify,
 } from "@/lib/p24";
 import { sendTicketsEmail } from "@/lib/email/sendTickets";
-import { sendAdminSaleNotification } from "@/lib/email/sendAdminSaleNotification";
+import { sendAdminSaleNotification, sendCrmCheckoutSaleNotification } from "@/lib/email/sendAdminSaleNotification";
 import { formatEventDateTime } from "@/lib/format";
 import type { AppLocale } from "@/i18n/routing";
 import { sendCrmPaidWebhook } from "@/lib/crmCheckout";
@@ -232,14 +232,32 @@ export async function handleP24Notification(
       .not("delivered_at", "is", null)
       .limit(1)
       .maybeSingle();
+    let webhookFailed = false;
     if (!delivered) {
       try {
         await sendCrmPaidWebhook(paidOrder);
       } catch (error) {
         console.error("[crm checkout] paid webhook", error);
-        return { status: 502, body: "CRM webhook delivery failed" };
+        webhookFailed = true;
       }
     }
+    let notified = false;
+    try {
+      notified = await sendCrmCheckoutSaleNotification({
+        id: paidOrder.id,
+        amount_grosze: paidOrder.amount_grosze,
+        buyer_email: paidOrder.buyer_email,
+        buyer_name: paidOrder.buyer_name,
+        description: paidOrder.description,
+        metadata: paidOrder.metadata && typeof paidOrder.metadata === "object" && !Array.isArray(paidOrder.metadata)
+          ? paidOrder.metadata as Record<string, unknown>
+          : null,
+      });
+    } catch (error) {
+      console.error("[crm checkout] sale notification", error);
+    }
+    if (webhookFailed) return { status: 502, body: "CRM webhook delivery failed" };
+    if (!notified) return { status: 502, body: "sale notification failed" };
     return { status: 200, body: "ok" };
   }
 

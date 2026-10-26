@@ -7,6 +7,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { DocumentLangSync } from "@/components/DocumentLangSync";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { MetaPixel } from "@/components/MetaPixel";
 
 type Props = {
   children: ReactNode;
@@ -30,6 +31,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       <DocumentLangSync />
       <Suspense fallback={null}>
         <GoogleAnalytics />
+        <MetaPixel />
       </Suspense>
       {children}
       <CookieConsent />

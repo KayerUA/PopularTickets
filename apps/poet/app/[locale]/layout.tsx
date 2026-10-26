@@ -4,6 +4,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { PoetDocumentLangSync } from "@/components/PoetDocumentLangSync";
 import { PoetCookieConsent } from "@/components/PoetCookieConsent";
+import { PoetMetaPixel } from "@/components/PoetMetaPixel";
+import { Suspense } from "react";
 import { PoetFooter } from "@/components/PoetFooter";
 import { PoetHeader } from "@/components/PoetHeader";
 import { routing, type AppLocale } from "@/i18n/routing";
@@ -63,6 +65,9 @@ export default async function LocaleLayout({ children, params }: Props) {
       <main className="flex-1 overflow-x-hidden">{children}</main>
       <PoetFooter />
       <PoetCookieConsent />
+      <Suspense fallback={null}>
+        <PoetMetaPixel />
+      </Suspense>
     </NextIntlClientProvider>
   );
 }

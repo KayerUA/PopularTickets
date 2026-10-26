@@ -26,6 +26,7 @@ import { effectiveEventPriceGrosze } from "@/lib/eventPrice";
 import { normalizePromoCode, promoDiscountGrosze, resolveApplicablePromoCode } from "@/lib/promoCodes";
 
 import { seatingText } from "@/lib/seating/i18n";
+import { parseOrderAttribution } from "@/lib/orderAttribution";
 
 function p24UiLanguage(locale: AppLocale): string {
   if (locale === "pl") return "pl";
@@ -119,6 +120,9 @@ export async function createPendingOrder(
     id: event.id as string,
     listingKind: event.listing_kind as string | null,
   });
+  if (promo?.requiredQuantity && quantity !== promo.requiredQuantity) {
+    throw new Error(`Этот промокод действует только при покупке ${promo.requiredQuantity} билетов.`);
+  }
   const promoDiscount = promo ? promoDiscountGrosze(effectiveUnitPriceGrosze, quantity, promo) : 0;
   const amountGrosze = baseAmountGrosze - promoDiscount;
 
@@ -137,6 +141,7 @@ export async function createPendingOrder(
     p24_session_id: orderId,
     locale: parsed.data.locale,
     marketing_email_opt_in: marketingEmailOptIn,
+    attribution: parseOrderAttribution(formData.get("attribution")),
     promo_code_id: promo?.id ?? null,
     promo_code: promo?.code ?? (normalizePromoCode(formData.get("promoCode")?.toString()) || null),
     promo_discount_grosze: promoDiscount,
@@ -176,7 +181,7 @@ export async function createPendingOrder(
     throw new Error(seatError.message.includes("seating_priority") ? seatingText[locale].priority : seatingText[locale].conflict);
   }
 
-  if (isCheckoutBypassPayment()) {
+  if (amountGrosze === 0 || isCheckoutBypassPayment()) {
     try {
       await bypassPaymentAndFulfillOrder(orderId);
     } catch (e) {

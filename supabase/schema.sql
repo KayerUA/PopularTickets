@@ -90,6 +90,30 @@ alter table public.orders
 comment on column public.orders.marketing_email_opt_in is
   'Согласие покупателя на информационные/маркетинговые email (отдельно от транзакционных писем о заказе).';
 
+-- Миграция: оценка мероприятия — `supabase/add-event-ratings.sql`.
+alter table public.orders
+  add column if not exists rating_invited_at timestamptz;
+
+comment on column public.orders.rating_invited_at is
+  'Когда покупателю отправили письмо с персональной ссылкой на оценку этого заказа.';
+
+alter table public.orders
+  add column if not exists attribution jsonb;
+
+alter table public.orders
+  drop constraint if exists orders_attribution_object;
+alter table public.orders
+  add constraint orders_attribution_object check (
+    attribution is null or coalesce((
+      jsonb_typeof(attribution) = 'object'
+      and attribution ->> 'version' = '1'
+      and jsonb_typeof(attribution -> 'first_touch') = 'object'
+    ), false)
+  );
+
+comment on column public.orders.attribution is
+  'Browser-reported first touch and last non-direct touch, captured before payment. Null for legacy or untracked orders; not proof of advertising causality.';
+
 -- Билеты (UUID = ticket_id для QR)
 create table if not exists public.tickets (
   id uuid primary key default gen_random_uuid(),
@@ -127,6 +151,21 @@ create table if not exists public.payment_callbacks (
 
 create index if not exists payment_callbacks_order_id_idx on public.payment_callbacks (order_id);
 create index if not exists payment_callbacks_session_id_idx on public.payment_callbacks (session_id);
+
+create table if not exists public.event_ratings (
+  order_id uuid primary key references public.orders (id) on delete cascade,
+  event_id uuid not null references public.events (id) on delete restrict,
+  buyer_email text not null,
+  score smallint not null check (score between 1 and 5),
+  comment text,
+  created_at timestamptz not null default now(),
+  constraint event_ratings_comment_len check (comment is null or char_length(comment) <= 1000)
+);
+
+create index if not exists event_ratings_event_id_idx on public.event_ratings (event_id);
+create index if not exists event_ratings_created_at_idx on public.event_ratings (created_at);
+create unique index if not exists event_ratings_event_email_unique
+  on public.event_ratings (event_id, lower(buyer_email));
 
 -- updated_at trigger
 create or replace function public.set_updated_at()
@@ -313,6 +352,9 @@ alter table public.orders enable row level security;
 alter table public.tickets enable row level security;
 alter table public.checkins enable row level security;
 alter table public.payment_callbacks enable row level security;
+alter table public.event_ratings enable row level security;
+revoke all on table public.event_ratings from anon, authenticated;
+grant all on table public.event_ratings to service_role;
 
 drop policy if exists "events_select_published" on public.events;
 create policy "events_select_published"

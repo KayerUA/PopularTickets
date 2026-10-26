@@ -55,7 +55,7 @@ export function EventCard(e: EventCardProps) {
       <article
         className={`flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/55 shadow-gold-sm backdrop-blur-sm transition duration-500 ease-out group-hover:-translate-y-0.5 group-hover:border-poet-gold/45 group-hover:shadow-gold sm:group-hover:-translate-y-1 ${e.status === "past" ? "opacity-[0.88]" : ""} ${e.status === "sold_out" ? "opacity-95 saturate-[0.85]" : ""}`}
       >
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-950">
+        <div className={`relative w-full overflow-hidden bg-zinc-950 ${e.imageUrl ? "" : "aspect-[4/3]"}`}>
           {e.imageUrl ? (
             <MediaCoverBlurred
               src={e.imageUrl}
@@ -63,8 +63,8 @@ export function EventCard(e: EventCardProps) {
               sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
               unoptimized={!isOptimizableEventImage(e.imageUrl)}
               coverObjectPosition={eventCoverObjectPosition(e.imageFocalX, e.imageFocalY)}
-              frameClassName="absolute inset-0"
-              fit="contain"
+              frameClassName="relative w-full"
+              fit="natural"
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-poet-gold-dim/35 via-poet-bg to-zinc-950" />

@@ -8,6 +8,7 @@ import { MediaCoverBlurred } from "@/components/MediaCoverBlurred";
 import { EventStatusBadge } from "@/components/EventStatusBadge";
 import type { PoetTrialDisplay } from "@/lib/poetTrials";
 import type { AppLocale } from "@/i18n/routing";
+import type { EventListingKind } from "@/lib/eventMarketingStatus";
 import { ticketsEventPage, ticketsTrialCheckout } from "@/lib/ticketsSite";
 
 type Props = {
@@ -15,14 +16,25 @@ type Props = {
   locale: AppLocale;
   /** Показать бейдж курса (на главной календаре). */
   showCourseBadge?: boolean;
+  listingKind?: EventListingKind;
+  /** Кадр из галереи курса. У каждой даты свой, пропорция ближе к фото. */
+  galleryImageUrl?: string | null;
 };
 
-export async function PoetTrialEventCard({ slot, locale, showCourseBadge = false }: Props) {
+export async function PoetTrialEventCard({
+  slot,
+  locale,
+  showCourseBadge = false,
+  listingKind = "trial",
+  galleryImageUrl = null,
+}: Props) {
   const t = await getTranslations("EventCard");
   const tPoet = await getTranslations("Poet");
-  const href = slot.courseSlug
-    ? ticketsTrialCheckout(locale, slot.courseSlug, slot.slug)
-    : ticketsEventPage(locale, slot.slug);
+  const isShow = listingKind === "performance";
+  const href =
+    !isShow && slot.courseSlug
+      ? ticketsTrialCheckout(locale, slot.courseSlug, slot.slug)
+      : ticketsEventPage(locale, slot.slug);
   const language = normalizeEventLanguage(slot.eventLanguage);
   const when = slot.starts_at ? formatEventDateTime(slot.starts_at, locale) : null;
   const cta =
@@ -30,7 +42,9 @@ export async function PoetTrialEventCard({ slot, locale, showCourseBadge = false
       ? t("ctaPast")
       : slot.status === "sold_out"
         ? t("ctaSoldOut")
-        : t("buyTrial");
+        : isShow
+          ? t("buyTicket")
+          : t("buyTrial");
   const label = `${slot.title} — ${cta}`;
 
   return (
@@ -42,14 +56,17 @@ export async function PoetTrialEventCard({ slot, locale, showCourseBadge = false
       <article
         className={`flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/55 shadow-gold-sm backdrop-blur-sm transition duration-500 ease-out group-hover:-translate-y-0.5 group-hover:border-poet-gold/45 group-hover:shadow-gold sm:group-hover:-translate-y-1 ${slot.status === "past" ? "opacity-[0.88]" : ""} ${slot.status === "sold_out" ? "opacity-95 saturate-[0.85]" : ""}`}
       >
-        <div className="relative aspect-[16/10] w-full overflow-hidden bg-zinc-950 sm:aspect-video">
-          {slot.imageUrl ? (
+        {/* Одна рамка для всех карточек в сетке: одинаковая высота, object-cover без полос. */}
+        <div className={`relative w-full overflow-hidden bg-zinc-950 ${galleryImageUrl ? "aspect-[3/4]" : "aspect-[16/10] sm:aspect-video"}`}>
+          {galleryImageUrl || slot.imageUrl ? (
             <MediaCoverBlurred
-              src={slot.imageUrl}
+              src={(galleryImageUrl || slot.imageUrl) as string}
               alt=""
               sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
-              unoptimized={!isOptimizableEventImage(slot.imageUrl)}
-              coverObjectPosition={eventCoverObjectPosition(slot.imageFocalX, slot.imageFocalY)}
+              unoptimized={!isOptimizableEventImage(galleryImageUrl || slot.imageUrl)}
+              coverObjectPosition={
+                galleryImageUrl ? "center 22%" : eventCoverObjectPosition(slot.imageFocalX, slot.imageFocalY)
+              }
               frameClassName="absolute inset-0"
             />
           ) : (
@@ -57,7 +74,7 @@ export async function PoetTrialEventCard({ slot, locale, showCourseBadge = false
           )}
           <div className="pointer-events-none absolute inset-0 z-[3] bg-gradient-to-t from-poet-bg via-poet-bg/5 to-transparent opacity-80" />
           <div className="pointer-events-none absolute left-3 top-3 z-[4] flex flex-wrap gap-2 sm:left-4 sm:top-4">
-            <EventStatusBadge status={slot.status} listingKind="trial" />
+            <EventStatusBadge status={slot.status} listingKind={listingKind} />
           </div>
         </div>
         <div className="flex min-h-0 flex-1 flex-col justify-between gap-5 p-4 text-zinc-100 sm:p-5">

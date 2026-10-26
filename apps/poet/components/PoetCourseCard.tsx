@@ -33,24 +33,24 @@ export function PoetCourseCard({
   ctaLabel,
 }: Props) {
   return (
-    <li className="h-full list-none">
+    <li className="flex h-full min-h-0 w-full min-w-0 list-none flex-col">
       <article
-        className={`poet-course-card poet-course-card--${variant} group relative flex h-full flex-col overflow-hidden rounded-2xl border p-4 text-inherit shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] transition duration-500 hover:-translate-y-0.5 sm:p-5`}
+        className={`poet-course-card--${variant} group flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/55 shadow-gold-sm backdrop-blur-sm transition duration-500 ease-out hover:-translate-y-0.5 hover:border-poet-gold/45 hover:shadow-gold sm:hover:-translate-y-1`}
       >
-        <div className="poet-shine pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
-        <div className="relative mb-4 aspect-[16/10] w-full overflow-hidden rounded-xl border border-poet-gold/20 bg-zinc-950">
+        <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-950">
           <MediaCoverBlurred
             src={image}
             alt={title}
-            sizes="(max-width:640px) calc(100vw - 4rem), (max-width:1024px) 50vw, 240px"
+            sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
             unoptimized={unoptimized}
             frameClassName="absolute inset-0"
-            coverObjectPosition={variant === "acting" ? "50% 6%" : undefined}
+            coverObjectPosition={variant === "acting" ? "50% 18%" : "center 22%"}
           />
+          <div className="pointer-events-none absolute inset-0 z-[3] bg-gradient-to-t from-poet-bg via-poet-bg/5 to-transparent opacity-80" />
         </div>
-
+        <div className="flex min-h-0 flex-1 flex-col p-4 text-zinc-100 sm:p-5">
         {tagLine ? (
-          <p className="relative text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500">{tagLine}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-poet-gold/75">{tagLine}</p>
         ) : null}
         <h3 className="relative mt-2 font-display text-[1.35rem] font-semibold leading-tight tracking-tight sm:text-[1.45rem]">
           <Link
@@ -60,12 +60,12 @@ export function PoetCourseCard({
             {title}
           </Link>
         </h3>
-        <p className="relative mt-3 line-clamp-4 text-[0.9375rem] leading-relaxed text-zinc-300 sm:line-clamp-5 sm:text-sm">
+        <p className="relative mt-3 mb-5 line-clamp-4 text-[0.9375rem] leading-relaxed text-zinc-300 sm:line-clamp-5 sm:text-sm">
           {description}
         </p>
 
         {program ? (
-          <details className="group/details relative mt-5 rounded-xl border border-poet-gold/20 bg-black/25 open:bg-black/40">
+          <details className="group/details relative mb-5 rounded-xl border border-poet-gold/20 bg-black/25 open:bg-black/40">
             <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-zinc-100 outline-none marker:content-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-poet-gold/60 [&::-webkit-details-marker]:hidden">
               <span>{programToggleLabel}</span>
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-poet-gold/25 text-poet-gold transition group-open/details:rotate-45" aria-hidden>
@@ -95,18 +95,19 @@ export function PoetCourseCard({
         {bookingHref.startsWith("http://") || bookingHref.startsWith("https://") || bookingHref.startsWith("#") ? (
           <a
             href={bookingHref}
-            className="btn-poet btn-poet-theatre relative mt-5 inline-flex min-h-11 w-full items-center justify-center px-4 py-2.5 text-center text-sm font-semibold no-underline"
+            className="btn-poet poet-shine relative mt-auto inline-flex min-h-11 w-full items-center justify-center px-4 py-2.5 text-center text-sm font-semibold no-underline"
           >
             {ctaLabel}
           </a>
         ) : (
           <Link
             href={bookingHref}
-            className="btn-poet btn-poet-theatre relative mt-5 inline-flex min-h-11 w-full items-center justify-center px-4 py-2.5 text-center text-sm font-semibold no-underline"
+            className="btn-poet poet-shine relative mt-auto inline-flex min-h-11 w-full items-center justify-center px-4 py-2.5 text-center text-sm font-semibold no-underline"
           >
             {ctaLabel}
           </Link>
         )}
+        </div>
       </article>
     </li>
   );

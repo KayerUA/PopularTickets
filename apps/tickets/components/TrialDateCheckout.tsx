@@ -96,6 +96,7 @@ export function TrialDateCheckout({
       ) : (
         <EventCheckoutForm
           eventSlug={selected.slug}
+          productType="course"
           remaining={selected.remaining}
           locale={locale}
           unitPriceGrosze={selected.priceGrosze}

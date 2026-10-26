@@ -2,6 +2,8 @@
  * Пробные Popular Poet всегда в театре на Domaniewskiej.
  * Адрес только по-польски (не переводить для других локалей UI).
  */
+import { knownVenueFromAddress } from "@/lib/venueGeo";
+
 export const POPULAR_POET_TRIAL_VENUE_PL =
   "Warszawa, ul. Domaniewska 37, Centrum biznesowe Zepter, piętro 5, lokal 42";
 
@@ -30,7 +32,7 @@ export function defaultMapsUrlForEvent(
 ): string {
   if (listingKind === "trial") return POPULAR_POET_THEATRE_MAPS_URL;
   if (isPopularPoetTheatreVenue(venue)) return POPULAR_POET_THEATRE_MAPS_URL;
-  return "";
+  return knownVenueFromAddress(venue)?.mapsUrl ?? "";
 }
 
 /** Перед сохранением: подставить дефолт или заменить устаревший URL театра. */

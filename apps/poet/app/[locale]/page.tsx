@@ -5,7 +5,9 @@ import { PoetJsonLd } from "@/components/PoetJsonLd";
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { fetchPublishedTrials } from "@/lib/poetTrials";
+import { fetchPublishedPerformances } from "@/lib/poetPerformances";
 import { fetchPublishedPoetCourses } from "@/lib/poetCourses";
+import { PoetAfisha } from "@/components/PoetAfisha";
 import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
 import { buildFaqPageJsonLd, buildPoetOrganizationLocalGraph } from "@/lib/poetJsonLd";
@@ -20,7 +22,11 @@ export default async function HomePage() {
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("Poet");
   const tMeta = await getTranslations("metadata");
-  const [trials, dbCourses] = await Promise.all([fetchPublishedTrials(locale), fetchPublishedPoetCourses()]);
+  const [trials, shows, dbCourses] = await Promise.all([
+    fetchPublishedTrials(locale),
+    fetchPublishedPerformances(locale),
+    fetchPublishedPoetCourses(),
+  ]);
   const heroProofs = [t("heroProofPractice"), t("heroProofGroups"), t("heroProofTrial")];
 
   const base = getPoetSiteUrl()?.replace(/\/$/, "");
@@ -47,11 +53,22 @@ export default async function HomePage() {
           poetBaseUrl: base,
         })
       : null;
+  const afishaListLd =
+    base && shows.length
+      ? buildPoetTrialItemListJsonLd({
+          trials: shows,
+          locale,
+          listName: t("afishaTitle"),
+          listUrl: `${base}${poetCanonicalPath(locale, "/")}#afisha`,
+          poetBaseUrl: base,
+        })
+      : null;
 
   return (
     <div className="poet-safe-x mx-auto max-w-5xl pb-12 pt-6 sm:pb-16 sm:pt-8">
       {orgLd ? <PoetJsonLd data={orgLd} /> : null}
       {scheduleListLd ? <PoetJsonLd data={scheduleListLd} /> : null}
+      {afishaListLd ? <PoetJsonLd data={afishaListLd} /> : null}
       <PoetJsonLd data={faqLd} />
       <div className="relative overflow-hidden rounded-2xl border border-poet-gold/15">
         <Image
@@ -103,14 +120,12 @@ export default async function HomePage() {
               >
                 {t("heroCtaCalendar")}
               </a>
-              {tickets ? (
-                <a
-                  href={ticketsHome(locale)}
-                  className="inline-flex items-center justify-center rounded-full border border-zinc-600/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-200 transition hover:border-zinc-500 hover:text-white sm:text-sm sm:normal-case sm:tracking-normal"
-                >
-                  {t("heroCtaTickets")}
-                </a>
-              ) : null}
+              <a
+                href="#afisha"
+                className="inline-flex items-center justify-center rounded-full border border-zinc-600/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-200 transition hover:border-zinc-500 hover:text-white sm:text-sm sm:normal-case sm:tracking-normal"
+              >
+                {t("heroCtaTickets")}
+              </a>
             </div>
           </header>
         </div>
@@ -121,6 +136,8 @@ export default async function HomePage() {
         <p className="mt-2 max-w-2xl text-sm text-zinc-500">{t("coursesIntro")}</p>
         <PoetCourseShowcase dbCourses={dbCourses} locale={locale} />
       </section>
+
+      <PoetAfisha locale={locale} shows={shows} />
 
       <section id="schedule" className="mt-14 scroll-mt-32 sm:mt-20 sm:scroll-mt-28">
         <h2 className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">{t("calendarTitle")}</h2>
