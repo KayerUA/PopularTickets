@@ -42,7 +42,7 @@ export type EventSitemapTier = {
 };
 
 /**
- * Авто-приоритет в sitemap: будущие — выше, недавно прошедшие — средние, старые — ниже (но остаются в sitemap).
+ * Приоритет для будущих событий; архивные значения сохранены для вызывающего кода.
  */
 export function eventSitemapTier(startsAt: string): EventSitemapTier {
   const startMs = new Date(startsAt).getTime();

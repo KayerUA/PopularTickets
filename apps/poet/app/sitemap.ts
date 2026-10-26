@@ -15,28 +15,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const slugs =
     courses.length > 0
       ? [...new Set(courses.map((c) => c.slug))]
-      : [...(POET_STATIC_COURSE_SLUGS as readonly string[])];
+      : [...(POET_STATIC_COURSE_SLUGS as readonly string[])].filter((slug) => slug !== "masterclass");
 
-  const last = new Date();
   const entries: MetadataRoute.Sitemap = [];
 
   for (const locale of routing.locales) {
+    entries.push({ url: `${base}/${locale}/grupa-teatralna-dla-doroslych-warszawa`, changeFrequency: "monthly", priority: 0.8 });
     entries.push({
       url: `${base}/${locale}`,
-      lastModified: last,
       changeFrequency: "weekly",
       priority: 1,
     });
     entries.push({
       url: `${base}/${locale}${FACTS_PATH}`,
-      lastModified: last,
       changeFrequency: "monthly",
       priority: 0.85,
     });
-    for (const { page } of allPoetIntentPages().filter((x) => x.locale === locale)) {
+    for (const { page } of allPoetIntentPages().filter((x) => x.locale === locale && x.page.cluster !== "playback")) {
       entries.push({
         url: `${base}/${locale}/${page.slug}`,
-        lastModified: last,
         changeFrequency: "monthly",
         priority: 0.82,
       });
@@ -44,7 +41,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const slug of slugs) {
       entries.push({
         url: `${base}/${locale}/kursy/${encodeURIComponent(slug)}`,
-        lastModified: last,
         changeFrequency: "weekly",
         priority: 0.75,
       });

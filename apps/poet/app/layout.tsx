@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { routing } from "@/i18n/routing";
+import { getLocale } from "next-intl/server";
 
 const inter = localFont({
   src: "../../../assets/fonts/Inter.ttf",
@@ -32,9 +33,11 @@ export const viewport: Viewport = {
   themeColor: "#0b0709",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const requestLocale = await getLocale();
+  const locale = routing.locales.includes(requestLocale as (typeof routing.locales)[number]) ? requestLocale : routing.defaultLocale;
   return (
-    <html lang={routing.defaultLocale} suppressHydrationWarning className={`${inter.variable} ${playfair.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased poet-safe-b">
         <div className="relative z-10 flex min-h-dvh flex-col">
           <div className="poet-curtain" aria-hidden />

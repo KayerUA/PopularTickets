@@ -1,5 +1,6 @@
 import type { AppLocale } from "@/i18n/routing";
 import { poetCanonicalPath } from "@/lib/seoPoet";
+import { courseDetails } from "@/lib/courseDetails";
 import {
   POET_ADDRESS_COUNTRY,
   POET_ADDRESS_LOCALITY,
@@ -32,12 +33,14 @@ export function buildPoetOrganizationLocalGraph(input: {
     if (!sameAs.includes(t)) sameAs.push(t);
   }
 
-  const orgId = `${url}#organization`;
-  const placeId = `${url}#place`;
+  const orgId = `${baseUrl.replace(/\/$/, "")}#organization`;
+  const placeId = `${baseUrl.replace(/\/$/, "")}#place`;
+  const teacherId = `${baseUrl.replace(/\/$/, "")}#stepan`;
 
   const postal = {
     "@type": "PostalAddress",
     streetAddress: POET_ADDRESS_STREET,
+    postalCode: POET_ADDRESS_POSTAL_CODE,
     addressLocality: POET_ADDRESS_LOCALITY,
     addressCountry: POET_ADDRESS_COUNTRY,
   };
@@ -53,6 +56,17 @@ export function buildPoetOrganizationLocalGraph(input: {
         url,
         ...(logoUrl ? { logo: { "@type": "ImageObject", url: logoUrl } } : {}),
         sameAs,
+        employee: { "@id": teacherId },
+      },
+      {
+        "@type": "Person",
+        "@id": teacherId,
+        name: "Степан Баранцов",
+        jobTitle: "Режиссёр, педагог актёрского мастерства",
+        image: `${baseUrl.replace(/\/$/, "")}/images/teachers/stepan-barantsov.webp`,
+        worksFor: { "@id": orgId },
+        knowsLanguage: ["ru"],
+        sameAs: ["https://ideaactors.pl/ru", "https://t.me/Stefan_stepp"],
       },
       {
         "@type": ["LocalBusiness", "PerformingArtsTheater"],
@@ -109,7 +123,10 @@ export function buildCourseJsonLd(input: {
   url: string;
   providerUrl: string;
   inLanguage: string;
+  courseSlug?: string;
 }): Record<string, unknown> {
+  const details = input.courseSlug ? courseDetails(input.courseSlug) : null;
+  const base = new URL(input.providerUrl).origin;
   return {
     "@context": "https://schema.org",
     "@type": "Course",
@@ -119,10 +136,15 @@ export function buildCourseJsonLd(input: {
     inLanguage: input.inLanguage,
     provider: {
       "@type": "Organization",
+      "@id": `${base}#organization`,
       name: POET_ORGANIZATION_NAME,
       alternateName: POET_ORGANIZATION_ALTERNATE_NAMES,
       url: input.providerUrl,
     },
+    ...(details ? {
+      offers: { "@type": "Offer", price: details.pricePerBlock, priceCurrency: "PLN", name: "4 занятия", url: input.url },
+      hasCourseInstance: { "@type": "CourseInstance", courseMode: "Onsite", courseWorkload: `PT${details.lessons * 2}H`, instructor: { "@id": `${base}#stepan` }, maximumAttendeeCapacity: details.groupSize, location: { "@id": `${base}#place` } },
+    } : {}),
   };
 }
 

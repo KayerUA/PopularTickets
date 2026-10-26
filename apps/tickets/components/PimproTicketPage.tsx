@@ -93,9 +93,10 @@ export async function PimproTicketPage({
             </ol>
           </nav>
           <h1>
+            <span className="sr-only">{title}</span>
             <img
               src="/brand/pimpro/wordmark-on-black.png"
-              alt="P!MPRO"
+              alt=""
               width={1232}
               height={328}
               className="h-auto w-full"

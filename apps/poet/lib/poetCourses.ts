@@ -33,7 +33,7 @@ export async function fetchPublishedPoetCourses(): Promise<PoetCourseRow[]> {
     .order("sort_order", { ascending: true });
 
   if (!full.error) {
-    return ((full.data ?? []) as PoetCourseRow[]).filter((c) => c.slug !== "masterclass");
+    return ((full.data ?? []) as PoetCourseRow[]).filter((c) => c.slug !== "masterclass" && c.slug !== "playback");
   }
 
   const basicSel =
@@ -55,7 +55,7 @@ export async function fetchPublishedPoetCourses(): Promise<PoetCourseRow[]> {
       "title_pl" | "body_pl" | "title_uk" | "body_uk" | "card_tag_pl" | "card_tag_uk"
     >[]
   )
-    .filter((c) => c.slug !== "masterclass")
+    .filter((c) => c.slug !== "masterclass" && c.slug !== "playback")
     .map(
     (row) => ({
       ...row,

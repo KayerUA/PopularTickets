@@ -14,7 +14,15 @@ export function eventEndDateIso(startsAt: string, durationMs = DEFAULT_EVENT_DUR
   }
   const offsetMatch = startsAt.match(/([+-]\d{2}:\d{2})$/);
   if (offsetMatch) {
-    return end.toISOString().replace(".000Z", offsetMatch[1]);
+    const suffix = offsetMatch[1];
+    const minutes = (Number(suffix.slice(1, 3)) * 60 + Number(suffix.slice(4, 6))) * (suffix[0] === "-" ? -1 : 1);
+    return new Date(end.getTime() + minutes * 60_000).toISOString().replace(/\.000Z$/, suffix);
   }
   return end.toISOString().replace(".000Z", "Z");
+}
+
+export function resolveEventEndDateIso(event: { starts_at: string; ends_at?: string | null; listing_kind?: string | null }): string | undefined {
+  if (event.ends_at && Date.parse(event.ends_at) > Date.parse(event.starts_at)) return event.ends_at;
+  if (event.listing_kind === "trial") return eventEndDateIso(event.starts_at, 2 * 60 * 60 * 1000);
+  return undefined;
 }

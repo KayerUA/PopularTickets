@@ -6,7 +6,7 @@ import { resolveEventMarketingStatus } from "@/lib/eventMarketingStatus";
 import type { PoetTrialDisplay } from "@/lib/poetTrials";
 
 const SHOW_SELECT_WITH_LANG =
-  "id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, venue, price_grosze, image_url, image_focal_x, image_focal_y, total_tickets, event_language";
+  "id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, ends_at, venue, price_grosze, image_url, image_focal_x, image_focal_y, total_tickets, event_language";
 
 const SHOW_SELECT_CORE =
   "id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, venue, price_grosze, image_url, image_focal_x, image_focal_y, total_tickets";
@@ -40,6 +40,7 @@ function mapShowRow(r: Record<string, unknown>, locale: AppLocale, soldCount: nu
     title: copy.title,
     body: copy.description?.trim() ? copy.description.trim() : null,
     starts_at: startsAt,
+    ends_at: typeof r.ends_at === "string" ? r.ends_at : null,
     slug: r.slug as string,
     courseId: null,
     courseSlug: null,

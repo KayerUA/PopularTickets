@@ -103,7 +103,7 @@ export default async function IntentDiscoverPage({
     const nowIso = new Date().toISOString();
     let query = supabase
       .from("events")
-      .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language,visibility")
+      .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,ends_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language,visibility")
       .eq("visibility", "published")
       .gte("starts_at", nowIso)
       .order("starts_at", { ascending: true });
@@ -118,7 +118,7 @@ export default async function IntentDiscoverPage({
     if (error?.code === "42703") {
       let fallbackQuery = supabase
         .from("events")
-        .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,visibility")
+        .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,ends_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,visibility")
         .eq("visibility", "published")
         .gte("starts_at", nowIso)
         .order("starts_at", { ascending: true });
@@ -171,6 +171,7 @@ export default async function IntentDiscoverPage({
           description: copy.description ?? "",
           venue: ev.venue as string,
           starts_at: ev.starts_at as string,
+          ends_at: ev.ends_at as string | null,
           image_url: (ev.image_url as string | null) ?? null,
           price_grosze: ev.price_grosze as number,
           slug: ev.slug as string,
@@ -289,6 +290,7 @@ export default async function IntentDiscoverPage({
         {answer ? <p className="mt-4 text-base font-semibold leading-relaxed text-zinc-100">{answer}</p> : null}
         <p className="mt-3 whitespace-pre-line text-base leading-relaxed text-zinc-300">{t(`${cluster}Intro`)}</p>
       </header>
+      {!isTrialCluster ? <nav className="mt-5 flex flex-wrap gap-5"><Link className="inline-flex min-h-11 items-center text-poet-gold-bright underline" href="/shou">{locale === "pl" ? "Repertuar" : locale === "uk" ? "Репертуар" : "Репертуар"}</Link><Link className="inline-flex min-h-11 items-center text-poet-gold-bright underline" href={`/${TICKETS_INTENT_CLUSTER_SLUGS.comedy[locale]}`}>{locale === "pl" ? "Komedia i impro" : locale === "uk" ? "Комедія та імпровізація" : "Комедия и импровизация"}</Link></nav> : null}
 
       {editorialCluster ? (
         <section className="mt-10 max-w-4xl" aria-labelledby="intent-guide-heading">

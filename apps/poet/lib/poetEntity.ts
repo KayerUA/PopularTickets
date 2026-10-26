@@ -16,8 +16,8 @@ export const POET_THEATRE_MAPS_URL = "https://maps.app.goo.gl/BtaKyKYvp6nGZbx37"
 export const POET_LEGACY_THEATRE_MAPS_URL_FRAGMENT = "jz9E6JUn8rcymRoH7";
 
 /** Координаты Centrum biznesowe Zepter, ul. Domaniewska 37 (Google Maps). */
-export const POET_GEO_LAT = 52.1783;
-export const POET_GEO_LNG = 21.0034;
+export const POET_GEO_LAT = 52.1828699;
+export const POET_GEO_LNG = 21.0068606;
 
 /** Контакт театра (совпадает с PopularTickets /firma). */
 export const POET_PUBLIC_PHONE = {

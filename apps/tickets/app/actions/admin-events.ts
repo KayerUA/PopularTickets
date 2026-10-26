@@ -39,6 +39,8 @@ export type UpsertEventRetryFields = {
   mapsUrl: string;
   venue: string;
   startsAt: string;
+  endsAt?: string;
+  showId?: string;
   pricePln: string;
   dayOfEventPricePln: string;
   totalTickets: string;
@@ -78,6 +80,8 @@ function formRetryFromFormData(formData: FormData): UpsertEventRetryFields {
     mapsUrl: String(formData.get("mapsUrl") ?? ""),
     venue: String(formData.get("venue") ?? ""),
     startsAt: String(formData.get("startsAt") ?? ""),
+    endsAt: String(formData.get("endsAt") ?? ""),
+    showId: String(formData.get("showId") ?? ""),
     pricePln: String(formData.get("pricePln") ?? ""),
     dayOfEventPricePln: String(formData.get("dayOfEventPricePln") ?? ""),
     totalTickets: String(formData.get("totalTickets") ?? ""),
@@ -113,6 +117,8 @@ function formRetryFromParsed(
     mapsUrl: v.mapsUrl || "",
     venue: v.venue,
     startsAt: String(formData.get("startsAt") ?? ""),
+    endsAt: String(formData.get("endsAt") ?? ""),
+    showId: String(formData.get("showId") ?? ""),
     pricePln: String(formData.get("pricePln") ?? ""),
     dayOfEventPricePln: String(formData.get("dayOfEventPricePln") ?? ""),
     totalTickets: String(v.totalTickets),
@@ -158,6 +164,8 @@ const EventSchema = z.object({
   mapsUrl: z.string().url().optional().or(z.literal("")),
   venue: z.string().min(2).max(200),
   startsAt: z.string().min(1),
+  endsAt: z.string().optional().default(""),
+  showId: z.union([z.string().uuid(), z.literal("")]).optional().default(""),
   pricePln: z.coerce.number().positive(),
   dayOfEventPricePln: z.preprocess(
     (v) => (v === "" || v === undefined || v === null ? null : Number(v)),
@@ -293,6 +301,8 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       mapsUrl: venueResolved.mapsUrl,
       venue: venueResolved.venue,
       startsAt: formData.get("startsAt"),
+      endsAt: formData.get("endsAt") || "",
+      showId: formData.get("showId") || "",
       pricePln: formData.get("pricePln"),
       dayOfEventPricePln: formData.get("dayOfEventPricePln"),
       discountPeriods: formData.get("discountPeriods") || "",
@@ -335,6 +345,13 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
     }
 
     const imageFile = formData.get("imageFile");
+    let endsAtIso: string | null = null;
+    try {
+      endsAtIso = v.endsAt ? parseStartsAtFromAdminForm(v.endsAt) : v.listingKind === "trial" ? new Date(Date.parse(startsAtIso) + 2 * 60 * 60 * 1000).toISOString() : null;
+      if (endsAtIso && Date.parse(endsAtIso) <= Date.parse(startsAtIso)) throw new Error("invalid end");
+    } catch {
+      return { error: "Время окончания должно быть позже начала (Europe/Warsaw).", ...newRetryEnvelope(formRetryFromFormData(formData)) };
+    }
     let imageUrlFinal: string | null = v.imageUrl || null;
     if (imageFile instanceof File && imageFile.size > 0) {
       try {
@@ -358,6 +375,8 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       image_url: imageUrlFinal,
       venue: v.venue,
       starts_at: startsAtIso,
+      ends_at: endsAtIso,
+      show_id: v.listingKind === "trial" ? null : v.showId || null,
       price_grosze: priceGrosze,
       day_of_event_price_grosze: dayOfEventPriceGrosze,
       total_tickets: v.totalTickets,

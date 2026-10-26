@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
+import { POET_GEO_LAT, POET_GEO_LNG } from "@/lib/poetEntity";
 
 const OG_LOCALE: Record<AppLocale, string> = {
   pl: "pl_PL",
@@ -11,7 +12,7 @@ const OG_LOCALE: Record<AppLocale, string> = {
 const GEO_OTHER: Record<string, string> = {
   "geo.region": "PL",
   "geo.placename": "Warsaw",
-  ICBM: "52.2297, 21.0122",
+  ICBM: `${POET_GEO_LAT}, ${POET_GEO_LNG}`,
 };
 
 export function poetCanonicalPath(locale: AppLocale, path: string): string {

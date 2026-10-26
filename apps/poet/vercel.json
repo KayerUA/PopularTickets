@@ -3,6 +3,12 @@
   "framework": "nextjs",
   "redirects": [
     {
+      "source": "/",
+      "has": [{ "type": "host", "value": "popularpoet.pl" }],
+      "destination": "https://www.popularpoet.pl/ru",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "popularpoet.pl" }],
       "destination": "https://www.popularpoet.pl/:path*",

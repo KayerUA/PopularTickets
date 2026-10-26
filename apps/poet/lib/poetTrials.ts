@@ -20,6 +20,7 @@ export type PoetTrialDisplay = {
   title: string;
   body: string | null;
   starts_at: string | null;
+  ends_at?: string | null;
   slug: string;
   /** Зв'язок з курсом (подія trial + `poet_course_id` або legacy slot). */
   courseId: string | null;
@@ -154,6 +155,7 @@ function mapEventRow(
     title,
     body: body && body.length > 0 ? body : null,
     starts_at: startsAt,
+    ends_at: typeof r.ends_at === "string" ? r.ends_at : null,
     slug: r.slug as string,
     courseId,
     courseSlug,
@@ -264,7 +266,7 @@ async function loadSoldCountsByEventSlug(
 }
 
 const TRIAL_EVENT_CORE_SELECT =
-  "id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, venue, price_grosze, image_url, image_focal_x, image_focal_y, total_tickets";
+  "id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, ends_at, venue, price_grosze, image_url, image_focal_x, image_focal_y, total_tickets";
 
 const TRIAL_EVENT_COURSE_EMBED = "poet_course ( id, slug, title, title_pl, title_uk )";
 

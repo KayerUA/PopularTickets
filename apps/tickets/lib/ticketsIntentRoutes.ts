@@ -5,6 +5,7 @@ import { canonicalPath } from "@/lib/seo";
 
 /** Кластер темы → ключи в namespace IntentDiscover (messages). */
 export type IntentClusterKey =
+  | "comedy"
   | "evening"
   | "theatre"
   | "improv"
@@ -20,6 +21,7 @@ export type IntentClusterKey =
 
 /** Slug по локали для hreflang (разные URL одного кластера). */
 export const TICKETS_INTENT_CLUSTER_SLUGS: Record<IntentClusterKey, Partial<Record<AppLocale, string>>> = {
+  comedy: { ru: "komediya-na-russkom-varshava", uk: "komediya-rosiyskoyu-varshava", pl: "komedia-po-rosyjsku-warszawa" },
   evening: {
     pl: "co-robic-w-warszawie-wieczorem",
     ru: "kuda-shodit-v-varshave-vecherom",
@@ -42,10 +44,12 @@ export const TICKETS_INTENT_CLUSTER_SLUGS: Record<IntentClusterKey, Partial<Reco
     pl: "wydarzenia-dla-doroslych-warszawa",
   },
   russian: {
+    pl: "wydarzenia-po-rosyjsku-warszawa",
     ru: "russkoyazychnye-meropriyatiya-varshava",
     uk: "ukrainski-podii-varshava",
   },
   leisure: {
+    pl: "czas-wolny-w-warszawie",
     ru: "dosug-v-varshave",
     uk: "dozvillya-u-varshavi",
   },
@@ -77,6 +81,9 @@ export const TICKETS_INTENT_CLUSTER_SLUGS: Record<IntentClusterKey, Partial<Reco
 /** Slug URL по локали → кластер контента. */
 export const INTENT_SLUG_TO_CLUSTER: Record<AppLocale, Record<string, IntentClusterKey>> = {
   pl: {
+    "komedia-po-rosyjsku-warszawa": "comedy",
+    "wydarzenia-po-rosyjsku-warszawa": "russian",
+    "czas-wolny-w-warszawie": "leisure",
     "co-robic-w-warszawie-wieczorem": "evening",
     "wydarzenia-teatralne-warszawa": "theatre",
     "improwizacja-warszawa": "improv",
@@ -87,6 +94,7 @@ export const INTENT_SLUG_TO_CLUSTER: Record<AppLocale, Record<string, IntentClus
     "probnie-zajecia-warszawa": "trial",
   },
   ru: {
+    "komediya-na-russkom-varshava": "comedy",
     "kuda-shodit-v-varshave-vecherom": "evening",
     "dosug-v-varshave": "leisure",
     "sobytiya-v-varshave": "events",
@@ -99,6 +107,7 @@ export const INTENT_SLUG_TO_CLUSTER: Record<AppLocale, Record<string, IntentClus
     "probnoe-zanyatie-varshava": "trial",
   },
   uk: {
+    "komediya-rosiyskoyu-varshava": "comedy",
     "kudy-pity-u-varshavi-vvecheri": "evening",
     "dozvillya-u-varshavi": "leisure",
     "podii-u-varshavi": "events",

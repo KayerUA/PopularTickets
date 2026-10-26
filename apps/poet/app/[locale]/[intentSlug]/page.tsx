@@ -16,6 +16,9 @@ import { fetchPublishedTrials } from "@/lib/poetTrials";
 import { buildPoetTrialItemListJsonLd } from "@/lib/poetTrialJsonLd";
 import { getTicketsSiteBase } from "@/lib/ticketsSite";
 import { formatEventDateTime } from "@/lib/formatEventDateTime";
+import { StudioLocation } from "@/components/StudioLocation";
+import { COURSE_LANGUAGE } from "@/lib/courseDetails";
+import { TeacherCard } from "@/components/TeacherCard";
 
 type PageProps = { params: Promise<{ locale: string; intentSlug: string }> };
 
@@ -133,6 +136,7 @@ export default async function PoetIntentPage({ params }: PageProps) {
       {eventsListLd ? <PoetJsonLd data={eventsListLd} /> : null}
       <PoetJsonLd data={faqLd} />
 
+
       <nav className="mb-6 text-sm text-zinc-500" aria-label="Breadcrumb">
         <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <li>
@@ -149,6 +153,7 @@ export default async function PoetIntentPage({ params }: PageProps) {
         </ol>
       </nav>
 
+      <p className="mb-5 text-zinc-300">{COURSE_LANGUAGE[loc]}</p>
       <header className="max-w-3xl">
         <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-poet-gold/80">{cityLabel}</p>
         <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight text-gradient-gold sm:text-5xl">
@@ -172,6 +177,7 @@ export default async function PoetIntentPage({ params }: PageProps) {
           </Link>
         </div>
       </header>
+      {page.cluster === "trial" || page.cluster === "acting-course" || page.cluster === "improv-course" ? <TeacherCard locale={loc} /> : null}
 
       <section className="mt-10 grid gap-4 sm:grid-cols-2" aria-label={bulletsAria}>
         {page.bullets.map((item) => (
@@ -249,6 +255,7 @@ export default async function PoetIntentPage({ params }: PageProps) {
           ))}
         </dl>
       </section>
+      <StudioLocation locale={loc} />
     </div>
   );
 }

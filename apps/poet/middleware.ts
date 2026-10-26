@@ -19,6 +19,19 @@ function permanentRedirectIfTemporary(req: NextRequest, res: NextResponse): Next
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  if (pathname === "/") {
+    const url = req.nextUrl.clone();
+    url.pathname = "/ru";
+    return NextResponse.redirect(url, 308);
+  }
+  const unavailableCourse = pathname.match(/^\/(pl|uk|ru)\/(?:kursy\/playback|playback-teatr-(?:varshava|warszawa))\/?$/);
+  if (unavailableCourse) {
+    const loc = unavailableCourse[1];
+    const hub = loc === "pl" ? "kurs-aktorski-warszawa" : loc === "uk" ? "aktorski-kursy-varshava" : "akterskie-kursy-varshava";
+    const url = req.nextUrl.clone();
+    url.pathname = `/${loc}/${hub}`;
+    return NextResponse.redirect(url, 308);
+  }
 
   const dup = pathname.match(/^\/(pl|uk|ru)\/(pl|uk|ru)(\/.*)?$/);
   if (dup) {

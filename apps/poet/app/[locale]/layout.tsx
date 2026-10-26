@@ -11,6 +11,9 @@ import { PoetHeader } from "@/components/PoetHeader";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { buildPoetPageMetadata } from "@/lib/seoPoet";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
+import { PoetJsonLd } from "@/components/PoetJsonLd";
+import { buildPoetOrganizationLocalGraph } from "@/lib/poetJsonLd";
+import { getTicketsSiteBase } from "@/lib/ticketsSite";
 
 type Props = { children: React.ReactNode; params: Promise<{ locale: string }> };
 
@@ -57,9 +60,11 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   setRequestLocale(locale);
   const messages = await getMessages();
+  const base = getPoetSiteUrl();
 
   return (
     <NextIntlClientProvider messages={messages}>
+      {base ? <PoetJsonLd data={buildPoetOrganizationLocalGraph({ baseUrl: base, locale: locale as AppLocale, logoUrl: `${base}/brand/popular-poet-logo.png`, ticketsSiteUrl: getTicketsSiteBase() })} /> : null}
       <PoetDocumentLangSync />
       <PoetHeader />
       <main className="flex-1 overflow-x-hidden">{children}</main>

@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "titleDefault": "Popular Poet — teatr i kursy aktorskie w Warszawie (improwizacja, PLAY-BACK)",
+    "titleDefault": "Studio teatralne w Warszawie: improwizacja i aktorstwo po rosyjsku | Popular Poet",
     "titleTemplate": "%s · Popular Poet",
-    "description": "Popular Poet w Warszawie (ul. Domaniewska 37): kursy aktorskie, improwizacja, PLAY-BACK, zajęcia otwarte i masterclassy. Wydarzenia dla widzów — przez PopularTickets.",
+    "description": "Studio teatralne dla dorosłych w Warszawie. Improwizacja i aktorstwo po rosyjsku, można mówić po ukraińsku. Grupy do 8 osób, zajęcia próbne 100 zł.",
     "keywords": "Popular Poet, teatr Warszawa, kursy aktorskie, improwizacja, warsztaty aktorskie, masterclass aktorski, PLAY-BACK, zajęcia wprowadzające, bilety online, PopularTickets",
     "ogImagePath": "/courses/theatre-photo.jpg",
     "ogImageAlt": "Popular Poet — teatr i kursy w Warszawie"
@@ -234,7 +234,7 @@
     "envMissing": "Ustaw NEXT_PUBLIC_TICKETS_SITE_URL",
     "marqueePhrase": "Popular Poet · scena bez czekania · improwizacja · aktorstwo · PLAY-BACK · masterclassy · zajęcia otwarte · ",
     "heroEyebrow": "Teatr Popular Poet",
-    "heroTitle": "Kursy dla osób, które chcą grać, a nie tylko oglądać",
+    "heroTitle": "Studio teatralne w Warszawie: improwizacja i aktorstwo po rosyjsku",
     "heroLeadBefore": "W ",
     "heroLeadBrand": "Popular Poet",
     "heroLeadMiddle": " wszystko opiera się na żywym kontakcie: głos, ciało, partner, reakcja i scena. Nie chodzi o perfekcję — chodzi o odpuszczenie kontroli i wejście w proces. Wydarzenia dla widzów są na ",

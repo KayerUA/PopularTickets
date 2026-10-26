@@ -29,6 +29,11 @@ import { PoetJsonLd } from "@/components/PoetJsonLd";
 import { buildBreadcrumbListJsonLd, buildCourseJsonLd, buildFaqPageJsonLd } from "@/lib/poetJsonLd";
 import { buildTrialEventSeriesJsonLd } from "@/lib/poetTrialJsonLd";
 import { POET_STATIC_COURSE_SLUGS } from "@/lib/poetStaticCourses";
+import { TeacherCard } from "@/components/TeacherCard";
+import { COURSE_SEO } from "@/lib/courseDetails";
+import { StudioLocation } from "@/components/StudioLocation";
+import { CourseStageLinks } from "@/components/CourseStageLinks";
+import { CourseFacts } from "@/components/CourseFacts";
 
 export const revalidate = 60;
 
@@ -75,6 +80,8 @@ export async function generateMetadata({ params }: PageProps) {
     return {};
   }
 
+  const seo = slug === "improv" || slug === "acting" ? COURSE_SEO[locale as AppLocale][slug] : null;
+  if (seo) { title = seo.title; description = seo.description; heroPath = slug === "improv" ? IMPROV_COVER.src : ACTING_COVER.src; }
   const base = getPoetSiteUrl();
   const path = `/kursy/${slug}`;
   const ogImages = base
@@ -89,11 +96,11 @@ export async function generateMetadata({ params }: PageProps) {
     : undefined;
 
   const robots =
-    course?.visibility === "unlisted" ? ({ index: false, follow: true } as const) : undefined;
+    course?.visibility === "unlisted" || slug === "masterclass" ? ({ index: false, follow: true } as const) : undefined;
   return buildPoetPageMetadata({
     locale: locale as AppLocale,
     path,
-    title: `${title} — ${tPage("metaCourseLabel")}`,
+    title: seo ? `${title} | Popular Poet` : `${title} · ${tPage("metaCourseLabel")}`,
     description,
     keywords: tMeta("keywords")
       .split(",")
@@ -155,6 +162,10 @@ export default async function PoetCoursePage({ params }: PageProps) {
 
   let trials: PoetTrialDisplay[];
   const loc = locale as AppLocale;
+  if (slug === "improv" || slug === "acting") {
+    display.title = COURSE_SEO[loc][slug].title;
+    display.body = COURSE_SEO[loc][slug].description;
+  }
   if (dbCourse) {
     trials = await fetchTrialsForCourse(dbCourse.id, loc);
   } else {
@@ -175,7 +186,8 @@ export default async function PoetCoursePage({ params }: PageProps) {
           description: plainDesc.length > 0 ? plainDesc : display.title,
           url: courseAbs,
           providerUrl: homeAbs,
-          inLanguage: inLang[loc],
+          inLanguage: "ru",
+          courseSlug: slug,
         })
       : null;
   const breadcrumbLd =
@@ -283,10 +295,15 @@ export default async function PoetCoursePage({ params }: PageProps) {
       </article>
       )}
 
+      <CourseFacts slug={slug} locale={loc} />
+      <StudioLocation locale={loc} />
+      <CourseStageLinks locale={loc} slug={slug} />
+      {program ? <TeacherCard locale={loc} /> : null}
       {program?.story ? <PoetCourseStory story={program.story} /> : null}
 
       {photoCourse && photoCourse.shots.length > 0 ? (
         <PoetImprovGallery
+          locale={loc}
           shots={photoCourse.shots}
           title={tPage("improvGalleryTitle")}
           lead={tPage("improvGalleryLead")}

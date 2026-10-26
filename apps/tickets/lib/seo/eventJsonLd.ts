@@ -12,7 +12,7 @@ import {
   POPULAR_POET_THEATRE_MAPS_URL,
   POPULAR_POET_THEATRE_POSTAL_CODE,
 } from "@/lib/theatreVenueDefaults";
-import { eventEndDateIso } from "@/lib/seo/eventEndDateIso";
+import { resolveEventEndDateIso } from "@/lib/seo/eventEndDateIso";
 import { eventSearchAliases, isStagedPlay, knownVenueFromAddress } from "@/lib/venueGeo";
 
 type EventRow = {
@@ -20,6 +20,7 @@ type EventRow = {
   description: string;
   venue: string;
   starts_at: string;
+  ends_at?: string | null;
   image_url: string | null;
   price_grosze: number;
   slug: string;
@@ -127,14 +128,12 @@ export function buildEventJsonLd(
     : atTheatre
       ? POPULAR_POET_THEATRE_GEO
       : null;
-  const endDate = eventEndDateIso(event.starts_at);
+  const endDate = resolveEventEndDateIso(event);
   const startMs = new Date(event.starts_at).getTime();
   const isPast = !Number.isNaN(startMs) && startMs < Date.now();
-  const eventStatus = isPast
-    ? "https://schema.org/EventCompleted"
-    : "https://schema.org/EventScheduled";
+  const eventStatus = "https://schema.org/EventScheduled";
   const availability = isPast
-    ? "https://schema.org/Discontinued"
+    ? "https://schema.org/SoldOut"
     : opts.soldOut || opts.remaining <= 0
       ? "https://schema.org/SoldOut"
       : "https://schema.org/InStock";
@@ -184,7 +183,6 @@ export function buildEventJsonLd(
     priceCurrency: "PLN",
     availability,
     category: "EventTicket",
-    validFrom: new Date().toISOString(),
     validThrough: endDate,
     seller: ticketSeller,
   }) as object;

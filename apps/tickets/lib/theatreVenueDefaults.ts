@@ -12,7 +12,7 @@ export const POPULAR_POET_THEATRE_MAPS_URL = "https://maps.app.goo.gl/BtaKyKYvp6
 
 /** Индекс и координаты площадки (Centrum biznesowe Zepter, Domaniewska 37). */
 export const POPULAR_POET_THEATRE_POSTAL_CODE = "02-677";
-export const POPULAR_POET_THEATRE_GEO = { lat: 52.1783, lng: 21.0034 } as const;
+export const POPULAR_POET_THEATRE_GEO = { lat: 52.1828699, lng: 21.0068606 } as const;
 
 const LEGACY_THEATRE_MAPS_URL_FRAGMENT = "jz9E6JUn8rcymRoH7";
 

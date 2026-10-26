@@ -2,10 +2,10 @@
  * Slugi URL `/[locale]/kursy/{slug}` для статичного fallback (коли картки з i18n без рядка в БД).
  * У продакшені бажано створити відповідні опубліковані `poet_course` з тими ж slug.
  */
-export const POET_STATIC_COURSE_SLUGS = ["improv", "acting", "masterclass", "playback"] as const;
+export const POET_STATIC_COURSE_SLUGS = ["improv", "acting", "masterclass"] as const;
 
 /** Курсы на главной (masterclass временно скрыт). */
-export const POET_HOMEPAGE_COURSE_SLUGS = ["improv", "acting", "playback"] as const;
+export const POET_HOMEPAGE_COURSE_SLUGS = ["improv", "acting"] as const;
 export type PoetHomepageCourseSlug = (typeof POET_HOMEPAGE_COURSE_SLUGS)[number];
 export type PoetStaticCourseSlug = (typeof POET_STATIC_COURSE_SLUGS)[number];
 
@@ -24,7 +24,7 @@ type SeoDescriptionKey =
   | "coursePlaybackSeoDescription";
 type TagKey = "courseImprovTag" | "courseActingTag" | "courseMasterclassTag" | "coursePlaybackTag";
 
-export function staticCourseKeys(slug: PoetStaticCourseSlug): {
+export function staticCourseKeys(slug: PoetStaticCourseSlug | "playback"): {
   titleKey: TitleKey;
   bodyKey: BodyKey;
   seoDescriptionKey: SeoDescriptionKey;

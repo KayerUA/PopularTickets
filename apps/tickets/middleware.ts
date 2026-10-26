@@ -27,6 +27,11 @@ function nextWithDefaultLocale(req: NextRequest) {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  if (pathname === "/") {
+    const url = req.nextUrl.clone();
+    url.pathname = "/ru";
+    return NextResponse.redirect(url, 308);
+  }
 
   if (pathname.startsWith("/api")) {
     if (pathname.startsWith("/api/admin")) {

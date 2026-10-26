@@ -73,6 +73,7 @@ export default async function EventsIndexPage({ params }: { params: Promise<{ lo
       </header>
 
       <section className="space-y-6">
+        <nav className="flex flex-wrap gap-5 text-zinc-300"><Link className="inline-flex min-h-11 items-center underline" href="/shou">{locale === "pl" ? "Repertuar" : "Репертуар"}</Link><Link className="inline-flex min-h-11 items-center underline" href="/events/arhiv">{locale === "pl" ? "Archiwum" : locale === "uk" ? "Архів" : "Архив"}</Link></nav>
         {cards.length ? (
           <>
             <p className="text-[11px] font-mono uppercase tracking-[0.4em] text-zinc-500">{t("sectionLabel")}</p>

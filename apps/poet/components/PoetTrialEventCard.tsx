@@ -36,6 +36,8 @@ export async function PoetTrialEventCard({
       ? ticketsTrialCheckout(locale, slot.courseSlug, slot.slug)
       : ticketsEventPage(locale, slot.slug);
   const language = normalizeEventLanguage(slot.eventLanguage);
+  const end = slot.ends_at || (!isShow && slot.starts_at ? new Date(Date.parse(slot.starts_at) + 2 * 3600000).toISOString() : null);
+  const endTime = end ? new Intl.DateTimeFormat(locale, { timeZone: "Europe/Warsaw", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(end)) : null;
   const when = slot.starts_at ? formatEventDateTime(slot.starts_at, locale) : null;
   const cta =
     slot.status === "past"
@@ -93,7 +95,7 @@ export async function PoetTrialEventCard({
                   <svg aria-hidden viewBox="0 0 24 24" className="mt-0.5 h-4 w-4 shrink-0 fill-none stroke-poet-gold" strokeWidth="1.8">
                     <path d="M7 3v3m10-3v3M4.5 9.5h15M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
                   </svg>
-                  {when}
+                  {when}{endTime ? `–${endTime}` : ""}
                 </p>
               ) : null}
               <p className="flex items-start gap-2.5 px-3 text-sm leading-snug text-zinc-400 [overflow-wrap:anywhere]">

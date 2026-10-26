@@ -11,6 +11,9 @@ import { PoetAfisha } from "@/components/PoetAfisha";
 import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
 import { buildFaqPageJsonLd, buildPoetOrganizationLocalGraph } from "@/lib/poetJsonLd";
+import { StudioLocation } from "@/components/StudioLocation";
+import { COURSE_LANGUAGE } from "@/lib/courseDetails";
+import { TeacherCard } from "@/components/TeacherCard";
 import { buildPoetTrialItemListJsonLd } from "@/lib/poetTrialJsonLd";
 import { poetCanonicalPath } from "@/lib/seoPoet";
 import type { AppLocale } from "@/i18n/routing";
@@ -66,7 +69,6 @@ export default async function HomePage() {
 
   return (
     <div className="poet-safe-x mx-auto max-w-5xl pb-12 pt-6 sm:pb-16 sm:pt-8">
-      {orgLd ? <PoetJsonLd data={orgLd} /> : null}
       {scheduleListLd ? <PoetJsonLd data={scheduleListLd} /> : null}
       {afishaListLd ? <PoetJsonLd data={afishaListLd} /> : null}
       <PoetJsonLd data={faqLd} />
@@ -91,7 +93,7 @@ export default async function HomePage() {
               {t("heroTitle")}
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-zinc-400 sm:mx-0 sm:text-base">
-              {t("heroLeadBefore")}
+              {COURSE_LANGUAGE[locale]} {t("heroLeadBefore")}
               <strong className="text-zinc-200">{t("heroLeadBrand")}</strong>
               {t("heroLeadMiddle")}
               {tickets ? (
@@ -175,6 +177,9 @@ export default async function HomePage() {
           ))}
         </dl>
       </section>
+      <a className="mt-8 inline-flex min-h-11 items-center text-poet-gold-bright underline" href={`/${locale}/grupa-teatralna-dla-doroslych-warszawa`}>{locale === "pl" ? "Grupa teatralna dla dorosłych" : locale === "uk" ? "Театральна група для дорослих" : "Театральная группа для взрослых"}</a>
+      <TeacherCard locale={locale} />
+      <StudioLocation locale={locale} />
     </div>
   );
 }

@@ -21,7 +21,7 @@ const PL: PoetIntentPage[] = [
   {
     slug: "kurs-aktorski-warszawa",
     cluster: "acting-course",
-    title: "Kurs aktorski po rosyjsku i ukraińsku w Warszawie — Popular Poet",
+    title: "Kurs aktorski po rosyjsku w Warszawie — Popular Poet",
     description:
       "Kurs aktorski Popular Poet w Warszawie dla osób rosyjsko- i ukraińskojęzycznych: głos, ciało, emocje, tekst i praktyka sceniczna w małej grupie.",
     h1: "Kurs aktorski w Warszawie dla osób rosyjsko- i ukraińskojęzycznych",
@@ -61,7 +61,7 @@ const PL: PoetIntentPage[] = [
   {
     slug: "warsztaty-aktorskie-warszawa",
     cluster: "acting-workshops",
-    title: "Warsztaty aktorskie po rosyjsku i ukraińsku w Warszawie — Popular Poet",
+    title: "Warsztaty aktorskie po rosyjsku w Warszawie — Popular Poet",
     description:
       "Warsztaty aktorskie i masterclassy Popular Poet w Warszawie dla rosyjsko- i ukraińskojęzycznych uczestników: scena, improwizacja, głos, ciało i partner.",
     h1: "Warsztaty aktorskie w Warszawie dla osób rosyjsko- i ukraińskojęzycznych",
@@ -92,19 +92,19 @@ const PL: PoetIntentPage[] = [
       },
       {
         q: "Czy są zajęcia z improwizacji?",
-        a: "Tak. Popular Poet prowadzi improwizację aktorską, PLAY-BACK i formaty, w których reakcja oraz kontakt są ważniejsze niż gotowy tekst.",
+        a: "Tak. Popular Poet prowadzi improwizację aktorską i formaty, w których reakcja oraz kontakt są ważniejsze niż gotowy tekst.",
       },
     ],
   },
   {
     slug: "improwizacja-kurs-warszawa",
     cluster: "improv-course",
-    title: "Kurs improwizacji po rosyjsku i ukraińsku w Warszawie — Popular Poet",
+    title: "Kurs improwizacji po rosyjsku w Warszawie — Popular Poet",
     description:
       "Kurs improwizacji aktorskiej w Warszawie dla osób rosyjsko- i ukraińskojęzycznych: reakcja, humor, partnerstwo i scena bez scenariusza.",
     h1: "Kurs improwizacji w Warszawie dla rosyjsko- i ukraińskojęzycznych",
     lead:
-      "Improwizacja w Popular Poet to trening reakcji, lekkości i kontaktu dla osób, które chcą pracować na scenie po rosyjsku lub ukraińsku. Zamiast uczyć się gotowego tekstu, uczysz się słyszeć partnera, brać impuls z sali i budować scenę tu i teraz.",
+      "Improwizacja w Popular Poet to trening reakcji, lekkości i kontaktu dla osób, które chcą pracować na scenie po rosyjsku (można mówić po ukraińsku). Zamiast uczyć się gotowego tekstu, uczysz się słyszeć partnera, brać impuls z sali i budować scenę tu i teraz.",
     bullets: [
       "improwizacja dla rosyjsko- i ukraińskojęzycznych uczestników",
       "sceny bez scenariusza i presji na perfekcję",
@@ -214,7 +214,7 @@ const PL: PoetIntentPage[] = [
     bullets: [
       "start bez wcześniejszego doświadczenia",
       "małe grupy i jasna struktura zajęć",
-      "aktorstwo, impro i PLAY-BACK",
+      "aktorstwo i improwizacja",
       "rosyjsko- i ukraińskojęzyczna społeczność w Warszawie",
     ],
     courseHref: "/kursy/acting",
@@ -692,7 +692,7 @@ const RU: PoetIntentPage[] = [
     bullets: [
       "старт без предыдущего опыта",
       "малые группы и понятная структура",
-      "актёрство, импровизация и PLAY-BACK",
+      "актёрское мастерство и импровизация",
       "русскоязычное и украиноязычное комьюнити в Варшаве",
     ],
     courseHref: "/kursy/acting",

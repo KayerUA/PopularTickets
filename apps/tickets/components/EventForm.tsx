@@ -42,6 +42,8 @@ export type AdminEventRow = {
   maps_url?: string | null;
   venue: string;
   starts_at: string;
+  ends_at?: string | null;
+  show_id?: string | null;
   price_grosze: number;
   day_of_event_price_grosze?: number | null;
   total_tickets: number;
@@ -69,6 +71,8 @@ function mergeRetryDefaults(
   mapsUrl: string;
   venue: string;
   startsAt: string;
+  endsAt: string;
+  showId: string;
   pricePln: string;
   dayOfEventPricePln: string;
   totalTickets: string;
@@ -100,6 +104,8 @@ function mergeRetryDefaults(
       (!event ? defaultMapsUrlForEvent(venue, lk) : ""),
     venue,
     startsAt: fields?.startsAt ?? (event ? toDatetimeLocalValueWarsaw(event.starts_at) : ""),
+    endsAt: fields?.endsAt ?? (event?.ends_at ? toDatetimeLocalValueWarsaw(event.ends_at) : ""),
+    showId: fields?.showId ?? event?.show_id ?? "",
     pricePln: fields?.pricePln ?? (event ? (event.price_grosze / 100).toFixed(2) : "50.00"),
     dayOfEventPricePln:
       fields?.dayOfEventPricePln ??
@@ -129,10 +135,12 @@ function AdminFormSection({ title, children }: { title: string; children: React.
 export function EventForm({
   event,
   poetCourseOptions = [],
+  showOptions = [],
   translateProviderHint,
 }: {
   event?: AdminEventRow;
   poetCourseOptions?: PoetCourseSelectOption[];
+  showOptions?: { id: string; title: string }[];
   translateProviderHint?: string;
 }) {
   const [state, formAction, pending] = useActionState(upsertEvent, initialUpsertState);
@@ -297,6 +305,7 @@ export function EventForm({
               Показывается покупателю на карточке и странице события, чтобы человек сразу понимал язык вечера.
             </p>
           </label>
+          {listingKind !== "trial" ? <label className="block text-sm text-zinc-300">Шоу или спектакль<select name="showId" defaultValue={d.showId} className="mt-1 min-h-11 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"><option value="">Отдельное событие</option>{showOptions.map((show) => <option key={show.id} value={show.id}>{show.title}</option>)}</select></label> : null}
           {listingKind === "trial" && !event ? (
             <p className="rounded-lg border border-amber-500/30 bg-amber-950/25 px-3 py-2 text-xs text-amber-100/95 sm:col-span-2">
               Для появления в календаре пробных выберите ниже «Опубликован».
@@ -515,6 +524,7 @@ export function EventForm({
             />
             <span className="mt-1 block text-xs text-zinc-500">Час в Europe/Warsaw (Варшава), сохраняется в UTC.</span>
           </label>
+          <label className="block text-sm text-zinc-300">Время окончания<input name="endsAt" type="datetime-local" defaultValue={d.endsAt || undefined} className="mt-1 min-h-11 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white" /><span className="mt-1 block text-xs text-zinc-300">Europe/Warsaw. Для пробного без указанного окончания сохраняются 2 часа.</span></label>
           <label className="block text-sm text-zinc-300">
             Цена, PLN
             <input

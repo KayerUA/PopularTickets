@@ -6,7 +6,7 @@ import { effectiveEventPriceGrosze } from "@/lib/eventPrice";
 
 /** Без maps_url — иначе при «schema cache» без колонки падает весь запрос. */
 const EVENT_SELECT_PUBLIC =
-  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,day_of_event_price_grosze,total_tickets,listing_kind,discount_periods,event_language,poet_course_id,visibility" as const;
+  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,ends_at,show_id,price_grosze,day_of_event_price_grosze,total_tickets,listing_kind,discount_periods,event_language,poet_course_id,visibility" as const;
 
 export type PublishedEventRow = {
   id: string;
@@ -23,6 +23,8 @@ export type PublishedEventRow = {
   maps_url: string | null;
   venue: string;
   starts_at: string;
+  ends_at?: string | null;
+  show_id?: string | null;
   price_grosze: number;
   regular_price_grosze: number;
   day_of_event_price_grosze: number | null;

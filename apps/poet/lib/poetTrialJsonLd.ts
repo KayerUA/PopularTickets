@@ -16,7 +16,7 @@ import type { PoetTrialDisplay } from "@/lib/poetTrials";
 import { poetCanonicalPath } from "@/lib/seoPoet";
 import { getTicketsSiteBase, ticketsEventPage, ticketsTrialCheckout } from "@/lib/ticketsSite";
 import { POPULAR_POET_TRIAL_VENUE_PL } from "@/lib/theatreVenueDefaults";
-import { eventEndDateIso } from "@/lib/eventEndDateIso";
+import { resolveEventEndDateIso } from "@/lib/eventEndDateIso";
 import { getPoetSiteUrl } from "@/lib/poetPublicUrl";
 
 function stripJsonLdEmptyValues(value: unknown): unknown {
@@ -52,7 +52,7 @@ function buildTrialEventJsonLd(trial: PoetTrialDisplay, locale: AppLocale): Reco
   const soldOut = trial.status === "sold_out" || trial.remainingTickets <= 0;
   const atTheatre = isTheatreVenue(trial.venue) || trial.venue === POPULAR_POET_TRIAL_VENUE_PL;
   const poetUrl = getPoetSiteUrl()?.replace(/\/$/, "");
-  const endDate = eventEndDateIso(trial.starts_at);
+  const endDate = resolveEventEndDateIso({ starts_at: trial.starts_at, ends_at: trial.ends_at, listing_kind: trial.id.startsWith("show:") ? "performance" : "trial" });
 
   const description = (trial.body ?? trial.title).replace(/\s+/g, " ").trim().slice(0, 2000);
 
@@ -64,9 +64,7 @@ function buildTrialEventJsonLd(trial: PoetTrialDisplay, locale: AppLocale): Reco
     endDate,
     inLanguage: eventLanguageIso(normalizeEventLanguage(trial.eventLanguage)),
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    eventStatus: isPast
-      ? "https://schema.org/EventCompleted"
-      : "https://schema.org/EventScheduled",
+    eventStatus: "https://schema.org/EventScheduled",
     ...(eventUrl ? { url: eventUrl } : {}),
     ...(trial.imageUrl ? { image: trial.imageUrl } : {}),
     ...(trial.totalTickets > 0 ? { maximumAttendeeCapacity: trial.totalTickets } : {}),
@@ -110,7 +108,7 @@ function buildTrialEventJsonLd(trial: PoetTrialDisplay, locale: AppLocale): Reco
       price: (trial.priceGrosze / 100).toFixed(2),
       priceCurrency: "PLN",
       availability: isPast
-        ? "https://schema.org/Discontinued"
+        ? "https://schema.org/SoldOut"
         : soldOut
           ? "https://schema.org/SoldOut"
           : "https://schema.org/InStock",
