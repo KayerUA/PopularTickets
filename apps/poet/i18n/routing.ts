@@ -9,6 +9,7 @@ export const routing = defineRouting({
   defaultLocale: "ru",
   localePrefix: "always",
   localeDetection: true,
+  alternateLinks: false,
 });
 
 export type AppLocale = (typeof routing.locales)[number];

@@ -1,4 +1,4 @@
-export const LEGACY_SHOW_EVENT_SLUGS: Readonly<Record<string, string>> = {
+export const LEGACY_SHOW_EVENT_SLUGS: Readonly<Record<string, string>> = Object.assign(Object.create(null), {
   pimpro: "pimpro-shou-vecherinka-2026-11-15",
   "noga-v-nogu": "shou-improvizatsiya-noga-v-nogu-2026-10-25",
   "boing-boing": "spektakl-boing-boing-scena-kocjana-2026-10-04",
@@ -7,4 +7,4 @@ export const LEGACY_SHOW_EVENT_SLUGS: Readonly<Record<string, string>> = {
   "populyarnye-improvizatory": "komediynoe-shou-populyarnye-improvizatory-teatr-populyarnyy-poet-v-varsh",
   "impro-dva-palcha": "impro-dwa-palcha-19052026",
   "play-back": "shou-play-back",
-};
+});
