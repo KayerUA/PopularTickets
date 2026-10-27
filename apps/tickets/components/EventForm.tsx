@@ -135,12 +135,10 @@ function AdminFormSection({ title, children }: { title: string; children: React.
 export function EventForm({
   event,
   poetCourseOptions = [],
-  showOptions = [],
   translateProviderHint,
 }: {
   event?: AdminEventRow;
   poetCourseOptions?: PoetCourseSelectOption[];
-  showOptions?: { id: string; title: string }[];
   translateProviderHint?: string;
 }) {
   const [state, formAction, pending] = useActionState(upsertEvent, initialUpsertState);
@@ -305,7 +303,7 @@ export function EventForm({
               Показывается покупателю на карточке и странице события, чтобы человек сразу понимал язык вечера.
             </p>
           </label>
-          {listingKind !== "trial" ? <label className="block text-sm text-zinc-300">Шоу или спектакль<select name="showId" defaultValue={d.showId} className="mt-1 min-h-11 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 text-white"><option value="">Отдельное событие</option>{showOptions.map((show) => <option key={show.id} value={show.id}>{show.title}</option>)}</select></label> : null}
+          <input type="hidden" name="showId" value={d.showId} />
           {listingKind === "trial" && !event ? (
             <p className="rounded-lg border border-amber-500/30 bg-amber-950/25 px-3 py-2 text-xs text-amber-100/95 sm:col-span-2">
               Для появления в календаре пробных выберите ниже «Опубликован».

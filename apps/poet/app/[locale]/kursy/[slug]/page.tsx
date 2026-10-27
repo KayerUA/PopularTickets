@@ -33,6 +33,7 @@ import { TeacherCard } from "@/components/TeacherCard";
 import { COURSE_SEO } from "@/lib/courseDetails";
 import { StudioLocation } from "@/components/StudioLocation";
 import { CourseStageLinks } from "@/components/CourseStageLinks";
+import { ActingSpeech } from "@/components/ActingSpeech";
 import { CourseFacts } from "@/components/CourseFacts";
 
 export const revalidate = 60;
@@ -162,6 +163,7 @@ export default async function PoetCoursePage({ params }: PageProps) {
 
   let trials: PoetTrialDisplay[];
   const loc = locale as AppLocale;
+  if (slug === "improv" || slug === "acting") display.title = COURSE_SEO[loc][slug].title;
   if (dbCourse) {
     trials = await fetchTrialsForCourse(dbCourse.id, loc);
   } else {
@@ -310,6 +312,7 @@ export default async function PoetCoursePage({ params }: PageProps) {
         </div>
       ) : null}
 
+      {isActing ? <ActingSpeech locale={loc} /> : null}
       {program ? <TeacherCard locale={loc} /> : null}
 
       <section className="mt-10 scroll-mt-32 sm:mt-12 sm:scroll-mt-28" id="proby-kursu">

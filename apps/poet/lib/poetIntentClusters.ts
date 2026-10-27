@@ -72,6 +72,7 @@ export function poetIntentHreflangUrls(
   const base = getPoetSiteUrl()?.replace(/\/$/, "");
   if (!base) return undefined;
 
+  if (cluster === "acting-workshops" && locale === "pl") return { pl: `${base}/pl/warsztaty-aktorskie-warszawa`, "x-default": `${base}/pl/warsztaty-aktorskie-warszawa` };
   const map = POET_INTENT_CLUSTER_SLUGS[cluster];
   const languages: Record<string, string> = {};
   for (const loc of routing.locales) {

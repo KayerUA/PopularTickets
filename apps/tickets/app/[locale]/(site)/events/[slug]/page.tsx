@@ -1,3 +1,4 @@
+import { notFoundPageMetadata } from "@/lib/notFoundMetadata";
 import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getServiceSupabase } from "@/lib/supabase/admin";
@@ -41,7 +42,6 @@ import { fetchPoetCourseSlugById, trialHubPath } from "@/lib/trialCourseHub";
 import { eventSearchAliases, knownVenueFromAddress } from "@/lib/venueGeo";
 import { PIMPRO_PARTY_SLUG, PimproTicketPage } from "@/components/PimproTicketPage";
 import { preserveAttributionQuery } from "@/lib/orderAttribution";
-import { fetchShows, showText } from "@/lib/shows";
 
 /** Server Actions + ISR: закэшированная страница после деплоя даёт «Server Action … was not found». */
 export const dynamic = "force-dynamic";
@@ -63,14 +63,7 @@ export async function generateMetadata({
     });
   }
   const { data: event } = await fetchPublishedEventBySlug(supabase, slug);
-  if (!event) {
-    return buildPublicPageMetadata({
-      locale,
-      path: `/events/${slug}`,
-      title: tMeta("homeTitle"),
-      description: tMeta("homeDescription"),
-    });
-  }
+  if (!event) return notFoundPageMetadata(locale);
   const copy = resolveEventCopy(event, locale);
   if (!copy) {
     return buildPublicPageMetadata({
@@ -83,7 +76,12 @@ export async function generateMetadata({
   const short = formatEventDateShortForTitle(event.starts_at);
   const eventLanguage = normalizeEventLanguage(event.event_language);
   const title = `${copy.title} — ${short}, Warszawa`;
-  const desc = `${tMeta("eventDescriptionBuy")} ${formatEventDateTime(event.starts_at, locale)}. ${event.venue}. ${eventLanguageLabel(eventLanguage, locale)}. ${truncateMetaDescription(copy.description)}`;
+  const pimproDescriptions = {
+    ru: "P!MPRO: импровизация на русском и вечеринка с DJ. 15 ноября, 19:00–22:30. BeerStation, Żurawia 22, Варшава. Билеты онлайн.",
+    uk: "P!MPRO: імпровізація російською та вечірка з DJ. 15 листопада, 19:00–22:30. BeerStation, Żurawia 22, Варшава. Квитки онлайн.",
+    pl: "P!MPRO: improwizacja po rosyjsku i impreza z DJ-em. 15 listopada, 19:00–22:30. BeerStation, Żurawia 22, Warszawa. Bilety online.",
+  };
+  const desc = event.slug === "pimpro-shou-vecherinka-2026-11-15" ? pimproDescriptions[locale] : truncateMetaDescription(`${copy.title}. ${formatEventDateTime(event.starts_at, locale)}. ${event.venue}. ${copy.description}`);
   let ogImages: { url: string; width: number; height: number; alt: string }[] | undefined;
   const ogImageAbs = eventOgImageUrl(event.slug);
   if (ogImageAbs) {
@@ -143,12 +141,7 @@ export default async function EventPage({
   if (error) {
     return <SupabaseQueryErrorPanel locale={locale} error={error} titleNamespace="EventPage" titleKey="loadQueryError" />;
   }
-  if (!event) {
-    const { data: previous } = await supabase.from("event_redirects").select("show_id").eq("event_slug", slug).maybeSingle();
-    const target = previous ? (await fetchShows()).find((show) => show.id === previous.show_id) : null;
-    if (target) permanentRedirect(preserveAttributionQuery(`/${locale}/shou/${target.slug}`, query));
-    notFound();
-  }
+  if (!event) notFound();
   const copy = resolveEventCopy(event, locale);
   if (!copy) notFound();
 
@@ -210,7 +203,6 @@ export default async function EventPage({
   const eventLanguage = normalizeEventLanguage(event.event_language);
   const poetLessonsUrl = `${POPULAR_POET_SITE_URL.replace(/\/+$/, "")}/${locale}#schedule`;
   const isPast = marketingStatus === "past";
-  const relatedShow = event.show_id ? (await fetchShows()).find((show) => show.id === event.show_id) : null;
 
   const faqPairs = [
     ["faqQ1", "faqA1"],
@@ -285,7 +277,6 @@ export default async function EventPage({
           ticketsIntentPath={contextLinks.ticketsIntentPath}
           poetHubUrl={contextLinks.poetHubUrl}
         />
-        {relatedShow ? <p className="mx-auto max-w-5xl px-5 py-5"><Link href={`/shou/${relatedShow.slug}`} className="inline-flex min-h-11 items-center text-poet-gold-bright underline">{showText[locale].show}: {relatedShow.title}</Link></p> : null}
       </>
     );
   }
@@ -297,7 +288,6 @@ export default async function EventPage({
       {promo ? <PromoVisitTracker promoCodeId={promo.id} eventId={event.id} /> : null}
       <MetaViewContent slug={event.slug} name={copy.title} valuePln={event.price_grosze / 100} productType={listingKind === "trial" ? "course" : "ticket"} />
       {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
-      {relatedShow ? <p className="mb-5"><Link href={`/shou/${relatedShow.slug}`} className="inline-flex min-h-11 items-center text-poet-gold-bright underline">{showText[locale].show}: {relatedShow.title}</Link></p> : null}
       <JsonLd data={faqLd} />
       <nav className="mb-6 text-sm text-zinc-500" aria-label={t("breadcrumbAria")}>
         <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { eventOgImageUrl } from "@/lib/seo";
+import { eventOgImageUrl, truncateMetaDescription } from "@/lib/seo";
 
 describe("eventOgImageUrl", () => {
   it("uses a static social image for Next Mode so crawlers avoid runtime rendering", () => {
@@ -10,5 +10,14 @@ describe("eventOgImageUrl", () => {
   it("keeps dynamic social images for other events", () => {
     expect(eventOgImageUrl("other-event", "https://www.populartickets.pl"))
       .toContain("/api/og/event/other-event?v=");
+  });
+});
+
+describe("meta description", () => {
+  it("ends at a whole word within the character budget", () => {
+    expect(truncateMetaDescription("Спектакли и импровизационные шоу в Варшаве", 25)).toBe("Спектакли и.");
+  });
+  it("keeps finished descriptions and normalizes whitespace", () => {
+    expect(truncateMetaDescription("  P!MPRO:  импровизация и DJ. ")).toBe("P!MPRO: импровизация и DJ.");
   });
 });

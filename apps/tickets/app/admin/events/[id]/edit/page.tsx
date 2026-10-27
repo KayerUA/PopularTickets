@@ -8,7 +8,6 @@ import { isEventsPoetCourseIdUnavailable, isEventsLanguageUnavailable } from "@/
 import { parseContentVisibilityFromForm } from "@/lib/contentVisibility";
 import { isTranslateConfigured, translateProviderLabel } from "@/lib/translateContent";
 import { normalizeEventLanguage } from "@/lib/eventLanguage";
-import { fetchShows } from "@/lib/shows";
 
 const ADMIN_EVENT_SELECT_BASE =
   "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,image_url,image_focal_x,image_focal_y,venue,starts_at,price_grosze,day_of_event_price_grosze,total_tickets,visibility,listing_kind,discount_periods,event_language" as const;
@@ -52,7 +51,6 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
 
   const mapsUrl = await fetchOptionalMapsUrl(supabase, event.id as string);
   const poetCourseOptions = await fetchPoetCourseSelectOptions();
-  const showOptions = await fetchShows();
 
   const row: AdminEventRow = {
     id: event.id as string,
@@ -88,7 +86,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
   return (
     <div className="space-y-6">
       <h1 className="font-display text-2xl font-semibold text-zinc-50">Редактирование</h1>
-      <EventForm event={row} poetCourseOptions={poetCourseOptions} showOptions={showOptions} translateProviderHint={translateProviderHint} />
+      <EventForm event={row} poetCourseOptions={poetCourseOptions} translateProviderHint={translateProviderHint} />
     </div>
   );
 }

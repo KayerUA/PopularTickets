@@ -4,7 +4,7 @@ import { getTicketsSiteBase, ticketsHome } from "@/lib/ticketsSite";
 import type { PoetTrialDisplay } from "@/lib/poetTrials";
 import { PoetTrialEventsGrid } from "@/components/PoetTrialEventsGrid";
 
-export async function PoetTrialCalendar({ locale, trials }: { locale: AppLocale; trials: PoetTrialDisplay[] }) {
+export async function PoetTrialCalendar({ locale, trials, preview = false }: { locale: AppLocale; trials: PoetTrialDisplay[]; preview?: boolean }) {
   const t = await getTranslations("Poet");
   const tickets = getTicketsSiteBase();
 
@@ -22,5 +22,10 @@ export async function PoetTrialCalendar({ locale, trials }: { locale: AppLocale;
     );
   }
 
-  return <PoetTrialEventsGrid locale={locale} trials={trials} showCourseBadge />;
+  const visible = preview ? trials.slice(0, 3) : trials;
+  const more = preview ? trials.slice(3) : [];
+  return <>
+    <PoetTrialEventsGrid locale={locale} trials={visible} showCourseBadge />
+    {more.length ? <details className="mt-5"><summary className="min-h-11 cursor-pointer py-3 text-sm text-poet-gold-bright underline underline-offset-4">{locale === "pl" ? `Pozostałe terminy (${more.length})` : locale === "uk" ? `Інші дати (${more.length})` : `Остальные даты (${more.length})`}</summary><div className="mt-4"><PoetTrialEventsGrid locale={locale} trials={more} showCourseBadge /></div></details> : null}
+  </>;
 }

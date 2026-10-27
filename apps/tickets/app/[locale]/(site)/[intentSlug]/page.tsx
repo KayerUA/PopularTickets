@@ -1,3 +1,5 @@
+import { notFoundPageMetadata } from "@/lib/notFoundMetadata";
+import { TicketIntentGuide } from "@/components/TicketIntentGuide";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -45,7 +47,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, intentSlug } = await params;
   const cluster = intentClusterForSlug(locale, intentSlug);
-  if (!cluster) return {};
+  if (!cluster) return notFoundPageMetadata(locale);
   const t = await getTranslations({ locale, namespace: "IntentDiscover" });
   return buildPublicPageMetadata({
     locale,
@@ -69,7 +71,8 @@ export default async function IntentDiscoverPage({
 
   const t = await getTranslations({ locale, namespace: "IntentDiscover" });
   const listingFilter = intentListingKindFilter(cluster);
-  const editorialCluster = locale === "ru" && isEditorialCluster(cluster) ? cluster : null;
+  const priority = cluster === "theatre" || cluster === "leisure";
+  const editorialCluster = locale === "ru" && isEditorialCluster(cluster) && !priority ? cluster : null;
   const supabase = getServiceSupabase();
   // Пробные показываем по дисциплинам: даты живут на хабе курса, а не на отдельных страницах.
   const isTrialCluster = cluster === "trial";
@@ -290,7 +293,9 @@ export default async function IntentDiscoverPage({
         {answer ? <p className="mt-4 text-base font-semibold leading-relaxed text-zinc-100">{answer}</p> : null}
         <p className="mt-3 whitespace-pre-line text-base leading-relaxed text-zinc-300">{t(`${cluster}Intro`)}</p>
       </header>
-      {!isTrialCluster ? <nav className="mt-5 flex flex-wrap gap-5"><Link className="inline-flex min-h-11 items-center text-poet-gold-bright underline" href="/shou">{locale === "pl" ? "Repertuar" : locale === "uk" ? "Репертуар" : "Репертуар"}</Link><Link className="inline-flex min-h-11 items-center text-poet-gold-bright underline" href={`/${TICKETS_INTENT_CLUSTER_SLUGS.comedy[locale]}`}>{locale === "pl" ? "Komedia i impro" : locale === "uk" ? "Комедія та імпровізація" : "Комедия и импровизация"}</Link></nav> : null}
+      {!isTrialCluster ? <nav className="mt-5 flex flex-wrap gap-5"><Link className="inline-flex min-h-11 items-center text-poet-gold-bright underline" href="/events">{locale === "pl" ? "Wydarzenia" : locale === "uk" ? "Афіша" : "Афиша"}</Link><Link className="inline-flex min-h-11 items-center text-poet-gold-bright underline" href={`/${TICKETS_INTENT_CLUSTER_SLUGS.comedy[locale]}`}>{locale === "pl" ? "Komedia i impro" : locale === "uk" ? "Комедія та імпровізація" : "Комедия и импровизация"}</Link></nav> : null}
+
+      {priority ? <><section id="afisha" className="mt-8 scroll-mt-24"><h2 className="mb-5 font-display text-2xl text-zinc-100">{locale === "pl" ? "Najbliższe wydarzenia" : locale === "uk" ? "Найближчі виступи" : "Ближайшие выступления"}</h2>{list.length ? <HomeEventsGrid events={list} /> : <p className="text-zinc-300">{t("eventsEmpty")}</p>}</section><TicketIntentGuide locale={locale} cluster={cluster as "theatre" | "leisure"} /></> : null}
 
       {editorialCluster ? (
         <section className="mt-10 max-w-4xl" aria-labelledby="intent-guide-heading">
@@ -353,7 +358,7 @@ export default async function IntentDiscoverPage({
         </section>
       ) : null}
 
-      <section className="mt-10 scroll-mt-24 space-y-6" id="afisha">
+      {!priority ? <section className="mt-10 scroll-mt-24 space-y-6" id="afisha">
         <p className="text-[11px] font-mono uppercase tracking-[0.4em] text-zinc-500">{t("eventsSectionLabel")}</p>
         {isTrialCluster ? (
           trialGroups.length ? (
@@ -366,7 +371,7 @@ export default async function IntentDiscoverPage({
         ) : (
           <p className="text-zinc-500">{t("eventsEmpty")}</p>
         )}
-      </section>
+      </section> : null}
     </div>
   );
 }

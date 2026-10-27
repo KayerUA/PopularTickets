@@ -1,3 +1,6 @@
+import { CourseComparison } from "@/components/CourseComparison";
+import { PoetTrialCalendar } from "@/components/PoetTrialCalendar";
+import { poetIntentRedirect } from "@/lib/intentRedirects";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
@@ -62,6 +65,7 @@ export default async function PoetIntentPage({ params }: PageProps) {
   const page = poetIntentPage(loc, intentSlug);
   if (!page) notFound();
 
+  const isPriority = page.cluster === "acting-course" || page.cluster === "trial";
   const expansion = getPoetIntentHubExpansion(loc, intentSlug);
   const allFaq = [...page.faq, ...(expansion?.extraFaq ?? [])];
 
@@ -105,7 +109,7 @@ export default async function PoetIntentPage({ params }: PageProps) {
       : null;
 
   const ticketsBase = getTicketsSiteBase();
-  const ticketEvents = expansion
+  const ticketEvents = expansion && !isPriority
     ? await fetchPoetIntentTicketEvents(loc, expansion.ticketsCluster, ticketsBase)
     : [];
 
@@ -153,7 +157,6 @@ export default async function PoetIntentPage({ params }: PageProps) {
         </ol>
       </nav>
 
-      <p className="mb-5 text-zinc-300">{COURSE_LANGUAGE[loc]}</p>
       <header className="max-w-3xl">
         <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-poet-gold/80">{cityLabel}</p>
         <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight text-gradient-gold sm:text-5xl">
@@ -165,27 +168,29 @@ export default async function PoetIntentPage({ params }: PageProps) {
         <p className={`${page.answerLead ? "mt-3" : "mt-5"} text-base leading-relaxed text-zinc-300 sm:text-lg`}>
           {page.lead}
         </p>
+        <p className="mt-3 text-sm text-zinc-300">{COURSE_LANGUAGE[loc]}</p>
         <div className="mt-7 flex flex-wrap gap-3">
           <Link href={page.courseHref} className="btn-poet-theatre btn-poet inline-flex no-underline">
             {page.courseCta}
           </Link>
-          <Link
-            href="/#schedule"
+          {page.cluster !== "trial" ? <Link
+            href={isPriority ? "#trial-dates" : "/#schedule"}
             className="inline-flex items-center justify-center rounded-full border border-zinc-600/80 px-5 py-2.5 text-sm font-medium text-zinc-200 no-underline transition hover:border-zinc-500 hover:text-white"
           >
             {page.scheduleCta}
-          </Link>
+          </Link> : null}
         </div>
       </header>
-      {page.cluster === "trial" || page.cluster === "acting-course" || page.cluster === "improv-course" ? <TeacherCard locale={loc} /> : null}
+      {page.cluster === "acting-course" ? <CourseComparison locale={loc} /> : null}
+      {page.cluster === "trial" ? <section id="trial-dates" className="mt-10 scroll-mt-28"><h2 className="mb-5 font-display text-2xl text-zinc-100">{loc === "pl" ? "Najbliższe zajęcia próbne" : loc === "uk" ? "Найближчі пробні заняття" : "Ближайшие пробные занятия"}</h2><PoetTrialCalendar locale={loc} trials={intentTrials} preview /></section> : null}
 
-      <section className="mt-10 grid gap-4 sm:grid-cols-2" aria-label={bulletsAria}>
+      {page.bullets.length ? <section className="mt-10 grid gap-4 sm:grid-cols-2" aria-label={bulletsAria}>
         {page.bullets.map((item) => (
           <div key={item} className="rounded-2xl border border-poet-gold/15 bg-poet-surface/30 px-5 py-4 text-sm leading-relaxed text-zinc-300">
             {item}
           </div>
         ))}
-      </section>
+      </section> : null}
 
       {expansion?.sections.map((section) => (
         <section key={section.heading} className="mt-12 max-w-3xl">
@@ -200,7 +205,9 @@ export default async function PoetIntentPage({ params }: PageProps) {
         </section>
       ))}
 
-      {expansion ? (
+      {isPriority ? <TeacherCard locale={loc} /> : null}
+      {page.cluster === "acting-course" ? <section id="trial-dates" className="mt-10 scroll-mt-28"><h2 className="mb-5 font-display text-2xl text-zinc-100">{loc === "pl" ? "Najbliższe zajęcia próbne" : loc === "uk" ? "Найближчі пробні заняття" : "Ближайшие пробные занятия"}</h2><PoetTrialCalendar locale={loc} trials={intentTrials} preview /></section> : null}
+      {expansion && !isPriority ? (
         <section className="mt-12 max-w-3xl" aria-labelledby="intent-tickets-heading">
           <h2 id="intent-tickets-heading" className="font-display text-xl font-medium text-zinc-100 sm:text-2xl">
             {ticketsHeading}
@@ -233,7 +240,7 @@ export default async function PoetIntentPage({ params }: PageProps) {
             {relatedHubs.map((hub) => (
               <li key={hub.slug}>
                 <Link
-                  href={`/${hub.slug}`}
+                  href={poetIntentRedirect(loc, hub.slug) ?? `/${hub.slug}`}
                   className="inline-flex rounded-full border border-poet-gold/25 px-3 py-1.5 text-sm text-poet-gold-bright no-underline transition hover:border-poet-gold/45"
                 >
                   {hub.label}

@@ -1,3 +1,4 @@
+import { priorityPoetExpansion } from "@/lib/poetPriorityContent";
 import type { AppLocale } from "@/i18n/routing";
 import type { PoetIntentHubExpansion } from "@/lib/poetIntentHubTypes";
 import { PL_KURS_AKTORSKI_WARSZAWA } from "@/lib/poetIntentHubExpansions/pl-kurs-aktorski";
@@ -25,7 +26,7 @@ const EXPANSIONS: Partial<Record<AppLocale, Record<string, PoetIntentHubExpansio
 };
 
 export function getPoetIntentHubExpansion(locale: AppLocale, slug: string): PoetIntentHubExpansion | undefined {
-  return EXPANSIONS[locale]?.[slug];
+  return priorityPoetExpansion(locale, slug) ?? EXPANSIONS[locale]?.[slug];
 }
 
 export function isExpandedPoetIntentHub(locale: AppLocale, slug: string): boolean {

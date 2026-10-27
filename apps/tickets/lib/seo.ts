@@ -82,11 +82,16 @@ export function hreflangLanguagesForPublishedEvent(path: string): Record<string,
   return hreflangLanguages(path);
 }
 
-export function truncateMetaDescription(text: string | null | undefined, max = 158): string {
+export function truncateMetaDescription(text: string | null | undefined, max = 155): string {
   if (text == null || typeof text !== "string") return "";
   const flat = text.replace(/\s+/g, " ").trim();
-  if (flat.length <= max) return flat;
-  return `${flat.slice(0, max - 1).trimEnd()}…`;
+  if (!flat) return "";
+  if (flat.length <= max && /[.!?…»]$/.test(flat)) return flat;
+  if (flat.length < max) return `${flat}.`;
+  const prefix = flat.slice(0, max - 1);
+  const boundary = prefix.lastIndexOf(" ");
+  const whole = (boundary > 0 ? prefix.slice(0, boundary) : prefix).replace(/[\s,;:—–-]+$/, "");
+  return `${whole.replace(/[.!?]+$/, "")}.`;
 }
 
 export type PublicPageMetaInput = {

@@ -3,6 +3,7 @@ import { POET_KURSY_LEGACY_SLUG_REDIRECTS } from "@/lib/poetKursyLegacySlugRedir
 
 export type PoetCourseRow = {
   id: string;
+  updated_at?: string;
   slug: string;
   title: string;
   body: string | null;
@@ -20,7 +21,7 @@ export type PoetCourseRow = {
 };
 
 const POET_COURSE_SELECT =
-  "id, slug, title, body, title_pl, body_pl, title_uk, body_uk, card_tag_pl, card_tag_uk, visibility, card_image_url, hero_image_url, card_variant, card_tag" as const;
+  "id, updated_at, slug, title, body, title_pl, body_pl, title_uk, body_uk, card_tag_pl, card_tag_uk, visibility, card_image_url, hero_image_url, card_variant, card_tag" as const;
 
 export async function fetchPublishedPoetCourses(): Promise<PoetCourseRow[]> {
   const supabase = getPoetSupabase();
@@ -37,7 +38,7 @@ export async function fetchPublishedPoetCourses(): Promise<PoetCourseRow[]> {
   }
 
   const basicSel =
-    "id, slug, title, body, visibility, card_image_url, hero_image_url, card_variant, card_tag" as const;
+    "id, updated_at, slug, title, body, visibility, card_image_url, hero_image_url, card_variant, card_tag" as const;
   const basic = await supabase
     .from("poet_course")
     .select(basicSel)
@@ -83,7 +84,7 @@ async function fetchPoetCourseRowBySlugOnce(
   if (!full.error && full.data) return full.data as PoetCourseRow;
 
   const basicSel =
-    "id, slug, title, body, visibility, card_image_url, hero_image_url, card_variant, card_tag" as const;
+    "id, updated_at, slug, title, body, visibility, card_image_url, hero_image_url, card_variant, card_tag" as const;
   const basic = await supabase
     .from("poet_course")
     .select(basicSel)

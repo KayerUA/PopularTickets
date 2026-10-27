@@ -1,3 +1,4 @@
+import { priorityPoetPage } from "@/lib/poetPriorityContent";
 import type { AppLocale } from "@/i18n/routing";
 import type { PoetIntentClusterId } from "@/lib/poetIntentClusters";
 
@@ -756,7 +757,8 @@ export const POET_INTENT_PAGES: Record<AppLocale, PoetIntentPage[]> = {
 };
 
 export function poetIntentPage(locale: AppLocale, slug: string): PoetIntentPage | undefined {
-  return POET_INTENT_PAGES[locale].find((page) => page.slug === slug);
+  const page = POET_INTENT_PAGES[locale].find((page) => page.slug === slug);
+  return page ? priorityPoetPage(locale, page) : undefined;
 }
 
 export function allPoetIntentPages(): { locale: AppLocale; page: PoetIntentPage }[] {

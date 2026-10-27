@@ -10,6 +10,7 @@ const LEGACY_EVENT_SLUG_REDIRECTS: Record<string, "afisha"> = {
 };
 
 export function legacyEventRedirectPath(locale: AppLocale, slug: string): string | null {
+  if (slug === "improvizatsiya-probnoe-zanyatie-varshave-2026-07-29") return `/${locale}/probnoe/improv`;
   const canonical = LEGACY_EVENT_SLUG_TO_CANONICAL[slug];
   if (canonical) return `/${locale}/events/${canonical}`;
 

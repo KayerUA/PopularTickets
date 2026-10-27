@@ -1,3 +1,5 @@
+import { ticketsIntentRedirect } from "@/lib/intentRedirects";
+import type { AppLocale } from "@/i18n/routing";
 import { NextResponse, type NextRequest } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { verifyAdminToken } from "@/lib/adminSession";
@@ -27,6 +29,15 @@ function nextWithDefaultLocale(req: NextRequest) {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const intent = pathname.match(/^\/(pl|uk|ru)\/([^/]+)\/?$/);
+  if (intent) {
+    const target = ticketsIntentRedirect(intent[1] as AppLocale, intent[2]);
+    if (target) {
+      const url = new URL(target, req.url);
+      url.search = req.nextUrl.search;
+      return NextResponse.redirect(url, 308);
+    }
+  }
   if (pathname === "/") {
     const url = req.nextUrl.clone();
     url.pathname = "/ru";
