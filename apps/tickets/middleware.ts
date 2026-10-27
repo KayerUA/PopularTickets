@@ -1,4 +1,5 @@
 import { ticketsIntentRedirect } from "@/lib/intentRedirects";
+import { LEGACY_SHOW_EVENT_SLUGS } from "@/lib/legacyShowEventRoutes";
 import type { AppLocale } from "@/i18n/routing";
 import { NextResponse, type NextRequest } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
@@ -29,6 +30,12 @@ function nextWithDefaultLocale(req: NextRequest) {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const retiredShow = pathname.match(/^\/(pl|uk|ru)\/shou(?:\/([^/]+))?\/?$/);
+  if (retiredShow && (!retiredShow[2] || LEGACY_SHOW_EVENT_SLUGS[retiredShow[2]])) {
+    const url = req.nextUrl.clone();
+    url.pathname = retiredShow[2] ? `/${retiredShow[1]}/events/${LEGACY_SHOW_EVENT_SLUGS[retiredShow[2]]}` : `/${retiredShow[1]}/events`;
+    return NextResponse.redirect(url, 308);
+  }
   const intent = pathname.match(/^\/(pl|uk|ru)\/([^/]+)\/?$/);
   if (intent) {
     const target = ticketsIntentRedirect(intent[1] as AppLocale, intent[2]);
