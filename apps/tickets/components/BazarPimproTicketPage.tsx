@@ -8,25 +8,25 @@ import { isOptimizableEventImage } from "@/lib/imageOptimization";
 import type { PimproTicketPage } from "@/components/PimproTicketPage";
 import styles from "./BazarPimproTicketPage.module.css";
 
-export const BAZAR_PIMPRO_SLUG = "pimpro-bazar-club-2026-11-29";
+export const BAZAR_PIMPRO_SLUG = "pimpro-bazar-club-2026-12-20";
 
 const copy = {
   ru: {
-    genre: "Шоу импровизации", date: "29 ноября 2026", day: "Воскресенье", city: "Варшава", languageNote: null,
+    genre: "Шоу импровизации", city: "Варшава", languageNote: null,
     buy: "Купить билет", lead: "Проведите воскресный вечер с P!MPRO в Bazar Club. Актёры придумывают комедийные сцены и диалоги прямо во время шоу.",
     address: "ul. Okrzei 26, вход со стороны Jagiellońskiej", directions: "Как добраться",
     checkout: "Билеты на P!MPRO", available: "Билетов в продаже", refunds: "Условия покупки и возврата",
     poster: "Афиша P!MPRO в Bazar Club: участники и зрители смотрят на логотип на сцене",
   },
   uk: {
-    genre: "Шоу імпровізації", date: "29 листопада 2026", day: "Неділя", city: "Варшава", languageNote: "Мова виступу: російська",
+    genre: "Шоу імпровізації", city: "Варшава", languageNote: "Мова виступу: російська",
     buy: "Купити квиток", lead: "Проведіть недільний вечір із P!MPRO у Bazar Club. Актори вигадують комедійні сцени й діалоги просто під час шоу.",
     address: "ul. Okrzei 26, вхід з боку Jagiellońskiej", directions: "Як дістатися",
     checkout: "Квитки на P!MPRO", available: "Квитків у продажу", refunds: "Умови купівлі та повернення",
     poster: "Афіша P!MPRO в Bazar Club: учасники та глядачі дивляться на логотип на сцені",
   },
   pl: {
-    genre: "Improwizacja komediowa", date: "29 listopada 2026", day: "Niedziela", city: "Warszawa", languageNote: "Język wydarzenia: rosyjski",
+    genre: "Improwizacja komediowa", city: "Warszawa", languageNote: "Język wydarzenia: rosyjski",
     buy: "Kup bilet", lead: "Spędź niedzielny wieczór z P!MPRO w Bazar Club. Aktorzy tworzą komediowe sceny i dialogi na żywo.",
     address: "ul. Okrzei 26, wejście od Jagiellońskiej", directions: "Jak dojechać",
     checkout: "Bilety na P!MPRO", available: "Bilety w sprzedaży", refunds: "Warunki zakupu i zwrotu",
@@ -40,6 +40,10 @@ export async function BazarPimproTicketPage({ locale, imageUrl, startsAt, priceG
   const c = copy[locale];
   const t = await getTranslations({ locale, namespace: "EventPage" });
   const price = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(priceGrosze / 100);
+  const start = new Date(startsAt);
+  const date = new Intl.DateTimeFormat(locale, { timeZone: "Europe/Warsaw", day: "numeric", month: "long", year: "numeric" }).format(start);
+  const weekday = new Intl.DateTimeFormat(locale, { timeZone: "Europe/Warsaw", weekday: "long" }).format(start);
+  const day = weekday.charAt(0).toUpperCase() + weekday.slice(1);
 
   return <div className={`${styles.page} ${showCheckout ? styles.withSticky : ""}`}>
     <div className={styles.sheet}>
@@ -52,7 +56,7 @@ export async function BazarPimproTicketPage({ locale, imageUrl, startsAt, priceG
           <h1 className={styles.title}>P!MPRO<span>{c.genre}</span></h1>
           <p className={styles.lead}>{c.lead}</p>
           <div className={styles.facts}>
-            <div><time dateTime={startsAt}>{c.date}</time><p>{c.day} · 19:00–22:00</p></div>
+            <div><time dateTime={startsAt}>{date}</time><p>{day} · 19:00–22:00</p></div>
             <div><p className={styles.club}>Bazar Club</p><p>{c.address}</p>{mapsHref ? <a href={mapsHref} target="_blank" rel="noopener noreferrer">{c.directions}</a> : null}</div>
             {c.languageNote ? <p className={styles.languageNote}>{c.languageNote}</p> : null}
           </div>
@@ -63,7 +67,7 @@ export async function BazarPimproTicketPage({ locale, imageUrl, startsAt, priceG
         </div>
       </header>
       <section id="event-checkout" className={styles.checkout} aria-labelledby="bazar-checkout">
-        <header className={styles.ticketHeader}><h2 id="bazar-checkout">{c.checkout}</h2><p>{c.date} · 19:00–22:00</p></header>
+        <header className={styles.ticketHeader}><h2 id="bazar-checkout">{c.checkout}</h2><p>{date} · 19:00–22:00</p></header>
         <div className={styles.form}>
           {isPast ? <p>{t("purchaseClosedPast")}</p> : showCheckout ? <EventCheckoutForm appearance="pimpro" eventSlug={eventSlug} remaining={remaining} locale={locale} unitPriceGrosze={priceGrosze} bypassPayment={bypassPayment} initialPromoCode={promo?.code} initialPromoDiscountPercent={promo?.discountPercent} initialPromoDiscountFixedGrosze={promo?.discountFixedGrosze} /> : <p>{t("soldOut")}</p>}
           <Link className={styles.refunds} href="/zwroty">{c.refunds}</Link>

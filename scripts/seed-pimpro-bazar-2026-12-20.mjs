@@ -16,16 +16,16 @@ const apply = process.argv.includes("--apply");
 const publish = process.argv.includes("--publish");
 if (publish && !apply) throw new Error("Use --apply with --publish.");
 
-const start = DateTime.fromISO("2026-11-29T19:00:00", { zone: "Europe/Warsaw" });
+const start = DateTime.fromISO("2026-12-20T19:00:00", { zone: "Europe/Warsaw" });
 const venue = "Bazar Klub, ul. Okrzei 26 (wejście od Jagiellońskiej), Warszawa";
 const row = {
-  slug: "pimpro-bazar-club-2026-11-29",
+  slug: "pimpro-bazar-club-2026-12-20",
   title: "P!MPRO в Bazar Club",
   title_uk: "P!MPRO у Bazar Club",
   title_pl: "P!MPRO w Bazar Club",
-  description: "Проведите воскресный вечер с P!MPRO в Bazar Club. Актёры придумывают комедийные сцены и диалоги прямо во время шоу.\n\n29 ноября 2026, воскресенье.\n19:00–22:00.\nBazar Club, ul. Okrzei 26, Warszawa. Вход со стороны Jagiellońskiej.\nБилет: 30 zł.",
-  description_uk: "Проведіть недільний вечір із P!MPRO у Bazar Club. Актори вигадують комедійні сцени й діалоги просто під час шоу.\n\n29 листопада 2026, неділя.\n19:00–22:00.\nBazar Club, ul. Okrzei 26, Warszawa. Вхід з боку Jagiellońskiej.\nКвиток: 30 zł.",
-  description_pl: "Spędź niedzielny wieczór z P!MPRO w Bazar Club. Aktorzy tworzą komediowe sceny i dialogi na żywo.\n\n29 listopada 2026, niedziela.\n19:00–22:00.\nBazar Club, ul. Okrzei 26, Warszawa. Wejście od Jagiellońskiej.\nBilet: 30 zł.",
+  description: "Проведите воскресный вечер с P!MPRO в Bazar Club. Актёры придумывают комедийные сцены и диалоги прямо во время шоу.\n\n20 декабря 2026, воскресенье.\n19:00–22:00.\nBazar Club, ul. Okrzei 26, Warszawa. Вход со стороны Jagiellońskiej.\nБилет: 30 zł.",
+  description_uk: "Проведіть недільний вечір із P!MPRO у Bazar Club. Актори вигадують комедійні сцени й діалоги просто під час шоу.\n\n20 грудня 2026, неділя.\n19:00–22:00.\nBazar Club, ul. Okrzei 26, Warszawa. Вхід з боку Jagiellońskiej.\nКвиток: 30 zł.",
+  description_pl: "Spędź niedzielny wieczór z P!MPRO w Bazar Club. Aktorzy tworzą komediowe sceny i dialogi na żywo.\n\n20 grudnia 2026, niedziela.\n19:00–22:00.\nBazar Club, ul. Okrzei 26, Warszawa. Wejście od Jagiellońskiej.\nBilet: 30 zł.",
   starts_at: start.toUTC().toISO(),
   ends_at: start.plus({ minutes: 180 }).toUTC().toISO(),
   price_grosze: 3000,
@@ -33,7 +33,7 @@ const row = {
   total_tickets: 80,
   venue,
   maps_url: "https://www.google.com/maps/search/?api=1&query=Bazar+Klub+Okrzei+26+Warszawa",
-  image_url: "https://pynbtuvhrratjqlweyas.supabase.co/storage/v1/object/public/event-images/pimpro-bazar-club-2026-11-29-afisha-8615615cfa24.png",
+  image_url: "https://pynbtuvhrratjqlweyas.supabase.co/storage/v1/object/public/event-images/pimpro-bazar-club-2026-12-20-afisha-8e654a4c16a7.png",
   image_focal_x: 50,
   image_focal_y: 50,
   event_language: "ru",

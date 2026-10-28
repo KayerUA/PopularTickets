@@ -4,6 +4,11 @@ import { legacyEventRedirectPath } from "@/lib/legacyEventRedirects";
 import { LEGACY_SHOW_EVENT_SLUGS } from "@/lib/legacyShowEventRoutes";
 
 describe("consolidated public routes", () => {
+  it("redirects the postponed Bazar performance to December in each locale", () => {
+    for (const locale of ["ru", "uk", "pl"] as const) {
+      expect(legacyEventRedirectPath(locale, "pimpro-bazar-club-2026-11-29")).toBe(`/${locale}/events/pimpro-bazar-club-2026-12-20`);
+    }
+  });
   it("takes informational trial pages directly to the matching Poet locale", () => {
     expect(ticketsIntentRedirect("uk", "probne-zanyattya-varshava")).toBe("https://www.popularpoet.pl/uk/probne-zanyattya-varshava");
   });
