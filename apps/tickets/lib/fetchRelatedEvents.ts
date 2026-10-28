@@ -11,7 +11,7 @@ import {
 } from "@/lib/eventMarketingStatus";
 
 const EVENT_SELECT =
-  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language" as const;
+  "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,discount_periods,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language" as const;
 
 function improvScore(title: string, description: string): number {
   const text = `${title} ${description}`.toLowerCase();
@@ -48,7 +48,7 @@ export async function fetchRelatedEvents(
     const fallback = await supabase
       .from("events")
       .select(
-        "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind",
+        "id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,price_grosze,day_of_event_price_grosze,discount_periods,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind",
       )
       .eq("visibility", "published")
       .eq("listing_kind", input.listingKind)
@@ -127,6 +127,8 @@ async function buildRelatedCards(
       starts_at: ev.starts_at as string,
       price_grosze: ev.price_grosze as number,
       day_of_event_price_grosze: ev.day_of_event_price_grosze as number | null,
+      listing_kind: ev.listing_kind as string | null,
+      discount_periods: ev.discount_periods,
     });
     cards.push({
       slug: ev.slug as string,

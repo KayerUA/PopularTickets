@@ -4,12 +4,13 @@ import { resolveEventCopy } from "@/lib/contentI18n";
 import { normalizeEventLanguage } from "@/lib/eventLanguage";
 import { resolveEventMarketingStatus } from "@/lib/eventMarketingStatus";
 import type { PoetTrialDisplay } from "@/lib/poetTrials";
+import { effectiveEventPriceGrosze } from "../../../shared/eventPrice";
 
 const SHOW_SELECT_WITH_LANG =
-  "id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, ends_at, venue, price_grosze, image_url, image_focal_x, image_focal_y, total_tickets, event_language";
+  "id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, ends_at, venue, price_grosze, day_of_event_price_grosze, discount_periods, image_url, image_focal_x, image_focal_y, total_tickets, event_language";
 
 const SHOW_SELECT_CORE =
-  "id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, venue, price_grosze, image_url, image_focal_x, image_focal_y, total_tickets";
+  "id, slug, title, description, title_pl, description_pl, title_uk, description_uk, starts_at, venue, price_grosze, day_of_event_price_grosze, discount_periods, image_url, image_focal_x, image_focal_y, total_tickets";
 
 function readFocal(raw: unknown): number | null {
   return typeof raw === "number" && !Number.isNaN(raw) ? raw : null;
@@ -33,7 +34,13 @@ function mapShowRow(r: Record<string, unknown>, locale: AppLocale, soldCount: nu
   const totalTickets = typeof r.total_tickets === "number" ? r.total_tickets : 0;
   const remaining = Math.max(0, totalTickets - soldCount);
   const venue = typeof r.venue === "string" ? r.venue.trim() : "";
-  const priceGrosze = typeof r.price_grosze === "number" && r.price_grosze > 0 ? r.price_grosze : 0;
+  const priceGrosze = effectiveEventPriceGrosze({
+    starts_at: startsAt,
+    price_grosze: typeof r.price_grosze === "number" && r.price_grosze > 0 ? r.price_grosze : 0,
+    day_of_event_price_grosze: r.day_of_event_price_grosze as number | null,
+    discount_periods: r.discount_periods,
+    listing_kind: "performance",
+  });
 
   return {
     id: `show:${r.id as string}`,

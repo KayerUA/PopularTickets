@@ -327,13 +327,13 @@ export function EventForm({
               <p className="mt-1 text-xs text-zinc-500">Необязательно: ссылка на курс в календаре. Занятие всё равно по адресу ниже.</p>
             </label>
           ) : null}
-          {listingKind === "special" ? (
+          {listingKind === "special" || listingKind === "performance" ? (
             <label className="block text-sm text-zinc-300 sm:col-span-2">
               Скидочные периоды (JSON)
               <textarea
                 name="discountPeriods"
                 rows={4}
-                required
+                required={listingKind === "special"}
                 defaultValue={d.discountPeriods}
                 className="mt-1 w-full rounded-xl border border-poet-gold/20 bg-zinc-950 px-3 py-2 font-mono text-xs text-white"
                 placeholder={'[{"name":"Super Early Bird","until":"2026-07-17","percent":15}]'}

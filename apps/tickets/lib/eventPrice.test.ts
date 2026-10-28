@@ -8,6 +8,18 @@ const event = {
 };
 
 describe("effectiveEventPriceGrosze", () => {
+  it("switches a performance from 80 to 100 PLN at Warsaw midnight after November 27", () => {
+    const taxi = { starts_at: "2026-12-11T18:00:00Z", price_grosze: 10000, listing_kind: "performance",
+      discount_periods: [{ name: "1 пул", until: "2026-11-27", percent: 20 }] };
+    expect(effectiveEventPriceGrosze(taxi, new Date("2026-11-27T22:59:59.999Z"))).toBe(8000);
+    expect(effectiveEventPriceGrosze(taxi, new Date("2026-11-27T23:00:00Z"))).toBe(10000);
+    expect(effectiveEventPriceGrosze(taxi, new Date("2026-12-11T17:00:00Z"))).toBe(10000);
+    expect(eventPriceDetails(taxi, new Date("2026-11-01T12:00:00Z"))).toMatchObject({ effectivePriceGrosze: 8000, regularPriceGrosze: 10000 });
+  });
+
+  it("keeps trial prices independent of performance discount periods", () => {
+    expect(effectiveEventPriceGrosze({ ...event, listing_kind: "trial", discount_periods: [{ name: "1 пул", until: "2026-11-27", percent: 20 }] }, new Date("2026-10-28T12:00:00Z"))).toBe(5000);
+  });
   it("uses the regular price before the event day in Warsaw", () => {
     expect(effectiveEventPriceGrosze(event, new Date("2026-06-07T21:59:59.000Z"))).toBe(5000);
   });

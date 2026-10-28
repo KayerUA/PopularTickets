@@ -106,7 +106,7 @@ export default async function IntentDiscoverPage({
     const nowIso = new Date().toISOString();
     let query = supabase
       .from("events")
-      .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,ends_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language,visibility")
+      .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,ends_at,price_grosze,day_of_event_price_grosze,discount_periods,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,event_language,visibility")
       .eq("visibility", "published")
       .gte("starts_at", nowIso)
       .order("starts_at", { ascending: true });
@@ -121,7 +121,7 @@ export default async function IntentDiscoverPage({
     if (error?.code === "42703") {
       let fallbackQuery = supabase
         .from("events")
-        .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,ends_at,price_grosze,day_of_event_price_grosze,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,visibility")
+        .select("id,slug,title,description,title_pl,description_pl,title_uk,description_uk,venue,starts_at,ends_at,price_grosze,day_of_event_price_grosze,discount_periods,image_url,image_focal_x,image_focal_y,total_tickets,listing_kind,visibility")
         .eq("visibility", "published")
         .gte("starts_at", nowIso)
         .order("starts_at", { ascending: true });
@@ -168,6 +168,13 @@ export default async function IntentDiscoverPage({
         totalTickets,
       });
       const soldOut = status === "sold_out" || remaining <= 0;
+      const pricing = eventPriceDetails({
+        starts_at: ev.starts_at as string,
+        price_grosze: ev.price_grosze as number,
+        day_of_event_price_grosze: ev.day_of_event_price_grosze as number | null,
+        listing_kind: ev.listing_kind as string | null,
+        discount_periods: ev.discount_periods,
+      });
       jsonLdEntries.push({
         event: {
           title: copy.title,
@@ -176,7 +183,7 @@ export default async function IntentDiscoverPage({
           starts_at: ev.starts_at as string,
           ends_at: ev.ends_at as string | null,
           image_url: (ev.image_url as string | null) ?? null,
-          price_grosze: ev.price_grosze as number,
+          price_grosze: pricing.effectivePriceGrosze,
           slug: ev.slug as string,
           listing_kind: (ev as { listing_kind?: string | null }).listing_kind,
           event_language: (ev as { event_language?: never }).event_language,
@@ -185,11 +192,6 @@ export default async function IntentDiscoverPage({
         remaining,
         soldOut,
         mapsUrl: null,
-      });
-      const pricing = eventPriceDetails({
-        starts_at: ev.starts_at as string,
-        price_grosze: ev.price_grosze as number,
-        day_of_event_price_grosze: ev.day_of_event_price_grosze as number | null,
       });
       return [
         {

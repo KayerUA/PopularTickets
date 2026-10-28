@@ -209,6 +209,9 @@ const EventSchema = z.object({
         });
       }
     }
+    if (data.listingKind === "performance" && data.discountPeriods.trim() && !parseDiscountPeriodsJson(data.discountPeriods)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Укажите корректный JSON ценовых периодов или [].", path: ["discountPeriods"] });
+    }
     if ((data.visibility === "published" || data.visibility === "unlisted") && data.listingKind !== "special") {
       const len = data.description.trim().length;
       if (len < MIN_EVENT_DESCRIPTION_PUBLISH_CHARS) {
@@ -332,7 +335,8 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
 
     const priceGrosze = groszeFromPln(v.pricePln);
     const dayOfEventPriceGrosze = v.dayOfEventPricePln == null ? null : groszeFromPln(v.dayOfEventPricePln);
-    const discountPeriods = v.listingKind === "special" ? parseDiscountPeriodsJson(v.discountPeriods)! : [];
+    const discountPeriods = v.listingKind === "special" || v.listingKind === "performance"
+      ? parseDiscountPeriodsJson(v.discountPeriods.trim() || "[]")! : [];
 
     let startsAtIso: string;
     try {
