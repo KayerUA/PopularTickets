@@ -1,0 +1,67 @@
+.page { --paper: #e6e5e1; --ink: #121212; --signal: #ff5100; background: var(--paper); color: var(--ink); }
+.withSticky { padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px)); }
+.sheet { max-width: 1120px; margin-inline: auto; padding: 0 20px 48px; }
+.topline { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 64px; border-bottom: 1px solid var(--ink); font-size: 12px; }
+.page a { color: inherit; }
+.page a:focus-visible, .page summary:focus-visible { outline: 3px solid currentColor; outline-offset: 5px; }
+.topline a { display: inline-flex; min-height: 44px; align-items: center; text-decoration: underline; text-underline-offset: 4px; }
+.hero { padding: 36px 0 0; }
+.title { margin: 0; }
+.title img { display: block; width: 100%; height: auto; }
+.title > span { display: block; margin-top: 20px; font-size: clamp(18px, 3vw, 34px); font-weight: 600; line-height: 1.2; }
+.date { display: block; margin: 30px 0 20px; font-size: clamp(82px, 23vw, 300px); font-weight: 900; line-height: .83; letter-spacing: -.075em; font-variant-numeric: lining-nums tabular-nums; }
+.date > span { color: #c64000; }
+.venueRow { display: flex; justify-content: space-between; gap: 20px; align-items: start; border-top: 2px solid var(--ink); padding: 24px 0; }
+.club { font-size: clamp(24px, 4.8vw, 58px); font-weight: 900; line-height: 1; letter-spacing: -.05em; }
+.address { max-width: 440px; margin-top: 12px; font-size: 14px; line-height: 1.6; }
+.start { font-size: clamp(30px, 5.5vw, 64px); line-height: 1; font-weight: 900; letter-spacing: -.06em; }
+.buyStrip { display: flex; justify-content: space-between; align-items: center; gap: 20px; min-height: 72px; padding: 16px 20px; background: var(--ink); color: var(--paper) !important; font-size: clamp(19px, 3vw, 32px); line-height: 1.2; font-weight: 800; text-decoration: none; }
+.buyStrip:hover { background: #333; }
+.buyStrip > :last-child { white-space: nowrap; }
+.programme { margin-top: 52px; padding: 32px 0; border-top: 1px solid var(--ink); }
+.programmeIntro h2, .location h2, .faq h2, .ticketHeader h2 { font-size: clamp(24px, 3.2vw, 38px); line-height: 1.1; font-weight: 800; letter-spacing: -.04em; }
+.programmeIntro p { max-width: 480px; margin-top: 16px; font-size: 16px; line-height: 1.7; }
+.runningOrder { margin-top: 30px; list-style: none; padding: 0; }
+.runningOrder li { display: grid; grid-template-columns: 1fr; gap: 10px; border-top: 1px solid var(--ink); padding: 22px 0; }
+.runningOrder li > span { font-size: clamp(28px, 5vw, 52px); line-height: 1; font-weight: 800; letter-spacing: -.06em; white-space: nowrap; }
+.until { font-weight: 400; }
+.runningOrder h3 { font-size: 16px; font-weight: 600; }
+.location { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 20px; margin-top: 16px; padding: 28px 0 40px; border-top: 1px solid var(--ink); }
+.locationNumber { font-size: clamp(64px, 14vw, 150px); font-weight: 900; line-height: .9; letter-spacing: -.07em; }
+.location h2 { font-size: clamp(21px, 2.8vw, 32px); }
+.location p:not(.locationNumber) { margin-top: 12px; font-size: 14px; line-height: 1.7; }
+.location a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 6px; font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+.checkout { scroll-margin-top: 110px; border: 2px solid var(--ink); }
+.ticketHeader { display: grid; gap: 18px; padding: 24px 20px; border-bottom: 1px dashed var(--ink); }
+.ticketHeader h2 { margin-top: 12px; }
+.ticketHeader p { max-width: 420px; font-size: 14px; line-height: 1.6; }
+.ticketHeader h2 + p { margin-top: 12px; }
+.ticketHeader .price { display: flex; align-items: baseline; gap: 8px; font-size: 82px; font-weight: 900; line-height: .9; letter-spacing: -.065em; }
+.price span { font-size: 26px; letter-spacing: normal; }
+.form { max-width: 660px; margin-inline: auto; padding: 24px 20px 32px; color: #000; color-scheme: light; }
+.remaining { margin-bottom: 24px; font-size: 14px; }
+.faq { max-width: 660px; margin: 48px auto 0; }
+.faq h2 { margin-bottom: 20px; }
+.faq details { border-top: 1px solid var(--ink); }
+.faq summary { padding: 18px 0; cursor: pointer; font-size: 15px; font-weight: 600; }
+.faq details p { margin: 0 0 20px; font-size: 14px; line-height: 1.75; }
+.faq a { text-decoration: underline; text-underline-offset: 4px; }
+.related { padding: 32px 20px; background: #0b0709; color: #e6e5e1; }
+.related > * { max-width: 1080px; margin-inline: auto; }
+@media (min-width: 640px) {
+  .sheet { padding-inline: 40px; }
+  .hero { padding-top: 44px; }
+  .topline { font-size: 14px; }
+  .venueRow { padding-block: 28px; }
+  .address { font-size: 16px; }
+  .buyStrip { min-height: 88px; padding-inline: 28px; }
+  .programme { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 72px; padding-top: 40px; }
+  .runningOrder { margin-top: 0; }
+  .runningOrder li:first-child { border-top: 0; padding-top: 0; }
+  .location { gap: 48px; padding-block: 40px 56px; }
+  .location p:not(.locationNumber) { font-size: 16px; }
+  .ticketHeader { grid-template-columns: 1fr auto; align-items: center; padding: 32px; }
+  .ticketHeader .price { font-size: 110px; }
+  .form { padding-block: 32px 40px; }
+}
+@media (min-width: 768px) { .withSticky { padding-bottom: 0; } }

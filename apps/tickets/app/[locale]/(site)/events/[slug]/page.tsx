@@ -41,6 +41,7 @@ import { PromoVisitTracker } from "@/components/PromoVisitTracker";
 import { fetchPoetCourseSlugById, trialHubPath } from "@/lib/trialCourseHub";
 import { eventSearchAliases, knownVenueFromAddress } from "@/lib/venueGeo";
 import { PIMPRO_PARTY_SLUG, PimproTicketPage } from "@/components/PimproTicketPage";
+import { BAZAR_PIMPRO_SLUG, BazarPimproTicketPage } from "@/components/BazarPimproTicketPage";
 import { preserveAttributionQuery } from "@/lib/orderAttribution";
 
 /** Server Actions + ISR: закэшированная страница после деплоя даёт «Server Action … was not found». */
@@ -232,7 +233,8 @@ export default async function EventPage({
   });
   const promo = await resolveApplicablePromoCode(supabase, promoRaw, { id: event.id, listingKind: event.listing_kind });
 
-  if (slug === PIMPRO_PARTY_SLUG) {
+  if (slug === PIMPRO_PARTY_SLUG || slug === BAZAR_PIMPRO_SLUG) {
+    const TicketPage = slug === BAZAR_PIMPRO_SLUG ? BazarPimproTicketPage : PimproTicketPage;
     return (
       <>
         {promo ? <PromoVisitTracker promoCodeId={promo.id} eventId={event.id} /> : null}
@@ -258,7 +260,7 @@ export default async function EventPage({
             { remaining, soldOut, mapsUrl: mapsHref },
           )}
         />
-        <PimproTicketPage
+        <TicketPage
           locale={locale}
           title={copy.title}
           description={copy.description}
