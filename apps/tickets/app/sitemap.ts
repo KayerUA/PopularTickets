@@ -11,6 +11,8 @@ import { INDEXABLE_TRIAL_HUB_COURSE_SLUGS, TRIAL_HUB_SEGMENT } from "@/lib/trial
 
 const STATIC_PATHS = ["", "/events", "/events/arhiv", "/firma", "/regulamin", "/zwroty", "/polityka-prywatnosci", "/podarok"] as const;
 
+export const revalidate = 60;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getPublicAppUrl()?.replace(/\/$/, "");
   if (!base) return [];
