@@ -283,6 +283,8 @@ export default async function EventPage({
     );
   }
 
+  const portraitPoster = ["improvizatsiya-strogogo-rezhima-2026-11-22", "osobo-lyubyashchiy-taksist-2026-12-11"].includes(event.slug);
+
   return (
     <div
       className={`poet-safe-x mx-auto max-w-3xl py-8 sm:py-14${showCheckout ? " pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:pb-14" : ""}`}
@@ -337,21 +339,22 @@ export default async function EventPage({
         )}
       />
       <div className="animate-fade-up overflow-hidden rounded-2xl border border-poet-gold/25 bg-poet-surface/50 shadow-gold backdrop-blur-md sm:rounded-3xl">
-        <div className="relative aspect-video w-full overflow-hidden bg-zinc-950">
+        <div className={`relative w-full overflow-hidden bg-zinc-950 ${portraitPoster && event.image_url ? "" : "aspect-video"}`}>
           {event.image_url ? (
             <MediaCoverBlurred
               src={event.image_url}
-              alt=""
+              alt={copy.title}
               sizes="(max-width:768px) 100vw, 896px"
               priority
               unoptimized={!isOptimizableEventImage(event.image_url)}
               coverObjectPosition={eventCoverObjectPosition(event.image_focal_x, event.image_focal_y)}
-              frameClassName="absolute inset-0"
+              frameClassName={portraitPoster ? "relative w-full" : "absolute inset-0"}
+              fit={portraitPoster ? "natural" : "cover"}
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-poet-gold-dim/35 via-poet-bg to-zinc-950" />
           )}
-          <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-poet-bg via-poet-bg/20 to-transparent" />
+          {portraitPoster ? null : <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-poet-bg via-poet-bg/20 to-transparent" />}
         </div>
         <div className="space-y-4 p-4 sm:p-8">
           <div>

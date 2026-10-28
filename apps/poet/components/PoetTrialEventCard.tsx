@@ -31,6 +31,7 @@ export async function PoetTrialEventCard({
   const t = await getTranslations("EventCard");
   const tPoet = await getTranslations("Poet");
   const isShow = listingKind === "performance";
+  const portraitPoster = isShow && Boolean(slot.imageUrl) && !galleryImageUrl;
   const href =
     !isShow && slot.courseSlug
       ? ticketsTrialCheckout(locale, slot.courseSlug, slot.slug)
@@ -58,23 +59,23 @@ export async function PoetTrialEventCard({
       <article
         className={`flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-poet-gold/20 bg-poet-surface/55 shadow-gold-sm backdrop-blur-sm transition duration-500 ease-out group-hover:-translate-y-0.5 group-hover:border-poet-gold/45 group-hover:shadow-gold sm:group-hover:-translate-y-1 ${slot.status === "past" ? "opacity-[0.88]" : ""} ${slot.status === "sold_out" ? "opacity-95 saturate-[0.85]" : ""}`}
       >
-        {/* Одна рамка для всех карточек в сетке: одинаковая высота, object-cover без полос. */}
-        <div className={`relative w-full overflow-hidden bg-zinc-950 ${galleryImageUrl ? "aspect-[3/4]" : "aspect-[16/10] sm:aspect-video"}`}>
+        <div className={`relative w-full overflow-hidden bg-zinc-950 ${portraitPoster ? "" : galleryImageUrl ? "aspect-[3/4]" : "aspect-[16/10] sm:aspect-video"}`}>
           {galleryImageUrl || slot.imageUrl ? (
             <MediaCoverBlurred
               src={(galleryImageUrl || slot.imageUrl) as string}
-              alt=""
+              alt={portraitPoster ? slot.title : ""}
               sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
               unoptimized={!isOptimizableEventImage(galleryImageUrl || slot.imageUrl)}
               coverObjectPosition={
                 galleryImageUrl ? "center 22%" : eventCoverObjectPosition(slot.imageFocalX, slot.imageFocalY)
               }
-              frameClassName="absolute inset-0"
+              frameClassName={portraitPoster ? "relative w-full" : "absolute inset-0"}
+              fit={portraitPoster ? "natural" : "cover"}
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-poet-gold-dim/35 via-poet-bg to-zinc-950" />
           )}
-          <div className="pointer-events-none absolute inset-0 z-[3] bg-gradient-to-t from-poet-bg via-poet-bg/5 to-transparent opacity-80" />
+          {portraitPoster ? null : <div className="pointer-events-none absolute inset-0 z-[3] bg-gradient-to-t from-poet-bg via-poet-bg/5 to-transparent opacity-80" />}
           <div className="pointer-events-none absolute left-3 top-3 z-[4] flex flex-wrap gap-2 sm:left-4 sm:top-4">
             <EventStatusBadge status={slot.status} listingKind={listingKind} />
           </div>

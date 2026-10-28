@@ -10,7 +10,7 @@ type Props = {
   frameClassName?: string;
   coverObjectPosition?: string;
   /** По умолчанию `cover` — крупное превью на карточках. */
-  fit?: "cover" | "contain";
+  fit?: "cover" | "contain" | "natural";
 };
 
 /**
@@ -29,6 +29,13 @@ export function MediaCoverBlurred({
 }: Props) {
   const pos = coverObjectPosition ? { objectPosition: coverObjectPosition } : undefined;
   const blurPos = fit === "cover" ? pos : undefined;
+
+  if (fit === "natural") {
+    return <div className={frameClassName}>
+      <Image src={src} alt={alt} width={1088} height={1448} sizes={sizes} quality={quality}
+        priority={priority} unoptimized={unoptimized} className="pointer-events-none block h-auto w-full" />
+    </div>;
+  }
 
   return (
     <div className={frameClassName}>
