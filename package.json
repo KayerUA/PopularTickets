@@ -2,6 +2,12 @@
   "name": "popular-monorepo",
   "private": true,
   "workspaces": ["apps/*"],
+  "dependencies": {
+    "luxon": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.4.2"
+  },
   "scripts": {
     "dev": "npm run dev -w popular-tickets",
     "dev:tickets": "npm run dev -w popular-tickets",
