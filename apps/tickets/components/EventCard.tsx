@@ -59,7 +59,7 @@ export function EventCard(e: EventCardProps) {
           {e.imageUrl ? (
             <MediaCoverBlurred
               src={e.imageUrl}
-              alt=""
+              alt={e.title}
               sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
               unoptimized={!isOptimizableEventImage(e.imageUrl)}
               coverObjectPosition={eventCoverObjectPosition(e.imageFocalX, e.imageFocalY)}
@@ -96,17 +96,17 @@ export function EventCard(e: EventCardProps) {
             </p>
           </div>
           <div className="flex shrink-0 flex-col gap-2.5 border-t border-poet-gold/15 pt-4">
-            <div className="flex items-end justify-between gap-3">
-              <EventOfferPrice
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="shrink-0 whitespace-nowrap"><EventOfferPrice
                 priceGrosze={e.priceGrosze}
                 dayPriceGrosze={e.dayOfEventPriceGrosze}
                 isEventDay={e.isEventDayPrice}
                 discountLabel=""
                 eventDayLabel=""
                 showCaption={false}
-              />
+              /></div>
               <span
-                className={`min-h-11 shrink-0 justify-center whitespace-nowrap px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wide ${
+                className={`min-h-11 min-w-0 flex-1 basis-40 justify-center whitespace-nowrap px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wide ${
                   e.status === "past" || e.status === "sold_out"
                     ? "inline-flex rounded-full border border-poet-gold/25 bg-zinc-900/60 text-zinc-200"
                     : "btn-poet poet-shine inline-flex"

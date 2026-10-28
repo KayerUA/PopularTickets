@@ -23,7 +23,7 @@ export async function RelatedEventsSection({ locale, related, ticketsIntentPath,
       </h2>
       {related.length ? (
         <div className="mt-6">
-          <HomeEventsGrid events={related} />
+          <HomeEventsGrid events={related} columns={2} />
         </div>
       ) : null}
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">

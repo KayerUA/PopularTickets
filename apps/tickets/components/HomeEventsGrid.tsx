@@ -21,13 +21,13 @@ const item = {
   },
 };
 
-export function HomeEventsGrid({ events }: { events: EventCardProps[] }) {
+export function HomeEventsGrid({ events, columns = 3 }: { events: EventCardProps[]; columns?: 2 | 3 }) {
   return (
     <motion.div
       variants={container}
       initial="hidden"
       animate="show"
-      className="grid auto-rows-[minmax(0,1fr)] items-stretch gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
+      className={`grid auto-rows-[minmax(0,1fr)] items-stretch gap-5 sm:grid-cols-2 sm:gap-6 ${columns === 3 ? "lg:grid-cols-3" : ""}`}
     >
       {events.map((ev) => (
         <motion.div key={ev.slug} variants={item} className="flex h-full min-h-0 w-full min-w-0 flex-col">

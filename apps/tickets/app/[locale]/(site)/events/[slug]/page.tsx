@@ -240,7 +240,7 @@ export default async function EventPage({
         {promo ? <PromoVisitTracker promoCodeId={promo.id} eventId={event.id} /> : null}
         <MetaViewContent slug={event.slug} name={copy.title} valuePln={event.price_grosze / 100} productType={listingKind === "trial" ? "course" : "ticket"} />
         {breadcrumbLd ? <JsonLd data={breadcrumbLd} /> : null}
-        <JsonLd data={faqLd} />
+        {slug === PIMPRO_PARTY_SLUG ? <JsonLd data={faqLd} /> : null}
         <JsonLd
           data={buildEventJsonLd(
             {
