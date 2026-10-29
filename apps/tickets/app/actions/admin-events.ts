@@ -2,11 +2,12 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { revalidateEventPages } from "@/lib/eventDiscovery/revalidateEventPages";
 import { requireServiceSupabase } from "@/lib/supabase/admin";
 import { setMapsUrlRpc } from "@/lib/supabase/mapsUrlRpc";
 import { uploadEventCoverImage } from "@/lib/supabase/eventImageUpload";
 import { requireAdmin } from "@/lib/adminGuard";
-import { routing } from "@/i18n/routing";
 import {
   isEventsPoetCourseIdUnavailable,
   isEventsImageFocalUnavailable,
@@ -475,27 +476,28 @@ export async function upsertEvent(_prev: UpsertEventState, formData: FormData): 
       };
     }
 
-    void runEventDiscovery(
-      {
-        slug: v.slug,
-        title: v.title,
-        description: v.description,
-        venue: v.venue,
-        starts_at: startsAtIso,
-        price_grosze: groszeFromPln(v.pricePln),
-        listing_kind: v.listingKind,
-        maps_url: mapsUrlResolved,
-        visibility: v.visibility,
-        image_url: imageUrlFinal,
-      },
-      { source: "admin" },
-    );
-
-    for (const loc of routing.locales) {
-      revalidatePath(`/${loc}`);
-      revalidatePath(`/${loc}/events`);
-      revalidatePath(`/${loc}/events/${v.slug}`);
-    }
+    revalidateEventPages(v.slug);
+    after(async () => {
+      try {
+        await runEventDiscovery(
+          {
+            slug: v.slug,
+            title: v.title,
+            description: v.description,
+            venue: v.venue,
+            starts_at: startsAtIso,
+            price_grosze: groszeFromPln(v.pricePln),
+            listing_kind: v.listingKind,
+            maps_url: mapsUrlResolved,
+            visibility: v.visibility,
+            image_url: imageUrlFinal,
+          },
+          { source: "admin" },
+        );
+      } catch (error) {
+        console.error("[upsertEvent] discovery", error);
+      }
+    });
     revalidatePath("/admin");
     revalidatePath("/admin/orders");
     return { redirectTo: "/admin" };
@@ -549,10 +551,7 @@ export async function deleteEvent(formData: FormData): Promise<{ error?: string;
     const { error: delErr } = await supabase.from("events").delete().eq("id", id);
     if (delErr) return { error: delErr.message };
 
-    for (const loc of routing.locales) {
-      revalidatePath(`/${loc}`);
-      revalidatePath(`/${loc}/events/${slug}`);
-    }
+    revalidateEventPages(slug);
     revalidatePath("/admin");
     revalidatePath("/admin/orders");
     return { redirectTo: "/admin" };

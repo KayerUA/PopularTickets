@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { stripLocalePrefixSegments } from "@/lib/localePath";
+import { poetIntentSlugForLocale } from "@/lib/poetIntentClusters";
 
 export function PoetLocaleSwitcher({ compact = false }: { compact?: boolean }) {
   const t = useTranslations("LocaleSwitcher");
@@ -28,7 +29,7 @@ export function PoetLocaleSwitcher({ compact = false }: { compact?: boolean }) {
             type="button"
             role="radio"
             aria-checked={loc === locale}
-            onClick={() => router.replace(pathname, { locale: loc })}
+            onClick={() => router.replace(`/${poetIntentSlugForLocale(loc, pathname.slice(1))}`, { locale: loc })}
             className={`${btnBase} ${
               loc === locale
                 ? "bg-poet-gold/15 text-poet-gold-bright"

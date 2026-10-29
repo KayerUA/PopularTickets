@@ -260,3 +260,8 @@ GOOGLE_GBP_MANUAL_FALLBACK=0   # выключить подсказки
 - `not_configured` в боте — не заданы `GOOGLE_GBP_*` в Vercel (fallback всё равно придёт)
 
 Документация Google: [Create Posts on Google](https://developers.google.com/my-business/content/posts-data)
+
+## Google Search: автоматическая отправка sitemap
+
+Настройка Search Console и ежедневного контроля индексации описана в
+[search-console-automation.md](./search-console-automation.md).

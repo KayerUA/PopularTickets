@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
+import { revalidateEventPages } from "@/lib/eventDiscovery/revalidateEventPages";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { routing } from "@/i18n/routing";
 import { uploadEventCoverBuffer } from "@/lib/supabase/eventImageUpload";
 import { setMapsUrlRpc } from "@/lib/supabase/mapsUrlRpc";
 import {
@@ -83,11 +83,7 @@ export async function attachTelegramImageToEvent(
   if (update.error) throw new Error(update.error.message);
   if (!update.data) throw new Error("Пока выбирали событие, к нему уже добавили обложку");
 
-  for (const loc of routing.locales) {
-    revalidatePath(`/${loc}`);
-    revalidatePath(`/${loc}/events`);
-    revalidatePath(`/${loc}/events/${slug}`);
-  }
+  revalidateEventPages(slug);
   revalidatePath("/admin");
   return { title: String(data.title), slug };
 }
@@ -191,6 +187,7 @@ export async function createEventFromParsed(
     }
   }
 
+  revalidateEventPages(slug);
   const discovery = await runEventDiscovery(
     {
       slug,
@@ -207,11 +204,6 @@ export async function createEventFromParsed(
     { source: "telegram" },
   );
 
-  for (const loc of routing.locales) {
-    revalidatePath(`/${loc}`);
-    revalidatePath(`/${loc}/events`);
-    revalidatePath(`/${loc}/events/${slug}`);
-  }
   revalidatePath("/admin");
 
   return {
@@ -230,11 +222,7 @@ export async function createEventFromParsed(
 }
 
 async function revalidateEventPaths(slug: string): Promise<void> {
-  for (const loc of routing.locales) {
-    revalidatePath(`/${loc}`);
-    revalidatePath(`/${loc}/events`);
-    revalidatePath(`/${loc}/events/${slug}`);
-  }
+  revalidateEventPages(slug);
   revalidatePath("/admin");
 }
 
@@ -290,6 +278,7 @@ export async function revealEventOnSite(
   const upd = await supabase.from("events").update({ visibility: "published" }).eq("id", eventId);
   if (upd.error) throw new Error(upd.error.message);
 
+  await revalidateEventPaths(row.slug);
   const discovery = await runEventDiscovery(
     {
       slug: row.slug,
@@ -305,8 +294,6 @@ export async function revealEventOnSite(
     },
     { source: "telegram" },
   );
-
-  await revalidateEventPaths(row.slug);
 
   return {
     slug: row.slug,

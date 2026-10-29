@@ -61,6 +61,13 @@ export function poetIntentClusterForSlug(locale: AppLocale, slug: string): PoetI
   return undefined;
 }
 
+export function poetIntentSlugForLocale(locale: AppLocale, slug: string): string {
+  const cluster = Object.values(POET_INTENT_CLUSTER_SLUGS).find((translations) =>
+    Object.values(translations).includes(slug),
+  );
+  return cluster?.[locale] ?? slug;
+}
+
 /** Полные URL hreflang для intent-страницы (только локали, где есть slug). */
 export function poetIntentHreflangUrls(
   locale: AppLocale,

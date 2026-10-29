@@ -4,6 +4,7 @@ import { getPublicAppUrl } from "@/lib/publicAppUrl";
 import { resolveAbsoluteAssetUrl } from "@/lib/safePublicUrl";
 import { createGoogleBusinessProfileEventPost } from "@/lib/googleBusinessProfile/createEventPost";
 import { isGoogleGbpConfigured } from "@/lib/googleBusinessProfile/config";
+import { syncSearchConsole, type SearchConsoleSyncResult } from "@/lib/searchConsole/sync";
 import {
   buildGbpManualPost,
   isGbpManualFallbackEnabled,
@@ -26,6 +27,7 @@ export type EventDiscoveryPayload = {
 export type EventDiscoverySource = "telegram" | "admin";
 
 export type EventDiscoveryResult = {
+  searchConsole?: SearchConsoleSyncResult;
   indexNow: "ok" | "skipped" | "failed";
   gbp: "created" | "skipped" | "failed";
   gbpSearchUrl?: string;
@@ -122,8 +124,7 @@ async function publishToGoogleBusinessProfile(
 }
 
 /**
- * После publish: сайт (JSON-LD/sitemap) уже есть; здесь — внешние каналы.
- * Telegram-бот: GBP + IndexNow; без дублирующих «напоминаний» в личку.
+ * Вызывать после сброса кеша страниц и sitemap.
  */
 export async function runEventDiscovery(
   payload: EventDiscoveryPayload,
@@ -139,13 +140,16 @@ export async function runEventDiscovery(
     return { indexNow: "skipped", gbp: "skipped", gbpError: "no_ticket_url" };
   }
 
-  const [indexNow, gbpPart] = await Promise.all([
+  const [indexNow, gbpPart, , searchConsole] = await Promise.all([
     pingIndexNow(urls),
     publishToGoogleBusinessProfile(payload, ticketUrl),
     postDiscoveryWebhook(payload, urls),
+    syncSearchConsole({
+      expectedUrls: payload.listing_kind === "performance" || !payload.listing_kind ? urls : [],
+    }),
   ]);
 
-  const result: EventDiscoveryResult = { indexNow, ...gbpPart };
+  const result: EventDiscoveryResult = { indexNow, ...gbpPart, searchConsole };
 
   if (result.gbp !== "created" && isGbpManualFallbackEnabled()) {
     const base = getPublicAppUrl()?.replace(/\/$/, "") ?? "";

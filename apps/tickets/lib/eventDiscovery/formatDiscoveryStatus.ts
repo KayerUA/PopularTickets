@@ -6,6 +6,14 @@ export function formatDiscoveryStatusForTelegram(result: EventDiscoveryResult | 
 
   const lines: string[] = [];
 
+  if (result.searchConsole?.status === "submitted") {
+    lines.push("Google Search: sitemap отправлен, индексацию проверим отдельно");
+  } else if (result.searchConsole?.status === "failed") {
+    lines.push("Google Search: отправка не удалась, повторим при следующей сверке");
+  } else if (result.searchConsole?.status === "skipped") {
+    lines.push("Google Search: автоматическая отправка не подключена");
+  }
+
   if (result.gbp === "created") {
     lines.push("📍 Google Business: событие создано");
     if (result.gbpSearchUrl) {
