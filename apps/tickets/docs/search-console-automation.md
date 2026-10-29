@@ -27,19 +27,19 @@ URL Inspection читает состояние индекса, запрос ин
 1. Выполните `supabase/add-search-console-state.sql` в SQL Editor нужного
    проекта Supabase. Таблица закрыта для браузерных ролей через RLS и grants.
 2. В Google Cloud включите Search Console API для проекта сервисного аккаунта.
-3. У аккаунта `kayer-analytics@kayer-1776867490785.iam.gserviceaccount.com`
+3. У аккаунта `tickets-service@tickets-497711.iam.gserviceaccount.com`
    должен быть полный доступ к нужному свойству Search Console.
 4. Настройте в **Production** проекта Tickets на Vercel:
 
    ```text
-   GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL=kayer-analytics@kayer-1776867490785.iam.gserviceaccount.com
+   GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL=tickets-service@tickets-497711.iam.gserviceaccount.com
    GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY=<private_key из JSON-ключа сервисного аккаунта>
-   GOOGLE_SEARCH_CONSOLE_SITE_URL=https://www.populartickets.pl/
+   GOOGLE_SEARCH_CONSOLE_SITE_URL=sc-domain:populartickets.pl
    CRON_SECRET=<секрет для cron>
    NEXT_PUBLIC_APP_URL=https://www.populartickets.pl
    ```
 
-   Для Domain property вместо URL укажите `sc-domain:populartickets.pl`.
+   Для URL-prefix property вместо домена укажите `https://www.populartickets.pl/`.
    Значение должно совпадать со свойством, к которому выдали доступ.
    Email без приватного ключа не позволяет подписывать запросы от этого аккаунта.
    Значение `private_key` поддерживает настоящие переносы строк и `\n`.
