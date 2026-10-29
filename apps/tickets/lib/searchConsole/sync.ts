@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { routing } from "@/i18n/routing";
+import { INDEXABLE_TRIAL_HUB_COURSE_SLUGS, TRIAL_HUB_SEGMENT } from "@/lib/trialCourseHub";
 import { getServiceSupabase } from "@/lib/supabase/admin";
 import { getSearchConsoleConfig, SearchConsoleClient, type GoogleIndexStatus } from "./client";
 import { checkPublishedPage, sitemapEntries, sitemapFingerprint } from "./preflight";
@@ -88,7 +89,12 @@ export async function syncSearchConsole(options: {
           startsAt.set(url, Date.parse(event.starts_at));
         }
       }
-      for (const locale of routing.locales) urls.add(`${config.baseUrl}/${locale}/events/arhiv`);
+      for (const locale of routing.locales) {
+        urls.add(`${config.baseUrl}/${locale}/events/arhiv`);
+        for (const course of INDEXABLE_TRIAL_HUB_COURSE_SLUGS) {
+          urls.add(`${config.baseUrl}/${locale}/${TRIAL_HUB_SEGMENT}/${course}`);
+        }
+      }
     }
     for (const url of urls) {
       if (!entries.has(url)) throw new Error(`sitemap_url_missing: ${url}`);

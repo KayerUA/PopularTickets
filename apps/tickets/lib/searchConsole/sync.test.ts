@@ -140,18 +140,20 @@ describe("daily Google index monitoring", () => {
     store.events.push(...Array.from({ length: 5 }, (_, i) => ({ slug: `show-${i}`, starts_at: new Date(Date.now() + 86_400_000).toISOString() })));
     const urls = store.events.flatMap((event) => locales.map((locale) => `${base}/${locale}/events/${event.slug}`));
     urls.push(...locales.map((locale) => `${base}/${locale}/events/arhiv`));
+    urls.push(...locales.flatMap((locale) => ["improv", "acting"].map((course) => `${base}/${locale}/probnoe/${course}`)));
     sitemap(urls);
     return store;
   }
 
-  it("checks existing events created outside the app and rotates through all 18 URLs", async () => {
+  it("checks events, archive and trial hubs, rotating through all 24 URLs", async () => {
     const { db } = upcomingEvents();
     const first = await syncSearchConsole({ db, inspect: true });
     expect(first.report).toHaveLength(12);
-    expect(mocks.checkPage).toHaveBeenCalledTimes(18);
+    expect(mocks.checkPage).toHaveBeenCalledTimes(24);
     const second = await syncSearchConsole({ db, inspect: true });
-    expect(second.report).toHaveLength(18);
-    expect(mocks.inspect).toHaveBeenCalledTimes(18);
+    expect(second.report).toHaveLength(24);
+    expect(mocks.inspect).toHaveBeenCalledTimes(24);
+    expect(second.report?.filter((row) => row.url.includes("/probnoe/"))).toHaveLength(6);
     expect(mocks.submit).toHaveBeenCalledTimes(1);
   });
 
