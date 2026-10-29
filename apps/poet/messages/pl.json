@@ -2,7 +2,7 @@
   "metadata": {
     "titleDefault": "Studio teatralne w Warszawie: improwizacja i aktorstwo po rosyjsku | Popular Poet",
     "titleTemplate": "%s · Popular Poet",
-    "description": "Studio teatralne dla dorosłych w Warszawie. Improwizacja i aktorstwo po rosyjsku, można mówić po ukraińsku. Grupy do 8 osób, zajęcia próbne 100 zł.",
+    "description": "Studio teatralne dla dorosłych w Warszawie. Improwizacja i aktorstwo po rosyjsku, można mówić po ukraińsku. Grupy do 12 osób, zajęcia próbne 100 zł.",
     "keywords": "Popular Poet, teatr Warszawa, kursy aktorskie, improwizacja, warsztaty aktorskie, masterclass aktorski, PLAY-BACK, zajęcia wprowadzające, bilety online, PopularTickets",
     "ogImagePath": "/courses/theatre-photo.jpg",
     "ogImageAlt": "Popular Poet — teatr i kursy w Warszawie"
@@ -44,7 +44,7 @@
         ],
         "price": "Cena — 590 zł za każde 4 zajęcia (~147 zł / 2 godziny zajęć)",
         "schedule": "2 godziny, raz w tygodniu",
-        "group": "Grupa — 8 osób",
+        "group": "Grupa do 12 osób",
         "start": "Po zajęciach próbnych możesz od razu dołączyć do grupy",
         "venue": "Warszawa, Mokotów, Domaniewska 37",
         "trial": "Zajęcia próbne — 100 zł",
@@ -105,7 +105,7 @@
         ],
         "price": "Cena — 590 zł za każde 4 zajęcia (~147 zł / 2 godziny zajęć)",
         "schedule": "2 godziny, raz w tygodniu",
-        "group": "Grupa — 8 osób",
+        "group": "Grupa do 12 osób",
         "start": "Po zajęciach próbnych możesz od razu dołączyć do grupy",
         "venue": "Warszawa, Mokotów, Domaniewska 37",
         "trial": "Zajęcia próbne — 100 zł",

@@ -38,6 +38,17 @@ function isTheatreVenue(venue: string): boolean {
   return v.includes("domaniewska") && v.includes("37");
 }
 
+function absoluteImageUrl(src: string | null, base: string | undefined): string | undefined {
+  const value = src?.trim();
+  if (!value) return undefined;
+  try {
+    const url = new URL(value, base);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.href : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function buildTrialEventJsonLd(trial: PoetTrialDisplay, locale: AppLocale): Record<string, unknown> | null {
   if (!trial.starts_at) return null;
 
@@ -52,6 +63,7 @@ function buildTrialEventJsonLd(trial: PoetTrialDisplay, locale: AppLocale): Reco
   const soldOut = trial.status === "sold_out" || trial.remainingTickets <= 0;
   const atTheatre = isTheatreVenue(trial.venue) || trial.venue === POPULAR_POET_TRIAL_VENUE_PL;
   const poetUrl = getPoetSiteUrl()?.replace(/\/$/, "");
+  const imageUrl = absoluteImageUrl(trial.imageUrl, poetUrl);
   const endDate = resolveEventEndDateIso({ starts_at: trial.starts_at, ends_at: trial.ends_at, listing_kind: trial.id.startsWith("show:") ? "performance" : "trial" });
 
   const description = (trial.body ?? trial.title).replace(/\s+/g, " ").trim().slice(0, 2000);
@@ -66,7 +78,7 @@ function buildTrialEventJsonLd(trial: PoetTrialDisplay, locale: AppLocale): Reco
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
     ...(eventUrl ? { url: eventUrl } : {}),
-    ...(trial.imageUrl ? { image: trial.imageUrl } : {}),
+    ...(imageUrl ? { image: imageUrl } : {}),
     ...(trial.totalTickets > 0 ? { maximumAttendeeCapacity: trial.totalTickets } : {}),
     performer: {
       "@type": "TheaterGroup",
